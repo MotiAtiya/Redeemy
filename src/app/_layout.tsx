@@ -1,9 +1,12 @@
 import { Stack } from 'expo-router';
+import { GluestackProvider } from '@/components/ui/GluestackProvider';
 
 export default function RootLayout() {
   return (
-    <Stack>
-      <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-    </Stack>
+    <GluestackProvider>
+      <Stack>
+        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+      </Stack>
+    </GluestackProvider>
   );
 }
