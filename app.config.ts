@@ -45,6 +45,13 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     'expo-font',
     '@react-native-google-signin/google-signin',
     'expo-apple-authentication',
+    [
+      'expo-image-picker',
+      {
+        photosPermission: 'Redeemy needs access to your photos to select credit images.',
+        cameraPermission: 'Redeemy uses the camera to photograph your store credits.',
+      },
+    ],
   ],
   experiments: {
     typedRoutes: true,

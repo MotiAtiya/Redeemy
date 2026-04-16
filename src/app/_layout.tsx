@@ -55,6 +55,11 @@ export default function RootLayout() {
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
           <Stack.Screen name="auth/sign-in" options={{ headerShown: false }} />
           <Stack.Screen name="auth/sign-up" options={{ headerShown: false }} />
+          <Stack.Screen
+            name="add-credit"
+            options={{ headerShown: false, presentation: 'modal' }}
+          />
+          <Stack.Screen name="credit/[id]" options={{ headerShown: false }} />
         </Stack>
       </AuthGate>
     </GluestackProvider>
