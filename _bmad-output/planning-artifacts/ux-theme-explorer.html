@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Redeemy — UX Theme Explorer</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', sans-serif; background: #F1F5F9; color: #0F172A; }
+
+  .page-header { background: #0F172A; color: white; padding: 32px 40px; }
+  .page-header h1 { font-size: 28px; font-weight: 700; letter-spacing: -0.5px; }
+  .page-header p { margin-top: 6px; color: #94A3B8; font-size: 15px; }
+
+  .themes-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 32px; padding: 40px; max-width: 1400px; margin: 0 auto; }
+
+  .theme-card { background: white; border-radius: 20px; overflow: hidden; box-shadow: 0 4px 24px rgba(0,0,0,0.08); }
+  .theme-header { padding: 24px 24px 20px; border-bottom: 1px solid #F1F5F9; }
+  .theme-name { font-size: 20px; font-weight: 700; }
+  .theme-tagline { font-size: 13px; color: #64748B; margin-top: 4px; }
+
+  .palette-row { display: flex; gap: 8px; margin-top: 16px; }
+  .swatch { height: 32px; border-radius: 8px; flex: 1; }
+
+  .phone-frame { margin: 20px auto; width: 240px; background: #1C1C1E; border-radius: 40px; padding: 12px; box-shadow: 0 20px 60px rgba(0,0,0,0.25); }
+  .phone-screen { border-radius: 30px; overflow: hidden; }
+  .phone-notch { height: 28px; display: flex; align-items: center; justify-content: center; }
+  .notch-bar { width: 90px; height: 22px; background: #1C1C1E; border-radius: 20px; }
+
+  /* Screen sections */
+  .screen-statusbar { height: 10px; display: flex; justify-content: space-between; align-items: center; padding: 0 16px; font-size: 8px; font-weight: 600; }
+  .screen-header { padding: 10px 16px 8px; }
+  .screen-header-row { display: flex; justify-content: space-between; align-items: center; }
+  .app-title { font-size: 22px; font-weight: 800; letter-spacing: -0.5px; }
+  .header-subtitle { font-size: 10px; margin-top: 1px; opacity: 0.6; }
+
+  .search-bar { margin: 8px 16px; border-radius: 12px; padding: 8px 12px; display: flex; align-items: center; gap: 6px; font-size: 11px; }
+  .search-icon { font-size: 11px; opacity: 0.5; }
+
+  .section-label { padding: 8px 16px 4px; font-size: 10px; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase; opacity: 0.5; }
+
+  .credit-card { margin: 6px 16px; border-radius: 14px; padding: 12px 14px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+  .credit-card-top { display: flex; justify-content: space-between; align-items: flex-start; }
+  .credit-store { font-size: 13px; font-weight: 700; }
+  .credit-thumb { width: 32px; height-top: 32px; border-radius: 6px; font-size: 18px; display: flex; align-items: center; justify-content: center; }
+  .credit-amount { font-size: 22px; font-weight: 800; margin-top: 4px; letter-spacing: -0.5px; }
+  .credit-bottom { display: flex; justify-content: space-between; align-items: center; margin-top: 6px; }
+  .credit-category { font-size: 9px; font-weight: 600; padding: 3px 7px; border-radius: 6px; }
+  .expiry-badge { font-size: 9px; font-weight: 700; padding: 3px 8px; border-radius: 20px; }
+  .expiry-green { background: #DCFCE7; color: #15803D; }
+  .expiry-yellow { background: #FEF9C3; color: #A16207; }
+  .expiry-red { background: #FEE2E2; color: #B91C1C; }
+
+  .tab-bar { display: flex; justify-content: space-around; padding: 8px 0 10px; border-top: 1px solid rgba(0,0,0,0.08); }
+  .tab-item { display: flex; flex-direction: column; align-items: center; gap: 2px; font-size: 8px; font-weight: 600; opacity: 0.4; }
+  .tab-item.active { opacity: 1; }
+  .tab-icon { font-size: 16px; }
+
+  .fab { position: absolute; bottom: 52px; right: 20px; width: 36px; height: 36px; border-radius: 18px; display: flex; align-items: center; justify-content: center; font-size: 20px; color: white; box-shadow: 0 4px 12px rgba(0,0,0,0.25); }
+
+  .theme-specs { padding: 16px 24px 24px; border-top: 1px solid #F1F5F9; }
+  .spec-title { font-size: 11px; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase; color: #94A3B8; margin-bottom: 10px; }
+  .spec-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; font-size: 12px; }
+  .spec-label { color: #64748B; }
+  .spec-value { font-weight: 600; font-family: 'SF Mono', 'Fira Code', monospace; font-size: 11px; }
+
+  .recommendation-badge { display: inline-block; background: #DCFCE7; color: #15803D; font-size: 10px; font-weight: 700; padding: 3px 10px; border-radius: 20px; margin-left: 8px; vertical-align: middle; }
+
+  .urgency-section { padding: 0 24px 20px; }
+  .urgency-title { font-size: 11px; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase; color: #94A3B8; margin-bottom: 10px; }
+  .urgency-row { display: flex; gap: 6px; }
+  .urgency-chip { flex: 1; text-align: center; padding: 6px 4px; border-radius: 8px; font-size: 10px; font-weight: 700; }
+
+  .typography-section { padding: 0 24px 20px; border-top: 1px solid #F1F5F9; }
+  .typo-title { font-size: 11px; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase; color: #94A3B8; margin: 16px 0 10px; }
+  .typo-row { margin-bottom: 6px; }
+  .typo-label { font-size: 10px; color: #94A3B8; margin-bottom: 1px; }
+
+  @media (max-width: 1100px) {
+    .themes-grid { grid-template-columns: 1fr; max-width: 480px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="page-header">
+  <h1>Redeemy — Visual Theme Explorer</h1>
+  <p>Three distinct directions, each grounded in calm confidence and financial trust. Pick the one that feels most like Redeemy to you.</p>
+</div>
+
+<div class="themes-grid">
+
+  <!-- ============ THEME 1: TEAL ============ -->
+  <div class="theme-card">
+    <div class="theme-header">
+      <div class="theme-name">Theme 1 — "Sage" <span class="recommendation-badge">Recommended</span></div>
+      <div class="theme-tagline">Calm teal · Trustworthy · Fresh · Modern fintech feel</div>
+      <div class="palette-row">
+        <div class="swatch" style="background:#0D9488;" title="#0D9488"></div>
+        <div class="swatch" style="background:#14B8A6;" title="#14B8A6"></div>
+        <div class="swatch" style="background:#CCFBF1;" title="#CCFBF1"></div>
+        <div class="swatch" style="background:#F0FDFA;" title="#F0FDFA"></div>
+        <div class="swatch" style="background:#0F172A;" title="#0F172A"></div>
+        <div class="swatch" style="background:#64748B;" title="#64748B"></div>
+      </div>
+    </div>
+
+    <div style="display:flex; justify-content:center; padding:20px 0; background:#F0FDFA; position:relative;">
+      <div class="phone-frame">
+        <div class="phone-screen" style="background:#F0FDFA;">
+          <div class="phone-notch"><div class="notch-bar"></div></div>
+          <div class="screen-statusbar" style="color:#0F172A;">9:41 <span>●●●</span></div>
+
+          <div class="screen-header" style="background:#F0FDFA;">
+            <div class="screen-header-row">
+              <div>
+                <div class="app-title" style="color:#0F172A;">Redeemy</div>
+                <div class="header-subtitle" style="color:#0D9488;">3 credits · ₪420 total</div>
+              </div>
+              <div style="font-size:20px;">🔔</div>
+            </div>
+          </div>
+
+          <div class="search-bar" style="background:white; border:1.5px solid #CCFBF1;">
+            <span class="search-icon">🔍</span>
+            <span style="color:#94A3B8; font-size:11px;">Search store…</span>
+          </div>
+
+          <div class="section-label" style="color:#0F172A;">Expiring Soon</div>
+
+          <div class="credit-card" style="background:white;">
+            <div class="credit-card-top">
+              <div>
+                <div class="credit-store" style="color:#0F172A;">Zara</div>
+                <div class="credit-amount" style="color:#0D9488;">₪250</div>
+              </div>
+              <div class="credit-thumb">👗</div>
+            </div>
+            <div class="credit-bottom">
+              <div class="credit-category" style="background:#CCFBF1; color:#0D9488;">Fashion</div>
+              <div class="expiry-badge expiry-red">3 days left</div>
+            </div>
+          </div>
+
+          <div class="credit-card" style="background:white;">
+            <div class="credit-card-top">
+              <div>
+                <div class="credit-store" style="color:#0F172A;">IKEA</div>
+                <div class="credit-amount" style="color:#0D9488;">₪120</div>
+              </div>
+              <div class="credit-thumb">🛋️</div>
+            </div>
+            <div class="credit-bottom">
+              <div class="credit-category" style="background:#CCFBF1; color:#0D9488;">Home</div>
+              <div class="expiry-badge expiry-yellow">18 days left</div>
+            </div>
+          </div>
+
+          <div class="credit-card" style="background:white;">
+            <div class="credit-card-top">
+              <div>
+                <div class="credit-store" style="color:#0F172A;">Castro</div>
+                <div class="credit-amount" style="color:#0D9488;">₪50</div>
+              </div>
+              <div class="credit-thumb">👕</div>
+            </div>
+            <div class="credit-bottom">
+              <div class="credit-category" style="background:#CCFBF1; color:#0D9488;">Fashion</div>
+              <div class="expiry-badge expiry-green">45 days left</div>
+            </div>
+          </div>
+
+          <div class="tab-bar" style="background:white; margin-top:8px;">
+            <div class="tab-item active" style="color:#0D9488;"><span class="tab-icon">💳</span>Credits</div>
+            <div class="tab-item"><span class="tab-icon">🏪</span>Stores</div>
+            <div class="tab-item"><span class="tab-icon">📋</span>History</div>
+            <div class="tab-item"><span class="tab-icon">⚙️</span>Settings</div>
+          </div>
+        </div>
+      </div>
+      <div class="fab" style="background:#0D9488; position:absolute; bottom:28px; right:calc(50% - 120px + 16px);">+</div>
+    </div>
+
+    <div class="urgency-section">
+      <div class="urgency-title">Urgency Palette (all themes share this)</div>
+      <div class="urgency-row">
+        <div class="urgency-chip" style="background:#DCFCE7; color:#15803D;">&gt;30 days<br/>Safe</div>
+        <div class="urgency-chip" style="background:#FEF9C3; color:#A16207;">7–30 days<br/>Soon</div>
+        <div class="urgency-chip" style="background:#FEE2E2; color:#B91C1C;">&lt;7 days<br/>Critical</div>
+        <div class="urgency-chip" style="background:#F1F5F9; color:#94A3B8;">Expired<br/>Neutral</div>
+      </div>
+    </div>
+
+    <div class="theme-specs">
+      <div class="spec-title">Color Tokens</div>
+      <div class="spec-row"><span class="spec-label">Primary</span><span class="spec-value">#0D9488</span></div>
+      <div class="spec-row"><span class="spec-label">Primary Light</span><span class="spec-value">#14B8A6</span></div>
+      <div class="spec-row"><span class="spec-label">Primary Surface</span><span class="spec-value">#CCFBF1</span></div>
+      <div class="spec-row"><span class="spec-label">Background</span><span class="spec-value">#F0FDFA</span></div>
+      <div class="spec-row"><span class="spec-label">Card Surface</span><span class="spec-value">#FFFFFF</span></div>
+      <div class="spec-row"><span class="spec-label">Text Primary</span><span class="spec-value">#0F172A</span></div>
+      <div class="spec-row"><span class="spec-label">Text Secondary</span><span class="spec-value">#64748B</span></div>
+    </div>
+
+    <div class="typography-section">
+      <div class="typo-title">Typography</div>
+      <div class="typo-row">
+        <div class="typo-label">App Title / Amount Hero</div>
+        <div style="font-size:24px; font-weight:800; color:#0F172A; letter-spacing:-0.5px;">₪250</div>
+      </div>
+      <div class="typo-row">
+        <div class="typo-label">Store Name</div>
+        <div style="font-size:16px; font-weight:700; color:#0F172A;">Zara</div>
+      </div>
+      <div class="typo-row">
+        <div class="typo-label">Body / Notes</div>
+        <div style="font-size:14px; color:#64748B;">Valid at main branch only</div>
+      </div>
+      <div class="typo-row">
+        <div class="typo-label">Metadata / Labels</div>
+        <div style="font-size:11px; font-weight:600; color:#94A3B8; text-transform:uppercase; letter-spacing:0.5px;">FASHION · 18 DAYS LEFT</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ THEME 2: INDIGO ============ -->
+  <div class="theme-card">
+    <div class="theme-header">
+      <div class="theme-name">Theme 2 — "Indigo"</div>
+      <div class="theme-tagline">Deep purple · Premium · Confident · Productivity-app feel</div>
+      <div class="palette-row">
+        <div class="swatch" style="background:#4F46E5;" title="#4F46E5"></div>
+        <div class="swatch" style="background:#6366F1;" title="#6366F1"></div>
+        <div class="swatch" style="background:#E0E7FF;" title="#E0E7FF"></div>
+        <div class="swatch" style="background:#EEF2FF;" title="#EEF2FF"></div>
+        <div class="swatch" style="background:#1E1B4B;" title="#1E1B4B"></div>
+        <div class="swatch" style="background:#6B7280;" title="#6B7280"></div>
+      </div>
+    </div>
+
+    <div style="display:flex; justify-content:center; padding:20px 0; background:#EEF2FF; position:relative;">
+      <div class="phone-frame">
+        <div class="phone-screen" style="background:#EEF2FF;">
+          <div class="phone-notch"><div class="notch-bar"></div></div>
+          <div class="screen-statusbar" style="color:#1E1B4B;">9:41 <span>●●●</span></div>
+
+          <div class="screen-header" style="background:#EEF2FF;">
+            <div class="screen-header-row">
+              <div>
+                <div class="app-title" style="color:#1E1B4B;">Redeemy</div>
+                <div class="header-subtitle" style="color:#4F46E5;">3 credits · ₪420 total</div>
+              </div>
+              <div style="font-size:20px;">🔔</div>
+            </div>
+          </div>
+
+          <div class="search-bar" style="background:white; border:1.5px solid #E0E7FF;">
+            <span class="search-icon">🔍</span>
+            <span style="color:#94A3B8; font-size:11px;">Search store…</span>
+          </div>
+
+          <div class="section-label" style="color:#1E1B4B;">Expiring Soon</div>
+
+          <div class="credit-card" style="background:white;">
+            <div class="credit-card-top">
+              <div>
+                <div class="credit-store" style="color:#1E1B4B;">Zara</div>
+                <div class="credit-amount" style="color:#4F46E5;">₪250</div>
+              </div>
+              <div class="credit-thumb">👗</div>
+            </div>
+            <div class="credit-bottom">
+              <div class="credit-category" style="background:#E0E7FF; color:#4F46E5;">Fashion</div>
+              <div class="expiry-badge expiry-red">3 days left</div>
+            </div>
+          </div>
+
+          <div class="credit-card" style="background:white;">
+            <div class="credit-card-top">
+              <div>
+                <div class="credit-store" style="color:#1E1B4B;">IKEA</div>
+                <div class="credit-amount" style="color:#4F46E5;">₪120</div>
+              </div>
+              <div class="credit-thumb">🛋️</div>
+            </div>
+            <div class="credit-bottom">
+              <div class="credit-category" style="background:#E0E7FF; color:#4F46E5;">Home</div>
+              <div class="expiry-badge expiry-yellow">18 days left</div>
+            </div>
+          </div>
+
+          <div class="credit-card" style="background:white;">
+            <div class="credit-card-top">
+              <div>
+                <div class="credit-store" style="color:#1E1B4B;">Castro</div>
+                <div class="credit-amount" style="color:#4F46E5;">₪50</div>
+              </div>
+              <div class="credit-thumb">👕</div>
+            </div>
+            <div class="credit-bottom">
+              <div class="credit-category" style="background:#E0E7FF; color:#4F46E5;">Fashion</div>
+              <div class="expiry-badge expiry-green">45 days left</div>
+            </div>
+          </div>
+
+          <div class="tab-bar" style="background:white; margin-top:8px;">
+            <div class="tab-item active" style="color:#4F46E5;"><span class="tab-icon">💳</span>Credits</div>
+            <div class="tab-item"><span class="tab-icon">🏪</span>Stores</div>
+            <div class="tab-item"><span class="tab-icon">📋</span>History</div>
+            <div class="tab-item"><span class="tab-icon">⚙️</span>Settings</div>
+          </div>
+        </div>
+      </div>
+      <div class="fab" style="background:#4F46E5; position:absolute; bottom:28px; right:calc(50% - 120px + 16px);">+</div>
+    </div>
+
+    <div class="urgency-section">
+      <div class="urgency-title">Urgency Palette (all themes share this)</div>
+      <div class="urgency-row">
+        <div class="urgency-chip" style="background:#DCFCE7; color:#15803D;">&gt;30 days<br/>Safe</div>
+        <div class="urgency-chip" style="background:#FEF9C3; color:#A16207;">7–30 days<br/>Soon</div>
+        <div class="urgency-chip" style="background:#FEE2E2; color:#B91C1C;">&lt;7 days<br/>Critical</div>
+        <div class="urgency-chip" style="background:#F1F5F9; color:#94A3B8;">Expired<br/>Neutral</div>
+      </div>
+    </div>
+
+    <div class="theme-specs">
+      <div class="spec-title">Color Tokens</div>
+      <div class="spec-row"><span class="spec-label">Primary</span><span class="spec-value">#4F46E5</span></div>
+      <div class="spec-row"><span class="spec-label">Primary Light</span><span class="spec-value">#6366F1</span></div>
+      <div class="spec-row"><span class="spec-label">Primary Surface</span><span class="spec-value">#E0E7FF</span></div>
+      <div class="spec-row"><span class="spec-label">Background</span><span class="spec-value">#EEF2FF</span></div>
+      <div class="spec-row"><span class="spec-label">Card Surface</span><span class="spec-value">#FFFFFF</span></div>
+      <div class="spec-row"><span class="spec-label">Text Primary</span><span class="spec-value">#1E1B4B</span></div>
+      <div class="spec-row"><span class="spec-label">Text Secondary</span><span class="spec-value">#6B7280</span></div>
+    </div>
+
+    <div class="typography-section">
+      <div class="typo-title">Typography</div>
+      <div class="typo-row">
+        <div class="typo-label">App Title / Amount Hero</div>
+        <div style="font-size:24px; font-weight:800; color:#1E1B4B; letter-spacing:-0.5px;">₪250</div>
+      </div>
+      <div class="typo-row">
+        <div class="typo-label">Store Name</div>
+        <div style="font-size:16px; font-weight:700; color:#1E1B4B;">Zara</div>
+      </div>
+      <div class="typo-row">
+        <div class="typo-label">Body / Notes</div>
+        <div style="font-size:14px; color:#6B7280;">Valid at main branch only</div>
+      </div>
+      <div class="typo-row">
+        <div class="typo-label">Metadata / Labels</div>
+        <div style="font-size:11px; font-weight:600; color:#94A3B8; text-transform:uppercase; letter-spacing:0.5px;">FASHION · 18 DAYS LEFT</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ THEME 3: EMERALD ============ -->
+  <div class="theme-card">
+    <div class="theme-header">
+      <div class="theme-name">Theme 3 — "Emerald"</div>
+      <div class="theme-tagline">Rich green · Money · Growth · Classic financial feel</div>
+      <div class="palette-row">
+        <div class="swatch" style="background:#059669;" title="#059669"></div>
+        <div class="swatch" style="background:#10B981;" title="#10B981"></div>
+        <div class="swatch" style="background:#A7F3D0;" title="#A7F3D0"></div>
+        <div class="swatch" style="background:#ECFDF5;" title="#ECFDF5"></div>
+        <div class="swatch" style="background:#064E3B;" title="#064E3B"></div>
+        <div class="swatch" style="background:#6B7280;" title="#6B7280"></div>
+      </div>
+    </div>
+
+    <div style="display:flex; justify-content:center; padding:20px 0; background:#ECFDF5; position:relative;">
+      <div class="phone-frame">
+        <div class="phone-screen" style="background:#ECFDF5;">
+          <div class="phone-notch"><div class="notch-bar"></div></div>
+          <div class="screen-statusbar" style="color:#064E3B;">9:41 <span>●●●</span></div>
+
+          <div class="screen-header" style="background:#ECFDF5;">
+            <div class="screen-header-row">
+              <div>
+                <div class="app-title" style="color:#064E3B;">Redeemy</div>
+                <div class="header-subtitle" style="color:#059669;">3 credits · ₪420 total</div>
+              </div>
+              <div style="font-size:20px;">🔔</div>
+            </div>
+          </div>
+
+          <div class="search-bar" style="background:white; border:1.5px solid #A7F3D0;">
+            <span class="search-icon">🔍</span>
+            <span style="color:#94A3B8; font-size:11px;">Search store…</span>
+          </div>
+
+          <div class="section-label" style="color:#064E3B;">Expiring Soon</div>
+
+          <div class="credit-card" style="background:white;">
+            <div class="credit-card-top">
+              <div>
+                <div class="credit-store" style="color:#064E3B;">Zara</div>
+                <div class="credit-amount" style="color:#059669;">₪250</div>
+              </div>
+              <div class="credit-thumb">👗</div>
+            </div>
+            <div class="credit-bottom">
+              <div class="credit-category" style="background:#A7F3D0; color:#059669;">Fashion</div>
+              <div class="expiry-badge expiry-red">3 days left</div>
+            </div>
+          </div>
+
+          <div class="credit-card" style="background:white;">
+            <div class="credit-card-top">
+              <div>
+                <div class="credit-store" style="color:#064E3B;">IKEA</div>
+                <div class="credit-amount" style="color:#059669;">₪120</div>
+              </div>
+              <div class="credit-thumb">🛋️</div>
+            </div>
+            <div class="credit-bottom">
+              <div class="credit-category" style="background:#A7F3D0; color:#059669;">Home</div>
+              <div class="expiry-badge expiry-yellow">18 days left</div>
+            </div>
+          </div>
+
+          <div class="credit-card" style="background:white;">
+            <div class="credit-card-top">
+              <div>
+                <div class="credit-store" style="color:#064E3B;">Castro</div>
+                <div class="credit-amount" style="color:#059669;">₪50</div>
+              </div>
+              <div class="credit-thumb">👕</div>
+            </div>
+            <div class="credit-bottom">
+              <div class="credit-category" style="background:#A7F3D0; color:#059669;">Fashion</div>
+              <div class="expiry-badge expiry-green">45 days left</div>
+            </div>
+          </div>
+
+          <div class="tab-bar" style="background:white; margin-top:8px;">
+            <div class="tab-item active" style="color:#059669;"><span class="tab-icon">💳</span>Credits</div>
+            <div class="tab-item"><span class="tab-icon">🏪</span>Stores</div>
+            <div class="tab-item"><span class="tab-icon">📋</span>History</div>
+            <div class="tab-item"><span class="tab-icon">⚙️</span>Settings</div>
+          </div>
+        </div>
+      </div>
+      <div class="fab" style="background:#059669; position:absolute; bottom:28px; right:calc(50% - 120px + 16px);">+</div>
+    </div>
+
+    <div class="urgency-section">
+      <div class="urgency-title">Urgency Palette (all themes share this)</div>
+      <div class="urgency-row">
+        <div class="urgency-chip" style="background:#DCFCE7; color:#15803D;">&gt;30 days<br/>Safe</div>
+        <div class="urgency-chip" style="background:#FEF9C3; color:#A16207;">7–30 days<br/>Soon</div>
+        <div class="urgency-chip" style="background:#FEE2E2; color:#B91C1C;">&lt;7 days<br/>Critical</div>
+        <div class="urgency-chip" style="background:#F1F5F9; color:#94A3B8;">Expired<br/>Neutral</div>
+      </div>
+    </div>
+
+    <div class="theme-specs">
+      <div class="spec-title">Color Tokens</div>
+      <div class="spec-row"><span class="spec-label">Primary</span><span class="spec-value">#059669</span></div>
+      <div class="spec-row"><span class="spec-label">Primary Light</span><span class="spec-value">#10B981</span></div>
+      <div class="spec-row"><span class="spec-label">Primary Surface</span><span class="spec-value">#A7F3D0</span></div>
+      <div class="spec-row"><span class="spec-label">Background</span><span class="spec-value">#ECFDF5</span></div>
+      <div class="spec-row"><span class="spec-label">Card Surface</span><span class="spec-value">#FFFFFF</span></div>
+      <div class="spec-row"><span class="spec-label">Text Primary</span><span class="spec-value">#064E3B</span></div>
+      <div class="spec-row"><span class="spec-label">Text Secondary</span><span class="spec-value">#6B7280</span></div>
+    </div>
+
+    <div class="typography-section">
+      <div class="typo-title">Typography</div>
+      <div class="typo-row">
+        <div class="typo-label">App Title / Amount Hero</div>
+        <div style="font-size:24px; font-weight:800; color:#064E3B; letter-spacing:-0.5px;">₪250</div>
+      </div>
+      <div class="typo-row">
+        <div class="typo-label">Store Name</div>
+        <div style="font-size:16px; font-weight:700; color:#064E3B;">Zara</div>
+      </div>
+      <div class="typo-row">
+        <div class="typo-label">Body / Notes</div>
+        <div style="font-size:14px; color:#6B7280;">Valid at main branch only</div>
+      </div>
+      <div class="typo-row">
+        <div class="typo-label">Metadata / Labels</div>
+        <div style="font-size:11px; font-weight:600; color:#94A3B8; text-transform:uppercase; letter-spacing:0.5px;">FASHION · 18 DAYS LEFT</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div style="text-align:center; padding:20px 40px 40px; color:#64748B; font-size:13px;">
+  Typography: SF Pro (iOS system font) — used by default on iOS, no custom font needed for MVP. All three themes use the same type scale.
+  <br>Spacing base unit: 4px · Cards: 16px border-radius · FAB: always bottom-right thumb zone
+</div>
+
+</body>
+</html>

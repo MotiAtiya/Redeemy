@@ -1,0 +1,594 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Redeemy — Design Direction Showcase</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', sans-serif; background: #0F172A; color: #0F172A; }
+
+  .page-header { padding: 40px 48px 32px; }
+  .page-header h1 { font-size: 32px; font-weight: 800; color: white; letter-spacing: -1px; }
+  .page-header p { margin-top: 8px; color: #64748B; font-size: 15px; max-width: 600px; line-height: 1.5; }
+  .page-header .hint { margin-top: 12px; color: #0D9488; font-size: 13px; font-weight: 600; }
+
+  .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 40px; padding: 0 48px 60px; }
+
+  .direction-wrap { }
+  .direction-label { color: white; font-size: 18px; font-weight: 700; margin-bottom: 6px; }
+  .direction-desc { color: #64748B; font-size: 12px; margin-bottom: 16px; line-height: 1.5; }
+
+  /* Phone frame */
+  .phone { width: 260px; background: #1C1C1E; border-radius: 44px; padding: 14px; box-shadow: 0 30px 80px rgba(0,0,0,0.6); margin: 0 auto; }
+  .screen { border-radius: 32px; overflow: hidden; height: 520px; display: flex; flex-direction: column; position: relative; }
+
+  .notch-area { height: 32px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .notch { width: 96px; height: 24px; background: #1C1C1E; border-radius: 20px; }
+  .status { display: flex; justify-content: space-between; padding: 0 18px 6px; font-size: 9px; font-weight: 700; flex-shrink: 0; }
+
+  /* Tab bar — fixed at bottom of screen */
+  .tab-bar {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-around;
+    align-items: center;
+    padding: 8px 4px 12px;
+    border-top: 1px solid rgba(0,0,0,0.06);
+    background: white;
+    flex-shrink: 0;
+  }
+  .tab {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    font-size: 8px;
+    font-weight: 600;
+    color: #94A3B8;
+    flex: 1;
+  }
+  .tab.active { color: #0D9488; }
+  .tab-icon { font-size: 17px; line-height: 1; }
+
+  /* FAB — absolutely positioned above tab bar */
+  .fab {
+    position: absolute;
+    bottom: 54px;
+    right: 16px;
+    width: 42px;
+    height: 42px;
+    border-radius: 21px;
+    background: #0D9488;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    font-weight: 300;
+    box-shadow: 0 4px 14px rgba(13,148,136,0.45);
+    z-index: 10;
+  }
+
+  /* Scrollable content area */
+  .scroll-area { flex: 1; overflow: hidden; }
+
+  /* Urgency badges */
+  .ub { font-size: 8.5px; font-weight: 700; padding: 2px 7px; border-radius: 20px; }
+  .ub-red { background: #FEE2E2; color: #B91C1C; }
+  .ub-amber { background: #FEF9C3; color: #A16207; }
+  .ub-green { background: #DCFCE7; color: #15803D; }
+
+  /* =========================================
+     DIRECTION 1 — Wallet / Stacked Cards
+  ========================================= */
+  .d1-header { padding: 10px 18px 0; display: flex; justify-content: space-between; align-items: flex-start; }
+  .d1-title { font-size: 26px; font-weight: 800; color: #0F172A; letter-spacing: -0.5px; }
+  .d1-sub { font-size: 10px; color: #0D9488; font-weight: 600; margin-top: 2px; }
+  .d1-search { margin: 10px 14px 6px; background: white; border-radius: 12px; border: 1.5px solid #CCFBF1; padding: 7px 12px; display: flex; gap: 6px; align-items: center; font-size: 10px; color: #94A3B8; }
+  .d1-section { padding: 8px 18px 4px; font-size: 9px; font-weight: 700; letter-spacing: 0.6px; text-transform: uppercase; color: #94A3B8; }
+  .d1-card { margin: 0 14px 10px; background: white; border-radius: 18px; padding: 14px; box-shadow: 0 4px 16px rgba(13,148,136,0.12), 0 1px 4px rgba(0,0,0,0.06); }
+  .d1-card-top { display: flex; justify-content: space-between; align-items: flex-start; }
+  .d1-store { font-size: 13px; font-weight: 700; color: #0F172A; }
+  .d1-amount { font-size: 28px; font-weight: 800; color: #0D9488; letter-spacing: -1px; line-height: 1; margin-top: 4px; }
+  .d1-thumb { width: 36px; height: 36px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 20px; background: #F0FDFA; }
+  .d1-bottom { display: flex; justify-content: space-between; align-items: center; margin-top: 8px; }
+  .d1-cat { font-size: 9px; font-weight: 600; background: #CCFBF1; color: #0D9488; padding: 3px 8px; border-radius: 6px; }
+
+  /* =========================================
+     DIRECTION 2 — Clean List Rows
+  ========================================= */
+  .d2-header { background: #0D9488; padding: 12px 18px 16px; flex-shrink: 0; }
+  .d2-title { font-size: 22px; font-weight: 800; color: white; letter-spacing: -0.5px; }
+  .d2-stats { display: flex; gap: 14px; margin-top: 8px; }
+  .d2-stat-val { font-size: 18px; font-weight: 800; color: white; letter-spacing: -0.5px; }
+  .d2-stat-lbl { font-size: 8px; color: rgba(255,255,255,0.7); text-transform: uppercase; letter-spacing: 0.5px; }
+  .d2-search { margin: 10px 14px 4px; background: #F8FAFC; border-radius: 10px; border: 1px solid #E2E8F0; padding: 7px 12px; display: flex; gap: 6px; align-items: center; font-size: 10px; color: #94A3B8; }
+  .d2-section-label { padding: 8px 18px 4px; font-size: 9px; font-weight: 700; letter-spacing: 0.6px; text-transform: uppercase; color: #94A3B8; border-bottom: 1px solid #F1F5F9; }
+  .d2-row { display: flex; align-items: center; padding: 10px 18px; border-bottom: 1px solid #F8FAFC; gap: 10px; }
+  .d2-dot { width: 8px; height: 8px; border-radius: 4px; flex-shrink: 0; }
+  .d2-name { font-size: 12px; font-weight: 700; color: #0F172A; }
+  .d2-meta { font-size: 9px; color: #94A3B8; margin-top: 1px; }
+  .d2-amount { font-size: 14px; font-weight: 800; color: #0D9488; letter-spacing: -0.5px; }
+  .d2-days { font-size: 8.5px; font-weight: 700; margin-top: 2px; text-align: right; }
+
+  /* =========================================
+     DIRECTION 3 — Dashboard
+  ========================================= */
+  .d3-hero { background: #0D9488; padding: 12px 18px 20px; flex-shrink: 0; }
+  .d3-hero-title { font-size: 18px; font-weight: 800; color: white; }
+  .d3-hero-total { font-size: 36px; font-weight: 800; color: white; letter-spacing: -1px; margin-top: 4px; }
+  .d3-hero-sub { font-size: 9px; color: rgba(255,255,255,0.7); margin-top: 2px; }
+  .d3-chips { display: flex; gap: 6px; margin-top: 12px; flex-wrap: wrap; }
+  .d3-chip { background: rgba(255,255,255,0.2); border-radius: 20px; padding: 4px 10px; font-size: 9px; font-weight: 700; color: white; }
+  .d3-chip.alert { background: #FEE2E2; color: #B91C1C; }
+  .d3-search { margin: 10px 14px 6px; background: white; border-radius: 12px; border: 1.5px solid #CCFBF1; padding: 7px 12px; display: flex; gap: 6px; align-items: center; font-size: 10px; color: #94A3B8; }
+  .d3-section { padding: 6px 18px 4px; font-size: 9px; font-weight: 700; letter-spacing: 0.6px; text-transform: uppercase; color: #94A3B8; }
+  .d3-card { margin: 0 14px 8px; background: white; border-radius: 14px; padding: 11px 14px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); display: flex; justify-content: space-between; align-items: center; }
+  .d3-store { font-size: 12px; font-weight: 700; color: #0F172A; }
+  .d3-amount { font-size: 20px; font-weight: 800; color: #0D9488; letter-spacing: -0.5px; }
+  .d3-cat { font-size: 8.5px; color: #94A3B8; margin-top: 2px; }
+
+  /* =========================================
+     DIRECTION 4 — Spotlight
+  ========================================= */
+  .d4-hero-card { margin: 4px 14px 0; background: #FEE2E2; border-radius: 18px; border: 1.5px solid #FECACA; padding: 14px; }
+  .d4-hero-label { font-size: 9px; font-weight: 700; color: #B91C1C; text-transform: uppercase; letter-spacing: 0.5px; }
+  .d4-hero-store { font-size: 16px; font-weight: 800; color: #0F172A; margin-top: 6px; }
+  .d4-hero-amount { font-size: 32px; font-weight: 800; color: #B91C1C; letter-spacing: -1px; }
+  .d4-hero-exp { font-size: 10px; color: #64748B; margin-top: 4px; }
+  .d4-hero-btn { margin-top: 10px; background: #EF4444; border-radius: 10px; padding: 7px; text-align: center; color: white; font-size: 10px; font-weight: 700; }
+  .d4-section { padding: 10px 18px 4px; font-size: 9px; font-weight: 700; letter-spacing: 0.6px; text-transform: uppercase; color: #94A3B8; }
+  .d4-card { margin: 0 14px 7px; background: white; border-radius: 12px; padding: 10px 14px; box-shadow: 0 1px 4px rgba(0,0,0,0.06); display: flex; justify-content: space-between; align-items: center; }
+  .d4-store { font-size: 12px; font-weight: 700; color: #0F172A; }
+  .d4-amount2 { font-size: 18px; font-weight: 800; color: #0D9488; }
+  .d4-meta2 { font-size: 8.5px; color: #94A3B8; margin-top: 1px; }
+
+  /* =========================================
+     DIRECTION 5 — Photo-forward
+  ========================================= */
+  .d5-card { margin: 0 14px 10px; border-radius: 18px; overflow: hidden; box-shadow: 0 4px 16px rgba(0,0,0,0.1); }
+  .d5-img { height: 72px; display: flex; align-items: center; justify-content: center; font-size: 32px; }
+  .d5-overlay { padding: 10px 14px 12px; background: white; }
+  .d5-card-top { display: flex; justify-content: space-between; align-items: flex-start; }
+  .d5-store { font-size: 13px; font-weight: 700; color: #0F172A; }
+  .d5-amount { font-size: 22px; font-weight: 800; color: #0D9488; letter-spacing: -0.5px; }
+  .d5-bottom { display: flex; justify-content: space-between; align-items: center; margin-top: 6px; }
+  .d5-cat { font-size: 9px; font-weight: 600; background: #CCFBF1; color: #0D9488; padding: 2px 7px; border-radius: 6px; }
+
+  /* =========================================
+     DIRECTION 6 — Compact Grid
+  ========================================= */
+  .d6-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 0 14px; }
+  .d6-card { background: white; border-radius: 14px; padding: 11px 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.07); }
+  .d6-thumb { font-size: 20px; margin-bottom: 6px; }
+  .d6-store { font-size: 11px; font-weight: 700; color: #0F172A; }
+  .d6-amount { font-size: 18px; font-weight: 800; color: #0D9488; letter-spacing: -0.5px; margin-top: 2px; }
+  .d6-bottom { display: flex; flex-direction: column; gap: 4px; margin-top: 6px; }
+  .d6-cat { font-size: 8px; font-weight: 600; background: #CCFBF1; color: #0D9488; padding: 2px 6px; border-radius: 5px; align-self: flex-start; }
+  .d6-urgency-bar { height: 3px; border-radius: 2px; margin-top: 4px; }
+
+  /* Shared search */
+  .search-bar { margin: 8px 14px; background: white; border-radius: 12px; border: 1.5px solid #CCFBF1; padding: 7px 12px; display: flex; gap: 6px; align-items: center; font-size: 10px; color: #94A3B8; flex-shrink: 0; }
+  .sec-label { padding: 8px 18px 4px; font-size: 9px; font-weight: 700; letter-spacing: 0.6px; text-transform: uppercase; color: #94A3B8; flex-shrink: 0; }
+</style>
+</head>
+<body>
+
+<div class="page-header">
+  <h1>Redeemy — Design Directions</h1>
+  <p>Six layout approaches, all using the Sage teal palette. Each represents a different visual philosophy. Tell me which one (or combination) feels right.</p>
+  <div class="hint">Evaluation: layout intuitiveness · visual weight · information hierarchy · emotional tone</div>
+</div>
+
+<div class="grid">
+
+  <!-- ====== DIRECTION 1: WALLET ====== -->
+  <div class="direction-wrap">
+    <div class="direction-label">1 — "Wallet" · Stacked Cards</div>
+    <div class="direction-desc">Apple Wallet-inspired. Large, prominent cards with visual weight. Each credit feels like a physical object. Spacious and premium.</div>
+    <div class="phone">
+      <div class="screen" style="background:#F0FDFA;">
+        <div class="notch-area" style="background:#F0FDFA;"><div class="notch"></div></div>
+        <div class="status" style="color:#0F172A;">9:41 <span>●●●</span></div>
+
+        <div class="d1-header">
+          <div>
+            <div class="d1-title">Redeemy</div>
+            <div class="d1-sub">3 credits · ₪420 total</div>
+          </div>
+          <div style="font-size:18px; margin-top:4px;">🔔</div>
+        </div>
+
+        <div class="d1-search">🔍 <span>Search store…</span></div>
+        <div class="d1-section">Expiring Soon</div>
+
+        <div class="d1-card">
+          <div class="d1-card-top">
+            <div>
+              <div class="d1-store">Zara</div>
+              <div class="d1-amount">₪250</div>
+            </div>
+            <div class="d1-thumb">👗</div>
+          </div>
+          <div class="d1-bottom">
+            <div class="d1-cat">Fashion</div>
+            <div class="ub ub-red">3 days left</div>
+          </div>
+        </div>
+
+        <div class="d1-card">
+          <div class="d1-card-top">
+            <div>
+              <div class="d1-store">IKEA</div>
+              <div class="d1-amount">₪120</div>
+            </div>
+            <div class="d1-thumb">🛋️</div>
+          </div>
+          <div class="d1-bottom">
+            <div class="d1-cat">Home</div>
+            <div class="ub ub-amber">18 days left</div>
+          </div>
+        </div>
+
+        <!-- FAB absolutely positioned -->
+        <div class="fab">+</div>
+
+        <div style="flex:1;"></div>
+        <div class="tab-bar">
+          <div class="tab active"><span class="tab-icon">💳</span>Credits</div>
+          <div class="tab"><span class="tab-icon">🏪</span>Stores</div>
+          <div class="tab"><span class="tab-icon">📋</span>History</div>
+          <div class="tab"><span class="tab-icon">⚙️</span>More</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ====== DIRECTION 2: LIST ====== -->
+  <div class="direction-wrap">
+    <div class="direction-label">2 — "List" · Dense Rows</div>
+    <div class="direction-desc">Teal header with summary stats. Compact list rows show more credits at once. Fast scanning, great for users with many credits.</div>
+    <div class="phone">
+      <div class="screen" style="background:white;">
+        <div class="notch-area" style="background:#0D9488;"><div class="notch" style="background:#0D9488;"></div></div>
+
+        <div class="d2-header">
+          <div class="d2-title">Redeemy</div>
+          <div class="d2-stats">
+            <div><div class="d2-stat-val">₪420</div><div class="d2-stat-lbl">Total</div></div>
+            <div><div class="d2-stat-val">3</div><div class="d2-stat-lbl">Active</div></div>
+            <div><div class="d2-stat-val" style="color:#FCA5A5;">1</div><div class="d2-stat-lbl">Expiring</div></div>
+          </div>
+        </div>
+
+        <div class="d2-search">🔍 <span>Search store…</span></div>
+        <div class="d2-section-label">All Credits</div>
+
+        <div class="d2-row">
+          <div class="d2-dot" style="background:#EF4444;"></div>
+          <div style="flex:1;">
+            <div class="d2-name">Zara</div>
+            <div class="d2-meta">Fashion · Expires Apr 19</div>
+          </div>
+          <div style="text-align:right;">
+            <div class="d2-amount">₪250</div>
+            <div class="d2-days" style="color:#B91C1C;">3 days</div>
+          </div>
+        </div>
+
+        <div class="d2-row">
+          <div class="d2-dot" style="background:#F59E0B;"></div>
+          <div style="flex:1;">
+            <div class="d2-name">IKEA</div>
+            <div class="d2-meta">Home · Expires May 4</div>
+          </div>
+          <div style="text-align:right;">
+            <div class="d2-amount">₪120</div>
+            <div class="d2-days" style="color:#A16207;">18 days</div>
+          </div>
+        </div>
+
+        <div class="d2-row">
+          <div class="d2-dot" style="background:#22C55E;"></div>
+          <div style="flex:1;">
+            <div class="d2-name">Castro</div>
+            <div class="d2-meta">Fashion · Expires May 31</div>
+          </div>
+          <div style="text-align:right;">
+            <div class="d2-amount">₪50</div>
+            <div class="d2-days" style="color:#15803D;">45 days</div>
+          </div>
+        </div>
+
+        <div class="d2-row" style="opacity:0.45;">
+          <div class="d2-dot" style="background:#E2E8F0;"></div>
+          <div style="flex:1;">
+            <div class="d2-name">H&M</div>
+            <div class="d2-meta">Fashion · Expires Jun 30</div>
+          </div>
+          <div style="text-align:right;">
+            <div class="d2-amount">₪80</div>
+            <div class="d2-days" style="color:#94A3B8;">74 days</div>
+          </div>
+        </div>
+
+        <div class="fab">+</div>
+        <div style="flex:1;"></div>
+        <div class="tab-bar">
+          <div class="tab active"><span class="tab-icon">💳</span>Credits</div>
+          <div class="tab"><span class="tab-icon">🏪</span>Stores</div>
+          <div class="tab"><span class="tab-icon">📋</span>History</div>
+          <div class="tab"><span class="tab-icon">⚙️</span>More</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ====== DIRECTION 3: DASHBOARD ====== -->
+  <div class="direction-wrap">
+    <div class="direction-label">3 — "Dashboard" · Summary Header</div>
+    <div class="direction-desc">Teal hero section shows total portfolio value at a glance. Status chips highlight urgent items. Financial overview feel before diving in.</div>
+    <div class="phone">
+      <div class="screen" style="background:#F0FDFA;">
+        <div class="notch-area" style="background:#0D9488;"><div class="notch" style="background:#0D9488;"></div></div>
+        <div class="status" style="color:white; background:#0D9488;">9:41 <span>●●●</span></div>
+
+        <div class="d3-hero">
+          <div class="d3-hero-title">Redeemy</div>
+          <div class="d3-hero-total">₪420</div>
+          <div class="d3-hero-sub">Total active credit value</div>
+          <div class="d3-chips">
+            <div class="d3-chip">3 Active</div>
+            <div class="d3-chip alert">⚠️ 1 Expiring</div>
+            <div class="d3-chip">2 Stores</div>
+          </div>
+        </div>
+
+        <div class="search-bar">🔍 <span>Search store…</span></div>
+        <div class="d3-section">Expiring Soon</div>
+
+        <div class="d3-card">
+          <div>
+            <div class="d3-store">Zara</div>
+            <div class="d3-amount">₪250</div>
+            <div class="d3-cat">Fashion</div>
+          </div>
+          <div style="display:flex; flex-direction:column; align-items:flex-end; gap:6px;">
+            <div class="ub ub-red">3 days</div>
+            <div style="font-size:22px;">👗</div>
+          </div>
+        </div>
+
+        <div class="d3-card">
+          <div>
+            <div class="d3-store">IKEA</div>
+            <div class="d3-amount">₪120</div>
+            <div class="d3-cat">Home</div>
+          </div>
+          <div style="display:flex; flex-direction:column; align-items:flex-end; gap:6px;">
+            <div class="ub ub-amber">18 days</div>
+            <div style="font-size:22px;">🛋️</div>
+          </div>
+        </div>
+
+        <div class="fab">+</div>
+        <div style="flex:1;"></div>
+        <div class="tab-bar">
+          <div class="tab active"><span class="tab-icon">💳</span>Credits</div>
+          <div class="tab"><span class="tab-icon">🏪</span>Stores</div>
+          <div class="tab"><span class="tab-icon">📋</span>History</div>
+          <div class="tab"><span class="tab-icon">⚙️</span>More</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ====== DIRECTION 4: SPOTLIGHT ====== -->
+  <div class="direction-wrap">
+    <div class="direction-label">4 — "Spotlight" · Urgency Hero</div>
+    <div class="direction-desc">The most urgent credit commands the top as a hero card with a clear CTA. Safe credits recede below. Urgency-first hierarchy — great for preventing losses.</div>
+    <div class="phone">
+      <div class="screen" style="background:#F0FDFA;">
+        <div class="notch-area" style="background:#F0FDFA;"><div class="notch"></div></div>
+        <div class="status" style="color:#0F172A;">9:41 <span>●●●</span></div>
+
+        <div style="padding: 8px 18px 6px; display:flex; justify-content:space-between; align-items:center;">
+          <div style="font-size:20px; font-weight:800; color:#0F172A;">Redeemy</div>
+          <div style="font-size:18px;">🔔</div>
+        </div>
+
+        <div class="search-bar">🔍 <span>Search store…</span></div>
+
+        <div class="d4-hero-card">
+          <div class="d4-hero-label">⚠️ Expires in 3 days</div>
+          <div class="d4-hero-store">Zara</div>
+          <div class="d4-hero-amount">₪250</div>
+          <div class="d4-hero-exp">Apr 19, 2026 · Fashion</div>
+          <div class="d4-hero-btn">View Credit Details →</div>
+        </div>
+
+        <div class="d4-section">All Clear</div>
+
+        <div class="d4-card">
+          <div>
+            <div class="d4-store">IKEA</div>
+            <div class="d4-meta2">Home · 18 days left</div>
+          </div>
+          <div style="text-align:right;">
+            <div class="d4-amount2">₪120</div>
+            <div class="ub ub-amber" style="margin-top:2px;">18 days</div>
+          </div>
+        </div>
+
+        <div class="d4-card">
+          <div>
+            <div class="d4-store">Castro</div>
+            <div class="d4-meta2">Fashion · 45 days left</div>
+          </div>
+          <div style="text-align:right;">
+            <div class="d4-amount2">₪50</div>
+            <div class="ub ub-green" style="margin-top:2px;">45 days</div>
+          </div>
+        </div>
+
+        <div class="fab">+</div>
+        <div style="flex:1;"></div>
+        <div class="tab-bar">
+          <div class="tab active"><span class="tab-icon">💳</span>Credits</div>
+          <div class="tab"><span class="tab-icon">🏪</span>Stores</div>
+          <div class="tab"><span class="tab-icon">📋</span>History</div>
+          <div class="tab"><span class="tab-icon">⚙️</span>More</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ====== DIRECTION 5: PHOTO-FORWARD ====== -->
+  <div class="direction-wrap">
+    <div class="direction-label">5 — "Photo-forward" · Image Cards</div>
+    <div class="direction-desc">The credit photo becomes the hero of each card with a colored band. Visually rich and immediately recognizable — each card feels unique.</div>
+    <div class="phone">
+      <div class="screen" style="background:#F0FDFA;">
+        <div class="notch-area" style="background:#F0FDFA;"><div class="notch"></div></div>
+        <div class="status" style="color:#0F172A;">9:41 <span>●●●</span></div>
+
+        <div style="padding:10px 18px 0; display:flex; justify-content:space-between; align-items:center;">
+          <div>
+            <div style="font-size:22px; font-weight:800; color:#0F172A; letter-spacing:-0.5px;">Redeemy</div>
+            <div style="font-size:10px; color:#0D9488; font-weight:600;">3 credits · ₪420</div>
+          </div>
+          <div style="font-size:18px;">🔔</div>
+        </div>
+
+        <div class="search-bar">🔍 <span>Search store…</span></div>
+
+        <div class="d5-card">
+          <div class="d5-img" style="background: linear-gradient(135deg, #E11D48, #BE123C);">👗</div>
+          <div class="d5-overlay">
+            <div class="d5-card-top">
+              <div>
+                <div class="d5-store">Zara</div>
+                <div class="d5-amount">₪250</div>
+              </div>
+              <div class="ub ub-red">3 days</div>
+            </div>
+            <div class="d5-bottom">
+              <div class="d5-cat">Fashion</div>
+              <div style="font-size:9px; color:#94A3B8;">Apr 19</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="d5-card">
+          <div class="d5-img" style="background: linear-gradient(135deg, #0369A1, #0284C7);">🛋️</div>
+          <div class="d5-overlay">
+            <div class="d5-card-top">
+              <div>
+                <div class="d5-store">IKEA</div>
+                <div class="d5-amount">₪120</div>
+              </div>
+              <div class="ub ub-amber">18 days</div>
+            </div>
+            <div class="d5-bottom">
+              <div class="d5-cat">Home</div>
+              <div style="font-size:9px; color:#94A3B8;">May 4</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="fab">+</div>
+        <div style="flex:1;"></div>
+        <div class="tab-bar">
+          <div class="tab active"><span class="tab-icon">💳</span>Credits</div>
+          <div class="tab"><span class="tab-icon">🏪</span>Stores</div>
+          <div class="tab"><span class="tab-icon">📋</span>History</div>
+          <div class="tab"><span class="tab-icon">⚙️</span>More</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ====== DIRECTION 6: GRID ====== -->
+  <div class="direction-wrap">
+    <div class="direction-label">6 — "Grid" · Two-Column Compact</div>
+    <div class="direction-desc">Two-column grid shows more credits simultaneously. Each card is compact but clear. Ideal for Serial Returner persona with many active credits.</div>
+    <div class="phone">
+      <div class="screen" style="background:#F0FDFA;">
+        <div class="notch-area" style="background:#F0FDFA;"><div class="notch"></div></div>
+        <div class="status" style="color:#0F172A;">9:41 <span>●●●</span></div>
+
+        <div style="padding:10px 18px 6px; display:flex; justify-content:space-between; align-items:center;">
+          <div>
+            <div style="font-size:22px; font-weight:800; color:#0F172A; letter-spacing:-0.5px;">Redeemy</div>
+            <div style="font-size:10px; color:#0D9488; font-weight:600;">4 credits · ₪500</div>
+          </div>
+          <div style="font-size:18px;">🔔</div>
+        </div>
+
+        <div class="search-bar">🔍 <span>Search store…</span></div>
+
+        <div class="d6-grid">
+          <div class="d6-card">
+            <div class="d6-thumb">👗</div>
+            <div class="d6-store">Zara</div>
+            <div class="d6-amount">₪250</div>
+            <div class="d6-bottom">
+              <div class="d6-cat">Fashion</div>
+              <div class="ub ub-red">3 days</div>
+            </div>
+            <div class="d6-urgency-bar" style="background:#EF4444;"></div>
+          </div>
+          <div class="d6-card">
+            <div class="d6-thumb">🛋️</div>
+            <div class="d6-store">IKEA</div>
+            <div class="d6-amount">₪120</div>
+            <div class="d6-bottom">
+              <div class="d6-cat">Home</div>
+              <div class="ub ub-amber">18 d</div>
+            </div>
+            <div class="d6-urgency-bar" style="background:#F59E0B;"></div>
+          </div>
+          <div class="d6-card">
+            <div class="d6-thumb">👕</div>
+            <div class="d6-store">Castro</div>
+            <div class="d6-amount">₪50</div>
+            <div class="d6-bottom">
+              <div class="d6-cat">Fashion</div>
+              <div class="ub ub-green">45 d</div>
+            </div>
+            <div class="d6-urgency-bar" style="background:#22C55E;"></div>
+          </div>
+          <div class="d6-card">
+            <div class="d6-thumb">👔</div>
+            <div class="d6-store">H&M</div>
+            <div class="d6-amount">₪80</div>
+            <div class="d6-bottom">
+              <div class="d6-cat">Fashion</div>
+              <div class="ub ub-green">74 d</div>
+            </div>
+            <div class="d6-urgency-bar" style="background:#22C55E;"></div>
+          </div>
+        </div>
+
+        <div class="fab">+</div>
+        <div style="flex:1;"></div>
+        <div class="tab-bar">
+          <div class="tab active"><span class="tab-icon">💳</span>Credits</div>
+          <div class="tab"><span class="tab-icon">🏪</span>Stores</div>
+          <div class="tab"><span class="tab-icon">📋</span>History</div>
+          <div class="tab"><span class="tab-icon">⚙️</span>More</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div style="text-align:center; padding:0 48px 48px; color:#64748B; font-size:13px; line-height:1.8;">
+  All directions use the Sage teal palette, SF Pro typography, and the same urgency system (red/amber/green).<br>
+  You can pick one direction or mix elements — e.g. "cards from #1, stats header from #3".
+</div>
+
+</body>
+</html>
