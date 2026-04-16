@@ -16,6 +16,7 @@ import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { ExpirationBadge } from '@/components/redeemy/ExpirationBadge';
 import { deleteCredit, updateCredit } from '@/lib/firestoreCredits';
+import { cancelNotification } from '@/lib/notifications';
 import { formatCurrency } from '@/lib/formatCurrency';
 import { useCreditsStore } from '@/stores/creditsStore';
 import { CreditStatus } from '@/types/creditTypes';
@@ -32,6 +33,8 @@ export default function CreditDetailScreen() {
 
   const [showActionSheet, setShowActionSheet] = useState(false);
   const [loading, setLoading] = useState(false);
+
+  const isRedeemed = credit?.status === CreditStatus.REDEEMED;
 
   const categoryMeta = useMemo(
     () => CATEGORIES.find((c) => c.id === credit?.category),
@@ -57,7 +60,7 @@ export default function CreditDetailScreen() {
     const c = credit!;
     Alert.alert(
       'Mark as Redeemed',
-      `Mark the ₪${(c.amount / 100).toFixed(2)} credit at ${c.storeName} as redeemed?`,
+      'This credit will move to your history.',
       [
         { text: 'Cancel', style: 'cancel' },
         {
@@ -65,6 +68,8 @@ export default function CreditDetailScreen() {
           onPress: async () => {
             setLoading(true);
             try {
+              // Cancel scheduled notification immediately
+              await cancelNotification(c.notificationId);
               updateCreditInStore(c.id, {
                 status: CreditStatus.REDEEMED,
                 redeemedAt: new Date(),
@@ -100,6 +105,7 @@ export default function CreditDetailScreen() {
           onPress: async () => {
             setLoading(true);
             try {
+              await cancelNotification(c.notificationId);
               removeCredit(c.id); // Optimistic
               await deleteCredit(c.id);
               router.back();
@@ -212,24 +218,36 @@ export default function CreditDetailScreen() {
         </View>
       </ScrollView>
 
-      {/* Primary action */}
+      {/* Primary action / redeemed banner */}
       <View style={styles.footer}>
-        <TouchableOpacity
-          style={[styles.redeemButton, loading && styles.buttonDisabled]}
-          onPress={handleMarkRedeemed}
-          disabled={loading}
-          accessibilityRole="button"
-          accessibilityLabel="Mark as Redeemed"
-        >
-          {loading ? (
-            <ActivityIndicator color="#FFFFFF" />
-          ) : (
-            <>
-              <Ionicons name="checkmark-circle-outline" size={20} color="#FFFFFF" />
-              <Text style={styles.redeemButtonText}>Mark as Redeemed</Text>
-            </>
-          )}
-        </TouchableOpacity>
+        {isRedeemed ? (
+          <View style={styles.redeemedBanner}>
+            <Ionicons name="checkmark-circle" size={18} color="#9E9E9E" />
+            <Text style={styles.redeemedBannerText}>
+              Redeemed
+              {credit.redeemedAt
+                ? ` on ${new Date(credit.redeemedAt as Date).toLocaleDateString('en-GB')}`
+                : ''}
+            </Text>
+          </View>
+        ) : (
+          <TouchableOpacity
+            style={[styles.redeemButton, loading && styles.buttonDisabled]}
+            onPress={handleMarkRedeemed}
+            disabled={loading}
+            accessibilityRole="button"
+            accessibilityLabel="Mark as Redeemed"
+          >
+            {loading ? (
+              <ActivityIndicator color="#FFFFFF" />
+            ) : (
+              <>
+                <Ionicons name="checkmark-circle-outline" size={20} color="#FFFFFF" />
+                <Text style={styles.redeemButtonText}>Mark as Redeemed</Text>
+              </>
+            )}
+          </TouchableOpacity>
+        )}
       </View>
 
       {/* Action sheet modal */}
@@ -440,4 +458,14 @@ const styles = StyleSheet.create({
     borderRadius: 10,
   },
   cancelText: { fontSize: 16, fontWeight: '600', color: '#424242' },
+  redeemedBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    paddingVertical: 14,
+    backgroundColor: '#F5F5F5',
+    borderRadius: 12,
+  },
+  redeemedBannerText: { fontSize: 15, color: '#9E9E9E', fontWeight: '500' },
 });

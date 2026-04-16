@@ -46,6 +46,14 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     '@react-native-google-signin/google-signin',
     'expo-apple-authentication',
     [
+      'expo-notifications',
+      {
+        icon: './assets/images/icon.png',
+        color: '#5F9E8F',
+        sounds: [],
+      },
+    ],
+    [
       'expo-image-picker',
       {
         photosPermission: 'Redeemy needs access to your photos to select credit images.',

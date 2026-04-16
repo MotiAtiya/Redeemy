@@ -1,27 +1,33 @@
 import { useEffect } from 'react';
 import { View, ActivityIndicator, StyleSheet } from 'react-native';
 import { Stack, useRouter, useSegments } from 'expo-router';
+import * as Notifications from 'expo-notifications';
 import { GluestackProvider } from '@/components/ui/GluestackProvider';
 import { useAuthState } from '@/hooks/useAuthState';
+import { useBadgeUpdater } from '@/hooks/useBadgeUpdater';
 import { useAuthStore } from '@/stores/authStore';
 import { AuthStatus } from '@/types/userTypes';
 import { configureGoogleSignIn } from '@/lib/auth';
+import { registerNotificationCategories, getCreditIdFromNotification } from '@/lib/notifications';
 import { SAGE_TEAL } from '@/components/ui/theme';
 
-// Configure Google Sign-In once at module load time
+// One-time module-level setup
 configureGoogleSignIn();
+registerNotificationCategories();
 
 /**
- * Starts the Firebase auth listener, guards routes, and shows a loading
- * screen while the persisted session is being resolved.
+ * Starts the Firebase auth listener, guards routes, handles notification
+ * deep-links, and shows a loading screen while the persisted session resolves.
  */
 function AuthGate({ children }: { children: React.ReactNode }) {
   useAuthState();
+  useBadgeUpdater();
 
   const router = useRouter();
   const segments = useSegments();
   const authStatus = useAuthStore((s) => s.authStatus);
 
+  // Redirect based on auth status
   useEffect(() => {
     if (authStatus === AuthStatus.LOADING) return;
 
@@ -34,8 +40,26 @@ function AuthGate({ children }: { children: React.ReactNode }) {
     }
   }, [authStatus, segments, router]);
 
-  // Show a full-screen spinner while the persisted token is being read.
-  // This prevents any flash of the sign-in screen for returning users.
+  // Deep-link from notification tap
+  useEffect(() => {
+    // Handle notification that opened the app from killed state
+    Notifications.getLastNotificationResponseAsync().then((response) => {
+      if (!response) return;
+      const creditId = getCreditIdFromNotification(response);
+      if (creditId && authStatus === AuthStatus.AUTHENTICATED) {
+        router.push(`/credit/${creditId}`);
+      }
+    });
+
+    // Handle notification tap while app is running
+    const sub = Notifications.addNotificationResponseReceivedListener((response) => {
+      const creditId = getCreditIdFromNotification(response);
+      if (creditId) router.push(`/credit/${creditId}`);
+    });
+
+    return () => sub.remove();
+  }, [authStatus, router]);
+
   if (authStatus === AuthStatus.LOADING) {
     return (
       <View style={styles.loading}>
@@ -60,6 +84,7 @@ export default function RootLayout() {
             options={{ headerShown: false, presentation: 'modal' }}
           />
           <Stack.Screen name="credit/[id]" options={{ headerShown: false }} />
+          <Stack.Screen name="store/[name]" options={{ headerShown: false }} />
         </Stack>
       </AuthGate>
     </GluestackProvider>

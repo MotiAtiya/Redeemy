@@ -15,6 +15,7 @@ import { CreditCard } from '@/components/redeemy/CreditCard';
 import { subscribeToCredits } from '@/lib/firestoreCredits';
 import { useAuthStore } from '@/stores/authStore';
 import { useCreditsStore } from '@/stores/creditsStore';
+import { CreditStatus } from '@/types/creditTypes';
 import { SAGE_TEAL } from '@/components/ui/theme';
 import type { Credit } from '@/types/creditTypes';
 
@@ -71,9 +72,9 @@ export default function CreditsScreen() {
     return unsubscribe;
   }, [currentUser?.uid, setLoading]);
 
-  // Filter + sort
+  // Filter + sort — Credits tab shows ACTIVE only
   const filteredCredits = useMemo(() => {
-    let result = credits;
+    let result = credits.filter((c) => c.status === CreditStatus.ACTIVE);
 
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase();
@@ -91,9 +92,9 @@ export default function CreditsScreen() {
     return sortCredits(result, sortKey);
   }, [credits, searchQuery, sortKey, selectedCategory]);
 
-  // Unique categories in current credits for filter chips
+  // Unique categories among active credits for filter chips
   const availableCategories = useMemo(
-    () => [...new Set(credits.map((c) => c.category))],
+    () => [...new Set(credits.filter((c) => c.status === CreditStatus.ACTIVE).map((c) => c.category))],
     [credits]
   );
 

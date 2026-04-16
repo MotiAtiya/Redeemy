@@ -21,15 +21,15 @@ const CREDITS_COLLECTION = 'credits';
 // ---------------------------------------------------------------------------
 
 /**
- * Subscribes to the current user's active credits.
+ * Subscribes to ALL of the current user's credits (active + redeemed).
  * Writes updates directly into creditsStore.
+ * Client-side filtering handles active/redeemed views.
  * Returns an unsubscribe function — call on screen unmount.
  */
 export function subscribeToCredits(userId: string): Unsubscribe {
   const q = query(
     collection(db, CREDITS_COLLECTION),
-    where('userId', '==', userId),
-    where('status', '==', CreditStatus.ACTIVE)
+    where('userId', '==', userId)
   );
 
   return onSnapshot(

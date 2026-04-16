@@ -22,6 +22,7 @@ import { CategoryChipSelector } from '@/components/redeemy/CategoryChipSelector'
 import { StoreAutocomplete } from '@/components/redeemy/StoreAutocomplete';
 import { openCamera, openGallery, uploadCreditImage } from '@/lib/imageUpload';
 import { createCredit, updateCredit } from '@/lib/firestoreCredits';
+import { scheduleReminderNotification } from '@/lib/notifications';
 import { parseAmountToAgot } from '@/lib/formatCurrency';
 import { useAuthStore } from '@/stores/authStore';
 import { useCreditsStore } from '@/stores/creditsStore';
@@ -168,6 +169,23 @@ export default function AddCreditScreen() {
         notes: notes.trim(),
         status: CreditStatus.ACTIVE,
       });
+
+      // Schedule reminder notification
+      const resolvedReminderDays = showCustomReminder
+        ? parseInt(customReminder) || DEFAULT_REMINDER_DAYS
+        : reminderDays;
+
+      const notificationId = await scheduleReminderNotification({
+        id: creditId,
+        storeName: storeName.trim(),
+        amount: agot,
+        expirationDate: expirationDate!,
+        reminderDays: resolvedReminderDays,
+      });
+
+      if (notificationId) {
+        await updateCredit(creditId, { notificationId });
+      }
 
       // Upload images if a photo was taken
       if (imageUri) {
