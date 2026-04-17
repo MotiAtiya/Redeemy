@@ -154,14 +154,17 @@ export default function CreditDetailScreen() {
 
   async function handleShare() {
     setShowActionSheet(false);
+    const c = credit!;
     if (allGroupMembers.length > 0) {
-      // Show transfer sheet with family + native share options
-      setShowTransferSheet(true);
+      // Small delay so action sheet finishes dismissing before new modal opens
+      setTimeout(() => setShowTransferSheet(true), 300);
     } else {
-      const c = credit!;
-      await Share.share({
-        message: `I have a ${formatCurrency(c.amount)} gift credit at ${c.storeName} — using Redeemy to track it!`,
-      });
+      // Delay so the action sheet is fully gone before iOS share sheet appears
+      setTimeout(async () => {
+        await Share.share({
+          message: `I have a ${formatCurrency(c.amount)} gift credit at ${c.storeName} — using Redeemy to track it!`,
+        });
+      }, 300);
     }
   }
 
@@ -203,8 +206,10 @@ export default function CreditDetailScreen() {
 
   function handleEdit() {
     setShowActionSheet(false);
-    // Edit screen is the add-credit screen pre-filled — implemented in a later story
-    Alert.alert('Coming soon', 'Edit will be availagble shortly.');
+    // Small delay so the action sheet finishes dismissing before navigation
+    setTimeout(() => {
+      router.push(`/add-credit?creditId=${credit!.id}`);
+    }, 300);
   }
 
   // ---- render --------------------------------------------------------------

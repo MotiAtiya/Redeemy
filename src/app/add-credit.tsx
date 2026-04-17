@@ -13,7 +13,7 @@ import {
 } from 'react-native';
 import { Image } from 'expo-image';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useRouter } from 'expo-router';
+import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import DateTimePicker, {
   type DateTimePickerEvent,
@@ -49,9 +49,16 @@ interface FormErrors {
 
 export default function AddCreditScreen() {
   const router = useRouter();
+  const { creditId } = useLocalSearchParams<{ creditId?: string }>();
+  const isEditing = !!creditId;
+
   const currentUser = useAuthStore((s) => s.currentUser);
   const addCredit = useCreditsStore((s) => s.addCredit);
   const removeCredit = useCreditsStore((s) => s.removeCredit);
+  const updateCreditInStore = useCreditsStore((s) => s.updateCredit);
+  const existingCredit = useCreditsStore((s) =>
+    creditId ? s.credits.find((c) => c.id === creditId) : undefined
+  );
 
   // ---- form state ----------------------------------------------------------
   const [imageUri, setImageUri] = useState<string | null>(null);
@@ -68,9 +75,33 @@ export default function AddCreditScreen() {
   const [errors, setErrors] = useState<FormErrors>({});
   const [saving, setSaving] = useState(false);
 
-  // ---- open camera on mount (skip on simulator — no camera available) -------
+  // ---- pre-fill form when editing ------------------------------------------
   useEffect(() => {
-    handleCamera();
+    if (isEditing && existingCredit) {
+      setStoreName(existingCredit.storeName);
+      setAmountInput((existingCredit.amount / 100).toFixed(2));
+      setCategory(existingCredit.category);
+      const expDate = existingCredit.expirationDate instanceof Date
+        ? existingCredit.expirationDate
+        : new Date(existingCredit.expirationDate as unknown as string);
+      setExpirationDate(expDate);
+      setReminderDays(existingCredit.reminderDays);
+      if (existingCredit.notes) {
+        setNotes(existingCredit.notes);
+        setShowNotes(true);
+      }
+      if (existingCredit.imageUrl) {
+        setImageUri(existingCredit.imageUrl);
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // ---- open camera on mount only when adding (not editing) -----------------
+  useEffect(() => {
+    if (!isEditing) {
+      handleCamera();
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -143,15 +174,75 @@ export default function AddCreditScreen() {
     if (useUIStore.getState().offlineMode) {
       Alert.alert(
         'No Internet Connection',
-        'Adding credits requires an internet connection. Please try again when you are back online.',
+        `${isEditing ? 'Editing' : 'Adding'} credits requires an internet connection.`,
         [{ text: 'OK' }]
       );
       return;
     }
 
     const agot = parseAmountToAgot(amountInput);
+    const resolvedReminderDays = showCustomReminder
+      ? parseInt(customReminder) || DEFAULT_REMINDER_DAYS
+      : reminderDays;
 
-    // Build a temporary optimistic credit with a placeholder id
+    setSaving(true);
+
+    // ---- EDIT path ----------------------------------------------------------
+    if (isEditing && existingCredit) {
+      try {
+        const changes: Partial<Credit> = {
+          storeName: storeName.trim(),
+          amount: agot,
+          category,
+          expirationDate: expirationDate!,
+          reminderDays: resolvedReminderDays,
+          notes: notes.trim(),
+          updatedAt: new Date(),
+        };
+
+        // Optimistic store update
+        updateCreditInStore(existingCredit.id, changes);
+
+        // Reschedule notification if date/reminder changed
+        const notificationId = await scheduleReminderNotification(
+          {
+            id: existingCredit.id,
+            storeName: storeName.trim(),
+            amount: agot,
+            expirationDate: expirationDate!,
+            reminderDays: resolvedReminderDays,
+          },
+          existingCredit.notificationId
+        );
+
+        if (notificationId) {
+          changes.notificationId = notificationId;
+          updateCreditInStore(existingCredit.id, { notificationId });
+        }
+
+        // Upload new image if changed (imageUri is local path, imageUrl is remote)
+        if (imageUri && imageUri !== existingCredit.imageUrl) {
+          const { imageUrl, thumbnailUrl } = await uploadCreditImage(
+            imageUri,
+            existingCredit.id
+          );
+          changes.imageUrl = imageUrl;
+          changes.thumbnailUrl = thumbnailUrl;
+          updateCreditInStore(existingCredit.id, { imageUrl, thumbnailUrl });
+        }
+
+        await updateCredit(existingCredit.id, changes);
+        router.back();
+      } catch {
+        // Revert optimistic update
+        updateCreditInStore(existingCredit.id, existingCredit as Partial<Credit>);
+        setSaving(false);
+        Alert.alert("Couldn't save", 'Check your connection and try again.');
+      }
+      return;
+    }
+
+    // ---- ADD path -----------------------------------------------------------
     const tempId = `temp-${Date.now()}`;
     const optimisticCredit: Credit = {
       id: tempId,
@@ -160,7 +251,7 @@ export default function AddCreditScreen() {
       amount: agot,
       category,
       expirationDate: expirationDate!,
-      reminderDays,
+      reminderDays: resolvedReminderDays,
       notes: notes.trim(),
       status: CreditStatus.ACTIVE,
       imageUri: imageUri ?? undefined,
@@ -168,29 +259,22 @@ export default function AddCreditScreen() {
       updatedAt: new Date(),
     } as unknown as Credit;
 
-    // Optimistic update — card animates into list immediately
     addCredit(optimisticCredit);
-    setSaving(true);
 
     try {
-      const creditId = await createCredit({
+      const newCreditId = await createCredit({
         userId: currentUser.uid,
         storeName: storeName.trim(),
         amount: agot,
         category,
         expirationDate: expirationDate!,
-        reminderDays,
+        reminderDays: resolvedReminderDays,
         notes: notes.trim(),
         status: CreditStatus.ACTIVE,
       });
 
-      // Schedule reminder notification
-      const resolvedReminderDays = showCustomReminder
-        ? parseInt(customReminder) || DEFAULT_REMINDER_DAYS
-        : reminderDays;
-
       const notificationId = await scheduleReminderNotification({
-        id: creditId,
+        id: newCreditId,
         storeName: storeName.trim(),
         amount: agot,
         expirationDate: expirationDate!,
@@ -198,35 +282,24 @@ export default function AddCreditScreen() {
       });
 
       if (notificationId) {
-        await updateCredit(creditId, { notificationId });
+        await updateCredit(newCreditId, { notificationId });
       }
 
-      // Upload images if a photo was taken
       if (imageUri) {
         try {
-          const { imageUrl, thumbnailUrl } = await uploadCreditImage(
-            imageUri,
-            creditId
-          );
-          await updateCredit(creditId, { imageUrl, thumbnailUrl });
+          const { imageUrl, thumbnailUrl } = await uploadCreditImage(imageUri, newCreditId);
+          await updateCredit(newCreditId, { imageUrl, thumbnailUrl });
         } catch {
-          Alert.alert('Photo upload failed — try again');
-          // Credit is still saved, just without image
+          Alert.alert('Photo upload failed — credit saved without image.');
         }
       }
 
-      // Replace optimistic entry — real-time listener will sync the final doc
       removeCredit(tempId);
       router.back();
     } catch {
-      // Revert optimistic update on failure
       removeCredit(tempId);
       setSaving(false);
-      Alert.alert(
-        "Couldn't save",
-        'Check your connection and try again.',
-        [{ text: 'OK' }]
-      );
+      Alert.alert("Couldn't save", 'Check your connection and try again.');
     }
   }
 
@@ -247,7 +320,7 @@ export default function AddCreditScreen() {
           <TouchableOpacity onPress={() => router.back()} hitSlop={8}>
             <Ionicons name="close" size={24} color="#212121" />
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>Add Credit</Text>
+          <Text style={styles.headerTitle}>{isEditing ? 'Edit Credit' : 'Add Credit'}</Text>
           <TouchableOpacity
             onPress={handleSave}
             disabled={saving}
