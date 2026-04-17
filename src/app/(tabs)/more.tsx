@@ -8,10 +8,12 @@ import {
   Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { signOut } from '@/lib/auth';
 import { useAuthStore } from '@/stores/authStore';
 import { useCreditsStore } from '@/stores/creditsStore';
+import { useGroupStore } from '@/stores/groupStore';
 import { useUIStore } from '@/stores/uiStore';
 import { SAGE_TEAL } from '@/components/ui/theme';
 
@@ -23,6 +25,9 @@ function resetAllStores() {
   credits.setError(null);
   credits.setLoading(false);
 
+  // Clear groups
+  useGroupStore.getState().setGroups([]);
+
   // Reset UI state
   const ui = useUIStore.getState();
   ui.setActiveTab('credits');
@@ -33,7 +38,9 @@ function resetAllStores() {
 }
 
 export default function MoreScreen() {
+  const router = useRouter();
   const currentUser = useAuthStore((s) => s.currentUser);
+  const groups = useGroupStore((s) => s.groups);
   const [signingOut, setSigningOut] = useState(false);
 
   async function handleSignOut() {
@@ -84,6 +91,23 @@ export default function MoreScreen() {
                 </Text>
               </View>
             </View>
+          </View>
+        </View>
+
+        {/* Family Groups section */}
+        <View style={styles.section}>
+          <Text style={styles.sectionLabel}>SHARING</Text>
+          <View style={styles.card}>
+            <TouchableOpacity style={styles.settingsRow} onPress={() => router.push('/groups')}>
+              <Ionicons name="people-outline" size={20} color="#616161" />
+              <Text style={styles.settingsLabel}>Family Groups</Text>
+              {groups.length > 0 && (
+                <View style={styles.badge}>
+                  <Text style={styles.badgeText}>{groups.length}</Text>
+                </View>
+              )}
+              <Ionicons name="chevron-forward" size={16} color="#BDBDBD" />
+            </TouchableOpacity>
           </View>
         </View>
 
@@ -197,4 +221,15 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   signOutText: { fontSize: 15, fontWeight: '600', color: '#D32F2F' },
+  badge: {
+    minWidth: 20,
+    height: 20,
+    borderRadius: 10,
+    backgroundColor: SAGE_TEAL,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 6,
+    marginRight: 4,
+  },
+  badgeText: { fontSize: 11, fontWeight: '700', color: '#FFFFFF' },
 });

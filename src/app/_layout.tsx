@@ -5,6 +5,8 @@ import * as Notifications from 'expo-notifications';
 import { GluestackProvider } from '@/components/ui/GluestackProvider';
 import { useAuthState } from '@/hooks/useAuthState';
 import { useBadgeUpdater } from '@/hooks/useBadgeUpdater';
+import { useGroupSync } from '@/hooks/useGroupSync';
+import { useGroupListener } from '@/hooks/useGroupListener';
 import { useAuthStore } from '@/stores/authStore';
 import { AuthStatus } from '@/types/userTypes';
 import { configureGoogleSignIn } from '@/lib/auth';
@@ -22,6 +24,8 @@ registerNotificationCategories();
 function AuthGate({ children }: { children: React.ReactNode }) {
   useAuthState();
   useBadgeUpdater();
+  useGroupSync();
+  useGroupListener();
 
   const router = useRouter();
   const segments = useSegments();
@@ -85,6 +89,10 @@ export default function RootLayout() {
           />
           <Stack.Screen name="credit/[id]" options={{ headerShown: false }} />
           <Stack.Screen name="store/[name]" options={{ headerShown: false }} />
+          <Stack.Screen name="groups" options={{ headerShown: false }} />
+          <Stack.Screen name="group/create" options={{ headerShown: false }} />
+          <Stack.Screen name="group/[id]" options={{ headerShown: false }} />
+          <Stack.Screen name="group/join/[groupId]" options={{ headerShown: false }} />
         </Stack>
       </AuthGate>
     </GluestackProvider>

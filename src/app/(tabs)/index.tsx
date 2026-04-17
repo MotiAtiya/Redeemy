@@ -12,6 +12,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { CreditCard } from '@/components/redeemy/CreditCard';
+import { SyncIndicator } from '@/components/redeemy/SyncIndicator';
 import { subscribeToCredits } from '@/lib/firestoreCredits';
 import { useAuthStore } from '@/stores/authStore';
 import { useCreditsStore } from '@/stores/creditsStore';
@@ -124,7 +125,10 @@ export default function CreditsScreen() {
     <SafeAreaView style={styles.safe} edges={['top']}>
       {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.title}>Credits</Text>
+        <View style={styles.titleRow}>
+          <Text style={styles.title}>Credits</Text>
+          <SyncIndicator />
+        </View>
         <TouchableOpacity onPress={() => setShowSortMenu((s) => !s)}>
           <Ionicons name="swap-vertical-outline" size={22} color="#616161" />
         </TouchableOpacity>
@@ -258,6 +262,7 @@ const styles = StyleSheet.create({
     paddingTop: 8,
     paddingBottom: 12,
   },
+  titleRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   title: { fontSize: 28, fontWeight: '700', color: '#212121' },
   sortMenu: {
     position: 'absolute',

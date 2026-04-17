@@ -9,6 +9,7 @@ import {
   Share,
   Modal,
   ActivityIndicator,
+  FlatList,
 } from 'react-native';
 import { Image } from 'expo-image';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -16,10 +17,14 @@ import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { ExpirationBadge } from '@/components/redeemy/ExpirationBadge';
 import { deleteCredit, updateCredit } from '@/lib/firestoreCredits';
+import { transferCredit } from '@/lib/firestoreGroups';
 import { cancelNotification } from '@/lib/notifications';
 import { formatCurrency } from '@/lib/formatCurrency';
 import { useCreditsStore } from '@/stores/creditsStore';
+import { useGroupStore } from '@/stores/groupStore';
+import { useAuthStore } from '@/stores/authStore';
 import { CreditStatus } from '@/types/creditTypes';
+import type { GroupMember } from '@/types/groupTypes';
 import { CATEGORIES } from '@/constants/categories';
 import { SAGE_TEAL } from '@/components/ui/theme';
 
@@ -30,9 +35,27 @@ export default function CreditDetailScreen() {
   const credit = useCreditsStore((s) => s.credits.find((c) => c.id === id));
   const removeCredit = useCreditsStore((s) => s.removeCredit);
   const updateCreditInStore = useCreditsStore((s) => s.updateCredit);
+  const currentUser = useAuthStore((s) => s.currentUser);
+  const groups = useGroupStore((s) => s.groups);
 
   const [showActionSheet, setShowActionSheet] = useState(false);
+  const [showTransferSheet, setShowTransferSheet] = useState(false);
   const [loading, setLoading] = useState(false);
+
+  // All members across all groups (excluding self) for transfer
+  const allGroupMembers = useMemo<GroupMember[]>(() => {
+    const seen = new Set<string>();
+    const members: GroupMember[] = [];
+    for (const group of groups) {
+      for (const m of group.members ?? []) {
+        if (m.userId !== currentUser?.uid && !seen.has(m.userId)) {
+          seen.add(m.userId);
+          members.push(m);
+        }
+      }
+    }
+    return members;
+  }, [groups, currentUser]);
 
   const isRedeemed = credit?.status === CreditStatus.REDEEMED;
 
@@ -120,8 +143,49 @@ export default function CreditDetailScreen() {
   }
 
   async function handleShare() {
-    const c = credit!;
     setShowActionSheet(false);
+    if (allGroupMembers.length > 0) {
+      // Show transfer sheet with family + native share options
+      setShowTransferSheet(true);
+    } else {
+      const c = credit!;
+      await Share.share({
+        message: `I have a ${formatCurrency(c.amount)} gift credit at ${c.storeName} — using Redeemy to track it!`,
+      });
+    }
+  }
+
+  async function handleTransfer(toMember: GroupMember) {
+    const c = credit!;
+    setShowTransferSheet(false);
+    Alert.alert(
+      'Transfer Credit',
+      `Transfer the ${formatCurrency(c.amount)} ${c.storeName} credit to ${toMember.displayName ?? 'this member'}?`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Transfer',
+          onPress: async () => {
+            setLoading(true);
+            try {
+              await cancelNotification(c.notificationId);
+              await transferCredit(c.id, toMember.userId);
+              removeCredit(c.id); // Remove from sender's view
+              router.back();
+            } catch {
+              Alert.alert('Error', 'Could not transfer credit. Try again.');
+            } finally {
+              setLoading(false);
+            }
+          },
+        },
+      ]
+    );
+  }
+
+  async function handleNativeShare() {
+    const c = credit!;
+    setShowTransferSheet(false);
     await Share.share({
       message: `I have a ${formatCurrency(c.amount)} gift credit at ${c.storeName} — using Redeemy to track it!`,
     });
@@ -249,6 +313,63 @@ export default function CreditDetailScreen() {
           </TouchableOpacity>
         )}
       </View>
+
+      {/* Transfer sheet modal */}
+      <Modal
+        visible={showTransferSheet}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setShowTransferSheet(false)}
+      >
+        <TouchableOpacity
+          style={styles.overlay}
+          activeOpacity={1}
+          onPress={() => setShowTransferSheet(false)}
+        />
+        <View style={styles.actionSheet}>
+          <View style={styles.actionSheetHandle} />
+          <Text style={styles.transferTitle}>Share Credit</Text>
+
+          {allGroupMembers.length > 0 && (
+            <>
+              <Text style={styles.transferSectionLabel}>TRANSFER TO FAMILY MEMBER</Text>
+              <FlatList
+                data={allGroupMembers}
+                keyExtractor={(m) => m.userId}
+                scrollEnabled={false}
+                renderItem={({ item }) => (
+                  <TouchableOpacity
+                    style={styles.transferMemberRow}
+                    onPress={() => handleTransfer(item)}
+                  >
+                    <View style={styles.transferAvatar}>
+                      <Text style={styles.transferInitial}>
+                        {(item.displayName ?? item.userId)[0]?.toUpperCase() ?? '?'}
+                      </Text>
+                    </View>
+                    <Text style={styles.transferMemberName}>
+                      {item.displayName ?? 'Member'}
+                    </Text>
+                    <Ionicons name="arrow-forward" size={16} color="#9E9E9E" />
+                  </TouchableOpacity>
+                )}
+              />
+            </>
+          )}
+
+          <ActionSheetButton
+            icon="share-outline"
+            label="Send via…"
+            onPress={handleNativeShare}
+          />
+          <TouchableOpacity
+            style={styles.cancelButton}
+            onPress={() => setShowTransferSheet(false)}
+          >
+            <Text style={styles.cancelText}>Cancel</Text>
+          </TouchableOpacity>
+        </View>
+      </Modal>
 
       {/* Action sheet modal */}
       <Modal
@@ -468,4 +589,39 @@ const styles = StyleSheet.create({
     borderRadius: 12,
   },
   redeemedBannerText: { fontSize: 15, color: '#9E9E9E', fontWeight: '500' },
+  transferTitle: {
+    fontSize: 17,
+    fontWeight: '700',
+    color: '#212121',
+    marginBottom: 4,
+    paddingHorizontal: 4,
+  },
+  transferSectionLabel: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: '#9E9E9E',
+    letterSpacing: 0.8,
+    paddingHorizontal: 4,
+    marginTop: 8,
+    marginBottom: 4,
+  },
+  transferMemberRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    padding: 12,
+    borderRadius: 10,
+    backgroundColor: '#FAFAFA',
+    marginBottom: 6,
+  },
+  transferAvatar: {
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    backgroundColor: SAGE_TEAL,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  transferInitial: { fontSize: 14, fontWeight: '700', color: '#FFFFFF' },
+  transferMemberName: { flex: 1, fontSize: 15, color: '#212121' },
 });
