@@ -1,7 +1,8 @@
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, FlatList } from 'react-native';
 import { useMemo } from 'react';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, FlatList } from 'react-native';
 import { useCreditsStore } from '@/stores/creditsStore';
-import { SAGE_TEAL } from '@/components/ui/theme';
+import { useAppTheme } from '@/hooks/useAppTheme';
+import type { AppColors } from '@/constants/colors';
 
 interface Props {
   value: string;
@@ -9,10 +10,37 @@ interface Props {
   hasError?: boolean;
 }
 
+function makeStyles(colors: AppColors) {
+  return StyleSheet.create({
+    input: {
+      height: 52,
+      borderWidth: 1,
+      borderColor: colors.separator,
+      borderRadius: 10,
+      paddingHorizontal: 16,
+      fontSize: 16,
+      color: colors.textPrimary,
+      backgroundColor: colors.surface,
+    },
+    inputError: { borderColor: colors.danger },
+    chips: { paddingTop: 8, gap: 8 },
+    chip: {
+      paddingVertical: 6,
+      paddingHorizontal: 12,
+      borderRadius: 16,
+      borderWidth: 1,
+      borderColor: colors.primary,
+      backgroundColor: colors.primarySurface,
+    },
+    chipText: { fontSize: 13, color: colors.primary, fontWeight: '500' },
+  });
+}
+
 export function StoreAutocomplete({ value, onChange, hasError }: Props) {
+  const colors = useAppTheme();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const credits = useCreditsStore((s) => s.credits);
 
-  // Derive unique store names from local credits — no network call
   const suggestions = useMemo(() => {
     if (!value.trim()) return [];
     const lower = value.toLowerCase();
@@ -27,7 +55,7 @@ export function StoreAutocomplete({ value, onChange, hasError }: Props) {
       <TextInput
         style={[styles.input, hasError && styles.inputError]}
         placeholder="Store Name"
-        placeholderTextColor="#9E9E9E"
+        placeholderTextColor={colors.textTertiary}
         value={value}
         onChangeText={onChange}
         returnKeyType="next"
@@ -55,27 +83,3 @@ export function StoreAutocomplete({ value, onChange, hasError }: Props) {
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  input: {
-    height: 52,
-    borderWidth: 1,
-    borderColor: '#E0E0E0',
-    borderRadius: 10,
-    paddingHorizontal: 16,
-    fontSize: 16,
-    color: '#212121',
-    backgroundColor: '#FAFAFA',
-  },
-  inputError: { borderColor: '#D32F2F' },
-  chips: { paddingTop: 8, gap: 8 },
-  chip: {
-    paddingVertical: 6,
-    paddingHorizontal: 12,
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: SAGE_TEAL,
-    backgroundColor: '#EFF5F4',
-  },
-  chipText: { fontSize: 13, color: SAGE_TEAL, fontWeight: '500' },
-});

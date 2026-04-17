@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { Image } from 'expo-image';
 import { Ionicons } from '@expo/vector-icons';
@@ -5,6 +6,8 @@ import { ExpirationBadge } from './ExpirationBadge';
 import { formatCurrency } from '@/lib/formatCurrency';
 import { CATEGORIES } from '@/constants/categories';
 import { CreditStatus, type Credit } from '@/types/creditTypes';
+import { useAppTheme } from '@/hooks/useAppTheme';
+import type { AppColors } from '@/constants/colors';
 
 interface Props {
   credit: Credit;
@@ -13,7 +16,65 @@ interface Props {
   variant?: 'active' | 'redeemed';
 }
 
+function makeStyles(colors: AppColors) {
+  return StyleSheet.create({
+    card: {
+      backgroundColor: colors.surface,
+      borderRadius: 14,
+      marginHorizontal: 16,
+      marginBottom: 10,
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 1 },
+      shadowOpacity: 0.06,
+      shadowRadius: 4,
+      elevation: 2,
+    },
+    cardDimmed: { opacity: 0.75 },
+    content: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      padding: 14,
+      gap: 12,
+    },
+    left: { flex: 1, gap: 6 },
+    storeName: { fontSize: 15, fontWeight: '700', color: colors.textPrimary },
+    amount: { fontSize: 26, fontWeight: '800', color: colors.textPrimary, letterSpacing: -0.5 },
+    amountDimmed: { color: colors.textTertiary },
+    textDimmed: { color: colors.textTertiary },
+    meta: { flexDirection: 'row', alignItems: 'center', gap: 8, flexWrap: 'wrap' },
+    categoryBadge: { flexDirection: 'row', alignItems: 'center', gap: 4 },
+    categoryText: { fontSize: 11, color: colors.textSecondary },
+    redeemedBadge: {
+      paddingHorizontal: 8,
+      paddingVertical: 3,
+      borderRadius: 10,
+      borderWidth: 1,
+      borderColor: colors.separator,
+      backgroundColor: colors.background,
+    },
+    redeemedBadgeText: { fontSize: 11, color: colors.textTertiary, fontWeight: '500' },
+    thumbnail: {
+      width: 72,
+      height: 72,
+      borderRadius: 10,
+      backgroundColor: colors.separator,
+    },
+    thumbnailDimmed: { opacity: 0.6 },
+    thumbnailPlaceholder: {
+      width: 72,
+      height: 72,
+      borderRadius: 10,
+      backgroundColor: colors.separator,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+  });
+}
+
 export function CreditCard({ credit, onPress, variant = 'active' }: Props) {
+  const colors = useAppTheme();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
+
   const categoryMeta = CATEGORIES.find((c) => c.id === credit.category);
   const dimmed = variant === 'redeemed';
 
@@ -32,24 +93,21 @@ export function CreditCard({ credit, onPress, variant = 'active' }: Props) {
     >
       <View style={styles.content}>
         <View style={styles.left}>
-          {/* Store name */}
           <Text style={[styles.storeName, dimmed && styles.textDimmed]} numberOfLines={1}>
             {credit.storeName}
           </Text>
 
-          {/* Amount — hero number */}
           <Text style={[styles.amount, dimmed && styles.amountDimmed]}>
             {formatCurrency(credit.amount)}
           </Text>
 
-          {/* Category + status row */}
           <View style={styles.meta}>
             {categoryMeta && (
               <View style={styles.categoryBadge}>
                 <Ionicons
                   name={categoryMeta.icon}
                   size={12}
-                  color={dimmed ? '#BDBDBD' : '#757575'}
+                  color={dimmed ? colors.textTertiary : colors.textSecondary}
                 />
                 <Text style={[styles.categoryText, dimmed && styles.textDimmed]}>
                   {categoryMeta.label}
@@ -68,7 +126,6 @@ export function CreditCard({ credit, onPress, variant = 'active' }: Props) {
           </View>
         </View>
 
-        {/* Thumbnail */}
         {credit.thumbnailUrl ? (
           <Image
             source={{ uri: credit.thumbnailUrl }}
@@ -79,63 +136,10 @@ export function CreditCard({ credit, onPress, variant = 'active' }: Props) {
           />
         ) : (
           <View style={styles.thumbnailPlaceholder}>
-            <Ionicons name="image-outline" size={24} color="#BDBDBD" />
+            <Ionicons name="image-outline" size={24} color={colors.textTertiary} />
           </View>
         )}
       </View>
     </TouchableOpacity>
   );
 }
-
-const styles = StyleSheet.create({
-  card: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 14,
-    marginHorizontal: 16,
-    marginBottom: 10,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.06,
-    shadowRadius: 4,
-    elevation: 2,
-  },
-  cardDimmed: { opacity: 0.75 },
-  content: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 14,
-    gap: 12,
-  },
-  left: { flex: 1, gap: 6 },
-  storeName: { fontSize: 15, fontWeight: '700', color: '#212121' },
-  amount: { fontSize: 26, fontWeight: '800', color: '#212121', letterSpacing: -0.5 },
-  amountDimmed: { color: '#9E9E9E' },
-  textDimmed: { color: '#9E9E9E' },
-  meta: { flexDirection: 'row', alignItems: 'center', gap: 8, flexWrap: 'wrap' },
-  categoryBadge: { flexDirection: 'row', alignItems: 'center', gap: 4 },
-  categoryText: { fontSize: 11, color: '#757575' },
-  redeemedBadge: {
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 10,
-    borderWidth: 1,
-    borderColor: '#E0E0E0',
-    backgroundColor: '#F5F5F5',
-  },
-  redeemedBadgeText: { fontSize: 11, color: '#9E9E9E', fontWeight: '500' },
-  thumbnail: {
-    width: 72,
-    height: 72,
-    borderRadius: 10,
-    backgroundColor: '#F0F0F0',
-  },
-  thumbnailDimmed: { opacity: 0.6 },
-  thumbnailPlaceholder: {
-    width: 72,
-    height: 72,
-    borderRadius: 10,
-    backgroundColor: '#F5F5F5',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-});

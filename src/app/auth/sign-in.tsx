@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import {
   View,
   Text,
@@ -8,7 +8,6 @@ import {
   KeyboardAvoidingView,
   Platform,
   ActivityIndicator,
-  Image,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
@@ -21,10 +20,91 @@ import {
   isAppleAuthAvailable,
   mapFirebaseAuthError,
 } from '@/lib/auth';
-import { SAGE_TEAL } from '@/components/ui/theme';
+import { useAppTheme } from '@/hooks/useAppTheme';
+import type { AppColors } from '@/constants/colors';
+
+function makeStyles(colors: AppColors) {
+  return StyleSheet.create({
+    safe: { flex: 1, backgroundColor: colors.background },
+    container: { flex: 1, justifyContent: 'center', paddingHorizontal: 24 },
+    header: { alignItems: 'center', marginBottom: 40 },
+    logo: { fontSize: 34, fontWeight: '700', color: colors.primary, letterSpacing: -0.5 },
+    tagline: { fontSize: 14, color: colors.textSecondary, marginTop: 4 },
+    form: { width: '100%' },
+    title: { fontSize: 24, fontWeight: '600', color: colors.textPrimary, marginBottom: 24 },
+    fieldContainer: { marginBottom: 16 },
+    input: {
+      height: 52,
+      borderWidth: 1,
+      borderColor: colors.separator,
+      borderRadius: 10,
+      paddingHorizontal: 16,
+      fontSize: 16,
+      color: colors.textPrimary,
+      backgroundColor: colors.surface,
+    },
+    inputError: { borderColor: colors.danger },
+    inputRow: {
+      height: 52,
+      flexDirection: 'row',
+      alignItems: 'center',
+      borderWidth: 1,
+      borderColor: colors.separator,
+      borderRadius: 10,
+      paddingHorizontal: 16,
+      backgroundColor: colors.surface,
+    },
+    inputFlex: { flex: 1, fontSize: 16, color: colors.textPrimary },
+    errorText: { fontSize: 12, color: colors.danger, marginTop: 4 },
+    generalError: { marginBottom: 8, textAlign: 'center' },
+    button: {
+      height: 52,
+      backgroundColor: colors.primary,
+      borderRadius: 10,
+      justifyContent: 'center',
+      alignItems: 'center',
+      marginTop: 8,
+    },
+    buttonDisabled: { opacity: 0.7 },
+    buttonText: { color: '#FFFFFF', fontSize: 16, fontWeight: '600' },
+    divider: { flexDirection: 'row', alignItems: 'center', marginVertical: 20, gap: 12 },
+    dividerLine: { flex: 1, height: 1, backgroundColor: colors.separator },
+    dividerText: { fontSize: 13, color: colors.textTertiary },
+    // Google button — keep white bg per Google branding guidelines
+    socialButton: {
+      height: 52,
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      borderWidth: 1,
+      borderColor: '#DADCE0',
+      borderRadius: 10,
+      backgroundColor: '#FFFFFF',
+      gap: 12,
+      marginBottom: 12,
+    },
+    googleIconWrapper: {
+      width: 20,
+      height: 20,
+      borderRadius: 2,
+      justifyContent: 'center',
+      alignItems: 'center',
+      backgroundColor: '#4285F4',
+    },
+    googleG: { fontSize: 13, fontWeight: '700', color: '#FFFFFF' },
+    socialButtonText: { fontSize: 16, fontWeight: '500', color: '#3C4043' },
+    // Apple button — uses native AppleAuthenticationButton for HIG compliance
+    appleButton: { height: 52, marginBottom: 12 },
+    footer: { flexDirection: 'row', justifyContent: 'center', marginTop: 12 },
+    footerText: { color: colors.textSecondary, fontSize: 14 },
+    link: { color: colors.primary, fontSize: 14, fontWeight: '600' },
+  });
+}
 
 export default function SignInScreen() {
   const router = useRouter();
+  const colors = useAppTheme();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -118,7 +198,7 @@ export default function SignInScreen() {
             <TextInput
               style={[styles.input, emailError ? styles.inputError : null]}
               placeholder="Email"
-              placeholderTextColor="#9E9E9E"
+              placeholderTextColor={colors.textTertiary}
               autoCapitalize="none"
               keyboardType="email-address"
               returnKeyType="next"
@@ -137,7 +217,7 @@ export default function SignInScreen() {
               <TextInput
                 style={styles.inputFlex}
                 placeholder="Password"
-                placeholderTextColor="#9E9E9E"
+                placeholderTextColor={colors.textTertiary}
                 secureTextEntry={!showPassword}
                 returnKeyType="done"
                 onSubmitEditing={handleSignIn}
@@ -154,7 +234,7 @@ export default function SignInScreen() {
                 <Ionicons
                   name={showPassword ? 'eye-off-outline' : 'eye-outline'}
                   size={20}
-                  color="#9E9E9E"
+                  color={colors.textTertiary}
                 />
               </TouchableOpacity>
             </View>
@@ -200,7 +280,6 @@ export default function SignInScreen() {
               <ActivityIndicator color="#3C4043" />
             ) : (
               <>
-                {/* Google "G" logo — inline SVG-safe colored circles via emoji/text */}
                 <View style={styles.googleIconWrapper}>
                   <Text style={styles.googleG}>G</Text>
                 </View>
@@ -212,12 +291,8 @@ export default function SignInScreen() {
           {/* Apple Sign-In — iOS only */}
           {isAppleAuthAvailable && (
             <AppleAuthentication.AppleAuthenticationButton
-              buttonType={
-                AppleAuthentication.AppleAuthenticationButtonType.SIGN_IN
-              }
-              buttonStyle={
-                AppleAuthentication.AppleAuthenticationButtonStyle.BLACK
-              }
+              buttonType={AppleAuthentication.AppleAuthenticationButtonType.SIGN_IN}
+              buttonStyle={AppleAuthentication.AppleAuthenticationButtonStyle.BLACK}
               cornerRadius={10}
               style={styles.appleButton}
               onPress={handleAppleSignIn}
@@ -236,113 +311,3 @@ export default function SignInScreen() {
     </SafeAreaView>
   );
 }
-
-// ---------------------------------------------------------------------------
-// Styles
-// ---------------------------------------------------------------------------
-
-const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: '#FFFFFF' },
-  container: { flex: 1, justifyContent: 'center', paddingHorizontal: 24 },
-  header: { alignItems: 'center', marginBottom: 40 },
-  logo: {
-    fontSize: 34,
-    fontWeight: '700',
-    color: SAGE_TEAL,
-    letterSpacing: -0.5,
-  },
-  tagline: { fontSize: 14, color: '#757575', marginTop: 4 },
-  form: { width: '100%' },
-  title: {
-    fontSize: 24,
-    fontWeight: '600',
-    color: '#212121',
-    marginBottom: 24,
-  },
-  fieldContainer: { marginBottom: 16 },
-  input: {
-    height: 52,
-    borderWidth: 1,
-    borderColor: '#E0E0E0',
-    borderRadius: 10,
-    paddingHorizontal: 16,
-    fontSize: 16,
-    color: '#212121',
-    backgroundColor: '#FAFAFA',
-  },
-  inputError: { borderColor: '#D32F2F' },
-  inputRow: {
-    height: 52,
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: '#E0E0E0',
-    borderRadius: 10,
-    paddingHorizontal: 16,
-    backgroundColor: '#FAFAFA',
-  },
-  inputFlex: { flex: 1, fontSize: 16, color: '#212121' },
-  errorText: { fontSize: 12, color: '#D32F2F', marginTop: 4 },
-  generalError: { marginBottom: 8, textAlign: 'center' },
-  button: {
-    height: 52,
-    backgroundColor: SAGE_TEAL,
-    borderRadius: 10,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginTop: 8,
-  },
-  buttonDisabled: { opacity: 0.7 },
-  buttonText: { color: '#FFFFFF', fontSize: 16, fontWeight: '600' },
-  divider: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginVertical: 20,
-    gap: 12,
-  },
-  dividerLine: { flex: 1, height: 1, backgroundColor: '#E0E0E0' },
-  dividerText: { fontSize: 13, color: '#9E9E9E' },
-  // Google button — follows Google branding guidelines (white bg, border, colored G)
-  socialButton: {
-    height: 52,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: '#DADCE0',
-    borderRadius: 10,
-    backgroundColor: '#FFFFFF',
-    gap: 12,
-    marginBottom: 12,
-  },
-  googleIconWrapper: {
-    width: 20,
-    height: 20,
-    borderRadius: 2,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#4285F4',
-  },
-  googleG: {
-    fontSize: 13,
-    fontWeight: '700',
-    color: '#FFFFFF',
-  },
-  socialButtonText: {
-    fontSize: 16,
-    fontWeight: '500',
-    color: '#3C4043',
-  },
-  // Apple button — uses native AppleAuthenticationButton for HIG compliance
-  appleButton: {
-    height: 52,
-    marginBottom: 12,
-  },
-  footer: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    marginTop: 12,
-  },
-  footerText: { color: '#757575', fontSize: 14 },
-  link: { color: SAGE_TEAL, fontSize: 14, fontWeight: '600' },
-});

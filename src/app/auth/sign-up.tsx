@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import {
   View,
   Text,
@@ -14,7 +14,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { registerWithEmail, mapFirebaseAuthError } from '@/lib/auth';
-import { SAGE_TEAL } from '@/components/ui/theme';
+import { useAppTheme } from '@/hooks/useAppTheme';
+import type { AppColors } from '@/constants/colors';
 
 // ---------------------------------------------------------------------------
 // Password strength
@@ -47,11 +48,70 @@ const STRENGTH_LABEL: Record<StrengthLevel, string> = {
 };
 
 // ---------------------------------------------------------------------------
+// Styles
+// ---------------------------------------------------------------------------
+
+function makeStyles(colors: AppColors) {
+  return StyleSheet.create({
+    safe: { flex: 1, backgroundColor: colors.background },
+    flex: { flex: 1 },
+    container: { flexGrow: 1, paddingHorizontal: 24, paddingTop: 16, paddingBottom: 40 },
+    back: { marginBottom: 24 },
+    title: { fontSize: 28, fontWeight: '700', color: colors.textPrimary, marginBottom: 8 },
+    subtitle: { fontSize: 14, color: colors.textSecondary, marginBottom: 32 },
+    fieldContainer: { marginBottom: 16 },
+    input: {
+      height: 52,
+      borderWidth: 1,
+      borderColor: colors.separator,
+      borderRadius: 10,
+      paddingHorizontal: 16,
+      fontSize: 16,
+      color: colors.textPrimary,
+      backgroundColor: colors.surface,
+    },
+    inputError: { borderColor: colors.danger },
+    inputRow: {
+      height: 52,
+      flexDirection: 'row',
+      alignItems: 'center',
+      borderWidth: 1,
+      borderColor: colors.separator,
+      borderRadius: 10,
+      paddingHorizontal: 16,
+      backgroundColor: colors.surface,
+    },
+    inputFlex: { flex: 1, fontSize: 16, color: colors.textPrimary },
+    strengthContainer: { flexDirection: 'row', alignItems: 'center', marginTop: 8, gap: 8 },
+    strengthBars: { flex: 1, flexDirection: 'row', gap: 4 },
+    strengthBar: { flex: 1, height: 4, borderRadius: 2 },
+    strengthLabel: { fontSize: 12, fontWeight: '600', minWidth: 46 },
+    errorText: { fontSize: 12, color: colors.danger, marginTop: 4 },
+    generalError: { marginBottom: 8, textAlign: 'center' },
+    button: {
+      height: 52,
+      backgroundColor: colors.primary,
+      borderRadius: 10,
+      justifyContent: 'center',
+      alignItems: 'center',
+      marginTop: 8,
+    },
+    buttonDisabled: { opacity: 0.7 },
+    buttonText: { color: '#FFFFFF', fontSize: 16, fontWeight: '600' },
+    footer: { flexDirection: 'row', justifyContent: 'center', marginTop: 24 },
+    footerText: { color: colors.textSecondary, fontSize: 14 },
+    link: { color: colors.primary, fontSize: 14, fontWeight: '600' },
+  });
+}
+
+// ---------------------------------------------------------------------------
 // Component
 // ---------------------------------------------------------------------------
 
 export default function SignUpScreen() {
   const router = useRouter();
+  const colors = useAppTheme();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -70,11 +130,8 @@ export default function SignUpScreen() {
 
   function validateEmail(value: string): string {
     if (!value) return 'Email is required';
-    // RFC 5322-compatible pattern
     if (
-      !/^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/.test(
-        value
-      )
+      !/^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/.test(value)
     ) {
       return 'Enter a valid email address';
     }
@@ -139,7 +196,7 @@ export default function SignUpScreen() {
             accessibilityRole="button"
             accessibilityLabel="Go back"
           >
-            <Ionicons name="arrow-back" size={24} color="#212121" />
+            <Ionicons name="arrow-back" size={24} color={colors.textPrimary} />
           </TouchableOpacity>
 
           <Text style={styles.title}>Create Account</Text>
@@ -150,7 +207,7 @@ export default function SignUpScreen() {
             <TextInput
               style={[styles.input, emailError ? styles.inputError : null]}
               placeholder="Email"
-              placeholderTextColor="#9E9E9E"
+              placeholderTextColor={colors.textTertiary}
               autoCapitalize="none"
               keyboardType="email-address"
               returnKeyType="next"
@@ -169,7 +226,7 @@ export default function SignUpScreen() {
               <TextInput
                 style={styles.inputFlex}
                 placeholder="Password"
-                placeholderTextColor="#9E9E9E"
+                placeholderTextColor={colors.textTertiary}
                 secureTextEntry={!showPassword}
                 returnKeyType="next"
                 value={password}
@@ -185,7 +242,7 @@ export default function SignUpScreen() {
                 <Ionicons
                   name={showPassword ? 'eye-off-outline' : 'eye-outline'}
                   size={20}
-                  color="#9E9E9E"
+                  color={colors.textTertiary}
                 />
               </TouchableOpacity>
             </View>
@@ -194,40 +251,27 @@ export default function SignUpScreen() {
             {strength && (
               <View style={styles.strengthContainer}>
                 <View style={styles.strengthBars}>
-                  {(['weak', 'medium', 'strong'] as StrengthLevel[]).map(
-                    (level, i) => {
-                      const levelIndex = { weak: 0, medium: 1, strong: 2 };
-                      const isActive = levelIndex[strength] >= i;
-                      return (
-                        <View
-                          key={level}
-                          style={[
-                            styles.strengthBar,
-                            {
-                              backgroundColor: isActive
-                                ? STRENGTH_COLOR[strength]
-                                : '#E0E0E0',
-                            },
-                          ]}
-                        />
-                      );
-                    }
-                  )}
+                  {(['weak', 'medium', 'strong'] as StrengthLevel[]).map((level, i) => {
+                    const levelIndex = { weak: 0, medium: 1, strong: 2 };
+                    const isActive = levelIndex[strength] >= i;
+                    return (
+                      <View
+                        key={level}
+                        style={[
+                          styles.strengthBar,
+                          { backgroundColor: isActive ? STRENGTH_COLOR[strength] : colors.separator },
+                        ]}
+                      />
+                    );
+                  })}
                 </View>
-                <Text
-                  style={[
-                    styles.strengthLabel,
-                    { color: STRENGTH_COLOR[strength] },
-                  ]}
-                >
+                <Text style={[styles.strengthLabel, { color: STRENGTH_COLOR[strength] }]}>
                   {STRENGTH_LABEL[strength]}
                 </Text>
               </View>
             )}
 
-            {passwordError ? (
-              <Text style={styles.errorText}>{passwordError}</Text>
-            ) : null}
+            {passwordError ? <Text style={styles.errorText}>{passwordError}</Text> : null}
           </View>
 
           {/* Confirm password */}
@@ -236,7 +280,7 @@ export default function SignUpScreen() {
               <TextInput
                 style={styles.inputFlex}
                 placeholder="Confirm Password"
-                placeholderTextColor="#9E9E9E"
+                placeholderTextColor={colors.textTertiary}
                 secureTextEntry={!showConfirm}
                 returnKeyType="done"
                 onSubmitEditing={handleCreateAccount}
@@ -253,20 +297,16 @@ export default function SignUpScreen() {
                 <Ionicons
                   name={showConfirm ? 'eye-off-outline' : 'eye-outline'}
                   size={20}
-                  color="#9E9E9E"
+                  color={colors.textTertiary}
                 />
               </TouchableOpacity>
             </View>
-            {confirmError ? (
-              <Text style={styles.errorText}>{confirmError}</Text>
-            ) : null}
+            {confirmError ? <Text style={styles.errorText}>{confirmError}</Text> : null}
           </View>
 
           {/* General / Firebase error */}
           {generalError ? (
-            <Text style={[styles.errorText, styles.generalError]}>
-              {generalError}
-            </Text>
+            <Text style={[styles.errorText, styles.generalError]}>{generalError}</Text>
           ) : null}
 
           {/* Primary action */}
@@ -296,72 +336,3 @@ export default function SignUpScreen() {
     </SafeAreaView>
   );
 }
-
-// ---------------------------------------------------------------------------
-// Styles
-// ---------------------------------------------------------------------------
-
-const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: '#FFFFFF' },
-  flex: { flex: 1 },
-  container: {
-    flexGrow: 1,
-    paddingHorizontal: 24,
-    paddingTop: 16,
-    paddingBottom: 40,
-  },
-  back: { marginBottom: 24 },
-  title: { fontSize: 28, fontWeight: '700', color: '#212121', marginBottom: 8 },
-  subtitle: { fontSize: 14, color: '#757575', marginBottom: 32 },
-  fieldContainer: { marginBottom: 16 },
-  input: {
-    height: 52,
-    borderWidth: 1,
-    borderColor: '#E0E0E0',
-    borderRadius: 10,
-    paddingHorizontal: 16,
-    fontSize: 16,
-    color: '#212121',
-    backgroundColor: '#FAFAFA',
-  },
-  inputError: { borderColor: '#D32F2F' },
-  inputRow: {
-    height: 52,
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: '#E0E0E0',
-    borderRadius: 10,
-    paddingHorizontal: 16,
-    backgroundColor: '#FAFAFA',
-  },
-  inputFlex: { flex: 1, fontSize: 16, color: '#212121' },
-  strengthContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: 8,
-    gap: 8,
-  },
-  strengthBars: { flex: 1, flexDirection: 'row', gap: 4 },
-  strengthBar: { flex: 1, height: 4, borderRadius: 2 },
-  strengthLabel: { fontSize: 12, fontWeight: '600', minWidth: 46 },
-  errorText: { fontSize: 12, color: '#D32F2F', marginTop: 4 },
-  generalError: { marginBottom: 8, textAlign: 'center' },
-  button: {
-    height: 52,
-    backgroundColor: SAGE_TEAL,
-    borderRadius: 10,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginTop: 8,
-  },
-  buttonDisabled: { opacity: 0.7 },
-  buttonText: { color: '#FFFFFF', fontSize: 16, fontWeight: '600' },
-  footer: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    marginTop: 24,
-  },
-  footerText: { color: '#757575', fontSize: 14 },
-  link: { color: SAGE_TEAL, fontSize: 14, fontWeight: '600' },
-});

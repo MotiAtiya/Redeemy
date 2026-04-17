@@ -4,20 +4,61 @@ import {
   Text,
   SectionList,
   StyleSheet,
+  TouchableOpacity,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { TouchableOpacity } from 'react-native';
 import { CreditCard } from '@/components/redeemy/CreditCard';
 import { useCreditsStore } from '@/stores/creditsStore';
 import { formatCurrency } from '@/lib/formatCurrency';
 import { CreditStatus, type Credit } from '@/types/creditTypes';
-import { SAGE_TEAL } from '@/components/ui/theme';
+import { useAppTheme } from '@/hooks/useAppTheme';
+import type { AppColors } from '@/constants/colors';
+
+function makeStyles(colors: AppColors) {
+  return StyleSheet.create({
+    safe: { flex: 1, backgroundColor: colors.background },
+    header: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingHorizontal: 16,
+      paddingVertical: 12,
+      gap: 12,
+      backgroundColor: colors.background,
+    },
+    headerText: { flex: 1 },
+    storeName: { fontSize: 20, fontWeight: '700', color: colors.textPrimary },
+    totalValue: { fontSize: 13, color: colors.primary, fontWeight: '600', marginTop: 1 },
+    sectionHeader: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 8,
+      paddingHorizontal: 16,
+      paddingTop: 16,
+      paddingBottom: 8,
+    },
+    sectionTitle: { fontSize: 13, fontWeight: '700', color: colors.textTertiary, letterSpacing: 0.5 },
+    sectionCount: {
+      fontSize: 12,
+      fontWeight: '600',
+      color: colors.textTertiary,
+      backgroundColor: colors.separator,
+      paddingHorizontal: 7,
+      paddingVertical: 1,
+      borderRadius: 8,
+    },
+    listContent: { paddingBottom: 32 },
+    emptyState: { alignItems: 'center', paddingTop: 60, gap: 12 },
+    emptyText: { fontSize: 15, color: colors.textTertiary },
+  });
+}
 
 export default function StoreDetailScreen() {
   const router = useRouter();
   const { name } = useLocalSearchParams<{ name: string }>();
+  const colors = useAppTheme();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const credits = useCreditsStore((s) => s.credits);
 
   const { active, redeemed, totalAgot } = useMemo(() => {
@@ -46,7 +87,7 @@ export default function StoreDetailScreen() {
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()} hitSlop={8}>
-          <Ionicons name="arrow-back" size={24} color="#212121" />
+          <Ionicons name="arrow-back" size={24} color={colors.textPrimary} />
         </TouchableOpacity>
         <View style={styles.headerText}>
           <Text style={styles.storeName} numberOfLines={1}>{name}</Text>
@@ -74,7 +115,7 @@ export default function StoreDetailScreen() {
         )}
         ListEmptyComponent={
           <View style={styles.emptyState}>
-            <Ionicons name="receipt-outline" size={40} color="#BDBDBD" />
+            <Ionicons name="receipt-outline" size={40} color={colors.textTertiary} />
             <Text style={styles.emptyText}>No credits for this store</Text>
           </View>
         }
@@ -85,43 +126,3 @@ export default function StoreDetailScreen() {
     </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: '#F5F5F5' },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    gap: 12,
-    backgroundColor: '#F5F5F5',
-  },
-  headerText: { flex: 1 },
-  storeName: { fontSize: 20, fontWeight: '700', color: '#212121' },
-  totalValue: { fontSize: 13, color: SAGE_TEAL, fontWeight: '600', marginTop: 1 },
-  sectionHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    paddingHorizontal: 16,
-    paddingTop: 16,
-    paddingBottom: 8,
-  },
-  sectionTitle: { fontSize: 13, fontWeight: '700', color: '#9E9E9E', letterSpacing: 0.5 },
-  sectionCount: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: '#BDBDBD',
-    backgroundColor: '#EEEEEE',
-    paddingHorizontal: 7,
-    paddingVertical: 1,
-    borderRadius: 8,
-  },
-  listContent: { paddingBottom: 32 },
-  emptyState: {
-    alignItems: 'center',
-    paddingTop: 60,
-    gap: 12,
-  },
-  emptyText: { fontSize: 15, color: '#9E9E9E' },
-});

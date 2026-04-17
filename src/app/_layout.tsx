@@ -1,26 +1,23 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { View, ActivityIndicator, StyleSheet } from 'react-native';
 import { Stack, useRouter, useSegments } from 'expo-router';
+import { StatusBar } from 'expo-status-bar';
 import * as Notifications from 'expo-notifications';
 import { GluestackProvider } from '@/components/ui/GluestackProvider';
 import { useAuthState } from '@/hooks/useAuthState';
 import { useBadgeUpdater } from '@/hooks/useBadgeUpdater';
 import { useNetworkMonitor } from '@/hooks/useNetworkMonitor';
+import { useAppTheme, useIsDark } from '@/hooks/useAppTheme';
 import { OfflineToast } from '@/components/redeemy/OfflineToast';
 import { useAuthStore } from '@/stores/authStore';
 import { AuthStatus } from '@/types/userTypes';
 import { configureGoogleSignIn } from '@/lib/auth';
 import { registerNotificationCategories, getCreditIdFromNotification } from '@/lib/notifications';
-import { SAGE_TEAL } from '@/components/ui/theme';
 
 // One-time module-level setup
 configureGoogleSignIn();
 registerNotificationCategories();
 
-/**
- * Starts the Firebase auth listener, guards routes, handles notification
- * deep-links, and shows a loading screen while the persisted session resolves.
- */
 function AuthGate({ children }: { children: React.ReactNode }) {
   useAuthState();
   useBadgeUpdater();
@@ -29,6 +26,8 @@ function AuthGate({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const segments = useSegments();
   const authStatus = useAuthStore((s) => s.authStatus);
+  const colors = useAppTheme();
+  const isDark = useIsDark();
 
   // Redirect based on auth status
   useEffect(() => {
@@ -45,7 +44,6 @@ function AuthGate({ children }: { children: React.ReactNode }) {
 
   // Deep-link from notification tap
   useEffect(() => {
-    // Handle notification that opened the app from killed state
     Notifications.getLastNotificationResponseAsync().then((response) => {
       if (!response) return;
       const creditId = getCreditIdFromNotification(response);
@@ -54,7 +52,6 @@ function AuthGate({ children }: { children: React.ReactNode }) {
       }
     });
 
-    // Handle notification tap while app is running
     const sub = Notifications.addNotificationResponseReceivedListener((response) => {
       const creditId = getCreditIdFromNotification(response);
       if (creditId) router.push(`/credit/${creditId}`);
@@ -65,14 +62,15 @@ function AuthGate({ children }: { children: React.ReactNode }) {
 
   if (authStatus === AuthStatus.LOADING) {
     return (
-      <View style={styles.loading}>
-        <ActivityIndicator size="large" color={SAGE_TEAL} />
+      <View style={[styles.loading, { backgroundColor: colors.background }]}>
+        <ActivityIndicator size="large" color={colors.primary} />
       </View>
     );
   }
 
   return (
     <View style={styles.flex}>
+      <StatusBar style={isDark ? 'light' : 'dark'} />
       {children}
       <OfflineToast />
     </View>
@@ -105,6 +103,5 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#FFFFFF',
   },
 });

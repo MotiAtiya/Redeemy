@@ -1,14 +1,42 @@
-import { FlatList, TouchableOpacity, Text, StyleSheet, View } from 'react-native';
+import { useMemo } from 'react';
+import { FlatList, TouchableOpacity, Text, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { CATEGORIES } from '@/constants/categories';
-import { SAGE_TEAL } from '@/components/ui/theme';
+import { useAppTheme } from '@/hooks/useAppTheme';
+import type { AppColors } from '@/constants/colors';
 
 interface Props {
   selected: string;
   onChange: (categoryId: string) => void;
 }
 
+function makeStyles(colors: AppColors) {
+  return StyleSheet.create({
+    list: { paddingVertical: 4, gap: 8 },
+    chip: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 5,
+      paddingVertical: 7,
+      paddingHorizontal: 12,
+      borderRadius: 20,
+      borderWidth: 1,
+      borderColor: colors.separator,
+      backgroundColor: colors.surface,
+    },
+    chipSelected: {
+      backgroundColor: colors.primary,
+      borderColor: colors.primary,
+    },
+    label: { fontSize: 13, color: colors.textSecondary },
+    labelSelected: { color: '#FFFFFF', fontWeight: '600' },
+  });
+}
+
 export function CategoryChipSelector({ selected, onChange }: Props) {
+  const colors = useAppTheme();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
+
   return (
     <FlatList
       data={CATEGORIES}
@@ -29,7 +57,7 @@ export function CategoryChipSelector({ selected, onChange }: Props) {
             <Ionicons
               name={item.icon}
               size={14}
-              color={isSelected ? '#FFFFFF' : '#616161'}
+              color={isSelected ? '#FFFFFF' : colors.textSecondary}
             />
             <Text style={[styles.label, isSelected && styles.labelSelected]}>
               {item.label}
@@ -40,24 +68,3 @@ export function CategoryChipSelector({ selected, onChange }: Props) {
     />
   );
 }
-
-const styles = StyleSheet.create({
-  list: { paddingVertical: 4, gap: 8 },
-  chip: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 5,
-    paddingVertical: 7,
-    paddingHorizontal: 12,
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: '#E0E0E0',
-    backgroundColor: '#FAFAFA',
-  },
-  chipSelected: {
-    backgroundColor: SAGE_TEAL,
-    borderColor: SAGE_TEAL,
-  },
-  label: { fontSize: 13, color: '#616161' },
-  labelSelected: { color: '#FFFFFF', fontWeight: '600' },
-});

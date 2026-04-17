@@ -1,4 +1,5 @@
 import { View, Text, StyleSheet } from 'react-native';
+import { useAppTheme } from '@/hooks/useAppTheme';
 
 interface Props {
   expirationDate: Date;
@@ -10,15 +11,23 @@ function getDaysRemaining(expirationDate: Date): number {
   return Math.ceil((expirationDate.getTime() - now.getTime()) / msPerDay);
 }
 
-function getBadgeColor(days: number): string {
-  if (days < 7) return '#F44336';   // red
-  if (days <= 30) return '#FF9800'; // amber
-  return '#4CAF50';                 // green
-}
-
 export function ExpirationBadge({ expirationDate }: Props) {
+  const colors = useAppTheme();
   const days = getDaysRemaining(expirationDate);
-  const color = getBadgeColor(days);
+
+  let textColor: string;
+  let bgColor: string;
+
+  if (days < 7) {
+    textColor = colors.urgencyRed;
+    bgColor = colors.urgencyRedSurface;
+  } else if (days <= 30) {
+    textColor = colors.urgencyAmber;
+    bgColor = colors.urgencyAmberSurface;
+  } else {
+    textColor = colors.urgencyGreen;
+    bgColor = colors.urgencyGreenSurface;
+  }
 
   let label: string;
   if (days < 0) {
@@ -36,8 +45,8 @@ export function ExpirationBadge({ expirationDate }: Props) {
   }
 
   return (
-    <View style={[styles.badge, { backgroundColor: `${color}1A`, borderColor: color }]}>
-      <Text style={[styles.text, { color }]}>{label}</Text>
+    <View style={[styles.badge, { backgroundColor: bgColor, borderColor: textColor }]}>
+      <Text style={[styles.text, { color: textColor }]}>{label}</Text>
     </View>
   );
 }
