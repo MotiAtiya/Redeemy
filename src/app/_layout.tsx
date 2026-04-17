@@ -5,8 +5,6 @@ import * as Notifications from 'expo-notifications';
 import { GluestackProvider } from '@/components/ui/GluestackProvider';
 import { useAuthState } from '@/hooks/useAuthState';
 import { useBadgeUpdater } from '@/hooks/useBadgeUpdater';
-import { useGroupSync } from '@/hooks/useGroupSync';
-import { useGroupListener } from '@/hooks/useGroupListener';
 import { useNetworkMonitor } from '@/hooks/useNetworkMonitor';
 import { OfflineToast } from '@/components/redeemy/OfflineToast';
 import { useAuthStore } from '@/stores/authStore';
@@ -26,8 +24,6 @@ registerNotificationCategories();
 function AuthGate({ children }: { children: React.ReactNode }) {
   useAuthState();
   useBadgeUpdater();
-  useGroupSync();
-  useGroupListener();
   useNetworkMonitor();
 
   const router = useRouter();
@@ -97,10 +93,6 @@ export default function RootLayout() {
           />
           <Stack.Screen name="credit/[id]" options={{ headerShown: false }} />
           <Stack.Screen name="store/[name]" options={{ headerShown: false }} />
-          <Stack.Screen name="groups" options={{ headerShown: false }} />
-          <Stack.Screen name="group/create" options={{ headerShown: false }} />
-          <Stack.Screen name="group/[id]" options={{ headerShown: false }} />
-          <Stack.Screen name="group/join/[groupId]" options={{ headerShown: false }} />
         </Stack>
       </AuthGate>
     </GluestackProvider>
