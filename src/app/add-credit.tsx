@@ -68,16 +68,20 @@ export default function AddCreditScreen() {
   const [errors, setErrors] = useState<FormErrors>({});
   const [saving, setSaving] = useState(false);
 
-  // ---- open camera on mount -----------------------------------------------
+  // ---- open camera on mount (skip on simulator — no camera available) -------
   useEffect(() => {
     handleCamera();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   async function handleCamera() {
-    const picked = await openCamera();
-    if (picked) {
-      setImageUri(picked.localUri);
+    try {
+      const picked = await openCamera();
+      if (picked) {
+        setImageUri(picked.localUri);
+      }
+    } catch {
+      // Camera not available (simulator) — silently skip auto-open
     }
   }
 

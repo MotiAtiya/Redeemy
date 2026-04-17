@@ -13,7 +13,8 @@ import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { CreditCard } from '@/components/redeemy/CreditCard';
 import { useCreditsStore } from '@/stores/creditsStore';
-import { CreditStatus, type Credit } from '@/types/creditTypes';
+import { CreditStatus } from '@/types/creditTypes';
+import { sortCreditsHistory, filterHistoryCredits, dateRangeStart, type HistorySortKey, type HistoryDateRange } from '@/lib/creditUtils';
 import { CATEGORIES } from '@/constants/categories';
 import { SAGE_TEAL } from '@/components/ui/theme';
 
@@ -21,9 +22,9 @@ import { SAGE_TEAL } from '@/components/ui/theme';
 // Types
 // ---------------------------------------------------------------------------
 
-type SortKey = 'redeemedAt' | 'storeName' | 'amount';
+type SortKey = HistorySortKey;
 
-type DateRange = 'thisMonth' | 'last3Months' | 'thisYear' | 'allTime';
+type DateRange = HistoryDateRange;
 
 interface FilterState {
   categories: string[];
@@ -44,43 +45,6 @@ const SORT_OPTIONS: { key: SortKey; label: string }[] = [
 ];
 
 // ---------------------------------------------------------------------------
-// Helpers
-// ---------------------------------------------------------------------------
-
-function dateRangeStart(range: DateRange): Date {
-  const now = new Date();
-  switch (range) {
-    case 'thisMonth':
-      return new Date(now.getFullYear(), now.getMonth(), 1);
-    case 'last3Months': {
-      const d = new Date(now);
-      d.setMonth(d.getMonth() - 3);
-      return d;
-    }
-    case 'thisYear':
-      return new Date(now.getFullYear(), 0, 1);
-    case 'allTime':
-      return new Date(0);
-  }
-}
-
-function sortCredits(credits: Credit[], key: SortKey): Credit[] {
-  return [...credits].sort((a, b) => {
-    switch (key) {
-      case 'redeemedAt': {
-        const aT = a.redeemedAt ? new Date(a.redeemedAt as Date).getTime() : 0;
-        const bT = b.redeemedAt ? new Date(b.redeemedAt as Date).getTime() : 0;
-        return bT - aT;
-      }
-      case 'storeName':
-        return a.storeName.localeCompare(b.storeName);
-      case 'amount':
-        return b.amount - a.amount;
-    }
-  });
-}
-
-// ---------------------------------------------------------------------------
 // Screen
 // ---------------------------------------------------------------------------
 
@@ -96,38 +60,14 @@ export default function HistoryScreen() {
   });
   const [showFilterSheet, setShowFilterSheet] = useState(false);
 
-  // All redeemed credits
-  const redeemed = useMemo(
-    () => credits.filter((c) => c.status === CreditStatus.REDEEMED),
-    [credits]
-  );
-
   // Apply search + filters + sort
-  const filtered = useMemo(() => {
-    let result = redeemed;
-
-    if (search.trim()) {
-      const q = search.toLowerCase();
-      result = result.filter(
-        (c) =>
-          c.storeName.toLowerCase().includes(q) ||
-          c.notes?.toLowerCase().includes(q)
-      );
-    }
-
-    if (filters.categories.length > 0) {
-      result = result.filter((c) => filters.categories.includes(c.category));
-    }
-
-    if (filters.dateRange !== 'allTime') {
-      const start = dateRangeStart(filters.dateRange);
-      result = result.filter(
-        (c) => c.redeemedAt && new Date(c.redeemedAt as Date) >= start
-      );
-    }
-
-    return sortCredits(result, sortKey);
-  }, [redeemed, search, filters, sortKey]);
+  const filtered = useMemo(
+    () => sortCreditsHistory(
+      filterHistoryCredits(credits, search, filters.dateRange, filters.categories),
+      sortKey
+    ),
+    [credits, search, filters, sortKey]
+  );
 
   // Active filter chips (for display below search bar)
   const activeFilterChips = useMemo(() => {

@@ -14,17 +14,17 @@ import { Ionicons } from '@expo/vector-icons';
 import { CreditCard } from '@/components/redeemy/CreditCard';
 import { SyncIndicator } from '@/components/redeemy/SyncIndicator';
 import { subscribeToCredits } from '@/lib/firestoreCredits';
+import { sortCreditsHome, filterActiveCredits, type HomeSortKey } from '@/lib/creditUtils';
 import { useAuthStore } from '@/stores/authStore';
 import { useCreditsStore } from '@/stores/creditsStore';
 import { CreditStatus } from '@/types/creditTypes';
 import { SAGE_TEAL } from '@/components/ui/theme';
-import type { Credit } from '@/types/creditTypes';
 
 // ---------------------------------------------------------------------------
 // Sort options
 // ---------------------------------------------------------------------------
 
-type SortKey = 'expiration' | 'amount' | 'storeName' | 'createdAt';
+type SortKey = HomeSortKey;
 
 const SORT_OPTIONS: { key: SortKey; label: string }[] = [
   { key: 'expiration', label: 'Expiration' },
@@ -32,21 +32,6 @@ const SORT_OPTIONS: { key: SortKey; label: string }[] = [
   { key: 'storeName',  label: 'Store A–Z'  },
   { key: 'createdAt',  label: 'Recent'     },
 ];
-
-function sortCredits(credits: Credit[], key: SortKey): Credit[] {
-  return [...credits].sort((a, b) => {
-    switch (key) {
-      case 'expiration':
-        return new Date(a.expirationDate).getTime() - new Date(b.expirationDate).getTime();
-      case 'amount':
-        return b.amount - a.amount;
-      case 'storeName':
-        return a.storeName.localeCompare(b.storeName);
-      case 'createdAt':
-        return new Date(b.createdAt as Date).getTime() - new Date(a.createdAt as Date).getTime();
-    }
-  });
-}
 
 // ---------------------------------------------------------------------------
 // Screen
@@ -74,24 +59,10 @@ export default function CreditsScreen() {
   }, [currentUser?.uid, setLoading]);
 
   // Filter + sort — Credits tab shows ACTIVE only
-  const filteredCredits = useMemo(() => {
-    let result = credits.filter((c) => c.status === CreditStatus.ACTIVE);
-
-    if (searchQuery.trim()) {
-      const q = searchQuery.toLowerCase();
-      result = result.filter(
-        (c) =>
-          c.storeName.toLowerCase().includes(q) ||
-          c.notes?.toLowerCase().includes(q)
-      );
-    }
-
-    if (selectedCategory) {
-      result = result.filter((c) => c.category === selectedCategory);
-    }
-
-    return sortCredits(result, sortKey);
-  }, [credits, searchQuery, sortKey, selectedCategory]);
+  const filteredCredits = useMemo(
+    () => sortCreditsHome(filterActiveCredits(credits, searchQuery, selectedCategory), sortKey),
+    [credits, searchQuery, sortKey, selectedCategory]
+  );
 
   // Unique categories among active credits for filter chips
   const availableCategories = useMemo(
@@ -314,6 +285,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#E0E0E0',
     backgroundColor: '#FFFFFF',
+    alignSelf: 'flex-start',
   },
   filterChipActive: { backgroundColor: SAGE_TEAL, borderColor: SAGE_TEAL },
   filterChipText: { fontSize: 13, color: '#616161' },

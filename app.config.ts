@@ -22,10 +22,12 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   android: {
     package: 'com.redeemy.app',
     adaptiveIcon: {
-      foregroundImage: './assets/images/adaptive-icon.png',
+      foregroundImage: './assets/images/android-icon-foreground.png',
       backgroundColor: '#5F9E8F',
     },
-    googleServicesFile: process.env.GOOGLE_SERVICES_JSON ?? './google-services.json',
+    ...(process.env.GOOGLE_SERVICES_JSON
+      ? { googleServicesFile: process.env.GOOGLE_SERVICES_JSON }
+      : {}),
   },
   web: {
     bundler: 'metro',

@@ -12,6 +12,7 @@ export function formatCurrency(agot: number): string {
  * Returns NaN if the input is not a valid positive number.
  */
 export function parseAmountToAgot(input: string): number {
+  if (input.trim().startsWith('-')) return NaN;
   const value = parseFloat(input.replace(/[^0-9.]/g, ''));
   if (isNaN(value) || value <= 0) return NaN;
   return Math.round(value * 100);

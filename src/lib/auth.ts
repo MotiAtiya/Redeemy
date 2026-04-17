@@ -7,22 +7,45 @@ import {
   signOut as firebaseSignOut,
 } from 'firebase/auth';
 import { doc, setDoc, getDoc, serverTimestamp } from 'firebase/firestore';
-import {
-  GoogleSignin,
-  statusCodes,
-} from '@react-native-google-signin/google-signin';
-import * as AppleAuthentication from 'expo-apple-authentication';
 import { Platform } from 'react-native';
 import Constants from 'expo-constants';
 import { auth, db } from './firebase';
 import type { User } from '@/types/userTypes';
 
 // ---------------------------------------------------------------------------
+// Native modules — loaded lazily so Expo Go doesn't crash on import
+// ---------------------------------------------------------------------------
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+let _GoogleSignin: any = null;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+let _statusCodes: any = null;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+let _AppleAuthentication: any = null;
+
+try {
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  const mod = require('@react-native-google-signin/google-signin');
+  _GoogleSignin = mod.GoogleSignin;
+  _statusCodes = mod.statusCodes;
+} catch {
+  // Not available in Expo Go — Google Sign-In button will show an alert
+}
+
+try {
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  _AppleAuthentication = require('expo-apple-authentication');
+} catch {
+  // Not available in Expo Go
+}
+
+// ---------------------------------------------------------------------------
 // Google Sign-In — configure once at app startup
 // ---------------------------------------------------------------------------
 
 export function configureGoogleSignIn() {
-  GoogleSignin.configure({
+  if (!_GoogleSignin) return; // Expo Go: skip
+  _GoogleSignin.configure({
     webClientId: Constants.expoConfig?.extra?.googleWebClientId as string,
   });
 }
@@ -110,12 +133,16 @@ export async function signInWithEmail(
 
 /**
  * Returns null if the user cancelled, throws for other errors.
+ * Returns null with an alert in Expo Go (native module not available).
  */
 export async function signInWithGoogle(): Promise<User | null> {
-  await GoogleSignin.hasPlayServices();
-  const response = await GoogleSignin.signIn();
+  if (!_GoogleSignin) {
+    throw new Error('Google Sign-In is not available in Expo Go. Use email/password instead.');
+  }
 
-  // User cancelled
+  await _GoogleSignin.hasPlayServices();
+  const response = await _GoogleSignin.signIn();
+
   if (response.type === 'cancelled') return null;
 
   const { idToken } = response.data;
@@ -143,17 +170,21 @@ export async function signInWithGoogle(): Promise<User | null> {
 // Apple Sign-In (iOS only)
 // ---------------------------------------------------------------------------
 
-export const isAppleAuthAvailable = Platform.OS === 'ios';
+export const isAppleAuthAvailable = Platform.OS === 'ios' && !!_AppleAuthentication;
 
 /**
  * Returns null if the user cancelled, throws for other errors.
  */
 export async function signInWithApple(): Promise<User | null> {
+  if (!_AppleAuthentication) {
+    throw new Error('Apple Sign-In is not available in Expo Go. Use email/password instead.');
+  }
+
   try {
-    const credential = await AppleAuthentication.signInAsync({
+    const credential = await _AppleAuthentication.signInAsync({
       requestedScopes: [
-        AppleAuthentication.AppleAuthenticationScope.FULL_NAME,
-        AppleAuthentication.AppleAuthenticationScope.EMAIL,
+        _AppleAuthentication.AppleAuthenticationScope.FULL_NAME,
+        _AppleAuthentication.AppleAuthenticationScope.EMAIL,
       ],
     });
 
@@ -165,7 +196,6 @@ export async function signInWithApple(): Promise<User | null> {
     const firebaseCredential = await signInWithCredential(auth, appleCredential);
 
     const { uid } = firebaseCredential.user;
-    // Apple only shares name on first sign-in; fall back to Firebase display name
     const displayName =
       fullName?.givenName
         ? `${fullName.givenName} ${fullName.familyName ?? ''}`.trim()
@@ -185,8 +215,8 @@ export async function signInWithApple(): Promise<User | null> {
     });
 
     return userRecord;
-  } catch (err: any) {
-    if (err?.code === 'ERR_CANCELED') return null;
+  } catch (err: unknown) {
+    if ((err as { code?: string })?.code === 'ERR_CANCELED') return null;
     throw err;
   }
 }

@@ -9,6 +9,7 @@ import {
   getFirestore,
   persistentLocalCache,
   persistentMultipleTabManager,
+  memoryLocalCache,
 } from 'firebase/firestore';
 import { getStorage } from 'firebase/storage';
 import Constants from 'expo-constants';
@@ -42,12 +43,14 @@ const auth = isFirstInit
     })
   : getAuth(app);
 
-// Firestore — enable offline reads via persistent local cache
+// Firestore — persistent cache in production builds, memory cache in Expo Go
+// (IndexedDB is not available in the Expo Go runtime)
+const isExpoGo = Constants.appOwnership === 'expo';
 const db = isFirstInit
   ? initializeFirestore(app, {
-      localCache: persistentLocalCache({
-        tabManager: persistentMultipleTabManager(),
-      }),
+      localCache: isExpoGo
+        ? memoryLocalCache()
+        : persistentLocalCache({ tabManager: persistentMultipleTabManager() }),
     })
   : getFirestore(app);
 
