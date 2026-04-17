@@ -204,7 +204,7 @@ export default function CreditDetailScreen() {
   function handleEdit() {
     setShowActionSheet(false);
     // Edit screen is the add-credit screen pre-filled — implemented in a later story
-    Alert.alert('Coming soon', 'Edit will be available shortly.');
+    Alert.alert('Coming soon', 'Edit will be availagble shortly.');
   }
 
   // ---- render --------------------------------------------------------------

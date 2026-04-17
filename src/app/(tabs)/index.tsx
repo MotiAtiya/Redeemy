@@ -4,6 +4,7 @@ import {
   Text,
   TextInput,
   FlatList,
+  ScrollView,
   TouchableOpacity,
   StyleSheet,
   ActivityIndicator,
@@ -94,87 +95,90 @@ export default function CreditsScreen() {
 
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
-      {/* Header */}
-      <View style={styles.header}>
-        <View style={styles.titleRow}>
-          <Text style={styles.title}>Credits</Text>
-          <SyncIndicator />
+      {/* Fixed top section — must NOT flex-grow */}
+      <View>
+        {/* Header */}
+        <View style={styles.header}>
+          <View style={styles.titleRow}>
+            <Text style={styles.title}>Credits</Text>
+            <SyncIndicator />
+          </View>
+          <TouchableOpacity onPress={() => setShowSortMenu((s) => !s)}>
+            <Ionicons name="swap-vertical-outline" size={22} color="#616161" />
+          </TouchableOpacity>
         </View>
-        <TouchableOpacity onPress={() => setShowSortMenu((s) => !s)}>
-          <Ionicons name="swap-vertical-outline" size={22} color="#616161" />
-        </TouchableOpacity>
-      </View>
 
-      {/* Sort menu */}
-      {showSortMenu && (
-        <View style={styles.sortMenu}>
-          {SORT_OPTIONS.map((opt) => (
-            <TouchableOpacity
-              key={opt.key}
-              style={[styles.sortOption, sortKey === opt.key && styles.sortOptionActive]}
-              onPress={() => {
-                setSortKey(opt.key);
-                setShowSortMenu(false);
-              }}
-            >
-              <Text
-                style={[
-                  styles.sortOptionText,
-                  sortKey === opt.key && styles.sortOptionTextActive,
-                ]}
-              >
-                {opt.label}
-              </Text>
-              {sortKey === opt.key && (
-                <Ionicons name="checkmark" size={16} color={SAGE_TEAL} />
-              )}
-            </TouchableOpacity>
-          ))}
-        </View>
-      )}
-
-      {/* Search bar */}
-      <View style={styles.searchContainer}>
-        <Ionicons name="search-outline" size={18} color="#9E9E9E" style={styles.searchIcon} />
-        <TextInput
-          style={styles.searchInput}
-          placeholder="Search by store or notes…"
-          placeholderTextColor="#9E9E9E"
-          value={searchQuery}
-          onChangeText={setSearchQuery}
-          returnKeyType="search"
-          clearButtonMode="while-editing"
-        />
-      </View>
-
-      {/* Category filter chips */}
-      {availableCategories.length > 1 && (
-        <FlatList
-          data={[null, ...availableCategories]}
-          keyExtractor={(item) => item ?? 'all'}
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.filterChips}
-          renderItem={({ item }) => {
-            const isActive = item === selectedCategory;
-            return (
+        {/* Sort menu */}
+        {showSortMenu && (
+          <View style={styles.sortMenu}>
+            {SORT_OPTIONS.map((opt) => (
               <TouchableOpacity
-                style={[styles.filterChip, isActive && styles.filterChipActive]}
-                onPress={() => setSelectedCategory(isActive ? null : item)}
+                key={opt.key}
+                style={[styles.sortOption, sortKey === opt.key && styles.sortOptionActive]}
+                onPress={() => {
+                  setSortKey(opt.key);
+                  setShowSortMenu(false);
+                }}
               >
                 <Text
                   style={[
-                    styles.filterChipText,
-                    isActive && styles.filterChipTextActive,
+                    styles.sortOptionText,
+                    sortKey === opt.key && styles.sortOptionTextActive,
                   ]}
                 >
-                  {item ?? 'All'}
+                  {opt.label}
                 </Text>
+                {sortKey === opt.key && (
+                  <Ionicons name="checkmark" size={16} color={SAGE_TEAL} />
+                )}
               </TouchableOpacity>
-            );
-          }}
-        />
-      )}
+            ))}
+          </View>
+        )}
+
+        {/* Search bar */}
+        <View style={styles.searchContainer}>
+          <Ionicons name="search-outline" size={18} color="#9E9E9E" style={styles.searchIcon} />
+          <TextInput
+            style={styles.searchInput}
+            placeholder="Search by store or notes…"
+            placeholderTextColor="#9E9E9E"
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+            returnKeyType="search"
+            clearButtonMode="while-editing"
+          />
+        </View>
+
+        {/* Category filter chips — ScrollView avoids flex-height conflicts */}
+        {availableCategories.length > 1 && (
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.filterChips}
+          >
+            {[null, ...availableCategories].map((item) => {
+              const isActive = item === selectedCategory;
+              return (
+                <TouchableOpacity
+                  key={item ?? 'all'}
+                  style={[styles.filterChip, isActive && styles.filterChipActive]}
+                  onPress={() => setSelectedCategory(isActive ? null : item)}
+                >
+                  <Text
+                    style={[
+                      styles.filterChipText,
+                      isActive && styles.filterChipTextActive,
+                    ]}
+                  >
+                    {item ?? 'All'}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+          </ScrollView>
+        )}
+      </View>
 
       {/* Loading */}
       {isLoading && credits.length === 0 && (
@@ -187,6 +191,7 @@ export default function CreditsScreen() {
       <FlatList
         data={filteredCredits}
         keyExtractor={(item) => item.id}
+        style={styles.creditsList}
         renderItem={({ item }) => (
           <CreditCard
             credit={item}
@@ -198,11 +203,6 @@ export default function CreditsScreen() {
           styles.listContent,
           filteredCredits.length === 0 && styles.listContentEmpty,
         ]}
-        getItemLayout={(_data, index) => ({
-          length: 108,
-          offset: 108 * index,
-          index,
-        })}
         showsVerticalScrollIndicator={false}
       />
 
@@ -291,6 +291,7 @@ const styles = StyleSheet.create({
   filterChipText: { fontSize: 13, color: '#616161' },
   filterChipTextActive: { color: '#FFFFFF', fontWeight: '600' },
   loadingContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
+  creditsList: { flex: 1 },
   listContent: { paddingTop: 4, paddingBottom: 100 },
   listContentEmpty: { flex: 1 },
   emptyState: {
