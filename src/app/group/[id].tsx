@@ -15,6 +15,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { getGroupWithMembers, createInviteToken, removeMember, deleteGroup } from '@/lib/firestoreGroups';
 import { useAuthStore } from '@/stores/authStore';
 import { useGroupStore } from '@/stores/groupStore';
+import { useUIStore } from '@/stores/uiStore';
 import { GroupRole, type Group, type GroupMember } from '@/types/groupTypes';
 import { SAGE_TEAL } from '@/components/ui/theme';
 
@@ -56,6 +57,10 @@ export default function GroupDetailScreen() {
 
   async function handleInvite() {
     if (!currentUser || !groupId) return;
+    if (useUIStore.getState().offlineMode) {
+      Alert.alert('No Internet Connection', 'Inviting members requires an internet connection.');
+      return;
+    }
     setInviting(true);
     try {
       const { link } = await createInviteToken(groupId, currentUser.uid);

@@ -23,6 +23,7 @@ import { formatCurrency } from '@/lib/formatCurrency';
 import { useCreditsStore } from '@/stores/creditsStore';
 import { useGroupStore } from '@/stores/groupStore';
 import { useAuthStore } from '@/stores/authStore';
+import { useUIStore } from '@/stores/uiStore';
 import { CreditStatus } from '@/types/creditTypes';
 import type { GroupMember } from '@/types/groupTypes';
 import { CATEGORIES } from '@/constants/categories';
@@ -80,6 +81,10 @@ export default function CreditDetailScreen() {
   // ---- actions -------------------------------------------------------------
 
   async function handleMarkRedeemed() {
+    if (useUIStore.getState().offlineMode) {
+      Alert.alert('No Internet Connection', 'Marking credits as redeemed requires an internet connection.');
+      return;
+    }
     const c = credit!;
     Alert.alert(
       'Mark as Redeemed',
@@ -115,6 +120,11 @@ export default function CreditDetailScreen() {
   }
 
   async function handleDelete() {
+    if (useUIStore.getState().offlineMode) {
+      setShowActionSheet(false);
+      Alert.alert('No Internet Connection', 'Deleting credits requires an internet connection.');
+      return;
+    }
     const c = credit!;
     setShowActionSheet(false);
     Alert.alert(

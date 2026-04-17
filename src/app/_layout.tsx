@@ -7,6 +7,8 @@ import { useAuthState } from '@/hooks/useAuthState';
 import { useBadgeUpdater } from '@/hooks/useBadgeUpdater';
 import { useGroupSync } from '@/hooks/useGroupSync';
 import { useGroupListener } from '@/hooks/useGroupListener';
+import { useNetworkMonitor } from '@/hooks/useNetworkMonitor';
+import { OfflineToast } from '@/components/redeemy/OfflineToast';
 import { useAuthStore } from '@/stores/authStore';
 import { AuthStatus } from '@/types/userTypes';
 import { configureGoogleSignIn } from '@/lib/auth';
@@ -26,6 +28,7 @@ function AuthGate({ children }: { children: React.ReactNode }) {
   useBadgeUpdater();
   useGroupSync();
   useGroupListener();
+  useNetworkMonitor();
 
   const router = useRouter();
   const segments = useSegments();
@@ -72,7 +75,12 @@ function AuthGate({ children }: { children: React.ReactNode }) {
     );
   }
 
-  return <>{children}</>;
+  return (
+    <View style={styles.flex}>
+      {children}
+      <OfflineToast />
+    </View>
+  );
 }
 
 export default function RootLayout() {
@@ -100,6 +108,7 @@ export default function RootLayout() {
 }
 
 const styles = StyleSheet.create({
+  flex: { flex: 1 },
   loading: {
     flex: 1,
     justifyContent: 'center',

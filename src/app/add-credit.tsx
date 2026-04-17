@@ -26,6 +26,7 @@ import { scheduleReminderNotification } from '@/lib/notifications';
 import { parseAmountToAgot } from '@/lib/formatCurrency';
 import { useAuthStore } from '@/stores/authStore';
 import { useCreditsStore } from '@/stores/creditsStore';
+import { useUIStore } from '@/stores/uiStore';
 import { CreditStatus, type Credit } from '@/types/creditTypes';
 import { DEFAULT_CATEGORY_ID } from '@/constants/categories';
 import { REMINDER_PRESETS, DEFAULT_REMINDER_DAYS } from '@/constants/reminders';
@@ -134,6 +135,15 @@ export default function AddCreditScreen() {
   async function handleSave() {
     if (!validate()) return;
     if (!currentUser) return;
+
+    if (useUIStore.getState().offlineMode) {
+      Alert.alert(
+        'No Internet Connection',
+        'Adding credits requires an internet connection. Please try again when you are back online.',
+        [{ text: 'OK' }]
+      );
+      return;
+    }
 
     const agot = parseAmountToAgot(amountInput);
 
