@@ -10,6 +10,7 @@ import {
   Modal,
   ActivityIndicator,
   FlatList,
+  InteractionManager,
 } from 'react-native';
 import { Image } from 'expo-image';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -155,17 +156,17 @@ export default function CreditDetailScreen() {
   async function handleShare() {
     setShowActionSheet(false);
     const c = credit!;
-    if (allGroupMembers.length > 0) {
-      // Small delay so action sheet finishes dismissing before new modal opens
-      setTimeout(() => setShowTransferSheet(true), 300);
-    } else {
-      // Delay so the action sheet is fully gone before iOS share sheet appears
-      setTimeout(async () => {
+    // Wait for action sheet dismiss animation to fully complete before
+    // presenting another sheet (iOS blocks overlapping presentations)
+    InteractionManager.runAfterInteractions(async () => {
+      if (allGroupMembers.length > 0) {
+        setShowTransferSheet(true);
+      } else {
         await Share.share({
           message: `I have a ${formatCurrency(c.amount)} gift credit at ${c.storeName} — using Redeemy to track it!`,
         });
-      }, 300);
-    }
+      }
+    });
   }
 
   async function handleTransfer(toMember: GroupMember) {
@@ -206,10 +207,9 @@ export default function CreditDetailScreen() {
 
   function handleEdit() {
     setShowActionSheet(false);
-    // Small delay so the action sheet finishes dismissing before navigation
-    setTimeout(() => {
+    InteractionManager.runAfterInteractions(() => {
       router.push(`/add-credit?creditId=${credit!.id}`);
-    }, 300);
+    });
   }
 
   // ---- render --------------------------------------------------------------
