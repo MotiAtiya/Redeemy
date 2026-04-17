@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useRef } from 'react';
 import {
   View,
   Text,
@@ -10,7 +10,6 @@ import {
   Modal,
   ActivityIndicator,
   FlatList,
-  InteractionManager,
 } from 'react-native';
 import { Image } from 'expo-image';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -43,6 +42,9 @@ export default function CreditDetailScreen() {
   const [showActionSheet, setShowActionSheet] = useState(false);
   const [showTransferSheet, setShowTransferSheet] = useState(false);
   const [loading, setLoading] = useState(false);
+
+  // Action to run after the action sheet is fully dismissed (iOS native animation)
+  const afterDismissRef = useRef<(() => void) | null>(null);
 
   // All members across all groups (excluding self) for transfer
   const allGroupMembers = useMemo<GroupMember[]>(() => {
@@ -154,11 +156,8 @@ export default function CreditDetailScreen() {
   }
 
   async function handleShare() {
-    setShowActionSheet(false);
     const c = credit!;
-    // Wait for action sheet dismiss animation to fully complete before
-    // presenting another sheet (iOS blocks overlapping presentations)
-    InteractionManager.runAfterInteractions(async () => {
+    afterDismissRef.current = async () => {
       if (allGroupMembers.length > 0) {
         setShowTransferSheet(true);
       } else {
@@ -166,7 +165,8 @@ export default function CreditDetailScreen() {
           message: `I have a ${formatCurrency(c.amount)} gift credit at ${c.storeName} — using Redeemy to track it!`,
         });
       }
-    });
+    };
+    setShowActionSheet(false);
   }
 
   async function handleTransfer(toMember: GroupMember) {
@@ -206,10 +206,10 @@ export default function CreditDetailScreen() {
   }
 
   function handleEdit() {
-    setShowActionSheet(false);
-    InteractionManager.runAfterInteractions(() => {
+    afterDismissRef.current = () => {
       router.push(`/add-credit?creditId=${credit!.id}`);
-    });
+    };
+    setShowActionSheet(false);
   }
 
   // ---- render --------------------------------------------------------------
@@ -392,6 +392,12 @@ export default function CreditDetailScreen() {
         transparent
         animationType="slide"
         onRequestClose={() => setShowActionSheet(false)}
+        onDismiss={() => {
+          // iOS-only: fires after native modal dismiss animation completes
+          const action = afterDismissRef.current;
+          afterDismissRef.current = null;
+          action?.();
+        }}
       >
         <TouchableOpacity
           style={styles.overlay}
