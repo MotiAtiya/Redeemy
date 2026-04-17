@@ -1,7 +1,6 @@
 import { useEffect } from 'react';
 import NetInfo from '@react-native-community/netinfo';
 import { useUIStore } from '@/stores/uiStore';
-import { useGroupStore } from '@/stores/groupStore';
 
 /**
  * Subscribes to network connectivity changes and syncs the result into

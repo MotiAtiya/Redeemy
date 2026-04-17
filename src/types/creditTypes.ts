@@ -33,10 +33,6 @@ export interface Credit {
   updatedAt: Date | Timestamp;
   /** Set when status transitions to REDEEMED */
   redeemedAt?: Date | Timestamp;
-  /** Group ID for shared credits — undefined for personal credits */
-  groupId?: string;
-  /** userId of the group member who added this credit */
-  addedBy?: string;
 }
 
 /**

@@ -1,6 +1,5 @@
 import { z } from 'zod';
 import { CreditStatus } from '@/types/creditTypes';
-import { GroupRole } from '@/types/groupTypes';
 
 // ---------------------------------------------------------------------------
 // Credit schema
@@ -40,16 +39,6 @@ export type CreditSchemaInput = z.input<typeof CreditSchema>;
 export type CreditSchemaOutput = z.output<typeof CreditSchema>;
 
 // ---------------------------------------------------------------------------
-// Group schema
-// ---------------------------------------------------------------------------
-
-export const GroupSchema = z.object({
-  groupName: z.string().min(1, 'Group name is required').max(50),
-});
-
-export type GroupSchemaInput = z.input<typeof GroupSchema>;
-
-// ---------------------------------------------------------------------------
 // User schema
 // ---------------------------------------------------------------------------
 
@@ -65,4 +54,4 @@ export type UserSchemaInput = z.input<typeof UserSchema>;
 // ---------------------------------------------------------------------------
 // Shared enums re-exported for convenience
 // ---------------------------------------------------------------------------
-export { CreditStatus, GroupRole };
+export { CreditStatus };

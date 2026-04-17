@@ -1,4 +1,4 @@
-import { CreditSchema, GroupSchema, UserSchema } from '@/lib/validation';
+import { CreditSchema, UserSchema } from '@/lib/validation';
 import { CreditStatus } from '@/types/creditTypes';
 
 // ---------------------------------------------------------------------------
@@ -85,32 +85,6 @@ describe('CreditSchema', () => {
     if (result.success) {
       expect(result.data.amountInput).toBe(10000);
     }
-  });
-});
-
-// ---------------------------------------------------------------------------
-// GroupSchema
-// ---------------------------------------------------------------------------
-
-describe('GroupSchema', () => {
-  it('accepts valid group name', () => {
-    const result = GroupSchema.safeParse({ groupName: 'My Family' });
-    expect(result.success).toBe(true);
-  });
-
-  it('rejects empty group name', () => {
-    const result = GroupSchema.safeParse({ groupName: '' });
-    expect(result.success).toBe(false);
-  });
-
-  it('rejects group name longer than 50 characters', () => {
-    const result = GroupSchema.safeParse({ groupName: 'A'.repeat(51) });
-    expect(result.success).toBe(false);
-  });
-
-  it('accepts group name of exactly 50 characters', () => {
-    const result = GroupSchema.safeParse({ groupName: 'A'.repeat(50) });
-    expect(result.success).toBe(true);
   });
 });
 

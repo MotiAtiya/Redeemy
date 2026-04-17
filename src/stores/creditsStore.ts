@@ -19,13 +19,6 @@ interface CreditsActions {
   removeCredit: (creditId: string) => void;
   /** Optimistic update — used on edit or status change */
   updateCredit: (creditId: string, changes: Partial<Credit>) => void;
-  /**
-   * Replaces group credits from OTHER members (not currentUserId) for a given group.
-   * The personal subscription already covers credits the user added to the group.
-   */
-  replaceGroupCredits: (groupId: string, credits: Credit[], currentUserId: string) => void;
-  /** Clears credits from OTHER members in a group (on leave / group deletion) */
-  clearGroupCredits: (groupId: string, currentUserId: string) => void;
 }
 
 type CreditsStore = CreditsState & CreditsActions;
@@ -58,23 +51,4 @@ export const useCreditsStore = create<CreditsStore>()((set) => ({
       ),
     })),
 
-  replaceGroupCredits: (groupId, incomingCredits, currentUserId) =>
-    set((state) => {
-      // Keep credits that are NOT from this group's other members
-      const withoutOtherMemberCredits = state.credits.filter(
-        (c) => !(c.groupId === groupId && c.userId !== currentUserId)
-      );
-      // Add other members' credits from this group
-      const otherMemberCredits = incomingCredits.filter(
-        (c) => c.userId !== currentUserId
-      );
-      return { credits: [...withoutOtherMemberCredits, ...otherMemberCredits] };
-    }),
-
-  clearGroupCredits: (groupId, currentUserId) =>
-    set((state) => ({
-      credits: state.credits.filter(
-        (c) => !(c.groupId === groupId && c.userId !== currentUserId)
-      ),
-    })),
 }));
