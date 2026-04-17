@@ -23,8 +23,7 @@ This document provides the complete epic and story breakdown for Redeemy, decomp
 | Epic 4 | Stores & Discovery | 2 stories |
 | Epic 5 | Reminders & Notifications | 3 stories |
 | Epic 6 | Redeem & History | 3 stories |
-| Epic 7 | Family & Group Sharing | 4 stories |
-| Epic 8 | Offline Support | 2 stories |
+| Epic 7 | Offline Support | 2 stories |
 
 ---
 
@@ -41,11 +40,9 @@ This document provides the complete epic and story breakdown for Redeemy, decomp
 | FR7 | Reminders & push notifications (local scheduled + in-app badge) |
 | FR8 | Redeem credit (mark as redeemed, move to archive) |
 | FR9 | Redeemed credits archive (history view, search, filter) |
-| FR10 | Share individual credit (transfer to another user) |
-| FR11 | Family/group sharing (create group, invite, real-time sync, any member can add/edit/redeem) |
-| FR12 | Cloud sync (automatic, real-time, cross-device, conflict resolution) |
-| FR13 | Image pipeline (capture/gallery, compress, thumbnail, cloud storage) |
-| FR14 | Offline support (read/browse works offline) |
+| FR10 | Cloud sync (automatic, real-time, cross-device) |
+| FR11 | Image pipeline (capture/gallery, compress, thumbnail, cloud storage) |
+| FR12 | Offline support (read/browse works offline) |
 
 ---
 
@@ -62,11 +59,9 @@ This document provides the complete epic and story breakdown for Redeemy, decomp
 | FR7 | Epic 5 | 5.1, 5.2, 5.3 |
 | FR8 | Epic 6 | 6.1 |
 | FR9 | Epic 6 | 6.2, 6.3 |
-| FR10 | Epic 7 | 7.3 |
-| FR11 | Epic 7 | 7.1, 7.2, 7.4 |
-| FR12 | Epic 7 | 7.4 |
-| FR13 | Epic 3 | 3.1 |
-| FR14 | Epic 8 | 8.1, 8.2 |
+| FR10 | Epic 3 | 3.3 |
+| FR11 | Epic 3 | 3.1 |
+| FR12 | Epic 7 | 7.1, 7.2 |
 | Infrastructure | Epic 1 | 1.1, 1.2, 1.3, 1.4 |
 
 ---
@@ -201,12 +196,11 @@ So that all subsequent stories can import consistent types and state management 
   - `Credit` interface with all Firestore fields (amounts as `number` integers = agot)
   - `CreditStatus` enum: `ACTIVE = 'active'`, `REDEEMED = 'redeemed'`
   - `CreditFormData` type for Add Credit form
-- `src/types/groupTypes.ts` defines: `Group`, `GroupMember`, `GroupRole` enum
 - `src/types/userTypes.ts` defines: `User`, `AuthStatus` enum (`LOADING | AUTHENTICATED | UNAUTHENTICATED`)
 - `src/stores/authStore.ts` — shape: `{ currentUser, authStatus, setCurrentUser, setAuthStatus }`
 - `src/stores/creditsStore.ts` — shape: `{ credits[], isLoading, error, searchQuery, setCredits, setLoading, setError, setSearchQuery, addCredit, removeCredit }`
 - `src/stores/uiStore.ts` — shape: `{ activeTab, offlineMode, setActiveTab, setOfflineMode }`
-- `src/lib/validation.ts` — Zod schemas: `CreditSchema`, `GroupSchema`, `UserSchema`
+- `src/lib/validation.ts` — Zod schemas: `CreditSchema`, `UserSchema`
 - `src/constants/categories.ts` — 9 default categories with names and icons
 - `src/constants/currencies.ts` — `₪` as default currency
 - `src/constants/reminders.ts` — 4 preset options (1 day, 1 week, 1 month, 3 months)
@@ -541,7 +535,7 @@ So that I can keep my credits up to date.
 - All fields: store name, amount (formatted as ₪), category, expiration date, reminder setting, notes (if any), date added
 - `ExpirationBadge` with days remaining
 - Primary action button: **Mark as Redeemed** (Sage teal, full width, always visible)
-- Secondary actions: **Edit**, **Share**, **Delete** — in a bottom action sheet (not inline)
+- Secondary actions: **Edit**, **Delete** — in a bottom action sheet (not inline)
 
 **Given** the user taps Edit
 **When** the edit form opens
@@ -559,7 +553,6 @@ So that I can keep my credits up to date.
 - Edit flow: cancel old notification → schedule new → `updateDoc()` with new `notificationId`
 - Delete flow: `Notifications.cancelScheduledNotificationAsync(credit.notificationId)` before `deleteDoc()`
 - Bottom sheet for destructive actions — never inline confirmation to prevent accidental taps
-- Share action uses iOS native share sheet (`Share.share()` from React Native)
 
 ---
 
@@ -815,135 +808,7 @@ So that I can find a specific past credit quickly.
 
 ---
 
-## Epic 7: Family & Group Sharing
-
-**Goal:** Family members can share a pool of store credits — anyone can add, edit, or redeem shared credits, with changes syncing in real time across all members' devices.
-
-**User value:** A household can collectively manage store credits without duplicating effort or missing credits added by another family member.
-
----
-
-### Story 7.1: Create Family Group
-
-As a user,
-I want to create a family group and give it a name,
-So that I have a shared credit pool to invite my family to.
-
-**Acceptance Criteria:**
-
-**Given** the user is in the More tab → "Family Groups"
-**When** the user taps "Create Group"
-**Then** `group/create.tsx` opens with a group name text field and "Create Group" button
-
-**Given** the user submits a group name
-**When** the Firestore write succeeds
-**Then**:
-- `/groups/{groupId}` created: `{ groupName, createdBy: userId, createdAt }`
-- `/groups/{groupId}/members/{userId}` created: `{ role: GroupRole.ADMIN, joinedAt }`
-- User navigated to `group/[id].tsx` with an "Invite Members" CTA
-
-**And** a user can be in multiple groups
-
-**Prerequisites:** Story 2.4
-
-**Technical Notes:**
-- All group logic in `src/lib/firestoreGroups.ts`
-- Firebase Security Rules: only `GroupRole.ADMIN` can delete the group or remove members
-- `GroupRole` enum: `ADMIN = 'admin'`, `MEMBER = 'member'`
-
----
-
-### Story 7.2: Invite & Accept Group Membership
-
-As a user,
-I want to invite a family member to my group,
-So that they can access and contribute to our shared credit pool.
-
-**Acceptance Criteria:**
-
-**Given** a group admin is on `group/[id].tsx`
-**When** the admin taps "Invite Members"
-**Then** the iOS native share sheet opens with a pre-composed invitation deep-link
-
-**Given** the invited user taps the link
-**When** they are authenticated in Redeemy
-**Then**:
-- `/groups/{groupId}/members/{userId}` created with `role: GroupRole.MEMBER`
-- Invited user's `group/[id].tsx` loads showing all existing shared credits
-- Both users see each other in the member list with name and role
-
-**And** invitation link expires after 7 days
-
-**Prerequisites:** Story 7.1
-
-**Technical Notes:**
-- Deep-link handled via Expo Router dynamic route
-- Handle `SIGN_IN_CANCELLED` / unauthenticated invite recipient: redirect to sign-in first, then complete join
-- Group admin receives FCM notification when member joins
-
----
-
-### Story 7.3: Share Individual Credit (Transfer)
-
-As a user,
-I want to transfer a specific credit to another Redeemy user,
-So that they can use it instead of me.
-
-**Acceptance Criteria:**
-
-**Given** the user is on `credit/[id].tsx`
-**When** the user taps "Share" in the action sheet
-**Then** options appear: "Transfer to Family Member" (if in a group) and "Send via…" (iOS share sheet)
-
-**Given** the user selects "Transfer to Family Member" and picks a member
-**When** the transfer is confirmed
-**Then**:
-- Credit's `userId` field updated to recipient's `userId`
-- Credit disappears from sender's active list; appears in recipient's list
-- Recipient receives FCM notification: "[Sender] sent you a credit — [Store] ₪[Amount]"
-
-**Prerequisites:** Stories 7.1, 7.2
-
-**Technical Notes:**
-- Transfer is `updateDoc` on `userId` field — protected by Security Rules (only current owner can transfer)
-- Both users must be Redeemy account holders
-
----
-
-### Story 7.4: Real-Time Shared Credit Pool & Sync
-
-As a family group member,
-I want to see all shared credits in real time as other members add or change them,
-So that our credit pool is always accurate for everyone.
-
-**Acceptance Criteria:**
-
-**Given** a user is a member of a family group
-**When** `useGroupListener.ts` sets up its Firestore `onSnapshot` listener
-**Then** credits filtered by `groupId` are included in the user's credits list
-
-**Given** another group member adds a credit
-**When** the Firestore write propagates
-**Then** the new credit appears in the current user's list with attribution: "Added by [Member Name]"
-
-**Given** any member marks a credit as redeemed
-**When** the update propagates
-**Then** the credit moves to History for ALL group members simultaneously
-
-**And** `SyncIndicator.tsx` (Sage teal dot) shows: syncing (animated) / synced (solid) / offline (gray)
-
-**And** Firebase Security Rules enforce: `read/write allowed if request.auth.uid == resource.data.userId || isGroupMember(resource.data.groupId, request.auth.uid)`
-
-**Prerequisites:** Stories 7.2, 7.3
-
-**Technical Notes:**
-- `useGroupListener.ts` sets up `onSnapshot` in `useEffect` with `return unsubscribe` cleanup — mandatory
-- Conflict resolution: last-write-wins via `serverTimestamp()` on `updatedAt`
-- Attribution: `addedBy: userId` field on shared credits → resolved to display name from group members subcollection
-
----
-
-## Epic 8: Offline Support
+## Epic 7: Offline Support
 
 **Goal:** Users can browse and search all their credits with no internet connection — the app is useful even in a basement, underground mall, or area with no signal.
 
@@ -951,7 +816,7 @@ So that our credit pool is always accurate for everyone.
 
 ---
 
-### Story 8.1: Offline Read & Browse
+### Story 7.1: Offline Read & Browse
 
 As a user,
 I want to browse and search my credits when I have no internet connection,
@@ -978,11 +843,11 @@ So that the app is useful even without signal.
 **Technical Notes:**
 - `persistentLocalCache()` initialized in `src/lib/firebase.ts`
 - Network state: `@react-native-community/netinfo` → `uiStore.offlineMode`
-- Write operations requiring internet: Add Credit, Edit, Redeem, Group invite — all use the same offline toast pattern
+- Write operations requiring internet: Add Credit, Edit, Redeem — all use the same offline toast pattern
 
 ---
 
-### Story 8.2: Sync Recovery on Reconnect
+### Story 7.2: Sync Recovery on Reconnect
 
 As a user,
 I want any pending changes to sync automatically when I regain internet,
@@ -995,14 +860,13 @@ So that I never lose data.
 **Then**:
 - Firestore automatically flushes queued writes
 - `SyncIndicator` transitions: offline (gray) → syncing (animated teal) → synced (solid teal)
-- Credits list updates with changes made by group members while offline
 - No user action required — fully automatic
 
-**Given** a sync conflict occurs (two members edited same credit while one was offline)
+**Given** a sync conflict occurs (two devices edited the same credit while one was offline)
 **When** both writes reach Firestore
 **Then** last-write-wins via `serverTimestamp()` on `updatedAt`
 
-**Prerequisites:** Stories 7.4, 8.1
+**Prerequisites:** Stories 1.2, 7.1
 
 **Technical Notes:**
 - Firestore handles offline write queue natively — no custom queue needed
@@ -1024,19 +888,17 @@ So that I never lose data.
 | FR7 — Reminders & push notifications | Epic 5 | 5.1, 5.2, 5.3 |
 | FR8 — Redeem credit | Epic 6 | 6.1 |
 | FR9 — Redeemed archive & history | Epic 6 | 6.2, 6.3 |
-| FR10 — Share individual credit | Epic 7 | 7.3 |
-| FR11 — Family/group sharing | Epic 7 | 7.1, 7.2, 7.4 |
-| FR12 — Cloud sync & real-time | Epic 7 | 7.4 |
-| FR13 — Image pipeline | Epic 3 | 3.1 |
-| FR14 — Offline support | Epic 8 | 8.1, 8.2 |
+| FR10 — Cloud sync & real-time | Epic 3 | 3.3 |
+| FR11 — Image pipeline | Epic 3 | 3.1 |
+| FR12 — Offline support | Epic 7 | 7.1, 7.2 |
 
-✅ All 14 FRs covered across 28 stories.
+✅ All 12 FRs covered across 24 stories.
 
 ---
 
 ## Summary
 
-**Total: 8 Epics · 28 Stories**
+**Total: 7 Epics · 24 Stories**
 
 | Epic | Stories | Delivers |
 |------|---------|---------|
@@ -1046,8 +908,7 @@ So that I never lose data.
 | Epic 4: Stores & Discovery | 2 | Shopping discovery — "do I have a credit here?" |
 | Epic 5: Reminders | 3 | The core promise — no credit expires forgotten |
 | Epic 6: Redeem & History | 3 | Close the loop — credits are used, history is kept |
-| Epic 7: Family Sharing | 4 | Household credit pool with real-time sync |
-| Epic 8: Offline Support | 2 | App works anywhere — no signal, no problem |
+| Epic 7: Offline Support | 2 | App works anywhere — no signal, no problem |
 
 **Context incorporated:**
 - ✅ Product Brief requirements (all 14 FRs)
