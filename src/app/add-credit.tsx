@@ -19,6 +19,7 @@ import DateTimePicker, { type DateTimePickerEvent } from '@react-native-communit
 import { CategoryChipSelector } from '@/components/redeemy/CategoryChipSelector';
 import { StoreAutocomplete } from '@/components/redeemy/StoreAutocomplete';
 import { openCamera, openGallery, uploadCreditImage } from '@/lib/imageUpload';
+import { CropModal } from '@/components/redeemy/CropModal';
 import { createCredit, updateCredit } from '@/lib/firestoreCredits';
 import { scheduleReminderNotification } from '@/lib/notifications';
 import { parseAmountToAgot } from '@/lib/formatCurrency';
@@ -56,7 +57,7 @@ function makeStyles(colors: AppColors) {
     scroll: { flex: 1 },
     scrollContent: { padding: 16, gap: 20, paddingBottom: 40 },
     photoSection: { alignItems: 'center', gap: 12 },
-    photoContainer: { position: 'relative' },
+    photoContainer: { position: 'relative', width: '100%' },
     photo: { width: '100%', height: 180, borderRadius: 12, backgroundColor: colors.separator },
     photoEditBadge: {
       position: 'absolute',
@@ -171,6 +172,7 @@ export default function AddCreditScreen() {
   );
 
   const [imageUri, setImageUri] = useState<string | null>(null);
+  const [cropUri, setCropUri] = useState<string | null>(null); // raw URI pending crop
   const [storeName, setStoreName] = useState('');
   const [amountInput, setAmountInput] = useState('');
   const [category, setCategory] = useState(DEFAULT_CATEGORY_ID);
@@ -200,21 +202,16 @@ export default function AddCreditScreen() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  useEffect(() => {
-    if (!isEditing) handleCamera();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
   async function handleCamera() {
     try {
       const picked = await openCamera();
-      if (picked) setImageUri(picked.localUri);
+      if (picked) setCropUri(picked.localUri);
     } catch { /* Camera not available (simulator) — silently skip */ }
   }
 
   async function handleGallery() {
     const picked = await openGallery();
-    if (picked) setImageUri(picked.localUri);
+    if (picked) setCropUri(picked.localUri);
   }
 
   function onDateChange(_event: DateTimePickerEvent, date?: Date) {
@@ -320,6 +317,13 @@ export default function AddCreditScreen() {
 
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
+      {cropUri && (
+        <CropModal
+          uri={cropUri}
+          onCrop={(croppedUri) => { setImageUri(croppedUri); setCropUri(null); }}
+          onCancel={() => setCropUri(null)}
+        />
+      )}
       <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
         <View style={styles.header}>
           <TouchableOpacity onPress={() => router.back()} hitSlop={8}>

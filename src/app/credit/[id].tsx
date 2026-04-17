@@ -8,6 +8,8 @@ import {
   Alert,
   Modal,
   ActivityIndicator,
+  Dimensions,
+  StatusBar,
 } from 'react-native';
 import { Image } from 'expo-image';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -115,6 +117,27 @@ function makeStyles(colors: AppColors) {
       borderRadius: 12,
     },
     redeemedBannerText: { fontSize: 15, color: colors.textTertiary, fontWeight: '500' },
+    // Full-screen image viewer
+    fullscreenModal: { flex: 1, backgroundColor: '#000000' },
+    fullscreenClose: {
+      position: 'absolute',
+      top: 56,
+      right: 16,
+      zIndex: 10,
+      backgroundColor: 'rgba(0,0,0,0.5)',
+      borderRadius: 20,
+      padding: 8,
+    },
+    fullscreenScrollView: { flex: 1 },
+    fullscreenScrollContent: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    fullscreenImage: {
+      width: Dimensions.get('window').width,
+      height: Dimensions.get('window').height,
+    },
   });
 }
 
@@ -129,6 +152,7 @@ export default function CreditDetailScreen() {
   const updateCreditInStore = useCreditsStore((s) => s.updateCredit);
 
   const [showActionSheet, setShowActionSheet] = useState(false);
+  const [showFullscreenImage, setShowFullscreenImage] = useState(false);
   const [loading, setLoading] = useState(false);
   const afterDismissRef = useRef<(() => void) | null>(null);
   const isRedeemed = credit?.status === CreditStatus.REDEEMED;
@@ -231,13 +255,15 @@ export default function CreditDetailScreen() {
 
       <ScrollView style={styles.scroll} contentContainerStyle={styles.scrollContent}>
         {credit.imageUrl ? (
-          <Image
-            source={{ uri: credit.imageUrl }}
-            style={styles.image}
-            contentFit="cover"
-            placeholder={{ blurhash: 'L6PZfSi_.AyE_3t7t7R**0o#DgR4' }}
-            transition={300}
-          />
+          <TouchableOpacity onPress={() => setShowFullscreenImage(true)} activeOpacity={0.9}>
+            <Image
+              source={{ uri: credit.imageUrl }}
+              style={styles.image}
+              contentFit="cover"
+              placeholder={{ blurhash: 'L6PZfSi_.AyE_3t7t7R**0o#DgR4' }}
+              transition={300}
+            />
+          </TouchableOpacity>
         ) : (
           <View style={styles.imagePlaceholder}>
             <Ionicons name="image-outline" size={40} color={colors.textTertiary} />
@@ -324,6 +350,43 @@ export default function CreditDetailScreen() {
           </TouchableOpacity>
         )}
       </View>
+
+      {/* Full-screen image viewer */}
+      <Modal
+        visible={showFullscreenImage}
+        transparent={false}
+        animationType="fade"
+        onRequestClose={() => setShowFullscreenImage(false)}
+        statusBarTranslucent
+      >
+        <View style={styles.fullscreenModal}>
+          <StatusBar hidden />
+          <ScrollView
+            style={styles.fullscreenScrollView}
+            contentContainerStyle={styles.fullscreenScrollContent}
+            maximumZoomScale={5}
+            minimumZoomScale={1}
+            showsHorizontalScrollIndicator={false}
+            showsVerticalScrollIndicator={false}
+            centerContent
+            bouncesZoom
+          >
+            <Image
+              source={{ uri: credit.imageUrl! }}
+              style={styles.fullscreenImage}
+              contentFit="contain"
+              transition={200}
+            />
+          </ScrollView>
+          <TouchableOpacity
+            style={styles.fullscreenClose}
+            onPress={() => setShowFullscreenImage(false)}
+            hitSlop={12}
+          >
+            <Ionicons name="close" size={22} color="#FFFFFF" />
+          </TouchableOpacity>
+        </View>
+      </Modal>
 
       <Modal
         visible={showActionSheet}

@@ -1,7 +1,7 @@
 import * as ImagePicker from 'expo-image-picker';
 import * as ImageManipulator from 'expo-image-manipulator';
 import * as Linking from 'expo-linking';
-import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
 import { storage } from './firebase';
 
 // ---------------------------------------------------------------------------
@@ -177,4 +177,18 @@ export async function uploadCreditImage(
   ]);
 
   return { imageUrl, thumbnailUrl };
+}
+
+// ---------------------------------------------------------------------------
+// Delete
+// ---------------------------------------------------------------------------
+
+/**
+ * Deletes both the full and thumbnail images for a credit from Firebase Storage.
+ * Silently ignores errors (e.g. if no image was ever uploaded).
+ */
+export async function deleteCreditImages(creditId: string): Promise<void> {
+  const fullRef = ref(storage, `credits/${creditId}/full.jpg`);
+  const thumbRef = ref(storage, `credits/${creditId}/thumb.jpg`);
+  await Promise.allSettled([deleteObject(fullRef), deleteObject(thumbRef)]);
 }

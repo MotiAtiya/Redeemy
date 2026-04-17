@@ -1,3 +1,4 @@
+import { deleteCreditImages } from './imageUpload';
 import {
   collection,
   addDoc,
@@ -104,5 +105,8 @@ export async function updateCredit(
  * Permanently deletes a credit document.
  */
 export async function deleteCredit(creditId: string): Promise<void> {
-  await deleteDoc(doc(db, CREDITS_COLLECTION, creditId));
+  await Promise.all([
+    deleteDoc(doc(db, CREDITS_COLLECTION, creditId)),
+    deleteCreditImages(creditId),
+  ]);
 }
