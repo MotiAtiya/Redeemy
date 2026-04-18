@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import {
   View,
   Text,
@@ -10,6 +10,8 @@ import {
   ActivityIndicator,
   Alert,
   KeyboardAvoidingView,
+  Dimensions,
+  Keyboard,
 } from 'react-native';
 import { Image } from 'expo-image';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -112,8 +114,18 @@ function makeStyles(colors: AppColors) {
     },
     dateButtonText: { fontSize: 16, color: colors.textPrimary },
     datePlaceholder: { color: colors.textTertiary },
-    datePickerDone: { alignItems: 'flex-end', paddingVertical: 8 },
-    datePickerDoneText: { fontSize: 16, color: colors.primary, fontWeight: '600' },
+    datePickerWrapper: { position: 'relative' },
+    datePickerConfirm: {
+      position: 'absolute',
+      top: 10,
+      right: 10,
+      width: 30,
+      height: 30,
+      borderRadius: 15,
+      backgroundColor: colors.primary,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
     reminderChips: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
     reminderChip: {
       paddingVertical: 8,
@@ -126,20 +138,6 @@ function makeStyles(colors: AppColors) {
     reminderChipSelected: { backgroundColor: colors.primary, borderColor: colors.primary },
     reminderChipText: { fontSize: 13, color: colors.textSecondary },
     reminderChipTextSelected: { color: '#FFFFFF', fontWeight: '600' },
-    customReminderRow: { flexDirection: 'row', alignItems: 'center', gap: 10, marginTop: 4 },
-    customReminderInput: {
-      width: 80,
-      height: 44,
-      borderWidth: 1,
-      borderColor: colors.separator,
-      borderRadius: 8,
-      paddingHorizontal: 12,
-      fontSize: 15,
-      color: colors.textPrimary,
-      backgroundColor: colors.background,
-      textAlign: 'center',
-    },
-    customReminderLabel: { fontSize: 14, color: colors.textSecondary },
     notesToggle: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
     notesInput: {
       minHeight: 80,
@@ -179,12 +177,38 @@ export default function AddCreditScreen() {
   const [expirationDate, setExpirationDate] = useState<Date | null>(null);
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [reminderDays, setReminderDays] = useState(DEFAULT_REMINDER_DAYS);
-  const [customReminder, setCustomReminder] = useState('');
-  const [showCustomReminder, setShowCustomReminder] = useState(false);
   const [notes, setNotes] = useState('');
   const [showNotes, setShowNotes] = useState(false);
   const [errors, setErrors] = useState<FormErrors>({});
   const [saving, setSaving] = useState(false);
+
+  const scrollViewRef = useRef<ScrollView>(null);
+  const dateFieldY = useRef(0);
+  const notesFieldY = useRef(0);
+  const notesFocused = useRef(false);
+
+  useEffect(() => {
+    const show = Keyboard.addListener('keyboardDidShow', () => {
+      if (!notesFocused.current) return;
+      scrollViewRef.current?.scrollToEnd({ animated: true });
+    });
+    return () => { show.remove(); };
+  }, []);
+
+  // iOS spinner height is ~216px; label ~20px; button ~52px
+  const DATE_PICKER_EXPANDED_HEIGHT = 300;
+
+  useEffect(() => {
+    if (!showDatePicker) return;
+    const timer = setTimeout(() => {
+      const bottom = dateFieldY.current + DATE_PICKER_EXPANDED_HEIGHT;
+      const screenHeight = Dimensions.get('window').height;
+      const targetY = Math.max(0, bottom - screenHeight + 80);
+      scrollViewRef.current?.scrollTo({ y: targetY, animated: true });
+    }, 200);
+    return () => clearTimeout(timer);
+  }, [showDatePicker]);
+
 
   useEffect(() => {
     if (isEditing && existingCredit) {
@@ -247,19 +271,18 @@ export default function AddCreditScreen() {
     }
 
     const agot = parseAmountToAgot(amountInput);
-    const resolvedReminderDays = showCustomReminder ? parseInt(customReminder) || DEFAULT_REMINDER_DAYS : reminderDays;
     setSaving(true);
 
     if (isEditing && existingCredit) {
       try {
         const changes: Partial<Credit> = {
           storeName: storeName.trim(), amount: agot, category,
-          expirationDate: expirationDate!, reminderDays: resolvedReminderDays,
+          expirationDate: expirationDate!, reminderDays,
           notes: notes.trim(), updatedAt: new Date(),
         };
         updateCreditInStore(existingCredit.id, changes);
         const notificationId = await scheduleReminderNotification(
-          { id: existingCredit.id, storeName: storeName.trim(), amount: agot, expirationDate: expirationDate!, reminderDays: resolvedReminderDays },
+          { id: existingCredit.id, storeName: storeName.trim(), amount: agot, expirationDate: expirationDate!, reminderDays },
           existingCredit.notificationId
         );
         if (notificationId) { changes.notificationId = notificationId; updateCreditInStore(existingCredit.id, { notificationId }); }
@@ -281,7 +304,7 @@ export default function AddCreditScreen() {
     const tempId = `temp-${Date.now()}`;
     const optimisticCredit: Credit = {
       id: tempId, userId: currentUser.uid, storeName: storeName.trim(),
-      amount: agot, category, expirationDate: expirationDate!, reminderDays: resolvedReminderDays,
+      amount: agot, category, expirationDate: expirationDate!, reminderDays: reminderDays,
       notes: notes.trim(), status: CreditStatus.ACTIVE, imageUri: imageUri ?? undefined,
       createdAt: new Date(), updatedAt: new Date(),
     } as unknown as Credit;
@@ -290,12 +313,12 @@ export default function AddCreditScreen() {
     try {
       const newCreditId = await createCredit({
         userId: currentUser.uid, storeName: storeName.trim(), amount: agot, category,
-        expirationDate: expirationDate!, reminderDays: resolvedReminderDays,
+        expirationDate: expirationDate!, reminderDays: reminderDays,
         notes: notes.trim(), status: CreditStatus.ACTIVE,
       });
       const notificationId = await scheduleReminderNotification({
         id: newCreditId, storeName: storeName.trim(), amount: agot,
-        expirationDate: expirationDate!, reminderDays: resolvedReminderDays,
+        expirationDate: expirationDate!, reminderDays: reminderDays,
       });
       if (notificationId) await updateCredit(newCreditId, { notificationId });
       if (imageUri) {
@@ -313,7 +336,6 @@ export default function AddCreditScreen() {
     }
   }
 
-  const activeReminderDays = showCustomReminder ? parseInt(customReminder) || 0 : reminderDays;
 
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
@@ -335,7 +357,7 @@ export default function AddCreditScreen() {
           </TouchableOpacity>
         </View>
 
-        <ScrollView style={styles.scroll} contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
+        <ScrollView ref={scrollViewRef} style={styles.scroll} contentContainerStyle={[styles.scrollContent, showDatePicker && { paddingBottom: 320 }]} keyboardShouldPersistTaps="handled">
           <View style={styles.photoSection}>
             {imageUri ? (
               <TouchableOpacity onPress={handleCamera} style={styles.photoContainer}>
@@ -378,9 +400,15 @@ export default function AddCreditScreen() {
             {errors.category ? <Text style={styles.errorText}>{errors.category}</Text> : null}
           </View>
 
-          <View style={styles.field}>
+          <View
+            style={styles.field}
+            onLayout={(e) => { dateFieldY.current = e.nativeEvent.layout.y; }}
+          >
             <Text style={styles.label}>Expiration Date</Text>
-            <TouchableOpacity style={[styles.dateButton, errors.expirationDate ? styles.inputError : null]} onPress={() => setShowDatePicker(true)}>
+            <TouchableOpacity
+              style={[styles.dateButton, errors.expirationDate ? styles.inputError : null]}
+              onPress={() => setShowDatePicker((v) => !v)}
+            >
               <Ionicons name="calendar-outline" size={18} color={colors.textSecondary} />
               <Text style={[styles.dateButtonText, !expirationDate && styles.datePlaceholder]}>
                 {expirationDate ? formatDate(expirationDate) : 'DD/MM/YYYY'}
@@ -388,12 +416,14 @@ export default function AddCreditScreen() {
             </TouchableOpacity>
             {errors.expirationDate ? <Text style={styles.errorText}>{errors.expirationDate}</Text> : null}
             {showDatePicker && (
-              <DateTimePicker value={expirationDate ?? new Date()} mode="date" display={Platform.OS === 'ios' ? 'spinner' : 'default'} minimumDate={new Date()} onChange={onDateChange} locale="en-GB" />
-            )}
-            {Platform.OS === 'ios' && showDatePicker && (
-              <TouchableOpacity style={styles.datePickerDone} onPress={() => setShowDatePicker(false)}>
-                <Text style={styles.datePickerDoneText}>Done</Text>
-              </TouchableOpacity>
+              <View style={styles.datePickerWrapper}>
+                <DateTimePicker value={expirationDate ?? new Date()} mode="date" display={Platform.OS === 'ios' ? 'spinner' : 'default'} minimumDate={new Date()} onChange={onDateChange} locale="en-GB" />
+                {Platform.OS === 'ios' && (
+                  <TouchableOpacity style={styles.datePickerConfirm} onPress={() => setShowDatePicker(false)} hitSlop={8}>
+                    <Ionicons name="checkmark" size={16} color="#FFFFFF" />
+                  </TouchableOpacity>
+                )}
+              </View>
             )}
           </View>
 
@@ -401,33 +431,45 @@ export default function AddCreditScreen() {
             <Text style={styles.label}>Reminder</Text>
             <View style={styles.reminderChips}>
               {REMINDER_PRESETS.map((preset) => {
-                const isSelected = !showCustomReminder && activeReminderDays === preset.days;
+                const isSelected = reminderDays === preset.days;
                 return (
                   <TouchableOpacity key={preset.days} style={[styles.reminderChip, isSelected && styles.reminderChipSelected]}
-                    onPress={() => { setReminderDays(preset.days); setShowCustomReminder(false); }}>
+                    onPress={() => setReminderDays(preset.days)}>
                     <Text style={[styles.reminderChipText, isSelected && styles.reminderChipTextSelected]}>{preset.label}</Text>
                   </TouchableOpacity>
                 );
               })}
-              <TouchableOpacity style={[styles.reminderChip, showCustomReminder && styles.reminderChipSelected]} onPress={() => setShowCustomReminder(true)}>
-                <Text style={[styles.reminderChipText, showCustomReminder && styles.reminderChipTextSelected]}>Custom</Text>
-              </TouchableOpacity>
             </View>
-            {showCustomReminder && (
-              <View style={styles.customReminderRow}>
-                <TextInput style={styles.customReminderInput} placeholder="Days before" placeholderTextColor={colors.textTertiary} keyboardType="number-pad" value={customReminder} onChangeText={setCustomReminder} />
-                <Text style={styles.customReminderLabel}>days before expiry</Text>
-              </View>
-            )}
           </View>
 
-          <View style={styles.field}>
-            <TouchableOpacity style={styles.notesToggle} onPress={() => setShowNotes((s) => !s)}>
+          <View style={styles.field} onLayout={(e) => { notesFieldY.current = e.nativeEvent.layout.y; }}>
+            <TouchableOpacity
+              style={styles.notesToggle}
+              onPress={() => {
+                const opening = !showNotes;
+                setShowNotes(opening);
+                if (opening) {
+                  setTimeout(() => {
+                    scrollViewRef.current?.scrollToEnd({ animated: true });
+                  }, 50);
+                }
+              }}
+            >
               <Text style={styles.label}>Notes</Text>
               <Ionicons name={showNotes ? 'chevron-up' : 'chevron-down'} size={16} color={colors.textTertiary} />
             </TouchableOpacity>
             {showNotes && (
-              <TextInput style={styles.notesInput} placeholder="Optional — any extra info about this credit" placeholderTextColor={colors.textTertiary} multiline numberOfLines={3} value={notes} onChangeText={setNotes} />
+              <TextInput
+                style={styles.notesInput}
+                placeholder="Optional — any extra info about this credit"
+                placeholderTextColor={colors.textTertiary}
+                multiline
+                numberOfLines={3}
+                value={notes}
+                onChangeText={setNotes}
+                onFocus={() => { notesFocused.current = true; }}
+                onBlur={() => { notesFocused.current = false; }}
+              />
             )}
           </View>
         </ScrollView>

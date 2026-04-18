@@ -7,6 +7,7 @@ import {
   ActivityIndicator,
   Alert,
   Modal,
+  Linking,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -125,6 +126,53 @@ function makeStyles(colors: AppColors) {
     themeOptionLabel: { flex: 1, fontSize: 16, color: colors.textPrimary },
     themeOptionEmoji: { fontSize: 20 },
     themeSeparator: { height: 1, backgroundColor: colors.separator },
+    aboutCard: {
+      backgroundColor: colors.surface,
+      borderRadius: 12,
+      overflow: 'hidden',
+    },
+    aboutRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      padding: 16,
+      gap: 12,
+    },
+    aboutLabel: { flex: 1, fontSize: 15, color: colors.textPrimary },
+    aboutValue: { fontSize: 15, color: colors.textSecondary },
+    aboutAppName: {
+      fontSize: 17,
+      fontWeight: '700',
+      color: colors.textPrimary,
+      textAlign: 'center',
+      marginBottom: 4,
+    },
+    aboutTagline: {
+      fontSize: 13,
+      color: colors.textSecondary,
+      textAlign: 'center',
+      marginBottom: 4,
+    },
+    aboutVersion: {
+      fontSize: 12,
+      color: colors.textTertiary,
+      textAlign: 'center',
+    },
+    aboutHeader: {
+      alignItems: 'center',
+      paddingVertical: 20,
+      paddingHorizontal: 16,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.separator,
+    },
+    aboutIconWrapper: {
+      width: 60,
+      height: 60,
+      borderRadius: 14,
+      backgroundColor: colors.primary,
+      justifyContent: 'center',
+      alignItems: 'center',
+      marginBottom: 10,
+    },
   });
 }
 
@@ -205,6 +253,36 @@ export default function MoreScreen() {
               <Text style={styles.settingsSubtitle}>{themeModeLabel}</Text>
               <Ionicons name="chevron-forward" size={16} color={colors.textTertiary} />
             </TouchableOpacity>
+          </View>
+        </View>
+
+        {/* About section */}
+        <View style={styles.section}>
+          <Text style={styles.sectionLabel}>ABOUT</Text>
+          <View style={styles.aboutCard}>
+            <View style={styles.aboutHeader}>
+              <View style={styles.aboutIconWrapper}>
+                <Ionicons name="card-outline" size={30} color="#FFFFFF" />
+              </View>
+              <Text style={styles.aboutAppName}>Redeemy</Text>
+              <Text style={styles.aboutTagline}>Never let a gift card expire</Text>
+              <Text style={styles.aboutVersion}>Version 1.0.0</Text>
+            </View>
+            <View style={styles.separator} />
+            <TouchableOpacity
+              style={styles.aboutRow}
+              onPress={() => Linking.openURL('mailto:a.moti96@gmail.com')}
+            >
+              <Ionicons name="mail-outline" size={20} color={colors.textSecondary} />
+              <Text style={styles.aboutLabel}>Contact Support</Text>
+              <Ionicons name="chevron-forward" size={16} color={colors.textTertiary} />
+            </TouchableOpacity>
+            <View style={styles.separator} />
+            <View style={styles.aboutRow}>
+              <Ionicons name="code-slash-outline" size={20} color={colors.textSecondary} />
+              <Text style={styles.aboutLabel}>Made with</Text>
+              <Text style={styles.aboutValue}>React Native + Expo</Text>
+            </View>
           </View>
         </View>
 
