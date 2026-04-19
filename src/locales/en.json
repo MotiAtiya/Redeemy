@@ -95,6 +95,15 @@
       "title": "Sign Out",
       "message": "Are you sure you want to sign out?",
       "error": "Could not sign out. Please try again."
+    },
+    "deleteData": {
+      "button": "Delete All Data",
+      "title": "Delete All Data",
+      "message": "This will permanently delete all your credits and cannot be undone.",
+      "confirm": "Delete Everything",
+      "successTitle": "Done",
+      "successMessage": "All data has been deleted successfully.",
+      "error": "Could not delete data. Try again."
     }
   },
   "auth": {

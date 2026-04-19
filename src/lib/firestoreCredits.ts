@@ -4,6 +4,7 @@ import {
   addDoc,
   updateDoc,
   deleteDoc,
+  getDocs,
   doc,
   serverTimestamp,
   query,
@@ -122,4 +123,17 @@ export async function deleteCredit(creditId: string): Promise<void> {
     deleteDoc(doc(db, CREDITS_COLLECTION, creditId)),
     deleteCreditImages(creditId),
   ]);
+}
+
+/**
+ * Deletes all credits (and their images) for a given user.
+ */
+export async function deleteAllUserCredits(userId: string): Promise<void> {
+  const q = query(collection(db, CREDITS_COLLECTION), where('userId', '==', userId));
+  const snapshot = await getDocs(q);
+  await Promise.all(
+    snapshot.docs.map((d) =>
+      Promise.all([deleteDoc(d.ref), deleteCreditImages(d.id)])
+    )
+  );
 }

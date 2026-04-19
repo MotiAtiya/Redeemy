@@ -18,6 +18,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import { signOut } from '@/lib/auth';
 import { cancelAllNotifications, rescheduleAllNotifications } from '@/lib/notifications';
+import { deleteAllUserCredits } from '@/lib/firestoreCredits';
 import { useAuthStore } from '@/stores/authStore';
 import { useCreditsStore } from '@/stores/creditsStore';
 import { useUIStore } from '@/stores/uiStore';
@@ -219,6 +220,7 @@ export default function MoreScreen() {
   const setNotificationsEnabled = useSettingsStore((s) => s.setNotificationsEnabled);
 
   const [signingOut, setSigningOut] = useState(false);
+  const [deletingData, setDeletingData] = useState(false);
   const [showAppearanceSheet, setShowAppearanceSheet] = useState(false);
   const [showLanguageSheet, setShowLanguageSheet] = useState(false);
 
@@ -233,6 +235,30 @@ export default function MoreScreen() {
       const activeCredits = credits.filter((c) => c.status === 'active');
       await rescheduleAllNotifications(activeCredits);
     }
+  }
+
+  async function handleDeleteAllData() {
+    Alert.alert(t('more.deleteData.title'), t('more.deleteData.message'), [
+      { text: t('common.cancel'), style: 'cancel' },
+      {
+        text: t('more.deleteData.confirm'),
+        style: 'destructive',
+        onPress: async () => {
+          if (!currentUser?.uid) return;
+          setDeletingData(true);
+          try {
+            await cancelAllNotifications();
+            await deleteAllUserCredits(currentUser.uid);
+            resetAllStores();
+            setDeletingData(false);
+            Alert.alert(t('more.deleteData.successTitle'), t('more.deleteData.successMessage'));
+          } catch {
+            setDeletingData(false);
+            Alert.alert(t('common.error'), t('more.deleteData.error'));
+          }
+        },
+      },
+    ]);
   }
 
   async function handleSignOut() {
@@ -392,6 +418,28 @@ export default function MoreScreen() {
               </View>
               <Text style={styles.aboutValue}>{t('more.about.tech')}</Text>
             </View>
+          </View>
+        </View>
+
+        {/* Delete all data */}
+        <View style={styles.section}>
+          <View style={styles.card}>
+            <TouchableOpacity
+              style={styles.signOutRow}
+              onPress={handleDeleteAllData}
+              disabled={deletingData}
+              accessibilityRole="button"
+              accessibilityLabel={t('more.deleteData.button')}
+            >
+              {deletingData ? (
+                <ActivityIndicator color={colors.danger} size="small" />
+              ) : (
+                <>
+                  <Ionicons name="trash-outline" size={20} color={colors.danger} />
+                  <Text style={styles.signOutText}>{t('more.deleteData.button')}</Text>
+                </>
+              )}
+            </TouchableOpacity>
           </View>
         </View>
 
