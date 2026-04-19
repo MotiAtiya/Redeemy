@@ -182,6 +182,7 @@ export default function AddCreditScreen() {
   const existingCredit = useCreditsStore((s) =>
     creditId ? s.credits.find((c) => c.id === creditId) : undefined
   );
+  const allCredits = useCreditsStore((s) => s.credits);
 
   const [imageUri, setImageUri] = useState<string | null>(null);
   const [cropUri, setCropUri] = useState<string | null>(null); // raw URI pending crop
@@ -244,6 +245,16 @@ export default function AddCreditScreen() {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  function handleSelectStoreSuggestion(selectedName: string) {
+    // Find the most recent credit for this store and suggest its category
+    const match = [...allCredits]
+      .filter((c) => c.storeName.toLowerCase() === selectedName.toLowerCase())
+      .sort((a, b) => new Date(b.createdAt as Date).getTime() - new Date(a.createdAt as Date).getTime())[0];
+    if (match) {
+      setCategory(match.category);
+    }
+  }
 
   async function handleCamera() {
     try {
@@ -415,7 +426,12 @@ export default function AddCreditScreen() {
 
           <View style={styles.field}>
             <Text style={styles.label}>{t('addCredit.storeName')}</Text>
-            <StoreAutocomplete value={storeName} onChange={(v) => { setStoreName(v); setErrors((e) => ({ ...e, storeName: undefined })); }} hasError={!!errors.storeName} />
+            <StoreAutocomplete
+              value={storeName}
+              onChange={(v) => { setStoreName(v); setErrors((e) => ({ ...e, storeName: undefined })); }}
+              onSelectSuggestion={handleSelectStoreSuggestion}
+              hasError={!!errors.storeName}
+            />
             {errors.storeName ? <Text style={styles.errorText}>{errors.storeName}</Text> : null}
           </View>
 

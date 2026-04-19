@@ -8,6 +8,7 @@ import type { AppColors } from '@/constants/colors';
 interface Props {
   value: string;
   onChange: (value: string) => void;
+  onSelectSuggestion?: (storeName: string) => void;
   hasError?: boolean;
 }
 
@@ -38,7 +39,7 @@ function makeStyles(colors: AppColors, isRTL: boolean) {
   });
 }
 
-export function StoreAutocomplete({ value, onChange, hasError }: Props) {
+export function StoreAutocomplete({ value, onChange, onSelectSuggestion, hasError }: Props) {
   const colors = useAppTheme();
   const { t, i18n } = useTranslation();
   const isRTL = i18n.language.startsWith('he');
@@ -75,7 +76,7 @@ export function StoreAutocomplete({ value, onChange, hasError }: Props) {
           renderItem={({ item }) => (
             <TouchableOpacity
               style={styles.chip}
-              onPress={() => onChange(item)}
+              onPress={() => { onChange(item); onSelectSuggestion?.(item); }}
               accessibilityRole="button"
               accessibilityLabel={`Use ${item}`}
             >
