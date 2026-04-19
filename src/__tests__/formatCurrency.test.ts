@@ -6,28 +6,34 @@ import { formatCurrency, parseAmountToAgot } from '@/lib/formatCurrency';
 
 describe('formatCurrency', () => {
   it('formats whole shekel amounts', () => {
-    expect(formatCurrency(5000)).toBe('₪50.00');
-    expect(formatCurrency(100)).toBe('₪1.00');
-    expect(formatCurrency(10000)).toBe('₪100.00');
+    expect(formatCurrency(5000, '₪')).toBe('₪50.00');
+    expect(formatCurrency(100, '₪')).toBe('₪1.00');
+    expect(formatCurrency(10000, '₪')).toBe('₪100.00');
   });
 
   it('formats amounts with agorot', () => {
-    expect(formatCurrency(5050)).toBe('₪50.50');
-    expect(formatCurrency(101)).toBe('₪1.01');
-    expect(formatCurrency(999)).toBe('₪9.99');
+    expect(formatCurrency(5050, '₪')).toBe('₪50.50');
+    expect(formatCurrency(101, '₪')).toBe('₪1.01');
+    expect(formatCurrency(999, '₪')).toBe('₪9.99');
   });
 
   it('formats zero', () => {
-    expect(formatCurrency(0)).toBe('₪0.00');
+    expect(formatCurrency(0, '₪')).toBe('₪0.00');
   });
 
   it('formats large amounts', () => {
-    expect(formatCurrency(100000)).toBe('₪1000.00');
-    expect(formatCurrency(999999)).toBe('₪9999.99');
+    expect(formatCurrency(100000, '₪')).toBe('₪1000.00');
+    expect(formatCurrency(999999, '₪')).toBe('₪9999.99');
+  });
+
+  it('uses the provided symbol', () => {
+    expect(formatCurrency(5000, '$')).toBe('$50.00');
+    expect(formatCurrency(5000, '€')).toBe('€50.00');
+    expect(formatCurrency(5000, '£')).toBe('£50.00');
   });
 
   it('always includes two decimal places', () => {
-    expect(formatCurrency(200)).toMatch(/₪\d+\.\d{2}$/);
+    expect(formatCurrency(200, '₪')).toMatch(/₪\d+\.\d{2}$/);
   });
 });
 
@@ -78,7 +84,7 @@ describe('parseAmountToAgot', () => {
 
   it('is reversible with formatCurrency', () => {
     const original = 7550;
-    const formatted = formatCurrency(original); // '₪75.50'
+    const formatted = formatCurrency(original, '₪'); // '₪75.50'
     const stripped = formatted.replace('₪', '');
     expect(parseAmountToAgot(stripped)).toBe(original);
   });

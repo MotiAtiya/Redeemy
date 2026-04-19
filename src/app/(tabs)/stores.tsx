@@ -13,6 +13,7 @@ import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import { useCreditsStore } from '@/stores/creditsStore';
+import { useSettingsStore, CURRENCY_SYMBOLS } from '@/stores/settingsStore';
 import { useAppTheme } from '@/hooks/useAppTheme';
 import { formatCurrency } from '@/lib/formatCurrency';
 import { CreditStatus } from '@/types/creditTypes';
@@ -103,6 +104,7 @@ export default function StoresScreen() {
   const styles = useMemo(() => makeStyles(colors, isRTL), [colors, isRTL]);
   const { t } = useTranslation();
   const credits = useCreditsStore((s) => s.credits);
+  const currencySymbol = CURRENCY_SYMBOLS[useSettingsStore((s) => s.currency)];
   const [search, setSearch] = useState('');
 
   const stores = useMemo<StoreRow[]>(() => {
@@ -164,7 +166,7 @@ export default function StoresScreen() {
             style={styles.row}
             onPress={() => router.push({ pathname: '/store/[name]', params: { name: item.storeName } })}
             accessibilityRole="button"
-            accessibilityLabel={`${item.storeName}, ${item.activeCount} credits, ${formatCurrency(item.totalAgot)}`}
+            accessibilityLabel={`${item.storeName}, ${item.activeCount} credits, ${formatCurrency(item.totalAgot, currencySymbol)}`}
           >
             <View style={styles.rowIcon}>
               <Ionicons name="storefront-outline" size={20} color={colors.primary} />
@@ -175,7 +177,7 @@ export default function StoresScreen() {
                 {item.activeCount} active credit{item.activeCount !== 1 ? 's' : ''}
               </Text>
             </View>
-            <Text style={styles.rowAmount}>{formatCurrency(item.totalAgot)}</Text>
+            <Text style={styles.rowAmount}>{formatCurrency(item.totalAgot, currencySymbol)}</Text>
             <Ionicons name={isRTL ? 'chevron-back' : 'chevron-forward'} size={16} color={colors.textTertiary} />
           </TouchableOpacity>
         )}

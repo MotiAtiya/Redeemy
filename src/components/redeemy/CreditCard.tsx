@@ -6,7 +6,7 @@ import { useTranslation } from 'react-i18next';
 import { ExpirationBadge } from './ExpirationBadge';
 import { formatCurrency } from '@/lib/formatCurrency';
 import { formatDate } from '@/lib/formatDate';
-import { useSettingsStore } from '@/stores/settingsStore';
+import { useSettingsStore, CURRENCY_SYMBOLS } from '@/stores/settingsStore';
 import { CATEGORIES } from '@/constants/categories';
 import { CreditStatus, type Credit } from '@/types/creditTypes';
 import { useAppTheme } from '@/hooks/useAppTheme';
@@ -79,6 +79,7 @@ export function CreditCard({ credit, onPress, variant = 'active' }: Props) {
   const styles = useMemo(() => makeStyles(colors), [colors]);
   const { t } = useTranslation();
   const dateFormat = useSettingsStore((s) => s.dateFormat);
+  const currencySymbol = CURRENCY_SYMBOLS[useSettingsStore((s) => s.currency)];
 
   const categoryMeta = CATEGORIES.find((c) => c.id === credit.category);
   const dimmed = variant === 'redeemed' || variant === 'expired';
@@ -97,7 +98,7 @@ export function CreditCard({ credit, onPress, variant = 'active' }: Props) {
       onPress={onPress}
       activeOpacity={0.75}
       accessibilityRole="button"
-      accessibilityLabel={`${credit.storeName} credit, ${formatCurrency(credit.amount)}`}
+      accessibilityLabel={`${credit.storeName} credit, ${formatCurrency(credit.amount, currencySymbol)}`}
     >
       <View style={styles.content}>
         {credit.thumbnailUrl ? (
@@ -120,7 +121,7 @@ export function CreditCard({ credit, onPress, variant = 'active' }: Props) {
           </Text>
 
           <Text style={[styles.amount, dimmed && styles.amountDimmed]}>
-            {formatCurrency(credit.amount)}
+            {formatCurrency(credit.amount, currencySymbol)}
           </Text>
 
           <View style={styles.meta}>

@@ -21,7 +21,7 @@ import { deleteAllUserCredits } from '@/lib/firestoreCredits';
 import { useAuthStore } from '@/stores/authStore';
 import { useCreditsStore } from '@/stores/creditsStore';
 import { useUIStore } from '@/stores/uiStore';
-import { useSettingsStore, type DateFormat } from '@/stores/settingsStore';
+import { useSettingsStore, type DateFormat, type CurrencyCode, CURRENCY_SYMBOLS } from '@/stores/settingsStore';
 import { useAppTheme, useIsDark } from '@/hooks/useAppTheme';
 
 const logoLight = require('../../../assets/images/logo-light.png');
@@ -36,6 +36,13 @@ type ThemeMode = 'light' | 'dark' | 'system';
 const DATE_FORMAT_OPTIONS: { value: DateFormat; label: string }[] = [
   { value: 'DD/MM/YYYY', label: 'DD/MM/YYYY' },
   { value: 'MM/DD/YYYY', label: 'MM/DD/YYYY' },
+];
+
+const CURRENCY_OPTIONS: { value: CurrencyCode; label: string }[] = [
+  { value: 'ILS', label: '₪  Israeli Shekel' },
+  { value: 'USD', label: '$  US Dollar' },
+  { value: 'EUR', label: '€  Euro' },
+  { value: 'GBP', label: '£  British Pound' },
 ];
 
 function resetAllStores() {
@@ -223,11 +230,14 @@ export default function MoreScreen() {
   const notificationsEnabled = useSettingsStore((s) => s.notificationsEnabled);
   const dateFormat = useSettingsStore((s) => s.dateFormat);
   const setDateFormat = useSettingsStore((s) => s.setDateFormat);
+  const currency = useSettingsStore((s) => s.currency);
+  const setCurrency = useSettingsStore((s) => s.setCurrency);
 
   const [deletingData, setDeletingData] = useState(false);
   const [showAppearanceSheet, setShowAppearanceSheet] = useState(false);
   const [showLanguageSheet, setShowLanguageSheet] = useState(false);
   const [showDateFormatSheet, setShowDateFormatSheet] = useState(false);
+  const [showCurrencySheet, setShowCurrencySheet] = useState(false);
 
   const themeModeLabel = THEME_OPTIONS.find((o) => o.mode === themeMode)?.label ?? t('more.theme.system');
   const languageLabel = LANGUAGE_OPTIONS.find((o) => o.value === language)?.label ?? t('more.language.system');
@@ -352,6 +362,15 @@ export default function MoreScreen() {
                 <Text style={styles.settingsLabel}>{t('more.dateFormat.label')}</Text>
               </View>
               <Text style={styles.settingsSubtitle}>{dateFormat}</Text>
+              <Ionicons name={isRTL ? 'chevron-back' : 'chevron-forward'} size={16} color={colors.textTertiary} />
+            </TouchableOpacity>
+            <View style={styles.separator} />
+            <TouchableOpacity style={styles.settingsRow} onPress={() => setShowCurrencySheet(true)} accessibilityRole="button">
+              <Ionicons name="cash-outline" size={20} color={colors.textSecondary} />
+              <View style={{ flex: 1 }}>
+                <Text style={styles.settingsLabel}>{t('more.currency.label')}</Text>
+              </View>
+              <Text style={styles.settingsSubtitle}>{CURRENCY_SYMBOLS[currency]} {currency}</Text>
               <Ionicons name={isRTL ? 'chevron-back' : 'chevron-forward'} size={16} color={colors.textTertiary} />
             </TouchableOpacity>
           </View>
@@ -501,6 +520,31 @@ export default function MoreScreen() {
                 {dateFormat === option.value && <Ionicons name="checkmark" size={20} color={colors.primary} />}
               </TouchableOpacity>
               {index < DATE_FORMAT_OPTIONS.length - 1 && <View style={styles.themeSeparator} />}
+            </View>
+          ))}
+        </View>
+      </Modal>
+
+      {/* Currency bottom sheet */}
+      <Modal visible={showCurrencySheet} transparent animationType="slide" onRequestClose={() => setShowCurrencySheet(false)}>
+        <TouchableOpacity style={styles.overlay} activeOpacity={1} onPress={() => setShowCurrencySheet(false)} />
+        <View style={styles.sheet}>
+          <View style={styles.sheetHandle} />
+          <Text style={styles.sheetTitle}>{t('more.currency.title')}</Text>
+          {CURRENCY_OPTIONS.map((option, index) => (
+            <View key={option.value}>
+              <TouchableOpacity
+                style={styles.themeOption}
+                onPress={() => { setCurrency(option.value); setShowCurrencySheet(false); }}
+                accessibilityRole="radio"
+                accessibilityState={{ checked: currency === option.value }}
+              >
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.themeOptionLabel}>{option.label}</Text>
+                </View>
+                {currency === option.value && <Ionicons name="checkmark" size={20} color={colors.primary} />}
+              </TouchableOpacity>
+              {index < CURRENCY_OPTIONS.length - 1 && <View style={styles.themeSeparator} />}
             </View>
           ))}
         </View>

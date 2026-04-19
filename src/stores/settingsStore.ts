@@ -5,6 +5,14 @@ import type { AppLanguage } from '@/lib/i18n';
 
 export type ThemeMode = 'light' | 'dark' | 'system';
 export type DateFormat = 'DD/MM/YYYY' | 'MM/DD/YYYY';
+export type CurrencyCode = 'ILS' | 'USD' | 'EUR' | 'GBP';
+
+export const CURRENCY_SYMBOLS: Record<CurrencyCode, string> = {
+  ILS: '₪',
+  USD: '$',
+  EUR: '€',
+  GBP: '£',
+};
 
 interface SettingsStore {
   themeMode: ThemeMode;
@@ -15,6 +23,8 @@ interface SettingsStore {
   setNotificationsEnabled: (enabled: boolean) => void;
   expiryNotificationEnabled: boolean;
   setExpiryNotificationEnabled: (enabled: boolean) => void;
+  currency: CurrencyCode;
+  setCurrency: (code: CurrencyCode) => void;
   dateFormat: DateFormat;
   setDateFormat: (format: DateFormat) => void;
   defaultReminderDays: number;
@@ -35,6 +45,8 @@ export const useSettingsStore = create<SettingsStore>()(
       setNotificationsEnabled: (notificationsEnabled) => set({ notificationsEnabled }),
       expiryNotificationEnabled: true,
       setExpiryNotificationEnabled: (expiryNotificationEnabled) => set({ expiryNotificationEnabled }),
+      currency: 'ILS',
+      setCurrency: (currency) => set({ currency }),
       dateFormat: 'DD/MM/YYYY',
       setDateFormat: (dateFormat) => set({ dateFormat }),
       defaultReminderDays: 7,

@@ -2,7 +2,7 @@ import * as Notifications from 'expo-notifications';
 import { Platform } from 'react-native';
 import { CreditStatus, type Credit } from '@/types/creditTypes';
 import { formatCurrency } from './formatCurrency';
-import { useSettingsStore } from '@/stores/settingsStore';
+import { useSettingsStore, CURRENCY_SYMBOLS } from '@/stores/settingsStore';
 import i18n from './i18n';
 
 // ---------------------------------------------------------------------------
@@ -60,6 +60,8 @@ export async function scheduleReminderNotification(
 
   const t = i18n.t.bind(i18n);
   const now = new Date();
+  const { notificationHour, notificationMinute, expiryNotificationEnabled, currency } = useSettingsStore.getState();
+  const currencySymbol = CURRENCY_SYMBOLS[currency];
 
   // Cancel existing notifications before re-scheduling
   await cancelNotification(existingNotificationId);
@@ -76,7 +78,7 @@ export async function scheduleReminderNotification(
         title: t('notifications.reminder.title'),
         body: t('notifications.reminder.body', {
           storeName: credit.storeName,
-          amount: formatCurrency(credit.amount),
+          amount: formatCurrency(credit.amount, currencySymbol),
           days: credit.reminderDays,
         }),
         data: { creditId: credit.id },
@@ -89,7 +91,6 @@ export async function scheduleReminderNotification(
   }
 
   // --- Expiration-day notification (at configured time on the expiration date) ---
-  const { notificationHour, notificationMinute, expiryNotificationEnabled } = useSettingsStore.getState();
   const expiryTrigger = new Date(credit.expirationDate);
   expiryTrigger.setHours(notificationHour, notificationMinute, 0, 0);
 
@@ -100,7 +101,7 @@ export async function scheduleReminderNotification(
         title: t('notifications.expiry.title'),
         body: t('notifications.expiry.body', {
           storeName: credit.storeName,
-          amount: formatCurrency(credit.amount),
+          amount: formatCurrency(credit.amount, currencySymbol),
         }),
         data: { creditId: credit.id },
       },

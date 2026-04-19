@@ -99,6 +99,10 @@
     "expiryNotification": {
       "label": "התראה ביום הפקיעה"
     },
+    "currency": {
+      "label": "מטבע",
+      "title": "מטבע"
+    },
     "about": {
       "tagline": "לא שוכחים זיכויים",
       "contact": "פנה לתמיכה",

@@ -25,7 +25,7 @@ import * as FileSystem from 'expo-file-system/legacy';
 import { formatCurrency } from '@/lib/formatCurrency';
 import { formatDate } from '@/lib/formatDate';
 import { useCreditsStore } from '@/stores/creditsStore';
-import { useSettingsStore } from '@/stores/settingsStore';
+import { useSettingsStore, CURRENCY_SYMBOLS } from '@/stores/settingsStore';
 import { useAuthStore } from '@/stores/authStore';
 import { useUIStore } from '@/stores/uiStore';
 import { useAppTheme } from '@/hooks/useAppTheme';
@@ -164,6 +164,7 @@ export default function CreditDetailScreen() {
   const { t } = useTranslation();
   const isRTL = I18nManager.isRTL;
   const dateFormat = useSettingsStore((s) => s.dateFormat);
+  const currencySymbol = CURRENCY_SYMBOLS[useSettingsStore((s) => s.currency)];
 
   const credit = useCreditsStore((s) => s.credits.find((c) => c.id === id));
   const removeCredit = useCreditsStore((s) => s.removeCredit);
@@ -333,7 +334,7 @@ export default function CreditDetailScreen() {
 
         <View style={styles.card}>
           <Text style={styles.storeName}>{credit.storeName}</Text>
-          <Text style={styles.amount}>{formatCurrency(credit.amount)}</Text>
+          <Text style={styles.amount}>{formatCurrency(credit.amount, currencySymbol)}</Text>
           <ExpirationBadge expirationDate={expirationDate ?? undefined} />
         </View>
 

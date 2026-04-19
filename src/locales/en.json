@@ -99,6 +99,10 @@
     "expiryNotification": {
       "label": "Notify on Expiry Day"
     },
+    "currency": {
+      "label": "Currency",
+      "title": "Currency"
+    },
     "about": {
       "tagline": "Credits you won't forget",
       "contact": "Contact Support",

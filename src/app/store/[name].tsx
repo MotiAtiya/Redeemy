@@ -13,6 +13,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import { CreditCard } from '@/components/redeemy/CreditCard';
 import { useCreditsStore } from '@/stores/creditsStore';
+import { useSettingsStore, CURRENCY_SYMBOLS } from '@/stores/settingsStore';
 import { formatCurrency } from '@/lib/formatCurrency';
 import { CreditStatus, type Credit } from '@/types/creditTypes';
 import { useAppTheme } from '@/hooks/useAppTheme';
@@ -64,6 +65,7 @@ export default function StoreDetailScreen() {
   const { t } = useTranslation();
   const isRTL = I18nManager.isRTL;
   const credits = useCreditsStore((s) => s.credits);
+  const currencySymbol = CURRENCY_SYMBOLS[useSettingsStore((s) => s.currency)];
 
   const { active, redeemed, totalAgot } = useMemo(() => {
     const storeCredits = credits.filter((c) => c.storeName === name);
@@ -96,7 +98,7 @@ export default function StoreDetailScreen() {
         <View style={styles.headerText}>
           <Text style={styles.storeName} numberOfLines={1}>{name}</Text>
           {totalAgot > 0 && (
-            <Text style={styles.totalValue}>{formatCurrency(totalAgot)} {t('store.active').toLowerCase()}</Text>
+            <Text style={styles.totalValue}>{formatCurrency(totalAgot, currencySymbol)} {t('store.active').toLowerCase()}</Text>
           )}
         </View>
       </View>

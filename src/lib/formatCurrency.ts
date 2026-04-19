@@ -1,10 +1,10 @@
 /**
- * Converts an agot integer (₪ × 100) to a display string.
- * formatCurrency(5000) → "₪50.00"
- * formatCurrency(5050) → "₪50.50"
+ * Converts an agot integer to a display string using the given currency symbol.
+ * formatCurrency(5000, '₪') → "₪50.00"
+ * formatCurrency(5050, '$') → "$50.50"
  */
-export function formatCurrency(agot: number): string {
-  return `₪${(agot / 100).toFixed(2)}`;
+export function formatCurrency(agot: number, symbol: string): string {
+  return `${symbol}${(agot / 100).toFixed(2)}`;
 }
 
 /**
