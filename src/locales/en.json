@@ -101,7 +101,7 @@
     "signIn": {
       "title": "Sign in",
       "button": "Sign in",
-      "noAccount": "Don't have an account? ",
+      \"noAccount\": \"Don't have an account?\",
       "createLink": "Create Account"
     },
     "signUp": {
@@ -109,7 +109,7 @@
       "subtitle": "Join Redeemy to track your gift credits",
       "button": "Create Account",
       "confirmPassword": "Confirm Password",
-      "haveAccount": "Already have an account? ",
+      "haveAccount": "Already have an account?",
       "signInLink": "Sign in"
     },
     "google": "Continue with Google",

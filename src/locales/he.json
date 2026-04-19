@@ -101,7 +101,7 @@
     "signIn": {
       "title": "התחברות",
       "button": "התחבר",
-      "noAccount": "אין לך חשבון? ",
+      "noAccount": "אין לך חשבון?",
       "createLink": "צור חשבון"
     },
     "signUp": {
@@ -109,7 +109,7 @@
       "subtitle": "הצטרף ל-Redeemy לניהול כרטיסי המתנה",
       "button": "צור חשבון",
       "confirmPassword": "אשר סיסמה",
-      "haveAccount": "כבר יש לך חשבון? ",
+      "haveAccount": "כבר יש לך חשבון?",
       "signInLink": "התחבר"
     },
     "google": "המשך עם Google",

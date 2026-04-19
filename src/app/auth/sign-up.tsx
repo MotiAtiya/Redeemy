@@ -47,14 +47,14 @@ const STRENGTH_COLOR: Record<StrengthLevel, string> = {
 // Styles
 // ---------------------------------------------------------------------------
 
-function makeStyles(colors: AppColors) {
+function makeStyles(colors: AppColors, isRTL: boolean) {
   return StyleSheet.create({
     safe: { flex: 1, backgroundColor: colors.background },
     flex: { flex: 1 },
     container: { flexGrow: 1, paddingHorizontal: 24, paddingTop: 16, paddingBottom: 40 },
-    back: { marginBottom: 24 },
-    title: { fontSize: 28, fontWeight: '700', color: colors.textPrimary, marginBottom: 8 },
-    subtitle: { fontSize: 14, color: colors.textSecondary, marginBottom: 32 },
+    back: { marginBottom: 24, alignSelf: 'flex-start' },
+    title: { fontSize: 28, fontWeight: '700', color: colors.textPrimary, marginBottom: 8, alignSelf: 'flex-start' },
+    subtitle: { fontSize: 14, color: colors.textSecondary, marginBottom: 32, alignSelf: 'flex-start' },
     fieldContainer: { marginBottom: 16 },
     input: {
       height: 52,
@@ -65,6 +65,7 @@ function makeStyles(colors: AppColors) {
       fontSize: 16,
       color: colors.textPrimary,
       backgroundColor: colors.surface,
+      textAlign: isRTL ? 'right' : 'left',
     },
     inputError: { borderColor: colors.danger },
     inputRow: {
@@ -77,7 +78,7 @@ function makeStyles(colors: AppColors) {
       paddingHorizontal: 16,
       backgroundColor: colors.surface,
     },
-    inputFlex: { flex: 1, fontSize: 16, color: colors.textPrimary },
+    inputFlex: { flex: 1, fontSize: 16, color: colors.textPrimary, textAlign: isRTL ? 'right' : 'left' },
     strengthContainer: { flexDirection: 'row', alignItems: 'center', marginTop: 8, gap: 8 },
     strengthBars: { flex: 1, flexDirection: 'row', gap: 4 },
     strengthBar: { flex: 1, height: 4, borderRadius: 2 },
@@ -94,7 +95,7 @@ function makeStyles(colors: AppColors) {
     },
     buttonDisabled: { opacity: 0.7 },
     buttonText: { color: '#FFFFFF', fontSize: 16, fontWeight: '600' },
-    footer: { flexDirection: 'row', justifyContent: 'center', marginTop: 24 },
+    footer: { flexDirection: 'row', justifyContent: 'center', marginTop: 24, gap: 4 },
     footerText: { color: colors.textSecondary, fontSize: 14 },
     link: { color: colors.primary, fontSize: 14, fontWeight: '600' },
   });
@@ -107,9 +108,9 @@ function makeStyles(colors: AppColors) {
 export default function SignUpScreen() {
   const router = useRouter();
   const colors = useAppTheme();
-  const styles = useMemo(() => makeStyles(colors), [colors]);
   const { t } = useTranslation();
   const isRTL = I18nManager.isRTL;
+  const styles = useMemo(() => makeStyles(colors, isRTL), [colors, isRTL]);
 
   const STRENGTH_LABEL: Record<StrengthLevel, string> = {
     weak: t('auth.strength.weak'),
