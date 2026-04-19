@@ -118,11 +118,13 @@ export default function SignUpScreen() {
     strong: t('auth.strength.strong'),
   };
 
+  const [displayName, setDisplayName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
+  const [displayNameError, setDisplayNameError] = useState('');
   const [emailError, setEmailError] = useState('');
   const [passwordError, setPasswordError] = useState('');
   const [confirmError, setConfirmError] = useState('');
@@ -161,19 +163,21 @@ export default function SignUpScreen() {
   // ---- submit --------------------------------------------------------------
 
   async function handleCreateAccount() {
+    const nErr = displayName.trim() ? '' : t('auth.validation.displayNameRequired');
     const eErr = validateEmail(email);
     const pErr = validatePassword(password);
     const cErr = validateConfirm(confirmPassword);
+    setDisplayNameError(nErr);
     setEmailError(eErr);
     setPasswordError(pErr);
     setConfirmError(cErr);
     setGeneralError('');
 
-    if (eErr || pErr || cErr) return;
+    if (nErr || eErr || pErr || cErr) return;
 
     setLoading(true);
     try {
-      await registerWithEmail(email.trim(), password);
+      await registerWithEmail(email.trim(), password, displayName.trim());
       // AuthGate in _layout.tsx handles redirect once auth state updates
     } catch (err: any) {
       setGeneralError(mapFirebaseAuthError(err?.code ?? ''));
@@ -206,6 +210,20 @@ export default function SignUpScreen() {
 
           <Text style={styles.title}>{t('auth.signUp.title')}</Text>
           <Text style={styles.subtitle}>{t('auth.signUp.subtitle')}</Text>
+
+          {/* Display name */}
+          <View style={styles.fieldContainer}>
+            <TextInput
+              style={[styles.input, displayNameError ? styles.inputError : null]}
+              placeholder={t('auth.displayName')}
+              placeholderTextColor={colors.textTertiary}
+              autoCapitalize="words"
+              returnKeyType="next"
+              value={displayName}
+              onChangeText={(v) => { setDisplayName(v); setDisplayNameError(''); }}
+            />
+            {displayNameError ? <Text style={styles.errorText}>{displayNameError}</Text> : null}
+          </View>
 
           {/* Email */}
           <View style={styles.fieldContainer}>

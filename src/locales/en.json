@@ -109,6 +109,7 @@
   "auth": {
     "tagline": "Your gift credits, organized.",
     "or": "or",
+    "displayName": "Full Name",
     "email": "Email",
     "password": "Password",
     "signIn": {
@@ -133,6 +134,7 @@
       "strong": "Strong"
     },
     "validation": {
+      "displayNameRequired": "Full name is required",
       "emailRequired": "Email is required",
       "emailInvalid": "Enter a valid email",
       "emailInvalidAddress": "Enter a valid email address",

@@ -2,6 +2,7 @@ import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
   signInWithCredential,
+  updateProfile,
   GoogleAuthProvider,
   OAuthProvider,
   signOut as firebaseSignOut,
@@ -106,16 +107,19 @@ async function upsertUserDocument(uid: string, data: Omit<User, 'uid'>): Promise
 
 export async function registerWithEmail(
   email: string,
-  password: string
+  password: string,
+  displayName: string,
 ): Promise<User> {
   const credential = await createUserWithEmailAndPassword(auth, email, password);
   const { uid } = credential.user;
 
+  await updateProfile(credential.user, { displayName });
+
   const userRecord: User = {
     uid,
     email: credential.user.email ?? undefined,
-    displayName: credential.user.displayName ?? undefined,
-    photoURL: credential.user.photoURL ?? undefined,
+    displayName,
+    photoURL: undefined,
   };
 
   await upsertUserDocument(uid, {

@@ -109,6 +109,7 @@
   "auth": {
     "tagline": "כרטיסי המתנה שלך, מאורגנים.",
     "or": "או",
+    "displayName": "שם מלא",
     "email": "אימייל",
     "password": "סיסמה",
     "signIn": {
@@ -133,6 +134,7 @@
       "strong": "חזקה"
     },
     "validation": {
+      "displayNameRequired": "נדרש שם מלא",
       "emailRequired": "נדרש אימייל",
       "emailInvalid": "הכנס אימייל תקין",
       "emailInvalidAddress": "הכנס כתובת אימייל תקינה",
