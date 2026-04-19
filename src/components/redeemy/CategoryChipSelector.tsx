@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import { FlatList, TouchableOpacity, Text, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import { CATEGORIES } from '@/constants/categories';
 import { useAppTheme } from '@/hooks/useAppTheme';
 import type { AppColors } from '@/constants/colors';
@@ -36,6 +37,7 @@ function makeStyles(colors: AppColors) {
 export function CategoryChipSelector({ selected, onChange }: Props) {
   const colors = useAppTheme();
   const styles = useMemo(() => makeStyles(colors), [colors]);
+  const { t } = useTranslation();
 
   return (
     <FlatList
@@ -52,7 +54,7 @@ export function CategoryChipSelector({ selected, onChange }: Props) {
             onPress={() => onChange(item.id)}
             accessibilityRole="radio"
             accessibilityState={{ checked: isSelected }}
-            accessibilityLabel={item.label}
+            accessibilityLabel={t('category.' + item.id)}
           >
             <Ionicons
               name={item.icon}
@@ -60,7 +62,7 @@ export function CategoryChipSelector({ selected, onChange }: Props) {
               color={isSelected ? '#FFFFFF' : colors.textSecondary}
             />
             <Text style={[styles.label, isSelected && styles.labelSelected]}>
-              {item.label}
+              {t('category.' + item.id)}
             </Text>
           </TouchableOpacity>
         );

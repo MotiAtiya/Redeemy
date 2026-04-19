@@ -10,7 +10,9 @@ import {
   ActivityIndicator,
   Dimensions,
   StatusBar,
+  I18nManager,
 } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { Image } from 'expo-image';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, useLocalSearchParams } from 'expo-router';
@@ -41,7 +43,7 @@ function makeStyles(colors: AppColors) {
       gap: 12,
       backgroundColor: colors.background,
     },
-    headerTitle: { flex: 1, fontSize: 17, fontWeight: '600', color: colors.textPrimary },
+    headerTitle: { fontSize: 17, fontWeight: '600', color: colors.textPrimary, alignSelf: 'flex-start' },
     scroll: { flex: 1 },
     scrollContent: { padding: 16, gap: 12, paddingBottom: 32 },
     image: { width: '100%', height: 220, borderRadius: 14, backgroundColor: colors.separator },
@@ -54,14 +56,14 @@ function makeStyles(colors: AppColors) {
       alignItems: 'center',
     },
     card: { backgroundColor: colors.surface, borderRadius: 14, padding: 16, gap: 8 },
-    storeName: { fontSize: 22, fontWeight: '700', color: colors.textPrimary },
-    amount: { fontSize: 36, fontWeight: '800', color: colors.textPrimary, letterSpacing: -1 },
+    storeName: { fontSize: 22, fontWeight: '700', color: colors.textPrimary, alignSelf: 'flex-start' },
+    amount: { fontSize: 36, fontWeight: '800', color: colors.textPrimary, letterSpacing: -1, alignSelf: 'flex-start' },
     detailsCard: { backgroundColor: colors.surface, borderRadius: 14, overflow: 'hidden' },
     detailRow: { flexDirection: 'row', alignItems: 'flex-start', padding: 14, gap: 12 },
     detailRowContent: { flex: 1, gap: 2 },
-    detailLabel: { fontSize: 12, color: colors.textTertiary, fontWeight: '500' },
-    detailValue: { fontSize: 15, color: colors.textPrimary },
-    separator: { height: 1, backgroundColor: colors.separator, marginLeft: 44 },
+    detailLabel: { fontSize: 12, color: colors.textTertiary, fontWeight: '500', alignSelf: 'flex-start' },
+    detailValue: { fontSize: 15, color: colors.textPrimary, alignSelf: 'flex-start' },
+    separator: { height: 1, backgroundColor: colors.separator, marginStart: 44 },
     footer: {
       padding: 16,
       paddingBottom: 8,
@@ -146,6 +148,8 @@ export default function CreditDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const colors = useAppTheme();
   const styles = useMemo(() => makeStyles(colors), [colors]);
+  const { t } = useTranslation();
+  const isRTL = I18nManager.isRTL;
 
   const credit = useCreditsStore((s) => s.credits.find((c) => c.id === id));
   const removeCredit = useCreditsStore((s) => s.removeCredit);
@@ -166,10 +170,10 @@ export default function CreditDetailScreen() {
     return (
       <SafeAreaView style={styles.safe}>
         <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
-          <Ionicons name="arrow-back" size={24} color={colors.textPrimary} />
+          <Ionicons name={isRTL ? 'arrow-forward' : 'arrow-back'} size={24} color={colors.textPrimary} />
         </TouchableOpacity>
         <View style={styles.notFound}>
-          <Text style={styles.notFoundText}>Credit not found</Text>
+          <Text style={styles.notFoundText}>{t('credit.notFound')}</Text>
         </View>
       </SafeAreaView>
     );
@@ -177,14 +181,14 @@ export default function CreditDetailScreen() {
 
   async function handleMarkRedeemed() {
     if (useUIStore.getState().offlineMode) {
-      Alert.alert('No Internet Connection', 'Marking credits as redeemed requires an internet connection.');
+      Alert.alert(t('offline.title'), t('credit.markRedeemed.offlineMessage'));
       return;
     }
     const c = credit!;
-    Alert.alert('Mark as Redeemed', 'This credit will move to your history.', [
-      { text: 'Cancel', style: 'cancel' },
+    Alert.alert(t('credit.markRedeemed.title'), t('credit.markRedeemed.message'), [
+      { text: t('common.cancel'), style: 'cancel' },
       {
-        text: 'Mark Redeemed',
+        text: t('credit.markRedeemed.confirm'),
         onPress: async () => {
           setLoading(true);
           try {
@@ -194,7 +198,7 @@ export default function CreditDetailScreen() {
             router.back();
           } catch {
             updateCreditInStore(c.id, { status: CreditStatus.ACTIVE });
-            Alert.alert('Error', 'Could not update credit. Try again.');
+            Alert.alert(t('common.error'), t('credit.markRedeemed.error'));
           } finally {
             setLoading(false);
           }
@@ -206,15 +210,15 @@ export default function CreditDetailScreen() {
   async function handleDelete() {
     if (useUIStore.getState().offlineMode) {
       setShowActionSheet(false);
-      Alert.alert('No Internet Connection', 'Deleting credits requires an internet connection.');
+      Alert.alert(t('offline.title'), t('credit.delete.offlineMessage'));
       return;
     }
     const c = credit!;
     setShowActionSheet(false);
-    Alert.alert('Delete Credit', `Delete the ${c.storeName} credit? This cannot be undone.`, [
-      { text: 'Cancel', style: 'cancel' },
+    Alert.alert(t('credit.delete.title'), t('credit.delete.message', { storeName: c.storeName }), [
+      { text: t('common.cancel'), style: 'cancel' },
       {
-        text: 'Delete',
+        text: t('credit.delete.button'),
         style: 'destructive',
         onPress: async () => {
           setLoading(true);
@@ -225,7 +229,7 @@ export default function CreditDetailScreen() {
             router.back();
           } catch {
             setLoading(false);
-            Alert.alert('Error', 'Could not delete credit. Try again.');
+            Alert.alert(t('common.error'), t('credit.delete.error'));
           }
         },
       },
@@ -245,9 +249,11 @@ export default function CreditDetailScreen() {
     <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()} hitSlop={8}>
-          <Ionicons name="arrow-back" size={24} color={colors.textPrimary} />
+          <Ionicons name={isRTL ? 'arrow-forward' : 'arrow-back'} size={24} color={colors.textPrimary} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle} numberOfLines={1}>{credit.storeName}</Text>
+        <View style={{ flex: 1 }}>
+          <Text style={styles.headerTitle} numberOfLines={1}>{credit.storeName}</Text>
+        </View>
         <TouchableOpacity onPress={() => setShowActionSheet(true)} hitSlop={8}>
           <Ionicons name="ellipsis-horizontal" size={22} color={colors.textPrimary} />
         </TouchableOpacity>
@@ -280,15 +286,15 @@ export default function CreditDetailScreen() {
           <View style={styles.detailRow}>
             <Ionicons name="pricetag-outline" size={18} color={colors.textTertiary} />
             <View style={styles.detailRowContent}>
-              <Text style={styles.detailLabel}>Category</Text>
-              <Text style={styles.detailValue}>{categoryMeta?.label ?? credit.category}</Text>
+              <Text style={styles.detailLabel}>{t('credit.detail.category')}</Text>
+              <Text style={styles.detailValue}>{categoryMeta ? t('category.' + categoryMeta.id) : credit.category}</Text>
             </View>
           </View>
           <View style={styles.separator} />
           <View style={styles.detailRow}>
             <Ionicons name="calendar-outline" size={18} color={colors.textTertiary} />
             <View style={styles.detailRowContent}>
-              <Text style={styles.detailLabel}>Expires</Text>
+              <Text style={styles.detailLabel}>{t('credit.detail.expires')}</Text>
               <Text style={styles.detailValue}>{expirationDate.toLocaleDateString('en-GB')}</Text>
             </View>
           </View>
@@ -296,8 +302,8 @@ export default function CreditDetailScreen() {
           <View style={styles.detailRow}>
             <Ionicons name="notifications-outline" size={18} color={colors.textTertiary} />
             <View style={styles.detailRowContent}>
-              <Text style={styles.detailLabel}>Reminder</Text>
-              <Text style={styles.detailValue}>{`${credit.reminderDays} day${credit.reminderDays !== 1 ? 's' : ''} before`}</Text>
+              <Text style={styles.detailLabel}>{t('credit.detail.reminder')}</Text>
+              <Text style={styles.detailValue}>{t('credit.detail.reminderDays', { count: credit.reminderDays })}</Text>
             </View>
           </View>
           {credit.notes ? (
@@ -306,7 +312,7 @@ export default function CreditDetailScreen() {
               <View style={styles.detailRow}>
                 <Ionicons name="document-text-outline" size={18} color={colors.textTertiary} />
                 <View style={styles.detailRowContent}>
-                  <Text style={styles.detailLabel}>Notes</Text>
+                  <Text style={styles.detailLabel}>{t('credit.detail.notes')}</Text>
                   <Text style={styles.detailValue}>{credit.notes}</Text>
                 </View>
               </View>
@@ -316,7 +322,7 @@ export default function CreditDetailScreen() {
           <View style={styles.detailRow}>
             <Ionicons name="time-outline" size={18} color={colors.textTertiary} />
             <View style={styles.detailRowContent}>
-              <Text style={styles.detailLabel}>Added</Text>
+              <Text style={styles.detailLabel}>{t('credit.detail.added')}</Text>
               <Text style={styles.detailValue}>{new Date(credit.createdAt as Date).toLocaleDateString('en-GB')}</Text>
             </View>
           </View>
@@ -328,7 +334,9 @@ export default function CreditDetailScreen() {
           <View style={styles.redeemedBanner}>
             <Ionicons name="checkmark-circle" size={18} color={colors.textTertiary} />
             <Text style={styles.redeemedBannerText}>
-              Redeemed{credit.redeemedAt ? ` on ${new Date(credit.redeemedAt as Date).toLocaleDateString('en-GB')}` : ''}
+              {credit.redeemedAt
+                ? t('credit.redeemedOn', { date: new Date(credit.redeemedAt as Date).toLocaleDateString('en-GB') })
+                : t('credit.redeemed')}
             </Text>
           </View>
         ) : (
@@ -337,14 +345,14 @@ export default function CreditDetailScreen() {
             onPress={handleMarkRedeemed}
             disabled={loading}
             accessibilityRole="button"
-            accessibilityLabel="Mark as Redeemed"
+            accessibilityLabel={t('credit.markRedeemed.button')}
           >
             {loading ? (
               <ActivityIndicator color="#FFFFFF" />
             ) : (
               <>
                 <Ionicons name="checkmark-circle-outline" size={20} color="#FFFFFF" />
-                <Text style={styles.redeemButtonText}>Mark as Redeemed</Text>
+                <Text style={styles.redeemButtonText}>{t('credit.markRedeemed.button')}</Text>
               </>
             )}
           </TouchableOpacity>
@@ -404,14 +412,14 @@ export default function CreditDetailScreen() {
           <View style={styles.actionSheetHandle} />
           <TouchableOpacity style={styles.actionSheetButton} onPress={handleEdit}>
             <Ionicons name="create-outline" size={22} color={colors.textPrimary} />
-            <Text style={[styles.actionSheetLabel, { color: colors.textPrimary }]}>Edit</Text>
+            <Text style={[styles.actionSheetLabel, { color: colors.textPrimary }]}>{t('credit.action.edit')}</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.actionSheetButton} onPress={handleDelete}>
             <Ionicons name="trash-outline" size={22} color={colors.danger} />
-            <Text style={[styles.actionSheetLabel, { color: colors.danger }]}>Delete</Text>
+            <Text style={[styles.actionSheetLabel, { color: colors.danger }]}>{t('credit.action.delete')}</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.cancelButton} onPress={() => setShowActionSheet(false)}>
-            <Text style={styles.cancelText}>Cancel</Text>
+            <Text style={styles.cancelText}>{t('common.cancel')}</Text>
           </TouchableOpacity>
         </View>
       </Modal>

@@ -1,0 +1,246 @@
+{
+  "tabs": {
+    "credits": "Credits",
+    "stores": "Stores",
+    "history": "History",
+    "more": "More"
+  },
+  "credits": {
+    "title": "Credits",
+    "sort": {
+      "expiration": "Expiration",
+      "amount": "Amount",
+      "storeAZ": "Store A–Z",
+      "recent": "Recent"
+    },
+    "search": "Search by store or notes…",
+    "filter": { "all": "All" },
+    "empty": {
+      "title": "No credits yet",
+      "subtitle": "Add your first credit and never lose money again",
+      "action": "Add Credit"
+    }
+  },
+  "stores": {
+    "title": "Stores",
+    "search": "Search stores…",
+    "empty": {
+      "title": "No active credits yet",
+      "subtitle": "Add your first credit to get started",
+      "action": "Add Credit"
+    }
+  },
+  "history": {
+    "title": "History",
+    "dateRange": {
+      "thisMonth": "This Month",
+      "last3Months": "Last 3 Months",
+      "thisYear": "This Year",
+      "allTime": "All Time"
+    },
+    "sort": {
+      "recentlyRedeemed": "Most Recently Redeemed",
+      "storeAZ": "Store Name A–Z",
+      "amountHighLow": "Amount (High to Low)"
+    },
+    "search": "Search history…",
+    "filter": {
+      "title": "Filter History",
+      "dateRange": "DATE RANGE",
+      "category": "CATEGORY",
+      "apply": "Apply Filters"
+    },
+    "empty": {
+      "title": "No credits redeemed yet",
+      "subtitle": "Your history will appear here after you use a credit"
+    }
+  },
+  "more": {
+    "title": "More",
+    "sections": {
+      "account": "ACCOUNT",
+      "settings": "SETTINGS",
+      "language": "LANGUAGE",
+      "about": "ABOUT"
+    },
+    "appearance": "Appearance",
+    "theme": {
+      "light": "Light",
+      "dark": "Dark",
+      "system": "System",
+      "title": "Appearance"
+    },
+    "language": {
+      "label": "Language",
+      "title": "Language",
+      "system": "System Default",
+      "english": "English",
+      "hebrew": "עברית",
+      "restartTitle": "Restart Required",
+      "restartMessage": "Please close and reopen the app to apply the language change.",
+      "ok": "OK"
+    },
+    "about": {
+      "tagline": "Never let a gift card expire",
+      "contact": "Contact Support",
+      "madeWith": "Made with",
+      "tech": "React Native + Expo"
+    },
+    "signOut": {
+      "button": "Sign Out",
+      "title": "Sign Out",
+      "message": "Are you sure you want to sign out?",
+      "error": "Could not sign out. Please try again."
+    }
+  },
+  "auth": {
+    "tagline": "Your gift credits, organized.",
+    "or": "or",
+    "email": "Email",
+    "password": "Password",
+    "signIn": {
+      "title": "Sign in",
+      "button": "Sign in",
+      "noAccount": "Don't have an account? ",
+      "createLink": "Create Account"
+    },
+    "signUp": {
+      "title": "Create Account",
+      "subtitle": "Join Redeemy to track your gift credits",
+      "button": "Create Account",
+      "confirmPassword": "Confirm Password",
+      "haveAccount": "Already have an account? ",
+      "signInLink": "Sign in"
+    },
+    "google": "Continue with Google",
+    "strength": {
+      "weak": "Weak",
+      "medium": "Medium",
+      "strong": "Strong"
+    },
+    "validation": {
+      "emailRequired": "Email is required",
+      "emailInvalid": "Enter a valid email",
+      "emailInvalidAddress": "Enter a valid email address",
+      "passwordRequired": "Password is required",
+      "passwordMin": "Password must be at least 8 characters",
+      "passwordUppercase": "Must contain an uppercase letter",
+      "passwordNumber": "Must contain a number",
+      "passwordSpecial": "Must contain a special character",
+      "confirmRequired": "Please confirm your password",
+      "passwordMismatch": "Passwords do not match"
+    }
+  },
+  "addCredit": {
+    "titleAdd": "Add Credit",
+    "titleEdit": "Edit Credit",
+    "save": "Save",
+    "takePhoto": "Take Photo",
+    "chooseGallery": "Choose from Gallery",
+    "storeName": "Store Name",
+    "amount": "Amount",
+    "category": "Category",
+    "expirationDate": "Expiration Date",
+    "datePlaceholder": "DD/MM/YYYY",
+    "reminder": "Reminder",
+    "notes": "Notes",
+    "notesPlaceholder": "Optional — any extra info about this credit",
+    "offline": {
+      "adding": "Adding credits requires an internet connection.",
+      "editing": "Editing credits requires an internet connection."
+    },
+    "error": {
+      "save": "Couldn't save",
+      "saveMessage": "Check your connection and try again.",
+      "photo": "Photo upload failed — credit saved without image."
+    },
+    "validation": {
+      "storeName": "Store name is required",
+      "amountRequired": "Amount is required",
+      "amountInvalid": "Enter a valid positive amount",
+      "categoryRequired": "Category is required",
+      "dateRequired": "Expiration date is required",
+      "datePast": "Expiration date must be in the future"
+    }
+  },
+  "credit": {
+    "notFound": "Credit not found",
+    "markRedeemed": {
+      "button": "Mark as Redeemed",
+      "title": "Mark as Redeemed",
+      "message": "This credit will move to your history.",
+      "confirm": "Mark Redeemed",
+      "error": "Could not update credit. Try again.",
+      "offlineMessage": "Marking credits as redeemed requires an internet connection."
+    },
+    "delete": {
+      "offlineMessage": "Deleting credits requires an internet connection.",
+      "title": "Delete Credit",
+      "message": "Delete the {{storeName}} credit? This cannot be undone.",
+      "button": "Delete",
+      "error": "Could not delete credit. Try again."
+    },
+    "action": {
+      "edit": "Edit",
+      "delete": "Delete"
+    },
+    "detail": {
+      "category": "Category",
+      "expires": "Expires",
+      "reminder": "Reminder",
+      "reminderDays_one": "{{count}} day before",
+      "reminderDays_other": "{{count}} days before",
+      "notes": "Notes",
+      "added": "Added"
+    },
+    "redeemed": "Redeemed",
+    "redeemedOn": "Redeemed on {{date}}"
+  },
+  "store": {
+    "active": "Active",
+    "redeemed": "Redeemed",
+    "empty": "No credits for this store"
+  },
+  "badge": {
+    "expired": "Expired",
+    "today": "Today",
+    "oneDay": "1 day left",
+    "days": "{{days}}d left",
+    "weeks": "{{weeks}}w left",
+    "months": "{{months}}mo left"
+  },
+  "creditCard": {
+    "redeemed": "Redeemed {{date}}"
+  },
+  "crop": {
+    "cancel": "Cancel",
+    "hint": "Drag corners to crop",
+    "done": "Done"
+  },
+  "offline": {
+    "toast": "You're offline — browsing cached credits",
+    "title": "No Internet Connection"
+  },
+  "common": {
+    "cancel": "Cancel",
+    "error": "Error",
+    "ok": "OK"
+  },
+  "reminder": {
+    "1day": "1 Day",
+    "1week": "1 Week",
+    "1month": "1 Month",
+    "3months": "3 Months"
+  },
+  "category": {
+    "food": "Food & Dining",
+    "fashion": "Fashion",
+    "electronics": "Electronics",
+    "home": "Home & Garden",
+    "beauty": "Beauty & Health",
+    "books": "Books & Media",
+    "sports": "Sports & Fitness",
+    "travel": "Travel",
+    "other": "Other"
+  }
+}

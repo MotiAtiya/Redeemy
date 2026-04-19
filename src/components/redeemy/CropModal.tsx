@@ -8,7 +8,9 @@ import {
   PanResponder,
   Image as RNImage,
   ActivityIndicator,
+  I18nManager,
 } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { Image } from 'expo-image';
 import * as ImageManipulator from 'expo-image-manipulator';
 
@@ -47,6 +49,7 @@ function clamp(rect: Rect, bounds: Rect): Rect {
 }
 
 export function CropModal({ uri, onCrop, onCancel }: Props) {
+  const { t } = useTranslation();
   const [containerSize, setContainerSize] = useState<Size | null>(null);
   const [naturalSize, setNaturalSize] = useState<Size | null>(null);
   const [cropRect, setCropRect] = useState<Rect | null>(null);
@@ -85,6 +88,12 @@ export function CropModal({ uri, onCrop, onCancel }: Props) {
     }
   }, [imageRect]);
 
+  // In RTL mode PanResponder inverts both dx and dy — negate them back to physical coords
+  const isRTL = I18nManager.isRTL;
+  function fixGesture(dx: number, dy: number) {
+    return { dx: isRTL ? -dx : dx, dy };
+  }
+
   // Build PanResponder for a corner handle
   function makePan(corner: 'tl' | 'tr' | 'bl' | 'br') {
     let start: Rect = { x: 0, y: 0, width: 0, height: 0 };
@@ -93,9 +102,10 @@ export function CropModal({ uri, onCrop, onCancel }: Props) {
       onPanResponderGrant: () => {
         start = cropRef.current ?? start;
       },
-      onPanResponderMove: (_, { dx, dy }) => {
+      onPanResponderMove: (_, gesture) => {
         const bounds = imageRectRef.current;
         if (!bounds) return;
+        const { dx, dy } = fixGesture(gesture.dx, gesture.dy);
 
         let r: Rect;
         if (corner === 'tl') {
@@ -124,9 +134,10 @@ export function CropModal({ uri, onCrop, onCancel }: Props) {
       onPanResponderGrant: () => {
         start = cropRef.current ?? start;
       },
-      onPanResponderMove: (_, { dx, dy }) => {
+      onPanResponderMove: (_, gesture) => {
         const bounds = imageRectRef.current;
         if (!bounds) return;
+        const { dx, dy } = fixGesture(gesture.dx, gesture.dy);
         const r: Rect = {
           x: start.x + dx,
           y: start.y + dy,
@@ -255,9 +266,9 @@ export function CropModal({ uri, onCrop, onCancel }: Props) {
         {/* Toolbar */}
         <View style={styles.toolbar}>
           <TouchableOpacity onPress={onCancel} style={styles.toolbarBtn} disabled={cropping}>
-            <Text style={styles.cancelText}>Cancel</Text>
+            <Text style={styles.cancelText}>{t('crop.cancel')}</Text>
           </TouchableOpacity>
-          <Text style={styles.hint}>Drag corners to crop</Text>
+          <Text style={styles.hint}>{t('crop.hint')}</Text>
           <TouchableOpacity
             onPress={handleCrop}
             style={styles.toolbarBtn}
@@ -265,7 +276,7 @@ export function CropModal({ uri, onCrop, onCancel }: Props) {
           >
             {cropping
               ? <ActivityIndicator color="#FFFFFF" size="small" />
-              : <Text style={styles.doneText}>Done</Text>
+              : <Text style={styles.doneText}>{t('crop.done')}</Text>
             }
           </TouchableOpacity>
         </View>

@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, FlatList } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { useCreditsStore } from '@/stores/creditsStore';
 import { useAppTheme } from '@/hooks/useAppTheme';
 import type { AppColors } from '@/constants/colors';
@@ -10,7 +11,7 @@ interface Props {
   hasError?: boolean;
 }
 
-function makeStyles(colors: AppColors) {
+function makeStyles(colors: AppColors, isRTL: boolean) {
   return StyleSheet.create({
     input: {
       height: 52,
@@ -21,6 +22,7 @@ function makeStyles(colors: AppColors) {
       fontSize: 16,
       color: colors.textPrimary,
       backgroundColor: colors.surface,
+      textAlign: isRTL ? 'right' : 'left',
     },
     inputError: { borderColor: colors.danger },
     chips: { paddingTop: 8, gap: 8 },
@@ -38,7 +40,9 @@ function makeStyles(colors: AppColors) {
 
 export function StoreAutocomplete({ value, onChange, hasError }: Props) {
   const colors = useAppTheme();
-  const styles = useMemo(() => makeStyles(colors), [colors]);
+  const { t, i18n } = useTranslation();
+  const isRTL = i18n.language.startsWith('he');
+  const styles = useMemo(() => makeStyles(colors, isRTL), [colors, isRTL]);
   const credits = useCreditsStore((s) => s.credits);
 
   const suggestions = useMemo(() => {
@@ -54,7 +58,7 @@ export function StoreAutocomplete({ value, onChange, hasError }: Props) {
     <View>
       <TextInput
         style={[styles.input, hasError && styles.inputError]}
-        placeholder="Store Name"
+        placeholder={t('addCredit.storeName')}
         placeholderTextColor={colors.textTertiary}
         value={value}
         onChangeText={onChange}

@@ -1,4 +1,5 @@
 import { View, Text, StyleSheet } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { useAppTheme } from '@/hooks/useAppTheme';
 
 interface Props {
@@ -13,6 +14,7 @@ function getDaysRemaining(expirationDate: Date): number {
 
 export function ExpirationBadge({ expirationDate }: Props) {
   const colors = useAppTheme();
+  const { t } = useTranslation();
   const days = getDaysRemaining(expirationDate);
 
   let textColor: string;
@@ -31,17 +33,17 @@ export function ExpirationBadge({ expirationDate }: Props) {
 
   let label: string;
   if (days < 0) {
-    label = 'Expired';
+    label = t('badge.expired');
   } else if (days === 0) {
-    label = 'Today';
+    label = t('badge.today');
   } else if (days === 1) {
-    label = '1 day left';
+    label = t('badge.oneDay');
   } else if (days < 7) {
-    label = `${days} days left`;
+    label = t('badge.days', { days });
   } else if (days < 30) {
-    label = `${Math.ceil(days / 7)}w left`;
+    label = t('badge.weeks', { weeks: Math.ceil(days / 7) });
   } else {
-    label = `${Math.ceil(days / 30)}mo left`;
+    label = t('badge.months', { months: Math.ceil(days / 30) });
   }
 
   return (

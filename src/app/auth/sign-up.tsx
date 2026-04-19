@@ -9,10 +9,12 @@ import {
   Platform,
   ActivityIndicator,
   ScrollView,
+  I18nManager,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import { registerWithEmail, mapFirebaseAuthError } from '@/lib/auth';
 import { useAppTheme } from '@/hooks/useAppTheme';
 import type { AppColors } from '@/constants/colors';
@@ -39,12 +41,6 @@ const STRENGTH_COLOR: Record<StrengthLevel, string> = {
   weak: '#D32F2F',
   medium: '#F9A825',
   strong: '#388E3C',
-};
-
-const STRENGTH_LABEL: Record<StrengthLevel, string> = {
-  weak: 'Weak',
-  medium: 'Medium',
-  strong: 'Strong',
 };
 
 // ---------------------------------------------------------------------------
@@ -112,6 +108,14 @@ export default function SignUpScreen() {
   const router = useRouter();
   const colors = useAppTheme();
   const styles = useMemo(() => makeStyles(colors), [colors]);
+  const { t } = useTranslation();
+  const isRTL = I18nManager.isRTL;
+
+  const STRENGTH_LABEL: Record<StrengthLevel, string> = {
+    weak: t('auth.strength.weak'),
+    medium: t('auth.strength.medium'),
+    strong: t('auth.strength.strong'),
+  };
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -129,27 +133,27 @@ export default function SignUpScreen() {
   // ---- validation ----------------------------------------------------------
 
   function validateEmail(value: string): string {
-    if (!value) return 'Email is required';
+    if (!value) return t('auth.validation.emailRequired');
     if (
       !/^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/.test(value)
     ) {
-      return 'Enter a valid email address';
+      return t('auth.validation.emailInvalidAddress');
     }
     return '';
   }
 
   function validatePassword(value: string): string {
-    if (!value) return 'Password is required';
-    if (value.length < 8) return 'Password must be at least 8 characters';
-    if (!/[A-Z]/.test(value)) return 'Must contain an uppercase letter';
-    if (!/[0-9]/.test(value)) return 'Must contain a number';
-    if (!/[^A-Za-z0-9]/.test(value)) return 'Must contain a special character';
+    if (!value) return t('auth.validation.passwordRequired');
+    if (value.length < 8) return t('auth.validation.passwordMin');
+    if (!/[A-Z]/.test(value)) return t('auth.validation.passwordUppercase');
+    if (!/[0-9]/.test(value)) return t('auth.validation.passwordNumber');
+    if (!/[^A-Za-z0-9]/.test(value)) return t('auth.validation.passwordSpecial');
     return '';
   }
 
   function validateConfirm(value: string): string {
-    if (!value) return 'Please confirm your password';
-    if (value !== password) return 'Passwords do not match';
+    if (!value) return t('auth.validation.confirmRequired');
+    if (value !== password) return t('auth.validation.passwordMismatch');
     return '';
   }
 
@@ -196,17 +200,17 @@ export default function SignUpScreen() {
             accessibilityRole="button"
             accessibilityLabel="Go back"
           >
-            <Ionicons name="arrow-back" size={24} color={colors.textPrimary} />
+            <Ionicons name={isRTL ? 'arrow-forward' : 'arrow-back'} size={24} color={colors.textPrimary} />
           </TouchableOpacity>
 
-          <Text style={styles.title}>Create Account</Text>
-          <Text style={styles.subtitle}>Join Redeemy to track your gift credits</Text>
+          <Text style={styles.title}>{t('auth.signUp.title')}</Text>
+          <Text style={styles.subtitle}>{t('auth.signUp.subtitle')}</Text>
 
           {/* Email */}
           <View style={styles.fieldContainer}>
             <TextInput
               style={[styles.input, emailError ? styles.inputError : null]}
-              placeholder="Email"
+              placeholder={t('auth.email')}
               placeholderTextColor={colors.textTertiary}
               autoCapitalize="none"
               keyboardType="email-address"
@@ -225,7 +229,7 @@ export default function SignUpScreen() {
             <View style={[styles.inputRow, passwordError ? styles.inputError : null]}>
               <TextInput
                 style={styles.inputFlex}
-                placeholder="Password"
+                placeholder={t('auth.password')}
                 placeholderTextColor={colors.textTertiary}
                 secureTextEntry={!showPassword}
                 returnKeyType="next"
@@ -279,7 +283,7 @@ export default function SignUpScreen() {
             <View style={[styles.inputRow, confirmError ? styles.inputError : null]}>
               <TextInput
                 style={styles.inputFlex}
-                placeholder="Confirm Password"
+                placeholder={t('auth.signUp.confirmPassword')}
                 placeholderTextColor={colors.textTertiary}
                 secureTextEntry={!showConfirm}
                 returnKeyType="done"
@@ -315,20 +319,20 @@ export default function SignUpScreen() {
             onPress={handleCreateAccount}
             disabled={loading}
             accessibilityRole="button"
-            accessibilityLabel="Create Account"
+            accessibilityLabel={t('auth.signUp.button')}
           >
             {loading ? (
               <ActivityIndicator color="#FFFFFF" />
             ) : (
-              <Text style={styles.buttonText}>Create Account</Text>
+              <Text style={styles.buttonText}>{t('auth.signUp.button')}</Text>
             )}
           </TouchableOpacity>
 
           {/* Sign-in link */}
           <View style={styles.footer}>
-            <Text style={styles.footerText}>Already have an account? </Text>
+            <Text style={styles.footerText}>{t('auth.signUp.haveAccount')}</Text>
             <TouchableOpacity onPress={() => router.back()}>
-              <Text style={styles.link}>Sign in</Text>
+              <Text style={styles.link}>{t('auth.signUp.signInLink')}</Text>
             </TouchableOpacity>
           </View>
         </ScrollView>

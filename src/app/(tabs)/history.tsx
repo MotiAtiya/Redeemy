@@ -7,10 +7,12 @@ import {
   TouchableOpacity,
   StyleSheet,
   Modal,
+  I18nManager,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import { CreditCard } from '@/components/redeemy/CreditCard';
 import { useCreditsStore } from '@/stores/creditsStore';
 import { useAppTheme } from '@/hooks/useAppTheme';
@@ -26,20 +28,8 @@ interface FilterState {
   dateRange: DateRange;
 }
 
-const DATE_RANGE_OPTIONS: { key: DateRange; label: string }[] = [
-  { key: 'thisMonth',   label: 'This Month'    },
-  { key: 'last3Months', label: 'Last 3 Months' },
-  { key: 'thisYear',    label: 'This Year'     },
-  { key: 'allTime',     label: 'All Time'      },
-];
 
-const SORT_OPTIONS: { key: SortKey; label: string }[] = [
-  { key: 'redeemedAt', label: 'Most Recently Redeemed' },
-  { key: 'storeName',  label: 'Store Name A–Z'         },
-  { key: 'amount',     label: 'Amount (High to Low)'   },
-];
-
-function makeStyles(colors: AppColors) {
+function makeStyles(colors: AppColors, isRTL: boolean) {
   return StyleSheet.create({
     safe: { flex: 1, backgroundColor: colors.background },
     header: {
@@ -67,8 +57,8 @@ function makeStyles(colors: AppColors) {
       shadowRadius: 2,
       elevation: 1,
     },
-    searchIcon: { marginRight: 8 },
-    searchInput: { flex: 1, fontSize: 15, color: colors.textPrimary },
+    searchIcon: { marginEnd: 8 },
+    searchInput: { flex: 1, fontSize: 15, color: colors.textPrimary, textAlign: isRTL ? 'right' : 'left' },
     activeFilters: {
       flexDirection: 'row',
       flexWrap: 'wrap',
@@ -88,7 +78,7 @@ function makeStyles(colors: AppColors) {
       backgroundColor: colors.primarySurface,
     },
     activeFilterChipText: { fontSize: 12, color: colors.primary, fontWeight: '500' },
-    sortLabel: { fontSize: 12, color: colors.textTertiary, paddingHorizontal: 16, marginBottom: 8 },
+    sortLabel: { fontSize: 12, color: colors.textTertiary, paddingHorizontal: 16, marginBottom: 8, alignSelf: 'flex-start' },
     listContent: { paddingBottom: 32 },
     listContentEmpty: { flex: 1 },
     emptyState: {
@@ -117,13 +107,14 @@ function makeStyles(colors: AppColors) {
       alignSelf: 'center',
       marginBottom: 8,
     },
-    sheetTitle: { fontSize: 17, fontWeight: '700', color: colors.textPrimary, marginBottom: 4 },
+    sheetTitle: { fontSize: 17, fontWeight: '700', color: colors.textPrimary, marginBottom: 4, alignSelf: 'flex-start' },
     filterSectionLabel: {
       fontSize: 11,
       fontWeight: '600',
       color: colors.textTertiary,
       letterSpacing: 0.8,
       marginTop: 4,
+      alignSelf: 'flex-start',
     },
     chipRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
     filterChip: {
@@ -155,8 +146,23 @@ function makeStyles(colors: AppColors) {
 export default function HistoryScreen() {
   const router = useRouter();
   const colors = useAppTheme();
-  const styles = useMemo(() => makeStyles(colors), [colors]);
+  const isRTL = I18nManager.isRTL;
+  const styles = useMemo(() => makeStyles(colors, isRTL), [colors, isRTL]);
+  const { t } = useTranslation();
   const credits = useCreditsStore((s) => s.credits);
+
+  const DATE_RANGE_OPTIONS: { key: DateRange; label: string }[] = [
+    { key: 'thisMonth',   label: t('history.dateRange.thisMonth')   },
+    { key: 'last3Months', label: t('history.dateRange.last3Months') },
+    { key: 'thisYear',    label: t('history.dateRange.thisYear')    },
+    { key: 'allTime',     label: t('history.dateRange.allTime')     },
+  ];
+
+  const SORT_OPTIONS: { key: SortKey; label: string }[] = [
+    { key: 'redeemedAt', label: t('history.sort.recentlyRedeemed') },
+    { key: 'storeName',  label: t('history.sort.storeAZ')          },
+    { key: 'amount',     label: t('history.sort.amountHighLow')    },
+  ];
 
   const [search, setSearch] = useState('');
   const [sortKey, setSortKey] = useState<SortKey>('redeemedAt');
@@ -178,7 +184,7 @@ export default function HistoryScreen() {
     }
     for (const catId of filters.categories) {
       const cat = CATEGORIES.find((c) => c.id === catId);
-      if (cat) chips.push({ key: catId, label: cat.label });
+      if (cat) chips.push({ key: catId, label: t('category.' + catId) });
     }
     return chips;
   }, [filters]);
@@ -200,7 +206,7 @@ export default function HistoryScreen() {
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
       <View style={styles.header}>
-        <Text style={styles.title}>History</Text>
+        <Text style={styles.title}>{t('history.title')}</Text>
         <View style={styles.headerActions}>
           <TouchableOpacity onPress={() => {
             const idx = SORT_OPTIONS.findIndex((o) => o.key === sortKey);
@@ -222,7 +228,7 @@ export default function HistoryScreen() {
         <Ionicons name="search-outline" size={18} color={colors.textTertiary} style={styles.searchIcon} />
         <TextInput
           style={styles.searchInput}
-          placeholder="Search history…"
+          placeholder={t('history.search')}
           placeholderTextColor={colors.textTertiary}
           value={search}
           onChangeText={setSearch}
@@ -252,8 +258,8 @@ export default function HistoryScreen() {
         ListEmptyComponent={
           <View style={styles.emptyState}>
             <Ionicons name="time-outline" size={56} color={colors.textTertiary} />
-            <Text style={styles.emptyTitle}>No credits redeemed yet</Text>
-            <Text style={styles.emptySubtitle}>Your history will appear here after you use a credit</Text>
+            <Text style={styles.emptyTitle}>{t('history.empty.title')}</Text>
+            <Text style={styles.emptySubtitle}>{t('history.empty.subtitle')}</Text>
           </View>
         }
         contentContainerStyle={[styles.listContent, filtered.length === 0 && styles.listContentEmpty]}
@@ -264,9 +270,9 @@ export default function HistoryScreen() {
         <TouchableOpacity style={styles.overlay} activeOpacity={1} onPress={() => setShowFilterSheet(false)} />
         <View style={styles.filterSheet}>
           <View style={styles.sheetHandle} />
-          <Text style={styles.sheetTitle}>Filter History</Text>
+          <Text style={styles.sheetTitle}>{t('history.filter.title')}</Text>
 
-          <Text style={styles.filterSectionLabel}>DATE RANGE</Text>
+          <Text style={styles.filterSectionLabel}>{t('history.filter.dateRange')}</Text>
           <View style={styles.chipRow}>
             {DATE_RANGE_OPTIONS.map((opt) => {
               const isActive = filters.dateRange === opt.key;
@@ -282,7 +288,7 @@ export default function HistoryScreen() {
             })}
           </View>
 
-          <Text style={styles.filterSectionLabel}>CATEGORY</Text>
+          <Text style={styles.filterSectionLabel}>{t('history.filter.category')}</Text>
           <View style={styles.chipRow}>
             {CATEGORIES.map((cat) => {
               const isActive = filters.categories.includes(cat.id);
@@ -293,14 +299,14 @@ export default function HistoryScreen() {
                   onPress={() => toggleCategory(cat.id)}
                 >
                   <Ionicons name={cat.icon} size={13} color={isActive ? '#FFFFFF' : colors.textSecondary} />
-                  <Text style={[styles.filterChipText, isActive && styles.filterChipTextActive]}>{cat.label}</Text>
+                  <Text style={[styles.filterChipText, isActive && styles.filterChipTextActive]}>{t('category.' + cat.id)}</Text>
                 </TouchableOpacity>
               );
             })}
           </View>
 
           <TouchableOpacity style={styles.doneButton} onPress={() => setShowFilterSheet(false)}>
-            <Text style={styles.doneButtonText}>Apply Filters</Text>
+            <Text style={styles.doneButtonText}>{t('history.filter.apply')}</Text>
           </TouchableOpacity>
         </View>
       </Modal>

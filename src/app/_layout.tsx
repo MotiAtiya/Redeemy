@@ -10,9 +10,11 @@ import { useNetworkMonitor } from '@/hooks/useNetworkMonitor';
 import { useAppTheme, useIsDark } from '@/hooks/useAppTheme';
 import { OfflineToast } from '@/components/redeemy/OfflineToast';
 import { useAuthStore } from '@/stores/authStore';
+import { useSettingsStore } from '@/stores/settingsStore';
 import { AuthStatus } from '@/types/userTypes';
 import { configureGoogleSignIn } from '@/lib/auth';
 import { registerNotificationCategories, getCreditIdFromNotification } from '@/lib/notifications';
+import { getSavedLanguage, resolveLanguage, initI18n, applyRTL } from '@/lib/i18n';
 
 // One-time module-level setup
 configureGoogleSignIn();
@@ -29,12 +31,9 @@ function AuthGate({ children }: { children: React.ReactNode }) {
   const colors = useAppTheme();
   const isDark = useIsDark();
 
-  // Redirect based on auth status
   useEffect(() => {
     if (authStatus === AuthStatus.LOADING) return;
-
     const inAuthGroup = segments[0] === 'auth';
-
     if (authStatus === AuthStatus.UNAUTHENTICATED && !inAuthGroup) {
       router.replace('/auth/sign-in');
     } else if (authStatus === AuthStatus.AUTHENTICATED && inAuthGroup) {
@@ -42,7 +41,6 @@ function AuthGate({ children }: { children: React.ReactNode }) {
     }
   }, [authStatus, segments, router]);
 
-  // Deep-link from notification tap
   useEffect(() => {
     Notifications.getLastNotificationResponseAsync().then((response) => {
       if (!response) return;
@@ -51,12 +49,10 @@ function AuthGate({ children }: { children: React.ReactNode }) {
         router.push(`/credit/${creditId}`);
       }
     });
-
     const sub = Notifications.addNotificationResponseReceivedListener((response) => {
       const creditId = getCreditIdFromNotification(response);
       if (creditId) router.push(`/credit/${creditId}`);
     });
-
     return () => sub.remove();
   }, [authStatus, router]);
 
@@ -78,6 +74,28 @@ function AuthGate({ children }: { children: React.ReactNode }) {
 }
 
 export default function RootLayout() {
+  const [i18nReady, setI18nReady] = useState(false);
+  const setLanguage = useSettingsStore((s) => s.setLanguage);
+  const colors = useAppTheme();
+
+  useEffect(() => {
+    getSavedLanguage().then((pref) => {
+      const lang = resolveLanguage(pref);
+      applyRTL(lang);
+      initI18n(lang);
+      setLanguage(pref);
+      setI18nReady(true);
+    });
+  }, []);
+
+  if (!i18nReady) {
+    return (
+      <View style={[styles.loading, { backgroundColor: colors.background }]}>
+        <ActivityIndicator size="large" color="#4A9E8E" />
+      </View>
+    );
+  }
+
   return (
     <GluestackProvider>
       <AuthGate>
@@ -99,9 +117,5 @@ export default function RootLayout() {
 
 const styles = StyleSheet.create({
   flex: { flex: 1 },
-  loading: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
+  loading: { flex: 1, justifyContent: 'center', alignItems: 'center' },
 });

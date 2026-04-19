@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { View, Text, Animated, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import { useUIStore } from '@/stores/uiStore';
 
 /**
@@ -8,6 +9,7 @@ import { useUIStore } from '@/stores/uiStore';
  * Mount once at the root level inside AuthGate.
  */
 export function OfflineToast() {
+  const { t } = useTranslation();
   const offlineMode = useUIStore((s) => s.offlineMode);
   const translateY = useRef(new Animated.Value(-80)).current;
 
@@ -26,7 +28,7 @@ export function OfflineToast() {
     >
       <View style={styles.banner}>
         <Ionicons name="cloud-offline-outline" size={16} color="#FFFFFF" />
-        <Text style={styles.text}>You're offline — browsing cached credits</Text>
+        <Text style={styles.text}>{t('offline.toast')}</Text>
       </View>
     </Animated.View>
   );

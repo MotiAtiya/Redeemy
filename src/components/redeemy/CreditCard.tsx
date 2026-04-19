@@ -2,6 +2,7 @@ import { useMemo } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { Image } from 'expo-image';
 import { Ionicons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import { ExpirationBadge } from './ExpirationBadge';
 import { formatCurrency } from '@/lib/formatCurrency';
 import { CATEGORIES } from '@/constants/categories';
@@ -36,7 +37,7 @@ function makeStyles(colors: AppColors) {
       padding: 14,
       gap: 12,
     },
-    left: { flex: 1, gap: 6 },
+    left: { flex: 1, gap: 6, alignItems: 'flex-start' },
     storeName: { fontSize: 15, fontWeight: '700', color: colors.textPrimary },
     amount: { fontSize: 26, fontWeight: '800', color: colors.textPrimary, letterSpacing: -0.5 },
     amountDimmed: { color: colors.textTertiary },
@@ -74,6 +75,7 @@ function makeStyles(colors: AppColors) {
 export function CreditCard({ credit, onPress, variant = 'active' }: Props) {
   const colors = useAppTheme();
   const styles = useMemo(() => makeStyles(colors), [colors]);
+  const { t } = useTranslation();
 
   const categoryMeta = CATEGORIES.find((c) => c.id === credit.category);
   const dimmed = variant === 'redeemed';
@@ -92,6 +94,20 @@ export function CreditCard({ credit, onPress, variant = 'active' }: Props) {
       accessibilityLabel={`${credit.storeName} credit, ${formatCurrency(credit.amount)}`}
     >
       <View style={styles.content}>
+        {credit.thumbnailUrl ? (
+          <Image
+            source={{ uri: credit.thumbnailUrl }}
+            style={[styles.thumbnail, dimmed && styles.thumbnailDimmed]}
+            contentFit="cover"
+            placeholder={{ blurhash: 'L6PZfSi_.AyE_3t7t7R**0o#DgR4' }}
+            transition={200}
+          />
+        ) : (
+          <View style={styles.thumbnailPlaceholder}>
+            <Ionicons name="image-outline" size={24} color={colors.textTertiary} />
+          </View>
+        )}
+
         <View style={styles.left}>
           <Text style={[styles.storeName, dimmed && styles.textDimmed]} numberOfLines={1}>
             {credit.storeName}
@@ -110,14 +126,14 @@ export function CreditCard({ credit, onPress, variant = 'active' }: Props) {
                   color={dimmed ? colors.textTertiary : colors.textSecondary}
                 />
                 <Text style={[styles.categoryText, dimmed && styles.textDimmed]}>
-                  {categoryMeta.label}
+                  {t('category.' + categoryMeta.id)}
                 </Text>
               </View>
             )}
             {dimmed ? (
               redeemedDate ? (
                 <View style={styles.redeemedBadge}>
-                  <Text style={styles.redeemedBadgeText}>Redeemed {redeemedDate}</Text>
+                  <Text style={styles.redeemedBadgeText}>{t('creditCard.redeemed', { date: redeemedDate })}</Text>
                 </View>
               ) : null
             ) : (
@@ -125,20 +141,6 @@ export function CreditCard({ credit, onPress, variant = 'active' }: Props) {
             )}
           </View>
         </View>
-
-        {credit.thumbnailUrl ? (
-          <Image
-            source={{ uri: credit.thumbnailUrl }}
-            style={[styles.thumbnail, dimmed && styles.thumbnailDimmed]}
-            contentFit="cover"
-            placeholder={{ blurhash: 'L6PZfSi_.AyE_3t7t7R**0o#DgR4' }}
-            transition={200}
-          />
-        ) : (
-          <View style={styles.thumbnailPlaceholder}>
-            <Ionicons name="image-outline" size={24} color={colors.textTertiary} />
-          </View>
-        )}
       </View>
     </TouchableOpacity>
   );

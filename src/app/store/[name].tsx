@@ -5,10 +5,12 @@ import {
   SectionList,
   StyleSheet,
   TouchableOpacity,
+  I18nManager,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import { CreditCard } from '@/components/redeemy/CreditCard';
 import { useCreditsStore } from '@/stores/creditsStore';
 import { formatCurrency } from '@/lib/formatCurrency';
@@ -28,8 +30,8 @@ function makeStyles(colors: AppColors) {
       backgroundColor: colors.background,
     },
     headerText: { flex: 1 },
-    storeName: { fontSize: 20, fontWeight: '700', color: colors.textPrimary },
-    totalValue: { fontSize: 13, color: colors.primary, fontWeight: '600', marginTop: 1 },
+    storeName: { fontSize: 20, fontWeight: '700', color: colors.textPrimary, alignSelf: 'flex-start' },
+    totalValue: { fontSize: 13, color: colors.primary, fontWeight: '600', marginTop: 1, alignSelf: 'flex-start' },
     sectionHeader: {
       flexDirection: 'row',
       alignItems: 'center',
@@ -59,6 +61,8 @@ export default function StoreDetailScreen() {
   const { name } = useLocalSearchParams<{ name: string }>();
   const colors = useAppTheme();
   const styles = useMemo(() => makeStyles(colors), [colors]);
+  const { t } = useTranslation();
+  const isRTL = I18nManager.isRTL;
   const credits = useCreditsStore((s) => s.credits);
 
   const { active, redeemed, totalAgot } = useMemo(() => {
@@ -76,23 +80,23 @@ export default function StoreDetailScreen() {
   }, [credits, name]);
 
   const sections = useMemo(() => {
-    const result: { title: string; data: Credit[] }[] = [];
-    if (active.length > 0) result.push({ title: 'Active', data: active });
-    if (redeemed.length > 0) result.push({ title: 'Redeemed', data: redeemed });
+    const result: { title: string; key: string; data: Credit[] }[] = [];
+    if (active.length > 0) result.push({ title: t('store.active'), key: 'active', data: active });
+    if (redeemed.length > 0) result.push({ title: t('store.redeemed'), key: 'redeemed', data: redeemed });
     return result;
-  }, [active, redeemed]);
+  }, [active, redeemed, t]);
 
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()} hitSlop={8}>
-          <Ionicons name="arrow-back" size={24} color={colors.textPrimary} />
+          <Ionicons name={isRTL ? 'arrow-forward' : 'arrow-back'} size={24} color={colors.textPrimary} />
         </TouchableOpacity>
         <View style={styles.headerText}>
           <Text style={styles.storeName} numberOfLines={1}>{name}</Text>
           {totalAgot > 0 && (
-            <Text style={styles.totalValue}>{formatCurrency(totalAgot)} active</Text>
+            <Text style={styles.totalValue}>{formatCurrency(totalAgot)} {t('store.active').toLowerCase()}</Text>
           )}
         </View>
       </View>
@@ -109,14 +113,14 @@ export default function StoreDetailScreen() {
         renderItem={({ item, section }) => (
           <CreditCard
             credit={item}
-            variant={section.title === 'Redeemed' ? 'redeemed' : 'active'}
+            variant={section.key === 'redeemed' ? 'redeemed' : 'active'}
             onPress={() => router.push(`/credit/${item.id}`)}
           />
         )}
         ListEmptyComponent={
           <View style={styles.emptyState}>
             <Ionicons name="receipt-outline" size={40} color={colors.textTertiary} />
-            <Text style={styles.emptyText}>No credits for this store</Text>
+            <Text style={styles.emptyText}>{t('store.empty')}</Text>
           </View>
         }
         contentContainerStyle={styles.listContent}

@@ -1,0 +1,245 @@
+{
+  "tabs": {
+    "credits": "זיכויים",
+    "stores": "חנויות",
+    "history": "היסטוריה",
+    "more": "עוד"
+  },
+  "credits": {
+    "title": "זיכויים",
+    "sort": {
+      "expiration": "תפוגה",
+      "amount": "סכום",
+      "storeAZ": "חנות א-ת",
+      "recent": "אחרונים"
+    },
+    "search": "חפש לפי חנות או הערות…",
+    "filter": { "all": "הכל" },
+    "empty": {
+      "title": "אין זיכויים עדיין",
+      "subtitle": "הוסף את הזיכוי הראשון שלך ואל תאבד כסף",
+      "action": "הוסף זיכוי"
+    }
+  },
+  "stores": {
+    "title": "חנויות",
+    "search": "חפש חנויות…",
+    "empty": {
+      "title": "אין זיכויים פעילים עדיין",
+      "subtitle": "הוסף את הזיכוי הראשון שלך כדי להתחיל",
+      "action": "הוסף זיכוי"
+    }
+  },
+  "history": {
+    "title": "היסטוריה",
+    "dateRange": {
+      "thisMonth": "החודש",
+      "last3Months": "3 חודשים אחרונים",
+      "thisYear": "השנה",
+      "allTime": "כל הזמן"
+    },
+    "sort": {
+      "recentlyRedeemed": "לאחרונה מומשו",
+      "storeAZ": "שם חנות א-ת",
+      "amountHighLow": "סכום (גבוה לנמוך)"
+    },
+    "search": "חפש בהיסטוריה…",
+    "filter": {
+      "title": "סנן היסטוריה",
+      "dateRange": "טווח תאריכים",
+      "category": "קטגוריה",
+      "apply": "החל סינון"
+    },
+    "empty": {
+      "title": "אין זיכויים שמומשו עדיין",
+      "subtitle": "ההיסטוריה תופיע כאן לאחר שתממש זיכוי"
+    }
+  },
+  "more": {
+    "title": "עוד",
+    "sections": {
+      "account": "חשבון",
+      "settings": "הגדרות",
+      "language": "שפה",
+      "about": "אודות"
+    },
+    "appearance": "מראה",
+    "theme": {
+      "light": "בהיר",
+      "dark": "כהה",
+      "system": "ברירת מחדל",
+      "title": "מראה"
+    },
+    "language": {
+      "label": "שפה",
+      "title": "שפה",
+      "system": "ברירת מחדל של המערכת",
+      "english": "English",
+      "hebrew": "עברית",
+      "restartTitle": "נדרשת הפעלה מחדש",
+      "restartMessage": "סגור ופתח מחדש את האפליקציה כדי להחיל את שינוי השפה.",
+      "ok": "אישור"
+    },
+    "about": {
+      "tagline": "אל תן לכרטיס המתנה לפוג",
+      "contact": "פנה לתמיכה",
+      "madeWith": "פותח עם",
+      "tech": "React Native + Expo"
+    },
+    "signOut": {
+      "button": "התנתק",
+      "title": "התנתקות",
+      "message": "האם אתה בטוח שברצונך להתנתק?",
+      "error": "לא ניתן להתנתק. נסה שנית."
+    }
+  },
+  "auth": {
+    "tagline": "כרטיסי המתנה שלך, מאורגנים.",
+    "or": "או",
+    "email": "אימייל",
+    "password": "סיסמה",
+    "signIn": {
+      "title": "התחברות",
+      "button": "התחבר",
+      "noAccount": "אין לך חשבון? ",
+      "createLink": "צור חשבון"
+    },
+    "signUp": {
+      "title": "יצירת חשבון",
+      "subtitle": "הצטרף ל-Redeemy לניהול כרטיסי המתנה",
+      "button": "צור חשבון",
+      "confirmPassword": "אשר סיסמה",
+      "haveAccount": "כבר יש לך חשבון? ",
+      "signInLink": "התחבר"
+    },
+    "google": "המשך עם Google",
+    "strength": {
+      "weak": "חלשה",
+      "medium": "בינונית",
+      "strong": "חזקה"
+    },
+    "validation": {
+      "emailRequired": "נדרש אימייל",
+      "emailInvalid": "הכנס אימייל תקין",
+      "emailInvalidAddress": "הכנס כתובת אימייל תקינה",
+      "passwordRequired": "נדרשת סיסמה",
+      "passwordMin": "הסיסמה חייבת להכיל לפחות 8 תווים",
+      "passwordUppercase": "חייב להכיל אות גדולה",
+      "passwordNumber": "חייב להכיל ספרה",
+      "passwordSpecial": "חייב להכיל תו מיוחד",
+      "confirmRequired": "אשר את הסיסמה",
+      "passwordMismatch": "הסיסמאות אינן תואמות"
+    }
+  },
+  "addCredit": {
+    "titleAdd": "הוסף זיכוי",
+    "titleEdit": "ערוך זיכוי",
+    "save": "שמור",
+    "takePhoto": "צלם תמונה",
+    "chooseGallery": "בחר מהגלריה",
+    "storeName": "שם החנות",
+    "amount": "סכום",
+    "category": "קטגוריה",
+    "expirationDate": "תאריך תפוגה",
+    "reminder": "תזכורת",
+    "notes": "הערות",
+    "notesPlaceholder": "אופציונלי — מידע נוסף על הזיכוי",
+    "offline": {
+      "adding": "הוספת זיכויים דורשת חיבור לאינטרנט.",
+      "editing": "עריכת זיכויים דורשת חיבור לאינטרנט."
+    },
+    "error": {
+      "save": "לא ניתן לשמור",
+      "saveMessage": "בדוק את החיבור ונסה שנית.",
+      "photo": "העלאת התמונה נכשלה — הזיכוי נשמר ללא תמונה."
+    },
+    "validation": {
+      "storeName": "נדרש שם חנות",
+      "amountRequired": "נדרש סכום",
+      "amountInvalid": "הכנס סכום חיובי תקין",
+      "categoryRequired": "נדרשת קטגוריה",
+      "dateRequired": "נדרש תאריך תפוגה",
+      "datePast": "תאריך התפוגה חייב להיות בעתיד"
+    }
+  },
+  "credit": {
+    "notFound": "הזיכוי לא נמצא",
+    "markRedeemed": {
+      "button": "סמן כמומש",
+      "title": "סמן כמומש",
+      "message": "הזיכוי יועבר להיסטוריה שלך.",
+      "confirm": "סמן כמומש",
+      "error": "לא ניתן לעדכן את הזיכוי. נסה שנית.",
+      "offlineMessage": "סימון זיכויים כמומשים דורש חיבור לאינטרנט."
+    },
+    "delete": {
+      "offlineMessage": "מחיקת זיכויים דורשת חיבור לאינטרנט.",
+      "title": "מחק זיכוי",
+      "message": "למחוק את זיכוי {{storeName}}? לא ניתן לבטל פעולה זו.",
+      "button": "מחק",
+      "error": "לא ניתן למחוק את הזיכוי. נסה שנית."
+    },
+    "action": {
+      "edit": "ערוך",
+      "delete": "מחק"
+    },
+    "detail": {
+      "category": "קטגוריה",
+      "expires": "תפוגה",
+      "reminder": "תזכורת",
+      "reminderDays_one": "יום אחד לפני",
+      "reminderDays_other": "{{count}} ימים לפני",
+      "notes": "הערות",
+      "added": "נוסף"
+    },
+    "redeemed": "מומש",
+    "redeemedOn": "מומש ב-{{date}}"
+  },
+  "store": {
+    "active": "פעיל",
+    "redeemed": "מומש",
+    "empty": "אין זיכויים לחנות זו"
+  },
+  "badge": {
+    "expired": "פג תוקף",
+    "today": "היום",
+    "oneDay": "נותר יום אחד",
+    "days": "נותרו {{days}} ימים",
+    "weeks": "נותרו {{weeks}} שבועות",
+    "months": "נותרו {{months}} חודשים"
+  },
+  "creditCard": {
+    "redeemed": "מומש {{date}}"
+  },
+  "crop": {
+    "cancel": "ביטול",
+    "hint": "גרור פינות לחיתוך",
+    "done": "סיום"
+  },
+  "offline": {
+    "toast": "אין חיבור — מציג זיכויים שמורים",
+    "title": "אין חיבור לאינטרנט"
+  },
+  "common": {
+    "cancel": "ביטול",
+    "error": "שגיאה",
+    "ok": "אישור"
+  },
+  "reminder": {
+    "1day": "יום אחד",
+    "1week": "שבוע",
+    "1month": "חודש",
+    "3months": "3 חודשים"
+  },
+  "category": {
+    "food": "אוכל ומסעדות",
+    "fashion": "אופנה",
+    "electronics": "אלקטרוניקה",
+    "home": "בית וגינה",
+    "beauty": "יופי ובריאות",
+    "books": "ספרים ומדיה",
+    "sports": "ספורט וכושר",
+    "travel": "נסיעות",
+    "other": "אחר"
+  }
+}

@@ -8,10 +8,12 @@ import {
   TouchableOpacity,
   StyleSheet,
   ActivityIndicator,
+  I18nManager,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import { CreditCard } from '@/components/redeemy/CreditCard';
 import { SyncIndicator } from '@/components/redeemy/SyncIndicator';
 import { subscribeToCredits } from '@/lib/firestoreCredits';
@@ -24,14 +26,7 @@ import type { AppColors } from '@/constants/colors';
 
 type SortKey = HomeSortKey;
 
-const SORT_OPTIONS: { key: SortKey; label: string }[] = [
-  { key: 'expiration', label: 'Expiration' },
-  { key: 'amount',     label: 'Amount'     },
-  { key: 'storeName',  label: 'Store A–Z'  },
-  { key: 'createdAt',  label: 'Recent'     },
-];
-
-function makeStyles(colors: AppColors) {
+function makeStyles(colors: AppColors, isRTL: boolean) {
   return StyleSheet.create({
     safe: { flex: 1, backgroundColor: colors.background },
     header: {
@@ -84,8 +79,8 @@ function makeStyles(colors: AppColors) {
       shadowRadius: 2,
       elevation: 1,
     },
-    searchIcon: { marginRight: 8 },
-    searchInput: { flex: 1, fontSize: 15, color: colors.textPrimary },
+    searchIcon: { marginEnd: 8 },
+    searchInput: { flex: 1, fontSize: 15, color: colors.textPrimary, textAlign: isRTL ? 'right' : 'left' },
     filterChips: { paddingHorizontal: 16, paddingBottom: 10, gap: 8 },
     filterChip: {
       paddingVertical: 6,
@@ -142,7 +137,16 @@ function makeStyles(colors: AppColors) {
 export default function CreditsScreen() {
   const router = useRouter();
   const colors = useAppTheme();
-  const styles = useMemo(() => makeStyles(colors), [colors]);
+  const isRTL = I18nManager.isRTL;
+  const styles = useMemo(() => makeStyles(colors, isRTL), [colors, isRTL]);
+  const { t } = useTranslation();
+
+  const SORT_OPTIONS: { key: SortKey; label: string }[] = [
+    { key: 'expiration', label: t('credits.sort.expiration') },
+    { key: 'amount',     label: t('credits.sort.amount')     },
+    { key: 'storeName',  label: t('credits.sort.storeAZ')    },
+    { key: 'createdAt',  label: t('credits.sort.recent')     },
+  ];
 
   const currentUser = useAuthStore((s) => s.currentUser);
   const credits = useCreditsStore((s) => s.credits);
@@ -179,10 +183,10 @@ export default function CreditsScreen() {
     return (
       <View style={styles.emptyState}>
         <Ionicons name="wallet-outline" size={56} color={colors.textTertiary} />
-        <Text style={styles.emptyTitle}>No credits yet</Text>
-        <Text style={styles.emptySubtitle}>Add your first credit and never lose money again</Text>
+        <Text style={styles.emptyTitle}>{t('credits.empty.title')}</Text>
+        <Text style={styles.emptySubtitle}>{t('credits.empty.subtitle')}</Text>
         <TouchableOpacity style={styles.emptyAction} onPress={openAddCredit}>
-          <Text style={styles.emptyActionText}>Add Credit</Text>
+          <Text style={styles.emptyActionText}>{t('credits.empty.action')}</Text>
         </TouchableOpacity>
       </View>
     );
@@ -193,7 +197,7 @@ export default function CreditsScreen() {
       <View>
         <View style={styles.header}>
           <View style={styles.titleRow}>
-            <Text style={styles.title}>Credits</Text>
+            <Text style={styles.title}>{t('credits.title')}</Text>
             <SyncIndicator />
           </View>
           <TouchableOpacity onPress={() => setShowSortMenu((s) => !s)}>
@@ -224,7 +228,7 @@ export default function CreditsScreen() {
           <Ionicons name="search-outline" size={18} color={colors.textTertiary} style={styles.searchIcon} />
           <TextInput
             style={styles.searchInput}
-            placeholder="Search by store or notes…"
+            placeholder={t('credits.search')}
             placeholderTextColor={colors.textTertiary}
             value={searchQuery}
             onChangeText={setSearchQuery}
@@ -248,7 +252,7 @@ export default function CreditsScreen() {
                   onPress={() => setSelectedCategory(isActive ? null : item)}
                 >
                   <Text style={[styles.filterChipText, isActive && styles.filterChipTextActive]}>
-                    {item ?? 'All'}
+                    {item != null ? t('category.' + item) : t('credits.filter.all')}
                   </Text>
                 </TouchableOpacity>
               );

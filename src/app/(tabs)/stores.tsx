@@ -6,10 +6,12 @@ import {
   FlatList,
   TouchableOpacity,
   StyleSheet,
+  I18nManager,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import { useCreditsStore } from '@/stores/creditsStore';
 import { useAppTheme } from '@/hooks/useAppTheme';
 import { formatCurrency } from '@/lib/formatCurrency';
@@ -22,7 +24,7 @@ interface StoreRow {
   totalAgot: number;
 }
 
-function makeStyles(colors: AppColors) {
+function makeStyles(colors: AppColors, isRTL: boolean) {
   return StyleSheet.create({
     safe: { flex: 1, backgroundColor: colors.background },
     title: {
@@ -32,6 +34,7 @@ function makeStyles(colors: AppColors) {
       paddingHorizontal: 16,
       paddingTop: 8,
       paddingBottom: 12,
+      alignSelf: 'flex-start',
     },
     searchContainer: {
       flexDirection: 'row',
@@ -48,8 +51,8 @@ function makeStyles(colors: AppColors) {
       shadowRadius: 2,
       elevation: 1,
     },
-    searchIcon: { marginRight: 8 },
-    searchInput: { flex: 1, fontSize: 15, color: colors.textPrimary },
+    searchIcon: { marginEnd: 8 },
+    searchInput: { flex: 1, fontSize: 15, color: colors.textPrimary, textAlign: isRTL ? 'right' : 'left' },
     listContent: { paddingBottom: 32 },
     listContentEmpty: { flex: 1 },
     row: {
@@ -69,10 +72,10 @@ function makeStyles(colors: AppColors) {
       alignItems: 'center',
     },
     rowContent: { flex: 1 },
-    rowName: { fontSize: 15, fontWeight: '600', color: colors.textPrimary },
-    rowMeta: { fontSize: 12, color: colors.textTertiary, marginTop: 2 },
-    rowAmount: { fontSize: 16, fontWeight: '700', color: colors.textPrimary, marginRight: 4 },
-    separator: { height: 1, backgroundColor: colors.separator, marginLeft: 64 },
+    rowName: { fontSize: 15, fontWeight: '600', color: colors.textPrimary, alignSelf: 'flex-start' },
+    rowMeta: { fontSize: 12, color: colors.textTertiary, marginTop: 2, alignSelf: 'flex-start' },
+    rowAmount: { fontSize: 16, fontWeight: '700', color: colors.textPrimary, marginEnd: 4 },
+    separator: { height: 1, backgroundColor: colors.separator, marginStart: 64 },
     emptyState: {
       flex: 1,
       justifyContent: 'center',
@@ -96,7 +99,9 @@ function makeStyles(colors: AppColors) {
 export default function StoresScreen() {
   const router = useRouter();
   const colors = useAppTheme();
-  const styles = useMemo(() => makeStyles(colors), [colors]);
+  const isRTL = I18nManager.isRTL;
+  const styles = useMemo(() => makeStyles(colors, isRTL), [colors, isRTL]);
+  const { t } = useTranslation();
   const credits = useCreditsStore((s) => s.credits);
   const [search, setSearch] = useState('');
 
@@ -125,10 +130,10 @@ export default function StoresScreen() {
     return (
       <View style={styles.emptyState}>
         <Ionicons name="storefront-outline" size={56} color={colors.textTertiary} />
-        <Text style={styles.emptyTitle}>No active credits yet</Text>
-        <Text style={styles.emptySubtitle}>Add your first credit to get started</Text>
+        <Text style={styles.emptyTitle}>{t('stores.empty.title')}</Text>
+        <Text style={styles.emptySubtitle}>{t('stores.empty.subtitle')}</Text>
         <TouchableOpacity style={styles.emptyAction} onPress={() => router.push('/add-credit')}>
-          <Text style={styles.emptyActionText}>Add Credit</Text>
+          <Text style={styles.emptyActionText}>{t('stores.empty.action')}</Text>
         </TouchableOpacity>
       </View>
     );
@@ -136,13 +141,13 @@ export default function StoresScreen() {
 
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
-      <Text style={styles.title}>Stores</Text>
+      <Text style={styles.title}>{t('stores.title')}</Text>
 
       <View style={styles.searchContainer}>
         <Ionicons name="search-outline" size={18} color={colors.textTertiary} style={styles.searchIcon} />
         <TextInput
           style={styles.searchInput}
-          placeholder="Search stores…"
+          placeholder={t('stores.search')}
           placeholderTextColor={colors.textTertiary}
           value={search}
           onChangeText={setSearch}
@@ -171,7 +176,7 @@ export default function StoresScreen() {
               </Text>
             </View>
             <Text style={styles.rowAmount}>{formatCurrency(item.totalAgot)}</Text>
-            <Ionicons name="chevron-forward" size={16} color={colors.textTertiary} />
+            <Ionicons name={isRTL ? 'chevron-back' : 'chevron-forward'} size={16} color={colors.textTertiary} />
           </TouchableOpacity>
         )}
         ItemSeparatorComponent={() => <View style={styles.separator} />}

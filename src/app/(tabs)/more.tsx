@@ -8,24 +8,23 @@ import {
   Alert,
   Modal,
   Linking,
+  I18nManager,
+  ScrollView,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import { signOut } from '@/lib/auth';
 import { useAuthStore } from '@/stores/authStore';
 import { useCreditsStore } from '@/stores/creditsStore';
 import { useUIStore } from '@/stores/uiStore';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { useAppTheme } from '@/hooks/useAppTheme';
+import { saveLanguage, resolveLanguage, applyRTL, type AppLanguage } from '@/lib/i18n';
+import i18n from '@/lib/i18n';
 import type { AppColors } from '@/constants/colors';
 
 type ThemeMode = 'light' | 'dark' | 'system';
-
-const THEME_OPTIONS: { mode: ThemeMode; label: string; icon: string }[] = [
-  { mode: 'light',  label: 'Light',  icon: '☀️' },
-  { mode: 'dark',   label: 'Dark',   icon: '🌙' },
-  { mode: 'system', label: 'System', icon: '📱' },
-];
 
 function resetAllStores() {
   const credits = useCreditsStore.getState();
@@ -39,16 +38,17 @@ function resetAllStores() {
   ui.setOfflineMode(false);
 }
 
-function makeStyles(colors: AppColors) {
+function makeStyles(colors: AppColors, isRTL: boolean) {
   return StyleSheet.create({
     safe: { flex: 1, backgroundColor: colors.background },
-    container: { flex: 1, paddingHorizontal: 16 },
+    container: { paddingHorizontal: 16, paddingBottom: 32 },
     screenTitle: {
       fontSize: 28,
       fontWeight: '700',
       color: colors.textPrimary,
       marginTop: 16,
       marginBottom: 24,
+      alignSelf: 'flex-start',
     },
     section: { marginBottom: 20 },
     sectionLabel: {
@@ -57,7 +57,8 @@ function makeStyles(colors: AppColors) {
       color: colors.textTertiary,
       letterSpacing: 0.8,
       marginBottom: 8,
-      marginLeft: 4,
+      marginStart: 4,
+      alignSelf: 'flex-start',
     },
     card: {
       backgroundColor: colors.surface,
@@ -80,17 +81,17 @@ function makeStyles(colors: AppColors) {
     },
     avatarInitial: { fontSize: 18, fontWeight: '700', color: '#FFFFFF' },
     accountInfo: { flex: 1 },
-    displayName: { fontSize: 15, fontWeight: '600', color: colors.textPrimary },
-    email: { fontSize: 13, color: colors.textSecondary, marginTop: 1 },
-    separator: { height: 1, backgroundColor: colors.separator, marginLeft: 16 },
+    displayName: { fontSize: 15, fontWeight: '600', color: colors.textPrimary, alignSelf: 'flex-start' },
+    email: { fontSize: 13, color: colors.textSecondary, marginTop: 1, alignSelf: 'flex-start' },
+    separator: { height: 1, backgroundColor: colors.separator, marginStart: 16 },
     settingsRow: {
       flexDirection: 'row',
       alignItems: 'center',
       padding: 16,
       gap: 12,
     },
-    settingsLabel: { flex: 1, fontSize: 15, color: colors.textPrimary },
-    settingsSubtitle: { fontSize: 13, color: colors.textTertiary, marginRight: 4 },
+    settingsLabel: { fontSize: 15, color: colors.textPrimary, alignSelf: 'flex-start' },
+    settingsSubtitle: { fontSize: 13, color: colors.textTertiary, marginEnd: 4 },
     signOutRow: {
       flexDirection: 'row',
       alignItems: 'center',
@@ -116,14 +117,14 @@ function makeStyles(colors: AppColors) {
       alignSelf: 'center',
       marginBottom: 16,
     },
-    sheetTitle: { fontSize: 17, fontWeight: '700', color: colors.textPrimary, marginBottom: 16 },
+    sheetTitle: { fontSize: 17, fontWeight: '700', color: colors.textPrimary, marginBottom: 16, alignSelf: 'flex-start' },
     themeOption: {
       flexDirection: 'row',
       alignItems: 'center',
       paddingVertical: 14,
       gap: 14,
     },
-    themeOptionLabel: { flex: 1, fontSize: 16, color: colors.textPrimary },
+    themeOptionLabel: { fontSize: 16, color: colors.textPrimary, alignSelf: 'flex-start' },
     themeOptionEmoji: { fontSize: 20 },
     themeSeparator: { height: 1, backgroundColor: colors.separator },
     aboutCard: {
@@ -137,7 +138,7 @@ function makeStyles(colors: AppColors) {
       padding: 16,
       gap: 12,
     },
-    aboutLabel: { flex: 1, fontSize: 15, color: colors.textPrimary },
+    aboutLabel: { fontSize: 15, color: colors.textPrimary, alignSelf: 'flex-start' },
     aboutValue: { fontSize: 15, color: colors.textSecondary },
     aboutAppName: {
       fontSize: 17,
@@ -157,6 +158,15 @@ function makeStyles(colors: AppColors) {
       color: colors.textTertiary,
       textAlign: 'center',
     },
+    // Language sheet (reuses sheet/sheetHandle/sheetTitle/themeOption styles)
+    langOption: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingVertical: 14,
+      gap: 14,
+    },
+    langOptionLabel: { fontSize: 16, color: colors.textPrimary, alignSelf: 'flex-start' },
+    langSeparator: { height: 1, backgroundColor: colors.separator },
     aboutHeader: {
       alignItems: 'center',
       paddingVertical: 20,
@@ -178,22 +188,40 @@ function makeStyles(colors: AppColors) {
 
 export default function MoreScreen() {
   const colors = useAppTheme();
-  const styles = useMemo(() => makeStyles(colors), [colors]);
+  const isRTL = I18nManager.isRTL;
+  const styles = useMemo(() => makeStyles(colors, isRTL), [colors, isRTL]);
+  const { t } = useTranslation();
+
+  const THEME_OPTIONS: { mode: ThemeMode; label: string; icon: string }[] = [
+    { mode: 'light',  label: t('more.theme.light'),  icon: '☀️' },
+    { mode: 'dark',   label: t('more.theme.dark'),   icon: '🌙' },
+    { mode: 'system', label: t('more.theme.system'), icon: '📱' },
+  ];
+
+  const LANGUAGE_OPTIONS: { value: AppLanguage; label: string }[] = [
+    { value: 'system', label: t('more.language.system')  },
+    { value: 'en',     label: t('more.language.english') },
+    { value: 'he',     label: t('more.language.hebrew')  },
+  ];
 
   const currentUser = useAuthStore((s) => s.currentUser);
   const themeMode = useSettingsStore((s) => s.themeMode);
   const setThemeMode = useSettingsStore((s) => s.setThemeMode);
+  const language = useSettingsStore((s) => s.language);
+  const setLanguage = useSettingsStore((s) => s.setLanguage);
 
   const [signingOut, setSigningOut] = useState(false);
   const [showAppearanceSheet, setShowAppearanceSheet] = useState(false);
+  const [showLanguageSheet, setShowLanguageSheet] = useState(false);
 
-  const themeModeLabel = THEME_OPTIONS.find((o) => o.mode === themeMode)?.label ?? 'System';
+  const themeModeLabel = THEME_OPTIONS.find((o) => o.mode === themeMode)?.label ?? t('more.theme.system');
+  const languageLabel = LANGUAGE_OPTIONS.find((o) => o.value === language)?.label ?? t('more.language.system');
 
   async function handleSignOut() {
-    Alert.alert('Sign Out', 'Are you sure you want to sign out?', [
-      { text: 'Cancel', style: 'cancel' },
+    Alert.alert(t('more.signOut.title'), t('more.signOut.message'), [
+      { text: t('common.cancel'), style: 'cancel' },
       {
-        text: 'Sign Out',
+        text: t('more.signOut.button'),
         style: 'destructive',
         onPress: async () => {
           setSigningOut(true);
@@ -202,21 +230,33 @@ export default function MoreScreen() {
             await signOut();
           } catch {
             setSigningOut(false);
-            Alert.alert('Error', 'Could not sign out. Please try again.');
+            Alert.alert(t('common.error'), t('more.signOut.error'));
           }
         },
       },
     ]);
   }
 
+  async function handleLanguageChange(newLang: AppLanguage) {
+    await saveLanguage(newLang);
+    const resolved = resolveLanguage(newLang);
+    await i18n.changeLanguage(resolved);
+    setLanguage(newLang);
+    setShowLanguageSheet(false);
+    const needsRestart = applyRTL(resolved);
+    if (needsRestart) {
+      Alert.alert(t('more.language.restartTitle'), t('more.language.restartMessage'), [{ text: t('more.language.ok') }]);
+    }
+  }
+
   return (
-    <SafeAreaView style={styles.safe}>
-      <View style={styles.container}>
-        <Text style={styles.screenTitle}>More</Text>
+    <SafeAreaView style={styles.safe} edges={['top']}>
+      <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
+        <Text style={styles.screenTitle}>{t('more.title')}</Text>
 
         {/* Account section */}
         <View style={styles.section}>
-          <Text style={styles.sectionLabel}>ACCOUNT</Text>
+          <Text style={styles.sectionLabel}>{t('more.sections.account')}</Text>
           <View style={styles.card}>
             <View style={styles.accountRow}>
               <View style={styles.avatar}>
@@ -231,7 +271,7 @@ export default function MoreScreen() {
                   <Text style={styles.displayName}>{currentUser.displayName}</Text>
                 ) : null}
                 <Text style={styles.email} numberOfLines={1}>
-                  {currentUser?.email ?? 'Unknown'}
+                  {currentUser?.email ?? ''}
                 </Text>
               </View>
             </View>
@@ -240,32 +280,54 @@ export default function MoreScreen() {
 
         {/* Settings section */}
         <View style={styles.section}>
-          <Text style={styles.sectionLabel}>SETTINGS</Text>
+          <Text style={styles.sectionLabel}>{t('more.sections.settings')}</Text>
           <View style={styles.card}>
             <TouchableOpacity
               style={styles.settingsRow}
               onPress={() => setShowAppearanceSheet(true)}
               accessibilityRole="button"
-              accessibilityLabel={`Appearance, currently ${themeModeLabel}`}
+              accessibilityLabel={`${t('more.appearance')}, ${themeModeLabel}`}
             >
               <Ionicons name="contrast-outline" size={20} color={colors.textSecondary} />
-              <Text style={styles.settingsLabel}>Appearance</Text>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.settingsLabel}>{t('more.appearance')}</Text>
+              </View>
               <Text style={styles.settingsSubtitle}>{themeModeLabel}</Text>
-              <Ionicons name="chevron-forward" size={16} color={colors.textTertiary} />
+              <Ionicons name={isRTL ? 'chevron-back' : 'chevron-forward'} size={16} color={colors.textTertiary} />
+            </TouchableOpacity>
+          </View>
+        </View>
+
+        {/* Language section */}
+        <View style={styles.section}>
+          <Text style={styles.sectionLabel}>{t('more.sections.language')}</Text>
+          <View style={styles.card}>
+            <TouchableOpacity
+              style={styles.settingsRow}
+              onPress={() => setShowLanguageSheet(true)}
+              accessibilityRole="button"
+              accessibilityLabel={`${t('more.language.label')}, ${languageLabel}`}
+            >
+              <Ionicons name="language-outline" size={20} color={colors.textSecondary} />
+              <View style={{ flex: 1 }}>
+                <Text style={styles.settingsLabel}>{t('more.language.label')}</Text>
+              </View>
+              <Text style={styles.settingsSubtitle}>{languageLabel}</Text>
+              <Ionicons name={isRTL ? 'chevron-back' : 'chevron-forward'} size={16} color={colors.textTertiary} />
             </TouchableOpacity>
           </View>
         </View>
 
         {/* About section */}
         <View style={styles.section}>
-          <Text style={styles.sectionLabel}>ABOUT</Text>
+          <Text style={styles.sectionLabel}>{t('more.sections.about')}</Text>
           <View style={styles.aboutCard}>
             <View style={styles.aboutHeader}>
               <View style={styles.aboutIconWrapper}>
                 <Ionicons name="card-outline" size={30} color="#FFFFFF" />
               </View>
               <Text style={styles.aboutAppName}>Redeemy</Text>
-              <Text style={styles.aboutTagline}>Never let a gift card expire</Text>
+              <Text style={styles.aboutTagline}>{t('more.about.tagline')}</Text>
               <Text style={styles.aboutVersion}>Version 1.0.0</Text>
             </View>
             <View style={styles.separator} />
@@ -274,14 +336,18 @@ export default function MoreScreen() {
               onPress={() => Linking.openURL('mailto:a.moti96@gmail.com')}
             >
               <Ionicons name="mail-outline" size={20} color={colors.textSecondary} />
-              <Text style={styles.aboutLabel}>Contact Support</Text>
-              <Ionicons name="chevron-forward" size={16} color={colors.textTertiary} />
+              <View style={{ flex: 1 }}>
+                <Text style={styles.aboutLabel}>{t('more.about.contact')}</Text>
+              </View>
+              <Ionicons name={isRTL ? 'chevron-back' : 'chevron-forward'} size={16} color={colors.textTertiary} />
             </TouchableOpacity>
             <View style={styles.separator} />
             <View style={styles.aboutRow}>
               <Ionicons name="code-slash-outline" size={20} color={colors.textSecondary} />
-              <Text style={styles.aboutLabel}>Made with</Text>
-              <Text style={styles.aboutValue}>React Native + Expo</Text>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.aboutLabel}>{t('more.about.madeWith')}</Text>
+              </View>
+              <Text style={styles.aboutValue}>{t('more.about.tech')}</Text>
             </View>
           </View>
         </View>
@@ -294,20 +360,20 @@ export default function MoreScreen() {
               onPress={handleSignOut}
               disabled={signingOut}
               accessibilityRole="button"
-              accessibilityLabel="Sign Out"
+              accessibilityLabel={t('more.signOut.button')}
             >
               {signingOut ? (
                 <ActivityIndicator color={colors.danger} size="small" />
               ) : (
                 <>
                   <Ionicons name="log-out-outline" size={20} color={colors.danger} />
-                  <Text style={styles.signOutText}>Sign Out</Text>
+                  <Text style={styles.signOutText}>{t('more.signOut.button')}</Text>
                 </>
               )}
             </TouchableOpacity>
           </View>
         </View>
-      </View>
+      </ScrollView>
 
       {/* Appearance bottom sheet */}
       <Modal
@@ -323,7 +389,7 @@ export default function MoreScreen() {
         />
         <View style={styles.sheet}>
           <View style={styles.sheetHandle} />
-          <Text style={styles.sheetTitle}>Appearance</Text>
+          <Text style={styles.sheetTitle}>{t('more.theme.title')}</Text>
 
           {THEME_OPTIONS.map((option, index) => (
             <View key={option.mode}>
@@ -338,12 +404,52 @@ export default function MoreScreen() {
                 accessibilityLabel={option.label}
               >
                 <Text style={styles.themeOptionEmoji}>{option.icon}</Text>
-                <Text style={styles.themeOptionLabel}>{option.label}</Text>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.themeOptionLabel}>{option.label}</Text>
+                </View>
                 {themeMode === option.mode && (
                   <Ionicons name="checkmark" size={20} color={colors.primary} />
                 )}
               </TouchableOpacity>
               {index < THEME_OPTIONS.length - 1 && <View style={styles.themeSeparator} />}
+            </View>
+          ))}
+        </View>
+      </Modal>
+
+      {/* Language bottom sheet */}
+      <Modal
+        visible={showLanguageSheet}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setShowLanguageSheet(false)}
+      >
+        <TouchableOpacity
+          style={styles.overlay}
+          activeOpacity={1}
+          onPress={() => setShowLanguageSheet(false)}
+        />
+        <View style={styles.sheet}>
+          <View style={styles.sheetHandle} />
+          <Text style={styles.sheetTitle}>{t('more.language.title')}</Text>
+
+          {LANGUAGE_OPTIONS.map((option, index) => (
+            <View key={option.value}>
+              <TouchableOpacity
+                style={styles.langOption}
+                onPress={() => handleLanguageChange(option.value)}
+                accessibilityRole="radio"
+                accessibilityState={{ checked: language === option.value }}
+                accessibilityLabel={option.label}
+              >
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.langOptionLabel}>{option.label}</Text>
+                </View>
+                {language === option.value && (
+                  <Ionicons name="checkmark" size={20} color={colors.primary} />
+                )}
+              </TouchableOpacity>
+              {index < LANGUAGE_OPTIONS.length - 1 && <View style={styles.langSeparator} />}
             </View>
           ))}
         </View>

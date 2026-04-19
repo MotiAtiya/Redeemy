@@ -13,6 +13,7 @@ import {
   Dimensions,
   Keyboard,
 } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { Image } from 'expo-image';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, useLocalSearchParams } from 'expo-router';
@@ -41,7 +42,7 @@ interface FormErrors {
   expirationDate?: string;
 }
 
-function makeStyles(colors: AppColors) {
+function makeStyles(colors: AppColors, isRTL: boolean) {
   return StyleSheet.create({
     safe: { flex: 1, backgroundColor: colors.surface },
     flex: { flex: 1 },
@@ -54,7 +55,7 @@ function makeStyles(colors: AppColors) {
       borderBottomWidth: 1,
       borderBottomColor: colors.separator,
     },
-    headerTitle: { fontSize: 17, fontWeight: '600', color: colors.textPrimary },
+    headerTitle: { flex: 1, fontSize: 17, fontWeight: '600', color: colors.textPrimary, textAlign: 'center' },
     saveButton: { fontSize: 16, fontWeight: '600', color: colors.primary },
     scroll: { flex: 1 },
     scrollContent: { padding: 16, gap: 20, paddingBottom: 40 },
@@ -64,7 +65,7 @@ function makeStyles(colors: AppColors) {
     photoEditBadge: {
       position: 'absolute',
       bottom: 8,
-      right: 8,
+      end: 8,
       backgroundColor: 'rgba(0,0,0,0.55)',
       borderRadius: 14,
       padding: 6,
@@ -85,7 +86,9 @@ function makeStyles(colors: AppColors) {
     galleryButton: { flexDirection: 'row', alignItems: 'center', gap: 6 },
     galleryButtonText: { fontSize: 14, color: colors.primary, fontWeight: '500' },
     field: { gap: 8 },
-    label: { fontSize: 14, fontWeight: '600', color: colors.textPrimary },
+    label: { fontSize: 14, fontWeight: '600', color: colors.textPrimary, alignSelf: 'flex-start' },
+    headerSideClose: { width: 60, justifyContent: 'center', alignItems: 'flex-start' },
+    headerSideSave: { width: 60, justifyContent: 'center', alignItems: 'flex-end' },
     inputError: { borderColor: colors.danger },
     errorText: { fontSize: 12, color: colors.danger },
     amountRow: {
@@ -100,7 +103,7 @@ function makeStyles(colors: AppColors) {
       gap: 6,
     },
     currencySymbol: { fontSize: 18, color: colors.textPrimary, fontWeight: '500' },
-    amountInput: { flex: 1, fontSize: 18, color: colors.textPrimary },
+    amountInput: { flex: 1, fontSize: 18, color: colors.textPrimary, textAlign: isRTL ? 'right' : 'left' },
     dateButton: {
       flexDirection: 'row',
       alignItems: 'center',
@@ -112,13 +115,13 @@ function makeStyles(colors: AppColors) {
       backgroundColor: colors.background,
       gap: 10,
     },
-    dateButtonText: { fontSize: 16, color: colors.textPrimary },
+    dateButtonText: { flex: 1, fontSize: 16, color: colors.textPrimary, textAlign: isRTL ? 'right' : 'left' },
     datePlaceholder: { color: colors.textTertiary },
     datePickerWrapper: { position: 'relative' },
     datePickerConfirm: {
       position: 'absolute',
       top: 10,
-      right: 10,
+      end: 10,
       width: 30,
       height: 30,
       borderRadius: 15,
@@ -150,6 +153,7 @@ function makeStyles(colors: AppColors) {
       color: colors.textPrimary,
       backgroundColor: colors.background,
       textAlignVertical: 'top',
+      textAlign: isRTL ? 'right' : 'left',
     },
   });
 }
@@ -159,7 +163,9 @@ export default function AddCreditScreen() {
   const { creditId } = useLocalSearchParams<{ creditId?: string }>();
   const isEditing = !!creditId;
   const colors = useAppTheme();
-  const styles = useMemo(() => makeStyles(colors), [colors]);
+  const { t, i18n } = useTranslation();
+  const isRTL = i18n.language.startsWith('he');
+  const styles = useMemo(() => makeStyles(colors, isRTL), [colors, isRTL]);
 
   const currentUser = useAuthStore((s) => s.currentUser);
   const addCredit = useCreditsStore((s) => s.addCredit);
@@ -251,13 +257,13 @@ export default function AddCreditScreen() {
 
   function validate(): boolean {
     const errs: FormErrors = {};
-    if (!storeName.trim()) errs.storeName = 'Store name is required';
+    if (!storeName.trim()) errs.storeName = t('addCredit.validation.storeName');
     const agot = parseAmountToAgot(amountInput);
-    if (!amountInput.trim()) errs.amount = 'Amount is required';
-    else if (isNaN(agot)) errs.amount = 'Enter a valid positive amount';
-    if (!category) errs.category = 'Category is required';
-    if (!expirationDate) errs.expirationDate = 'Expiration date is required';
-    else if (expirationDate <= new Date()) errs.expirationDate = 'Expiration date must be in the future';
+    if (!amountInput.trim()) errs.amount = t('addCredit.validation.amountRequired');
+    else if (isNaN(agot)) errs.amount = t('addCredit.validation.amountInvalid');
+    if (!category) errs.category = t('addCredit.validation.categoryRequired');
+    if (!expirationDate) errs.expirationDate = t('addCredit.validation.dateRequired');
+    else if (expirationDate <= new Date()) errs.expirationDate = t('addCredit.validation.datePast');
     setErrors(errs);
     return Object.keys(errs).length === 0;
   }
@@ -266,7 +272,7 @@ export default function AddCreditScreen() {
     if (!validate()) return;
     if (!currentUser) return;
     if (useUIStore.getState().offlineMode) {
-      Alert.alert('No Internet Connection', `${isEditing ? 'Editing' : 'Adding'} credits requires an internet connection.`, [{ text: 'OK' }]);
+      Alert.alert(t('offline.title'), isEditing ? t('addCredit.offline.editing') : t('addCredit.offline.adding'), [{ text: t('common.ok') }]);
       return;
     }
 
@@ -296,7 +302,7 @@ export default function AddCreditScreen() {
       } catch {
         updateCreditInStore(existingCredit.id, existingCredit as Partial<Credit>);
         setSaving(false);
-        Alert.alert("Couldn't save", 'Check your connection and try again.');
+        Alert.alert(t('addCredit.error.save'), t('addCredit.error.saveMessage'));
       }
       return;
     }
@@ -325,14 +331,14 @@ export default function AddCreditScreen() {
         try {
           const { imageUrl, thumbnailUrl } = await uploadCreditImage(imageUri, newCreditId);
           await updateCredit(newCreditId, { imageUrl, thumbnailUrl });
-        } catch { Alert.alert('Photo upload failed — credit saved without image.'); }
+        } catch { Alert.alert(t('addCredit.error.photo')); }
       }
       removeCredit(tempId);
       router.back();
     } catch {
       removeCredit(tempId);
       setSaving(false);
-      Alert.alert("Couldn't save", 'Check your connection and try again.');
+      Alert.alert(t('addCredit.error.save'), t('addCredit.error.saveMessage'));
     }
   }
 
@@ -348,13 +354,17 @@ export default function AddCreditScreen() {
       )}
       <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
         <View style={styles.header}>
-          <TouchableOpacity onPress={() => router.back()} hitSlop={8}>
-            <Ionicons name="close" size={24} color={colors.textPrimary} />
-          </TouchableOpacity>
-          <Text style={styles.headerTitle}>{isEditing ? 'Edit Credit' : 'Add Credit'}</Text>
-          <TouchableOpacity onPress={handleSave} disabled={saving} accessibilityRole="button" accessibilityLabel="Save credit">
-            {saving ? <ActivityIndicator size="small" color={colors.primary} /> : <Text style={styles.saveButton}>Save</Text>}
-          </TouchableOpacity>
+          <View style={styles.headerSideClose}>
+            <TouchableOpacity onPress={() => router.back()} hitSlop={8}>
+              <Ionicons name="close" size={24} color={colors.textPrimary} />
+            </TouchableOpacity>
+          </View>
+          <Text style={styles.headerTitle}>{isEditing ? t('addCredit.titleEdit') : t('addCredit.titleAdd')}</Text>
+          <View style={styles.headerSideSave}>
+            <TouchableOpacity onPress={handleSave} disabled={saving} accessibilityRole="button" accessibilityLabel={t('addCredit.save')}>
+              {saving ? <ActivityIndicator size="small" color={colors.primary} /> : <Text style={styles.saveButton}>{t('addCredit.save')}</Text>}
+            </TouchableOpacity>
+          </View>
         </View>
 
         <ScrollView ref={scrollViewRef} style={styles.scroll} contentContainerStyle={[styles.scrollContent, showDatePicker && { paddingBottom: 320 }]} keyboardShouldPersistTaps="handled">
@@ -369,23 +379,23 @@ export default function AddCreditScreen() {
             ) : (
               <TouchableOpacity style={styles.photoPlaceholder} onPress={handleCamera}>
                 <Ionicons name="camera-outline" size={32} color={colors.primary} />
-                <Text style={styles.photoPlaceholderText}>Take Photo</Text>
+                <Text style={styles.photoPlaceholderText}>{t('addCredit.takePhoto')}</Text>
               </TouchableOpacity>
             )}
             <TouchableOpacity style={styles.galleryButton} onPress={handleGallery}>
               <Ionicons name="images-outline" size={16} color={colors.primary} />
-              <Text style={styles.galleryButtonText}>Choose from Gallery</Text>
+              <Text style={styles.galleryButtonText}>{t('addCredit.chooseGallery')}</Text>
             </TouchableOpacity>
           </View>
 
           <View style={styles.field}>
-            <Text style={styles.label}>Store Name</Text>
+            <Text style={styles.label}>{t('addCredit.storeName')}</Text>
             <StoreAutocomplete value={storeName} onChange={(v) => { setStoreName(v); setErrors((e) => ({ ...e, storeName: undefined })); }} hasError={!!errors.storeName} />
             {errors.storeName ? <Text style={styles.errorText}>{errors.storeName}</Text> : null}
           </View>
 
           <View style={styles.field}>
-            <Text style={styles.label}>Amount</Text>
+            <Text style={styles.label}>{t('addCredit.amount')}</Text>
             <View style={[styles.amountRow, errors.amount ? styles.inputError : null]}>
               <Text style={styles.currencySymbol}>₪</Text>
               <TextInput style={styles.amountInput} placeholder="0.00" placeholderTextColor={colors.textTertiary} keyboardType="decimal-pad" value={amountInput}
@@ -395,7 +405,7 @@ export default function AddCreditScreen() {
           </View>
 
           <View style={styles.field}>
-            <Text style={styles.label}>Category</Text>
+            <Text style={styles.label}>{t('addCredit.category')}</Text>
             <CategoryChipSelector selected={category} onChange={(id) => { setCategory(id); setErrors((e) => ({ ...e, category: undefined })); }} />
             {errors.category ? <Text style={styles.errorText}>{errors.category}</Text> : null}
           </View>
@@ -404,14 +414,14 @@ export default function AddCreditScreen() {
             style={styles.field}
             onLayout={(e) => { dateFieldY.current = e.nativeEvent.layout.y; }}
           >
-            <Text style={styles.label}>Expiration Date</Text>
+            <Text style={styles.label}>{t('addCredit.expirationDate')}</Text>
             <TouchableOpacity
               style={[styles.dateButton, errors.expirationDate ? styles.inputError : null]}
               onPress={() => setShowDatePicker((v) => !v)}
             >
               <Ionicons name="calendar-outline" size={18} color={colors.textSecondary} />
               <Text style={[styles.dateButtonText, !expirationDate && styles.datePlaceholder]}>
-                {expirationDate ? formatDate(expirationDate) : 'DD/MM/YYYY'}
+                {expirationDate ? formatDate(expirationDate) : t('addCredit.datePlaceholder')}
               </Text>
             </TouchableOpacity>
             {errors.expirationDate ? <Text style={styles.errorText}>{errors.expirationDate}</Text> : null}
@@ -428,14 +438,15 @@ export default function AddCreditScreen() {
           </View>
 
           <View style={styles.field}>
-            <Text style={styles.label}>Reminder</Text>
+            <Text style={styles.label}>{t('addCredit.reminder')}</Text>
             <View style={styles.reminderChips}>
               {REMINDER_PRESETS.map((preset) => {
                 const isSelected = reminderDays === preset.days;
+                const reminderKey = preset.days === 1 ? 'reminder.1day' : preset.days === 7 ? 'reminder.1week' : preset.days === 30 ? 'reminder.1month' : 'reminder.3months';
                 return (
                   <TouchableOpacity key={preset.days} style={[styles.reminderChip, isSelected && styles.reminderChipSelected]}
                     onPress={() => setReminderDays(preset.days)}>
-                    <Text style={[styles.reminderChipText, isSelected && styles.reminderChipTextSelected]}>{preset.label}</Text>
+                    <Text style={[styles.reminderChipText, isSelected && styles.reminderChipTextSelected]}>{t(reminderKey)}</Text>
                   </TouchableOpacity>
                 );
               })}
@@ -455,13 +466,13 @@ export default function AddCreditScreen() {
                 }
               }}
             >
-              <Text style={styles.label}>Notes</Text>
+              <Text style={styles.label}>{t('addCredit.notes')}</Text>
               <Ionicons name={showNotes ? 'chevron-up' : 'chevron-down'} size={16} color={colors.textTertiary} />
             </TouchableOpacity>
             {showNotes && (
               <TextInput
                 style={styles.notesInput}
-                placeholder="Optional — any extra info about this credit"
+                placeholder={t('addCredit.notesPlaceholder')}
                 placeholderTextColor={colors.textTertiary}
                 multiline
                 numberOfLines={3}

@@ -12,6 +12,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import * as AppleAuthentication from 'expo-apple-authentication';
 import {
   signInWithEmail,
@@ -105,6 +106,7 @@ export default function SignInScreen() {
   const router = useRouter();
   const colors = useAppTheme();
   const styles = useMemo(() => makeStyles(colors), [colors]);
+  const { t } = useTranslation();
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -118,13 +120,13 @@ export default function SignInScreen() {
   // ---- validation ----------------------------------------------------------
 
   function validateEmail(value: string): string {
-    if (!value) return 'Email is required';
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) return 'Enter a valid email';
+    if (!value) return t('auth.validation.emailRequired');
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) return t('auth.validation.emailInvalid');
     return '';
   }
 
   function validatePassword(value: string): string {
-    if (!value) return 'Password is required';
+    if (!value) return t('auth.validation.passwordRequired');
     return '';
   }
 
@@ -187,17 +189,17 @@ export default function SignInScreen() {
       >
         <View style={styles.header}>
           <Text style={styles.logo}>Redeemy</Text>
-          <Text style={styles.tagline}>Your gift credits, organized.</Text>
+          <Text style={styles.tagline}>{t('auth.tagline')}</Text>
         </View>
 
         <View style={styles.form}>
-          <Text style={styles.title}>Sign in</Text>
+          <Text style={styles.title}>{t('auth.signIn.title')}</Text>
 
           {/* Email field */}
           <View style={styles.fieldContainer}>
             <TextInput
               style={[styles.input, emailError ? styles.inputError : null]}
-              placeholder="Email"
+              placeholder={t('auth.email')}
               placeholderTextColor={colors.textTertiary}
               autoCapitalize="none"
               keyboardType="email-address"
@@ -216,7 +218,7 @@ export default function SignInScreen() {
             <View style={[styles.inputRow, passwordError ? styles.inputError : null]}>
               <TextInput
                 style={styles.inputFlex}
-                placeholder="Password"
+                placeholder={t('auth.password')}
                 placeholderTextColor={colors.textTertiary}
                 secureTextEntry={!showPassword}
                 returnKeyType="done"
@@ -252,19 +254,19 @@ export default function SignInScreen() {
             onPress={handleSignIn}
             disabled={loading || googleLoading}
             accessibilityRole="button"
-            accessibilityLabel="Sign in"
+            accessibilityLabel={t('auth.signIn.button')}
           >
             {loading ? (
               <ActivityIndicator color="#FFFFFF" />
             ) : (
-              <Text style={styles.buttonText}>Sign in</Text>
+              <Text style={styles.buttonText}>{t('auth.signIn.button')}</Text>
             )}
           </TouchableOpacity>
 
           {/* Divider */}
           <View style={styles.divider}>
             <View style={styles.dividerLine} />
-            <Text style={styles.dividerText}>or</Text>
+            <Text style={styles.dividerText}>{t('auth.or')}</Text>
             <View style={styles.dividerLine} />
           </View>
 
@@ -274,7 +276,7 @@ export default function SignInScreen() {
             onPress={handleGoogleSignIn}
             disabled={loading || googleLoading}
             accessibilityRole="button"
-            accessibilityLabel="Continue with Google"
+            accessibilityLabel={t('auth.google')}
           >
             {googleLoading ? (
               <ActivityIndicator color="#3C4043" />
@@ -283,7 +285,7 @@ export default function SignInScreen() {
                 <View style={styles.googleIconWrapper}>
                   <Text style={styles.googleG}>G</Text>
                 </View>
-                <Text style={styles.socialButtonText}>Continue with Google</Text>
+                <Text style={styles.socialButtonText}>{t('auth.google')}</Text>
               </>
             )}
           </TouchableOpacity>
@@ -301,9 +303,9 @@ export default function SignInScreen() {
 
           {/* Create account */}
           <View style={styles.footer}>
-            <Text style={styles.footerText}>Don't have an account? </Text>
+            <Text style={styles.footerText}>{t('auth.signIn.noAccount')}</Text>
             <TouchableOpacity onPress={() => router.push('/auth/sign-up')}>
-              <Text style={styles.link}>Create Account</Text>
+              <Text style={styles.link}>{t('auth.signIn.createLink')}</Text>
             </TouchableOpacity>
           </View>
         </View>
