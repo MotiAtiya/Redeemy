@@ -24,6 +24,7 @@ import { useAppTheme, useIsDark } from '@/hooks/useAppTheme';
 
 const logoLight = require('../../../assets/images/logo-light.png');
 const logoDark = require('../../../assets/images/logo-dark.png');
+import * as Updates from 'expo-updates';
 import { saveLanguage, resolveLanguage, applyRTL, type AppLanguage } from '@/lib/i18n';
 import i18n from '@/lib/i18n';
 import type { AppColors } from '@/constants/colors';
@@ -247,7 +248,17 @@ export default function MoreScreen() {
     setShowLanguageSheet(false);
     const needsRestart = applyRTL(resolved);
     if (needsRestart) {
-      Alert.alert(t('more.language.restartTitle'), t('more.language.restartMessage'), [{ text: t('more.language.ok') }]);
+      Alert.alert(
+        t('more.language.restartTitle'),
+        t('more.language.restartMessage'),
+        [
+          { text: t('common.cancel'), style: 'cancel' },
+          {
+            text: t('more.language.restartNow'),
+            onPress: () => Updates.reloadAsync(),
+          },
+        ]
+      );
     }
   }
 

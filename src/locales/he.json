@@ -77,7 +77,8 @@
       "english": "English",
       "hebrew": "עברית",
       "restartTitle": "נדרשת הפעלה מחדש",
-      "restartMessage": "סגור ופתח מחדש את האפליקציה כדי להחיל את שינוי השפה.",
+      "restartMessage": "האפליקציה תופעל מחדש כדי להחיל את שינוי השפה.",
+      "restartNow": "הפעל מחדש",
       "ok": "אישור"
     },
     "about": {

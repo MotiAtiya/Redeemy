@@ -77,7 +77,8 @@
       "english": "English",
       "hebrew": "עברית",
       "restartTitle": "Restart Required",
-      "restartMessage": "Please close and reopen the app to apply the language change.",
+      "restartMessage": "The app needs to restart to apply the language change.",
+      "restartNow": "Restart Now",
       "ok": "OK"
     },
     "about": {
