@@ -26,9 +26,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       foregroundImage: './assets/images/android-icon-foreground.png',
       backgroundColor: '#5F9E8F',
     },
-    ...(process.env.GOOGLE_SERVICES_JSON
-      ? { googleServicesFile: process.env.GOOGLE_SERVICES_JSON }
-      : {}),
+    googleServicesFile: process.env.GOOGLE_SERVICES_JSON ?? './google-services.json',
   },
   web: {
     bundler: 'metro',
@@ -47,7 +45,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     ],
     'expo-font',
     '@react-native-google-signin/google-signin',
-    'expo-apple-authentication',
+    // 'expo-apple-authentication', // disabled for free-account device testing
     [
       'expo-notifications',
       {
@@ -83,7 +81,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     firebaseAppId: process.env.FIREBASE_APP_ID,
     googleWebClientId: process.env.GOOGLE_WEB_CLIENT_ID,
     eas: {
-      projectId: process.env.EAS_PROJECT_ID,
+      projectId: process.env.EAS_PROJECT_ID ?? '1bba5598-7e1b-4a4c-b956-912de45854b6',
     },
   },
 });
