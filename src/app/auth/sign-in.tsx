@@ -299,25 +299,6 @@ export default function SignInScreen() {
             )}
           </TouchableOpacity>
 
-          {/* Apple Sign-In — iOS only */}
-          {isAppleAuthAvailable && (
-            <TouchableOpacity
-              style={[styles.socialButton, appleLoading && styles.buttonDisabled]}
-              onPress={handleAppleSignIn}
-              disabled={loading || googleLoading || appleLoading}
-              accessibilityRole="button"
-              accessibilityLabel={t('auth.apple')}
-            >
-              {appleLoading ? (
-                <ActivityIndicator color={colors.textPrimary} />
-              ) : (
-                <>
-                  <Ionicons name="logo-apple" size={22} color={colors.textPrimary} />
-                  <Text style={styles.socialButtonText}>{t('auth.apple')}</Text>
-                </>
-              )}
-            </TouchableOpacity>
-          )}
 
           {/* Create account */}
           <View style={styles.footer}>
