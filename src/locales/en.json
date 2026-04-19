@@ -84,6 +84,18 @@
       "restartNow": "Restart Now",
       "ok": "OK"
     },
+    "dateFormat": {
+      "label": "Date Format",
+      "title": "Date Format"
+    },
+    "defaultReminder": {
+      "label": "Default Reminder",
+      "title": "Default Reminder"
+    },
+    "notifTime": {
+      "label": "Notification Time",
+      "title": "Notification Time"
+    },
     "about": {
       "tagline": "Credits you won't forget",
       "contact": "Contact Support",

@@ -90,7 +90,7 @@ export async function scheduleReminderNotification(
 
   // --- Expiration-day notification (at 9:00 AM on the expiration date) ---
   const expiryTrigger = new Date(credit.expirationDate);
-  expiryTrigger.setHours(9, 0, 0, 0);
+  expiryTrigger.setHours(useSettingsStore.getState().notificationHour, 0, 0, 0);
 
   let expiryId: string | null = null;
   if (expiryTrigger > now) {

@@ -84,6 +84,18 @@
       "restartNow": "הפעל מחדש",
       "ok": "אישור"
     },
+    "dateFormat": {
+      "label": "פורמט תאריך",
+      "title": "פורמט תאריך"
+    },
+    "defaultReminder": {
+      "label": "תזכורת ברירת מחדל",
+      "title": "תזכורת ברירת מחדל"
+    },
+    "notifTime": {
+      "label": "שעת התראה",
+      "title": "שעת התראה"
+    },
     "about": {
       "tagline": "לא שוכחים זיכויים",
       "contact": "פנה לתמיכה",

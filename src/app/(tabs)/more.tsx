@@ -22,7 +22,8 @@ import { deleteAllUserCredits } from '@/lib/firestoreCredits';
 import { useAuthStore } from '@/stores/authStore';
 import { useCreditsStore } from '@/stores/creditsStore';
 import { useUIStore } from '@/stores/uiStore';
-import { useSettingsStore } from '@/stores/settingsStore';
+import { useSettingsStore, type DateFormat } from '@/stores/settingsStore';
+import { REMINDER_PRESETS } from '@/constants/reminders';
 import { useAppTheme, useIsDark } from '@/hooks/useAppTheme';
 
 const logoLight = require('../../../assets/images/logo-light.png');
@@ -33,6 +34,12 @@ import i18n from '@/lib/i18n';
 import type { AppColors } from '@/constants/colors';
 
 type ThemeMode = 'light' | 'dark' | 'system';
+
+const NOTIF_HOURS = [7, 8, 9, 10, 12, 18, 20];
+const DATE_FORMAT_OPTIONS: { value: DateFormat; label: string }[] = [
+  { value: 'DD/MM/YYYY', label: 'DD/MM/YYYY' },
+  { value: 'MM/DD/YYYY', label: 'MM/DD/YYYY' },
+];
 
 function resetAllStores() {
   const credits = useCreditsStore.getState();
@@ -219,10 +226,42 @@ export default function MoreScreen() {
   const setLanguage = useSettingsStore((s) => s.setLanguage);
   const notificationsEnabled = useSettingsStore((s) => s.notificationsEnabled);
   const setNotificationsEnabled = useSettingsStore((s) => s.setNotificationsEnabled);
+  const dateFormat = useSettingsStore((s) => s.dateFormat);
+  const setDateFormat = useSettingsStore((s) => s.setDateFormat);
+  const defaultReminderDays = useSettingsStore((s) => s.defaultReminderDays);
+  const setDefaultReminderDays = useSettingsStore((s) => s.setDefaultReminderDays);
+  const notificationHour = useSettingsStore((s) => s.notificationHour);
+  const setNotificationHour = useSettingsStore((s) => s.setNotificationHour);
 
   const [deletingData, setDeletingData] = useState(false);
   const [showAppearanceSheet, setShowAppearanceSheet] = useState(false);
   const [showLanguageSheet, setShowLanguageSheet] = useState(false);
+  const [showDateFormatSheet, setShowDateFormatSheet] = useState(false);
+  const [showReminderSheet, setShowReminderSheet] = useState(false);
+  const [showNotifTimeSheet, setShowNotifTimeSheet] = useState(false);
+
+  function formatNotifHour(hour: number): string {
+    if (i18n.language === 'he') return `${String(hour).padStart(2, '0')}:00`;
+    const suffix = hour < 12 ? 'AM' : 'PM';
+    const h = hour % 12 === 0 ? 12 : hour % 12;
+    return `${h}:00 ${suffix}`;
+  }
+
+  function reminderLabel(days: number): string {
+    if (days === 1) return t('reminder.1day');
+    if (days === 7) return t('reminder.1week');
+    if (days === 30) return t('reminder.1month');
+    return t('reminder.3months');
+  }
+
+  async function handleNotifHourChange(hour: number) {
+    setNotificationHour(hour);
+    setShowNotifTimeSheet(false);
+    if (notificationsEnabled) {
+      const activeCredits = credits.filter((c) => c.status === 'active');
+      await rescheduleAllNotifications(activeCredits);
+    }
+  }
 
   const themeModeLabel = THEME_OPTIONS.find((o) => o.mode === themeMode)?.label ?? t('more.theme.system');
   const languageLabel = LANGUAGE_OPTIONS.find((o) => o.value === language)?.label ?? t('more.language.system');
@@ -348,6 +387,33 @@ export default function MoreScreen() {
                 thumbColor="#FFFFFF"
               />
             </View>
+            <View style={styles.separator} />
+            <TouchableOpacity style={styles.settingsRow} onPress={() => setShowNotifTimeSheet(true)} accessibilityRole="button">
+              <Ionicons name="time-outline" size={20} color={colors.textSecondary} />
+              <View style={{ flex: 1 }}>
+                <Text style={styles.settingsLabel}>{t('more.notifTime.label')}</Text>
+              </View>
+              <Text style={styles.settingsSubtitle}>{formatNotifHour(notificationHour)}</Text>
+              <Ionicons name={isRTL ? 'chevron-back' : 'chevron-forward'} size={16} color={colors.textTertiary} />
+            </TouchableOpacity>
+            <View style={styles.separator} />
+            <TouchableOpacity style={styles.settingsRow} onPress={() => setShowReminderSheet(true)} accessibilityRole="button">
+              <Ionicons name="alarm-outline" size={20} color={colors.textSecondary} />
+              <View style={{ flex: 1 }}>
+                <Text style={styles.settingsLabel}>{t('more.defaultReminder.label')}</Text>
+              </View>
+              <Text style={styles.settingsSubtitle}>{reminderLabel(defaultReminderDays)}</Text>
+              <Ionicons name={isRTL ? 'chevron-back' : 'chevron-forward'} size={16} color={colors.textTertiary} />
+            </TouchableOpacity>
+            <View style={styles.separator} />
+            <TouchableOpacity style={styles.settingsRow} onPress={() => setShowDateFormatSheet(true)} accessibilityRole="button">
+              <Ionicons name="calendar-outline" size={20} color={colors.textSecondary} />
+              <View style={{ flex: 1 }}>
+                <Text style={styles.settingsLabel}>{t('more.dateFormat.label')}</Text>
+              </View>
+              <Text style={styles.settingsSubtitle}>{dateFormat}</Text>
+              <Ionicons name={isRTL ? 'chevron-back' : 'chevron-forward'} size={16} color={colors.textTertiary} />
+            </TouchableOpacity>
           </View>
         </View>
 
@@ -470,6 +536,81 @@ export default function MoreScreen() {
                 )}
               </TouchableOpacity>
               {index < THEME_OPTIONS.length - 1 && <View style={styles.themeSeparator} />}
+            </View>
+          ))}
+        </View>
+      </Modal>
+
+      {/* Date Format bottom sheet */}
+      <Modal visible={showDateFormatSheet} transparent animationType="slide" onRequestClose={() => setShowDateFormatSheet(false)}>
+        <TouchableOpacity style={styles.overlay} activeOpacity={1} onPress={() => setShowDateFormatSheet(false)} />
+        <View style={styles.sheet}>
+          <View style={styles.sheetHandle} />
+          <Text style={styles.sheetTitle}>{t('more.dateFormat.title')}</Text>
+          {DATE_FORMAT_OPTIONS.map((option, index) => (
+            <View key={option.value}>
+              <TouchableOpacity
+                style={styles.themeOption}
+                onPress={() => { setDateFormat(option.value); setShowDateFormatSheet(false); }}
+                accessibilityRole="radio"
+                accessibilityState={{ checked: dateFormat === option.value }}
+              >
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.themeOptionLabel}>{option.label}</Text>
+                </View>
+                {dateFormat === option.value && <Ionicons name="checkmark" size={20} color={colors.primary} />}
+              </TouchableOpacity>
+              {index < DATE_FORMAT_OPTIONS.length - 1 && <View style={styles.themeSeparator} />}
+            </View>
+          ))}
+        </View>
+      </Modal>
+
+      {/* Default Reminder bottom sheet */}
+      <Modal visible={showReminderSheet} transparent animationType="slide" onRequestClose={() => setShowReminderSheet(false)}>
+        <TouchableOpacity style={styles.overlay} activeOpacity={1} onPress={() => setShowReminderSheet(false)} />
+        <View style={styles.sheet}>
+          <View style={styles.sheetHandle} />
+          <Text style={styles.sheetTitle}>{t('more.defaultReminder.title')}</Text>
+          {REMINDER_PRESETS.map((preset, index) => (
+            <View key={preset.days}>
+              <TouchableOpacity
+                style={styles.themeOption}
+                onPress={() => { setDefaultReminderDays(preset.days); setShowReminderSheet(false); }}
+                accessibilityRole="radio"
+                accessibilityState={{ checked: defaultReminderDays === preset.days }}
+              >
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.themeOptionLabel}>{reminderLabel(preset.days)}</Text>
+                </View>
+                {defaultReminderDays === preset.days && <Ionicons name="checkmark" size={20} color={colors.primary} />}
+              </TouchableOpacity>
+              {index < REMINDER_PRESETS.length - 1 && <View style={styles.themeSeparator} />}
+            </View>
+          ))}
+        </View>
+      </Modal>
+
+      {/* Notification Time bottom sheet */}
+      <Modal visible={showNotifTimeSheet} transparent animationType="slide" onRequestClose={() => setShowNotifTimeSheet(false)}>
+        <TouchableOpacity style={styles.overlay} activeOpacity={1} onPress={() => setShowNotifTimeSheet(false)} />
+        <View style={styles.sheet}>
+          <View style={styles.sheetHandle} />
+          <Text style={styles.sheetTitle}>{t('more.notifTime.title')}</Text>
+          {NOTIF_HOURS.map((hour, index) => (
+            <View key={hour}>
+              <TouchableOpacity
+                style={styles.themeOption}
+                onPress={() => handleNotifHourChange(hour)}
+                accessibilityRole="radio"
+                accessibilityState={{ checked: notificationHour === hour }}
+              >
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.themeOptionLabel}>{formatNotifHour(hour)}</Text>
+                </View>
+                {notificationHour === hour && <Ionicons name="checkmark" size={20} color={colors.primary} />}
+              </TouchableOpacity>
+              {index < NOTIF_HOURS.length - 1 && <View style={styles.themeSeparator} />}
             </View>
           ))}
         </View>

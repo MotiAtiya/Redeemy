@@ -33,7 +33,9 @@ import { useUIStore } from '@/stores/uiStore';
 import { useAppTheme } from '@/hooks/useAppTheme';
 import { CreditStatus, type Credit } from '@/types/creditTypes';
 import { DEFAULT_CATEGORY_ID } from '@/constants/categories';
-import { REMINDER_PRESETS, DEFAULT_REMINDER_DAYS } from '@/constants/reminders';
+import { REMINDER_PRESETS } from '@/constants/reminders';
+import { useSettingsStore } from '@/stores/settingsStore';
+import { formatDate } from '@/lib/formatDate';
 import type { AppColors } from '@/constants/colors';
 
 interface FormErrors {
@@ -193,7 +195,7 @@ export default function AddCreditScreen() {
   const [expirationDate, setExpirationDate] = useState<Date | null>(null);
   const [noExpiry, setNoExpiry] = useState(false);
   const [showDatePicker, setShowDatePicker] = useState(false);
-  const [reminderDays, setReminderDays] = useState(DEFAULT_REMINDER_DAYS);
+  const [reminderDays, setReminderDays] = useState(() => useSettingsStore.getState().defaultReminderDays);
   const [notes, setNotes] = useState('');
   const [showNotes, setShowNotes] = useState(false);
   const [errors, setErrors] = useState<FormErrors>({});
@@ -273,12 +275,11 @@ export default function AddCreditScreen() {
     if (Platform.OS === 'android') setShowDatePicker(false);
     if (date) {
       setExpirationDate(date);
-      setReminderDays(DEFAULT_REMINDER_DAYS);
+      setReminderDays(useSettingsStore.getState().defaultReminderDays);
       setErrors((e) => ({ ...e, expirationDate: undefined }));
     }
   }
 
-  function formatDate(date: Date): string { return date.toLocaleDateString('en-GB'); }
 
   function validate(): boolean {
     const errs: FormErrors = {};
