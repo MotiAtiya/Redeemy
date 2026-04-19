@@ -94,6 +94,7 @@ function makeStyles(colors: AppColors, isRTL: boolean) {
     errorText: { fontSize: 12, color: colors.danger, alignSelf: 'flex-start' },
     amountRow: {
       flexDirection: 'row',
+      direction: 'ltr',
       alignItems: 'center',
       height: 52,
       borderWidth: 1,
@@ -104,7 +105,7 @@ function makeStyles(colors: AppColors, isRTL: boolean) {
       gap: 6,
     },
     currencySymbol: { fontSize: 18, color: colors.textPrimary, fontWeight: '500' },
-    amountInput: { flex: 1, fontSize: 18, color: colors.textPrimary, textAlign: isRTL ? 'right' : 'left' },
+    amountInput: { flex: 1, fontSize: 18, color: colors.textPrimary, textAlign: 'left' },
     dateButton: {
       flexDirection: 'row',
       alignItems: 'center',
