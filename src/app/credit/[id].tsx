@@ -410,10 +410,12 @@ export default function CreditDetailScreen() {
         <TouchableOpacity style={styles.overlay} activeOpacity={1} onPress={() => setShowActionSheet(false)} />
         <View style={styles.actionSheet}>
           <View style={styles.actionSheetHandle} />
-          <TouchableOpacity style={styles.actionSheetButton} onPress={handleEdit}>
-            <Ionicons name="create-outline" size={22} color={colors.textPrimary} />
-            <Text style={[styles.actionSheetLabel, { color: colors.textPrimary }]}>{t('credit.action.edit')}</Text>
-          </TouchableOpacity>
+          {credit.status === CreditStatus.ACTIVE && (
+            <TouchableOpacity style={styles.actionSheetButton} onPress={handleEdit}>
+              <Ionicons name="create-outline" size={22} color={colors.textPrimary} />
+              <Text style={[styles.actionSheetLabel, { color: colors.textPrimary }]}>{t('credit.action.edit')}</Text>
+            </TouchableOpacity>
+          )}
           <TouchableOpacity style={styles.actionSheetButton} onPress={handleDelete}>
             <Ionicons name="trash-outline" size={22} color={colors.danger} />
             <Text style={[styles.actionSheetLabel, { color: colors.danger }]}>{t('credit.action.delete')}</Text>
