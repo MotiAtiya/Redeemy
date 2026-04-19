@@ -154,9 +154,14 @@ export async function signInWithGoogle(): Promise<User | null> {
   }
 
   await _GoogleSignin.hasPlayServices();
-  const response = await _GoogleSignin.signIn();
 
-  if (response.type === 'cancelled') return null;
+  // Try silent sign-in first — skips UI if user already signed in before
+  let response = await _GoogleSignin.signInSilently().catch(() => null);
+  if (!response || response.type !== 'success') {
+    response = await _GoogleSignin.signIn();
+  }
+
+  if (!response || response.type === 'cancelled') return null;
 
   const { idToken } = response.data;
   const googleCredential = GoogleAuthProvider.credential(idToken);
