@@ -16,7 +16,8 @@ interface SettingsStore {
   defaultReminderDays: number;
   setDefaultReminderDays: (days: number) => void;
   notificationHour: number;
-  setNotificationHour: (hour: number) => void;
+  notificationMinute: number;
+  setNotificationTime: (hour: number, minute: number) => void;
 }
 
 export const useSettingsStore = create<SettingsStore>()((set) => ({
@@ -31,5 +32,6 @@ export const useSettingsStore = create<SettingsStore>()((set) => ({
   defaultReminderDays: 7,
   setDefaultReminderDays: (defaultReminderDays) => set({ defaultReminderDays }),
   notificationHour: 9,
-  setNotificationHour: (notificationHour) => set({ notificationHour }),
+  notificationMinute: 0,
+  setNotificationTime: (notificationHour, notificationMinute) => set({ notificationHour, notificationMinute }),
 }));

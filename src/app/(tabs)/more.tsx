@@ -18,6 +18,7 @@ import { Image } from 'expo-image';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import { cancelAllNotifications, rescheduleAllNotifications } from '@/lib/notifications';
+import DateTimePicker, { type DateTimePickerEvent } from '@react-native-community/datetimepicker';
 import { deleteAllUserCredits } from '@/lib/firestoreCredits';
 import { useAuthStore } from '@/stores/authStore';
 import { useCreditsStore } from '@/stores/creditsStore';
@@ -35,7 +36,6 @@ import type { AppColors } from '@/constants/colors';
 
 type ThemeMode = 'light' | 'dark' | 'system';
 
-const NOTIF_HOURS = [7, 8, 9, 10, 12, 18, 20];
 const DATE_FORMAT_OPTIONS: { value: DateFormat; label: string }[] = [
   { value: 'DD/MM/YYYY', label: 'DD/MM/YYYY' },
   { value: 'MM/DD/YYYY', label: 'MM/DD/YYYY' },
@@ -231,7 +231,8 @@ export default function MoreScreen() {
   const defaultReminderDays = useSettingsStore((s) => s.defaultReminderDays);
   const setDefaultReminderDays = useSettingsStore((s) => s.setDefaultReminderDays);
   const notificationHour = useSettingsStore((s) => s.notificationHour);
-  const setNotificationHour = useSettingsStore((s) => s.setNotificationHour);
+  const notificationMinute = useSettingsStore((s) => s.notificationMinute);
+  const setNotificationTime = useSettingsStore((s) => s.setNotificationTime);
 
   const [deletingData, setDeletingData] = useState(false);
   const [showAppearanceSheet, setShowAppearanceSheet] = useState(false);
@@ -240,12 +241,17 @@ export default function MoreScreen() {
   const [showReminderSheet, setShowReminderSheet] = useState(false);
   const [showNotifTimeSheet, setShowNotifTimeSheet] = useState(false);
 
-  function formatNotifHour(hour: number): string {
-    if (i18n.language === 'he') return `${String(hour).padStart(2, '0')}:00`;
+  function formatNotifTime(hour: number, minute: number): string {
+    const mm = String(minute).padStart(2, '0');
+    if (i18n.language === 'he') return `${String(hour).padStart(2, '0')}:${mm}`;
     const suffix = hour < 12 ? 'AM' : 'PM';
     const h = hour % 12 === 0 ? 12 : hour % 12;
-    return `${h}:00 ${suffix}`;
+    return `${h}:${mm} ${suffix}`;
   }
+
+  // Build a Date object representing today at the stored notification time (for the picker)
+  const notifTimeDate = new Date();
+  notifTimeDate.setHours(notificationHour, notificationMinute, 0, 0);
 
   function reminderLabel(days: number): string {
     if (days === 1) return t('reminder.1day');
@@ -254,9 +260,9 @@ export default function MoreScreen() {
     return t('reminder.3months');
   }
 
-  async function handleNotifHourChange(hour: number) {
-    setNotificationHour(hour);
-    setShowNotifTimeSheet(false);
+  async function handleNotifTimeChange(_: DateTimePickerEvent, date?: Date) {
+    if (!date) return;
+    setNotificationTime(date.getHours(), date.getMinutes());
     if (notificationsEnabled) {
       const activeCredits = credits.filter((c) => c.status === 'active');
       await rescheduleAllNotifications(activeCredits);
@@ -393,7 +399,7 @@ export default function MoreScreen() {
               <View style={{ flex: 1 }}>
                 <Text style={styles.settingsLabel}>{t('more.notifTime.label')}</Text>
               </View>
-              <Text style={styles.settingsSubtitle}>{formatNotifHour(notificationHour)}</Text>
+              <Text style={styles.settingsSubtitle}>{formatNotifTime(notificationHour, notificationMinute)}</Text>
               <Ionicons name={isRTL ? 'chevron-back' : 'chevron-forward'} size={16} color={colors.textTertiary} />
             </TouchableOpacity>
             <View style={styles.separator} />
@@ -597,22 +603,14 @@ export default function MoreScreen() {
         <View style={styles.sheet}>
           <View style={styles.sheetHandle} />
           <Text style={styles.sheetTitle}>{t('more.notifTime.title')}</Text>
-          {NOTIF_HOURS.map((hour, index) => (
-            <View key={hour}>
-              <TouchableOpacity
-                style={styles.themeOption}
-                onPress={() => handleNotifHourChange(hour)}
-                accessibilityRole="radio"
-                accessibilityState={{ checked: notificationHour === hour }}
-              >
-                <View style={{ flex: 1 }}>
-                  <Text style={styles.themeOptionLabel}>{formatNotifHour(hour)}</Text>
-                </View>
-                {notificationHour === hour && <Ionicons name="checkmark" size={20} color={colors.primary} />}
-              </TouchableOpacity>
-              {index < NOTIF_HOURS.length - 1 && <View style={styles.themeSeparator} />}
-            </View>
-          ))}
+          <DateTimePicker
+            value={notifTimeDate}
+            mode="time"
+            display="spinner"
+            onChange={handleNotifTimeChange}
+            style={{ width: '100%' }}
+            textColor={colors.textPrimary}
+          />
         </View>
       </Modal>
 
