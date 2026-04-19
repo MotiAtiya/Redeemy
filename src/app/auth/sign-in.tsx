@@ -174,6 +174,7 @@ export default function SignInScreen() {
     try {
       await signInWithApple();
     } catch (err: any) {
+      console.error('Apple Sign-In error:', err);
       setGeneralError(mapFirebaseAuthError(err?.code ?? ''));
     } finally {
       setAppleLoading(false);

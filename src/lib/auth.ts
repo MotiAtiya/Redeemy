@@ -9,8 +9,21 @@ import {
 import { doc, setDoc, getDoc, serverTimestamp } from 'firebase/firestore';
 import { Platform } from 'react-native';
 import Constants from 'expo-constants';
+import * as Crypto from 'expo-crypto';
 import { auth, db } from './firebase';
 import type { User } from '@/types/userTypes';
+
+function generateNonce(length = 32): string {
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+  let result = '';
+  const bytes = Crypto.getRandomValues(new Uint8Array(length));
+  for (const byte of bytes) result += chars[byte % chars.length];
+  return result;
+}
+
+async function sha256(input: string): Promise<string> {
+  return Crypto.digestStringAsync(Crypto.CryptoDigestAlgorithm.SHA256, input);
+}
 
 // ---------------------------------------------------------------------------
 // Native modules — loaded lazily so Expo Go doesn't crash on import
@@ -181,18 +194,22 @@ export async function signInWithApple(): Promise<User | null> {
   }
 
   try {
+    const rawNonce = generateNonce();
+    const hashedNonce = await sha256(rawNonce);
+
     const credential = await _AppleAuthentication.signInAsync({
       requestedScopes: [
         _AppleAuthentication.AppleAuthenticationScope.FULL_NAME,
         _AppleAuthentication.AppleAuthenticationScope.EMAIL,
       ],
+      nonce: hashedNonce,
     });
 
     const { identityToken, fullName } = credential;
     if (!identityToken) throw new Error('Apple Sign-In: missing identity token');
 
     const provider = new OAuthProvider('apple.com');
-    const appleCredential = provider.credential({ idToken: identityToken });
+    const appleCredential = provider.credential({ idToken: identityToken, rawNonce });
     const firebaseCredential = await signInWithCredential(auth, appleCredential);
 
     const { uid } = firebaseCredential.user;
