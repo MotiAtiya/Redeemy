@@ -119,8 +119,8 @@ function makeStyles(colors: AppColors) {
       borderRadius: 12,
     },
     redeemedBannerText: { fontSize: 15, color: colors.textTertiary, fontWeight: '500' },
-    // Full-screen image viewer
-    fullscreenModal: { flex: 1, backgroundColor: '#000000' },
+    // Full-screen image viewer — always LTR regardless of app language
+    fullscreenModal: { flex: 1, backgroundColor: '#000000', direction: 'ltr' },
     fullscreenClose: {
       position: 'absolute',
       top: 56,
