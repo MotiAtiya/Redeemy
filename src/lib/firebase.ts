@@ -12,6 +12,7 @@ import {
   memoryLocalCache,
 } from 'firebase/firestore';
 import { getStorage } from 'firebase/storage';
+import { Platform } from 'react-native';
 import Constants from 'expo-constants';
 
 const {
@@ -43,14 +44,12 @@ const auth = isFirstInit
     })
   : getAuth(app);
 
-// Firestore — persistent cache in production builds, memory cache in Expo Go
-// (IndexedDB is not available in the Expo Go runtime)
-const isExpoGo = Constants.appOwnership === 'expo';
+// Firestore — persistent cache on web only; IndexedDB is not available on native
 const db = isFirstInit
   ? initializeFirestore(app, {
-      localCache: isExpoGo
-        ? memoryLocalCache()
-        : persistentLocalCache({ tabManager: persistentMultipleTabManager() }),
+      localCache: Platform.OS === 'web'
+        ? persistentLocalCache({ tabManager: persistentMultipleTabManager() })
+        : memoryLocalCache(),
     })
   : getFirestore(app);
 

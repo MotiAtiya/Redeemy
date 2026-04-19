@@ -16,6 +16,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     infoPlist: {
       NSCameraUsageDescription: 'Redeemy uses the camera to photograph your store credits.',
       NSPhotoLibraryUsageDescription: 'Redeemy needs access to your photo library to select credit images.',
+      NSPhotoLibraryAddUsageDescription: 'Redeemy needs permission to save images to your photo library.',
     },
     googleServicesFile: process.env.GOOGLE_SERVICES_PLIST ?? './GoogleService-Info.plist',
   },
