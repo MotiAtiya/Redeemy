@@ -217,7 +217,9 @@
     "oneWeek": "1w left",
     "weeks": "{{weeks}}w left",
     "oneMonth": "1mo left",
-    "months": "{{months}}mo left"
+    "months": "{{months}}mo left",
+    "oneYear": "1y left",
+    "years": "{{years}}y left"
   },
   "creditCard": {
     "redeemed": "Redeemed {{date}}",
