@@ -101,7 +101,11 @@
     },
     "currency": {
       "label": "Currency",
-      "title": "Currency"
+      "title": "Currency",
+      "ILS": "Israeli Shekel",
+      "USD": "US Dollar",
+      "EUR": "Euro",
+      "GBP": "British Pound"
     },
     "about": {
       "tagline": "Credits you won't forget",

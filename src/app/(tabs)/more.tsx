@@ -38,13 +38,6 @@ const DATE_FORMAT_OPTIONS: { value: DateFormat; label: string }[] = [
   { value: 'MM/DD/YYYY', label: 'MM/DD/YYYY' },
 ];
 
-const CURRENCY_OPTIONS: { value: CurrencyCode; label: string }[] = [
-  { value: 'ILS', label: '₪  Israeli Shekel' },
-  { value: 'USD', label: '$  US Dollar' },
-  { value: 'EUR', label: '€  Euro' },
-  { value: 'GBP', label: '£  British Pound' },
-];
-
 function resetAllStores() {
   const credits = useCreditsStore.getState();
   credits.setCredits([]);
@@ -220,6 +213,13 @@ export default function MoreScreen() {
     { value: 'system', label: t('more.language.system')  },
     { value: 'en',     label: t('more.language.english') },
     { value: 'he',     label: t('more.language.hebrew')  },
+  ];
+
+  const CURRENCY_OPTIONS: { value: CurrencyCode; label: string }[] = [
+    { value: 'ILS', label: `₪  ${t('more.currency.ILS')}` },
+    { value: 'USD', label: `$  ${t('more.currency.USD')}` },
+    { value: 'EUR', label: `€  ${t('more.currency.EUR')}` },
+    { value: 'GBP', label: `£  ${t('more.currency.GBP')}` },
   ];
 
   const currentUser = useAuthStore((s) => s.currentUser);
