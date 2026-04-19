@@ -78,21 +78,20 @@ function makeStyles(colors: AppColors, isRTL: boolean) {
     divider: { flexDirection: 'row', alignItems: 'center', marginVertical: 20, gap: 12 },
     dividerLine: { flex: 1, height: 1, backgroundColor: colors.separator },
     dividerText: { fontSize: 13, color: colors.textTertiary },
-    // Google button — keep white bg per Google branding guidelines
     socialButton: {
       height: 52,
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'center',
       borderWidth: 1,
-      borderColor: '#DADCE0',
+      borderColor: colors.separator,
       borderRadius: 10,
-      backgroundColor: '#FFFFFF',
+      backgroundColor: colors.surface,
       gap: 12,
       marginBottom: 12,
     },
     googleLogo: { width: 20, height: 20 },
-    socialButtonText: { fontSize: 16, fontWeight: '500', color: '#3C4043' },
+    socialButtonText: { fontSize: 16, fontWeight: '500', color: colors.textPrimary },
     footer: { flexDirection: 'row', justifyContent: 'center', marginTop: 12, gap: 4 },
     footerText: { color: colors.textSecondary, fontSize: 14 },
     link: { color: colors.primary, fontSize: 14, fontWeight: '600' },
@@ -285,7 +284,7 @@ export default function SignInScreen() {
             accessibilityLabel={t('auth.google')}
           >
             {googleLoading ? (
-              <ActivityIndicator color="#3C4043" />
+              <ActivityIndicator color={colors.textPrimary} />
             ) : (
               <>
                 <Svg viewBox="0 0 24 24" style={styles.googleLogo}>
@@ -309,10 +308,10 @@ export default function SignInScreen() {
               accessibilityLabel={t('auth.apple')}
             >
               {appleLoading ? (
-                <ActivityIndicator color="#3C4043" />
+                <ActivityIndicator color={colors.textPrimary} />
               ) : (
                 <>
-                  <Ionicons name="logo-apple" size={22} color="#000000" />
+                  <Ionicons name="logo-apple" size={22} color={colors.textPrimary} />
                   <Text style={styles.socialButtonText}>{t('auth.apple')}</Text>
                 </>
               )}
