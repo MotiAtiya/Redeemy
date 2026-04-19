@@ -213,7 +213,9 @@
     "today": "היום",
     "oneDay": "נותר יום אחד",
     "days": "נותרו {{days}} ימים",
+    "oneWeek": "נותר שבוע אחד",
     "weeks": "נותרו {{weeks}} שבועות",
+    "oneMonth": "נותר חודש אחד",
     "months": "נותרו {{months}} חודשים"
   },
   "creditCard": {

@@ -41,9 +41,11 @@ export function ExpirationBadge({ expirationDate }: Props) {
   } else if (days < 7) {
     label = t('badge.days', { days });
   } else if (days < 30) {
-    label = t('badge.weeks', { weeks: Math.ceil(days / 7) });
+    const weeks = Math.ceil(days / 7);
+    label = weeks === 1 ? t('badge.oneWeek') : t('badge.weeks', { weeks });
   } else {
-    label = t('badge.months', { months: Math.ceil(days / 30) });
+    const months = Math.ceil(days / 30);
+    label = months === 1 ? t('badge.oneMonth') : t('badge.months', { months });
   }
 
   return (
