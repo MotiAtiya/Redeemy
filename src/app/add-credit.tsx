@@ -90,7 +90,7 @@ function makeStyles(colors: AppColors, isRTL: boolean) {
     headerSideClose: { width: 60, justifyContent: 'center', alignItems: 'flex-start' },
     headerSideSave: { width: 60, justifyContent: 'center', alignItems: 'flex-end' },
     inputError: { borderColor: colors.danger },
-    errorText: { fontSize: 12, color: colors.danger },
+    errorText: { fontSize: 12, color: colors.danger, textAlign: isRTL ? 'right' : 'left' },
     amountRow: {
       flexDirection: 'row',
       alignItems: 'center',

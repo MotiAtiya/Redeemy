@@ -83,7 +83,7 @@ function makeStyles(colors: AppColors, isRTL: boolean) {
     strengthBars: { flex: 1, flexDirection: 'row', gap: 4 },
     strengthBar: { flex: 1, height: 4, borderRadius: 2 },
     strengthLabel: { fontSize: 12, fontWeight: '600', minWidth: 46 },
-    errorText: { fontSize: 12, color: colors.danger, marginTop: 4 },
+    errorText: { fontSize: 12, color: colors.danger, marginTop: 4, textAlign: isRTL ? 'right' : 'left' },
     generalError: { marginBottom: 8, textAlign: 'center' },
     button: {
       height: 52,

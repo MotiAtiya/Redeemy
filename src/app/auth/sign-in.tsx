@@ -59,7 +59,7 @@ function makeStyles(colors: AppColors, isRTL: boolean) {
       backgroundColor: colors.surface,
     },
     inputFlex: { flex: 1, fontSize: 16, color: colors.textPrimary, textAlign: isRTL ? 'right' : 'left' },
-    errorText: { fontSize: 12, color: colors.danger, marginTop: 4 },
+    errorText: { fontSize: 12, color: colors.danger, marginTop: 4, textAlign: isRTL ? 'right' : 'left' },
     generalError: { marginBottom: 8, textAlign: 'center' },
     button: {
       height: 52,
