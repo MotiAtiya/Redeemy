@@ -23,16 +23,20 @@ import {
   isAppleAuthAvailable,
   mapFirebaseAuthError,
 } from '@/lib/auth';
-import { useAppTheme } from '@/hooks/useAppTheme';
+import { Image } from 'expo-image';
+import { useAppTheme, useIsDark } from '@/hooks/useAppTheme';
 import type { AppColors } from '@/constants/colors';
+
+const logoLight = require('../../../assets/images/logo-light.png');
+const logoDark = require('../../../assets/images/logo-dark.png');
 
 function makeStyles(colors: AppColors, isRTL: boolean) {
   return StyleSheet.create({
     safe: { flex: 1, backgroundColor: colors.background },
     container: { flex: 1, justifyContent: 'center', paddingHorizontal: 24 },
     header: { alignItems: 'center', marginBottom: 40 },
-    logo: { fontSize: 34, fontWeight: '700', color: colors.primary, letterSpacing: -0.5 },
-    tagline: { fontSize: 14, color: colors.textSecondary, marginTop: 4 },
+    logoImage: { width: 90, height: 90, borderRadius: 20 },
+    tagline: { fontSize: 14, color: colors.textSecondary, marginTop: 12 },
     form: { width: '100%' },
     title: { fontSize: 24, fontWeight: '600', color: colors.textPrimary, marginBottom: 24, alignSelf: 'flex-start' },
     fieldContainer: { marginBottom: 16 },
@@ -100,6 +104,7 @@ function makeStyles(colors: AppColors, isRTL: boolean) {
 export default function SignInScreen() {
   const router = useRouter();
   const colors = useAppTheme();
+  const isDark = useIsDark();
   const isRTL = I18nManager.isRTL;
   const styles = useMemo(() => makeStyles(colors, isRTL), [colors, isRTL]);
   const { t } = useTranslation();
@@ -184,7 +189,11 @@ export default function SignInScreen() {
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
         <View style={styles.header}>
-          <Text style={styles.logo}>Redeemy</Text>
+          <Image
+            source={isDark ? logoDark : logoLight}
+            style={styles.logoImage}
+            contentFit="contain"
+          />
           <Text style={styles.tagline}>{t('auth.tagline')}</Text>
         </View>
 

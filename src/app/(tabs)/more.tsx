@@ -12,6 +12,7 @@ import {
   ScrollView,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { Image } from 'expo-image';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import { signOut } from '@/lib/auth';
@@ -19,7 +20,10 @@ import { useAuthStore } from '@/stores/authStore';
 import { useCreditsStore } from '@/stores/creditsStore';
 import { useUIStore } from '@/stores/uiStore';
 import { useSettingsStore } from '@/stores/settingsStore';
-import { useAppTheme } from '@/hooks/useAppTheme';
+import { useAppTheme, useIsDark } from '@/hooks/useAppTheme';
+
+const logoLight = require('../../../assets/images/logo-light.png');
+const logoDark = require('../../../assets/images/logo-dark.png');
 import { saveLanguage, resolveLanguage, applyRTL, type AppLanguage } from '@/lib/i18n';
 import i18n from '@/lib/i18n';
 import type { AppColors } from '@/constants/colors';
@@ -174,13 +178,10 @@ function makeStyles(colors: AppColors, isRTL: boolean) {
       borderBottomWidth: 1,
       borderBottomColor: colors.separator,
     },
-    aboutIconWrapper: {
-      width: 60,
-      height: 60,
-      borderRadius: 14,
-      backgroundColor: colors.primary,
-      justifyContent: 'center',
-      alignItems: 'center',
+    aboutLogoImage: {
+      width: 72,
+      height: 72,
+      borderRadius: 16,
       marginBottom: 10,
     },
   });
@@ -188,6 +189,7 @@ function makeStyles(colors: AppColors, isRTL: boolean) {
 
 export default function MoreScreen() {
   const colors = useAppTheme();
+  const isDark = useIsDark();
   const isRTL = I18nManager.isRTL;
   const styles = useMemo(() => makeStyles(colors, isRTL), [colors, isRTL]);
   const { t } = useTranslation();
@@ -323,9 +325,11 @@ export default function MoreScreen() {
           <Text style={styles.sectionLabel}>{t('more.sections.about')}</Text>
           <View style={styles.aboutCard}>
             <View style={styles.aboutHeader}>
-              <View style={styles.aboutIconWrapper}>
-                <Ionicons name="card-outline" size={30} color="#FFFFFF" />
-              </View>
+              <Image
+                source={isDark ? logoDark : logoLight}
+                style={styles.aboutLogoImage}
+                contentFit="contain"
+              />
               <Text style={styles.aboutAppName}>Redeemy</Text>
               <Text style={styles.aboutTagline}>{t('more.about.tagline')}</Text>
               <Text style={styles.aboutVersion}>Version 1.0.0</Text>
