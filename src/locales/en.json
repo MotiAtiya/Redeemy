@@ -110,8 +110,6 @@
     "about": {
       "tagline": "Credits you won't forget",
       "contact": "Contact Support",
-      "madeWith": "Made with",
-      "tech": "React Native + Expo"
     },
     "signOut": {
       "button": "Sign Out",

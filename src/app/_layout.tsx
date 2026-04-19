@@ -3,7 +3,6 @@ import { View, ActivityIndicator, StyleSheet } from 'react-native';
 import { Stack, useRouter, useSegments } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import * as Notifications from 'expo-notifications';
-import { GluestackProvider } from '@/components/ui/GluestackProvider';
 import { useAuthState } from '@/hooks/useAuthState';
 import { useBadgeUpdater } from '@/hooks/useBadgeUpdater';
 import { useNetworkMonitor } from '@/hooks/useNetworkMonitor';
@@ -97,23 +96,21 @@ export default function RootLayout() {
   }
 
   return (
-    <GluestackProvider>
-      <AuthGate>
-        <Stack>
-          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-          <Stack.Screen name="auth/sign-in" options={{ headerShown: false }} />
-          <Stack.Screen name="auth/sign-up" options={{ headerShown: false }} />
-          <Stack.Screen
-            name="add-credit"
-            options={{ headerShown: false, presentation: 'modal' }}
-          />
-          <Stack.Screen name="credit/[id]" options={{ headerShown: false }} />
-          <Stack.Screen name="store/[name]" options={{ headerShown: false }} />
-          <Stack.Screen name="account" options={{ headerShown: false }} />
-          <Stack.Screen name="notification-settings" options={{ headerShown: false }} />
-        </Stack>
-      </AuthGate>
-    </GluestackProvider>
+    <AuthGate>
+      <Stack>
+        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+        <Stack.Screen name="auth/sign-in" options={{ headerShown: false }} />
+        <Stack.Screen name="auth/sign-up" options={{ headerShown: false }} />
+        <Stack.Screen
+          name="add-credit"
+          options={{ headerShown: false, presentation: 'modal' }}
+        />
+        <Stack.Screen name="credit/[id]" options={{ headerShown: false }} />
+        <Stack.Screen name="store/[name]" options={{ headerShown: false }} />
+        <Stack.Screen name="account" options={{ headerShown: false }} />
+        <Stack.Screen name="notification-settings" options={{ headerShown: false }} />
+      </Stack>
+    </AuthGate>
   );
 }
 
