@@ -23,7 +23,9 @@ import { cancelCreditNotifications } from '@/lib/notifications';
 import * as MediaLibrary from 'expo-media-library';
 import * as FileSystem from 'expo-file-system/legacy';
 import { formatCurrency } from '@/lib/formatCurrency';
+import { formatDate } from '@/lib/formatDate';
 import { useCreditsStore } from '@/stores/creditsStore';
+import { useSettingsStore } from '@/stores/settingsStore';
 import { useAuthStore } from '@/stores/authStore';
 import { useUIStore } from '@/stores/uiStore';
 import { useAppTheme } from '@/hooks/useAppTheme';
@@ -161,6 +163,7 @@ export default function CreditDetailScreen() {
   const styles = useMemo(() => makeStyles(colors), [colors]);
   const { t } = useTranslation();
   const isRTL = I18nManager.isRTL;
+  useSettingsStore((s) => s.dateFormat); // subscribe to trigger re-render on format change
 
   const credit = useCreditsStore((s) => s.credits.find((c) => c.id === id));
   const removeCredit = useCreditsStore((s) => s.removeCredit);
@@ -348,7 +351,7 @@ export default function CreditDetailScreen() {
             <View style={styles.detailRowContent}>
               <Text style={styles.detailLabel}>{t('credit.detail.expires')}</Text>
               <Text style={styles.detailValue}>
-                {expirationDate ? expirationDate.toLocaleDateString('en-GB') : t('credit.detail.noExpiry')}
+                {expirationDate ? formatDate(expirationDate) : t('credit.detail.noExpiry')}
               </Text>
             </View>
           </View>
@@ -381,7 +384,7 @@ export default function CreditDetailScreen() {
             <Ionicons name="time-outline" size={18} color={colors.textTertiary} />
             <View style={styles.detailRowContent}>
               <Text style={styles.detailLabel}>{t('credit.detail.added')}</Text>
-              <Text style={styles.detailValue}>{new Date(credit.createdAt as Date).toLocaleDateString('en-GB')}</Text>
+              <Text style={styles.detailValue}>{formatDate(new Date(credit.createdAt as Date))}</Text>
             </View>
           </View>
         </View>
@@ -393,7 +396,7 @@ export default function CreditDetailScreen() {
             <Ionicons name="checkmark-circle" size={18} color={colors.textTertiary} />
             <Text style={styles.redeemedBannerText}>
               {credit.redeemedAt
-                ? t('credit.redeemedOn', { date: new Date(credit.redeemedAt as Date).toLocaleDateString('en-GB') })
+                ? t('credit.redeemedOn', { date: formatDate(new Date(credit.redeemedAt as Date)) })
                 : t('credit.redeemed')}
             </Text>
           </View>

@@ -175,6 +175,7 @@ export default function AddCreditScreen() {
   const isEditing = !!creditId;
   const colors = useAppTheme();
   const { t, i18n } = useTranslation();
+  useSettingsStore((s) => s.dateFormat); // subscribe to trigger re-render on format change
   const isRTL = i18n.language.startsWith('he');
   const styles = useMemo(() => makeStyles(colors, isRTL), [colors, isRTL]);
 

@@ -5,6 +5,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import { ExpirationBadge } from './ExpirationBadge';
 import { formatCurrency } from '@/lib/formatCurrency';
+import { formatDate } from '@/lib/formatDate';
+import { useSettingsStore } from '@/stores/settingsStore';
 import { CATEGORIES } from '@/constants/categories';
 import { CreditStatus, type Credit } from '@/types/creditTypes';
 import { useAppTheme } from '@/hooks/useAppTheme';
@@ -76,15 +78,16 @@ export function CreditCard({ credit, onPress, variant = 'active' }: Props) {
   const colors = useAppTheme();
   const styles = useMemo(() => makeStyles(colors), [colors]);
   const { t } = useTranslation();
+  useSettingsStore((s) => s.dateFormat); // subscribe to trigger re-render on format change
 
   const categoryMeta = CATEGORIES.find((c) => c.id === credit.category);
   const dimmed = variant === 'redeemed' || variant === 'expired';
 
   const badgeDate = (() => {
     if (variant === 'redeemed' && credit.redeemedAt)
-      return new Date(credit.redeemedAt as Date).toLocaleDateString('en-GB');
+      return formatDate(new Date(credit.redeemedAt as Date));
     if (variant === 'expired' && credit.expiredAt)
-      return new Date(credit.expiredAt as Date).toLocaleDateString('en-GB');
+      return formatDate(new Date(credit.expiredAt as Date));
     return null;
   })();
 
