@@ -467,7 +467,7 @@ export default function AddCreditScreen() {
                 >
                   <Ionicons name="calendar-outline" size={18} color={colors.textSecondary} />
                   <Text style={[styles.dateButtonText, !expirationDate && styles.datePlaceholder]}>
-                    {expirationDate ? formatDate(expirationDate, dateFormat) : t('addCredit.datePlaceholder')}
+                    {expirationDate ? formatDate(expirationDate, dateFormat) : dateFormat}
                   </Text>
                 </TouchableOpacity>
                 {errors.expirationDate ? <Text style={styles.errorText}>{errors.expirationDate}</Text> : null}
