@@ -30,6 +30,8 @@ export interface Credit {
   thumbnailUrl?: string;
   /** expo-notifications scheduled notification ID — used to cancel on redeem/edit/delete */
   notificationId?: string;
+  /** Notification scheduled for the expiration day itself */
+  expirationNotificationId?: string;
   createdAt: Date | Timestamp;
   updatedAt: Date | Timestamp;
   /** Set when status transitions to REDEEMED */

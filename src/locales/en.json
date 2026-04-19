@@ -234,6 +234,16 @@
     "toast": "You're offline — browsing cached credits",
     "title": "No Internet Connection"
   },
+  "notifications": {
+    "reminder": {
+      "title": "Credit Expiring Soon",
+      "body": "{{storeName}} — {{amount}} expires in {{days}} day(s)"
+    },
+    "expiry": {
+      "title": "Last Day to Redeem!",
+      "body": "Today is the last day to redeem your {{storeName}} credit — {{amount}}"
+    }
+  },
   "common": {
     "cancel": "Cancel",
     "error": "Error",

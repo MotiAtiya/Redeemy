@@ -233,6 +233,16 @@
     "toast": "אין חיבור — מציג זיכויים שמורים",
     "title": "אין חיבור לאינטרנט"
   },
+  "notifications": {
+    "reminder": {
+      "title": "זיכוי עומד לפוג",
+      "body": "{{storeName}} — {{amount}} פג עוד {{days}} ימים"
+    },
+    "expiry": {
+      "title": "היום הוא היום האחרון!",
+      "body": "היום הוא היום האחרון למימוש זיכוי {{storeName}} — {{amount}}"
+    }
+  },
   "common": {
     "cancel": "ביטול",
     "error": "שגיאה",

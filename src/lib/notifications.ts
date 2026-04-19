@@ -3,6 +3,7 @@ import { Platform } from 'react-native';
 import { CreditStatus, type Credit } from '@/types/creditTypes';
 import { formatCurrency } from './formatCurrency';
 import { useSettingsStore } from '@/stores/settingsStore';
+import i18n from './i18n';
 
 // ---------------------------------------------------------------------------
 // Handler — show notification when app is in foreground
@@ -44,42 +45,71 @@ export async function requestNotificationPermission(): Promise<boolean> {
  * Schedules a local notification for a credit reminder.
  * If `existingNotificationId` is provided, cancels it first.
  *
- * Returns the new notificationId to persist on the Firestore document.
- * Returns null if permission is denied or the trigger date is in the past.
+ * Returns { reminderId, expiryId } — both may be null if disabled/past.
  */
 export async function scheduleReminderNotification(
   credit: Pick<Credit, 'id' | 'storeName' | 'amount' | 'expirationDate' | 'reminderDays'>,
-  existingNotificationId?: string
-): Promise<string | null> {
-  if (!useSettingsStore.getState().notificationsEnabled) return null;
+  existingNotificationId?: string,
+  existingExpirationNotificationId?: string,
+): Promise<{ reminderId: string | null; expiryId: string | null }> {
+  if (!useSettingsStore.getState().notificationsEnabled) return { reminderId: null, expiryId: null };
 
   const granted = await requestNotificationPermission();
-  if (!granted) return null;
+  if (!granted) return { reminderId: null, expiryId: null };
 
-  // Cancel old notification before re-scheduling
-  if (existingNotificationId) {
-    await cancelNotification(existingNotificationId);
-  }
+  const t = i18n.t.bind(i18n);
+  const now = new Date();
 
-  // Trigger = expiration date minus reminderDays
+  // Cancel existing notifications before re-scheduling
+  await cancelNotification(existingNotificationId);
+  await cancelNotification(existingExpirationNotificationId);
+
+  // --- Reminder notification (X days before expiration) ---
   const triggerDate = new Date(credit.expirationDate);
   triggerDate.setDate(triggerDate.getDate() - credit.reminderDays);
 
-  if (triggerDate <= new Date()) return null; // Trigger already passed
+  let reminderId: string | null = null;
+  if (triggerDate > now) {
+    reminderId = await Notifications.scheduleNotificationAsync({
+      content: {
+        title: t('notifications.reminder.title'),
+        body: t('notifications.reminder.body', {
+          storeName: credit.storeName,
+          amount: formatCurrency(credit.amount),
+          days: credit.reminderDays,
+        }),
+        data: { creditId: credit.id },
+      },
+      trigger: {
+        type: Notifications.SchedulableTriggerInputTypes.DATE,
+        date: triggerDate,
+      },
+    });
+  }
 
-  const notificationId = await Notifications.scheduleNotificationAsync({
-    content: {
-      title: 'Store Credit Expiring Soon!',
-      body: `${credit.storeName} — ${formatCurrency(credit.amount)} expires in ${credit.reminderDays} day${credit.reminderDays !== 1 ? 's' : ''}`,
-      data: { creditId: credit.id },
-    },
-    trigger: {
-      type: Notifications.SchedulableTriggerInputTypes.DATE,
-      date: triggerDate,
-    },
-  });
+  // --- Expiration-day notification (at 9:00 AM on the expiration date) ---
+  const expiryTrigger = new Date(credit.expirationDate);
+  expiryTrigger.setHours(9, 0, 0, 0);
 
-  return notificationId;
+  let expiryId: string | null = null;
+  if (expiryTrigger > now) {
+    expiryId = await Notifications.scheduleNotificationAsync({
+      content: {
+        title: t('notifications.expiry.title'),
+        body: t('notifications.expiry.body', {
+          storeName: credit.storeName,
+          amount: formatCurrency(credit.amount),
+        }),
+        data: { creditId: credit.id },
+      },
+      trigger: {
+        type: Notifications.SchedulableTriggerInputTypes.DATE,
+        date: expiryTrigger,
+      },
+    });
+  }
+
+  return { reminderId, expiryId };
 }
 
 /**
@@ -93,6 +123,19 @@ export async function cancelNotification(
 }
 
 /**
+ * Cancels both the reminder and expiration-day notifications for a credit.
+ */
+export async function cancelCreditNotifications(
+  notificationId: string | undefined,
+  expirationNotificationId: string | undefined,
+): Promise<void> {
+  await Promise.all([
+    cancelNotification(notificationId),
+    cancelNotification(expirationNotificationId),
+  ]);
+}
+
+/**
  * Cancels ALL scheduled notifications (used when user disables notifications).
  */
 export async function cancelAllNotifications(): Promise<void> {
@@ -101,17 +144,13 @@ export async function cancelAllNotifications(): Promise<void> {
 
 /**
  * Re-schedules notifications for all active credits (used when user re-enables notifications).
- * Returns a map of creditId → new notificationId for Firestore updates.
  */
 export async function rescheduleAllNotifications(
-  credits: Pick<Credit, 'id' | 'storeName' | 'amount' | 'expirationDate' | 'reminderDays' | 'notificationId'>[]
-): Promise<Record<string, string>> {
-  const updates: Record<string, string> = {};
+  credits: Pick<Credit, 'id' | 'storeName' | 'amount' | 'expirationDate' | 'reminderDays' | 'notificationId' | 'expirationNotificationId'>[]
+): Promise<void> {
   for (const credit of credits) {
-    const id = await scheduleReminderNotification(credit, credit.notificationId);
-    if (id) updates[credit.id] = id;
+    await scheduleReminderNotification(credit, credit.notificationId, credit.expirationNotificationId);
   }
-  return updates;
 }
 
 // ---------------------------------------------------------------------------

@@ -19,7 +19,7 @@ import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { ExpirationBadge } from '@/components/redeemy/ExpirationBadge';
 import { deleteCredit, updateCredit } from '@/lib/firestoreCredits';
-import { cancelNotification } from '@/lib/notifications';
+import { cancelCreditNotifications } from '@/lib/notifications';
 import { formatCurrency } from '@/lib/formatCurrency';
 import { useCreditsStore } from '@/stores/creditsStore';
 import { useAuthStore } from '@/stores/authStore';
@@ -192,7 +192,7 @@ export default function CreditDetailScreen() {
         onPress: async () => {
           setLoading(true);
           try {
-            await cancelNotification(c.notificationId);
+            await cancelCreditNotifications(c.notificationId, c.expirationNotificationId);
             updateCreditInStore(c.id, { status: CreditStatus.REDEEMED, redeemedAt: new Date() });
             await updateCredit(c.id, { status: CreditStatus.REDEEMED, redeemedAt: new Date() });
             router.back();
@@ -223,7 +223,7 @@ export default function CreditDetailScreen() {
         onPress: async () => {
           setLoading(true);
           try {
-            await cancelNotification(c.notificationId);
+            await cancelCreditNotifications(c.notificationId, c.expirationNotificationId);
             removeCredit(c.id);
             await deleteCredit(c.id);
             router.back();

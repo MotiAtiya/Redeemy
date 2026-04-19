@@ -287,11 +287,13 @@ export default function AddCreditScreen() {
           notes: notes.trim(), updatedAt: new Date(),
         };
         updateCreditInStore(existingCredit.id, changes);
-        const notificationId = await scheduleReminderNotification(
+        const { reminderId, expiryId } = await scheduleReminderNotification(
           { id: existingCredit.id, storeName: storeName.trim(), amount: agot, expirationDate: expirationDate!, reminderDays },
-          existingCredit.notificationId
+          existingCredit.notificationId,
+          existingCredit.expirationNotificationId,
         );
-        if (notificationId) { changes.notificationId = notificationId; updateCreditInStore(existingCredit.id, { notificationId }); }
+        if (reminderId) { changes.notificationId = reminderId; updateCreditInStore(existingCredit.id, { notificationId: reminderId }); }
+        if (expiryId) { changes.expirationNotificationId = expiryId; updateCreditInStore(existingCredit.id, { expirationNotificationId: expiryId }); }
         if (imageUri && imageUri !== existingCredit.imageUrl) {
           const { imageUrl, thumbnailUrl } = await uploadCreditImage(imageUri, existingCredit.id);
           changes.imageUrl = imageUrl; changes.thumbnailUrl = thumbnailUrl;
@@ -322,11 +324,16 @@ export default function AddCreditScreen() {
         expirationDate: expirationDate!, reminderDays: reminderDays,
         notes: notes.trim(), status: CreditStatus.ACTIVE,
       });
-      const notificationId = await scheduleReminderNotification({
+      const { reminderId, expiryId } = await scheduleReminderNotification({
         id: newCreditId, storeName: storeName.trim(), amount: agot,
         expirationDate: expirationDate!, reminderDays: reminderDays,
       });
-      if (notificationId) await updateCredit(newCreditId, { notificationId });
+      if (reminderId || expiryId) {
+        await updateCredit(newCreditId, {
+          ...(reminderId ? { notificationId: reminderId } : {}),
+          ...(expiryId ? { expirationNotificationId: expiryId } : {}),
+        });
+      }
       if (imageUri) {
         try {
           const { imageUrl, thumbnailUrl } = await uploadCreditImage(imageUri, newCreditId);
