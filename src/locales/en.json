@@ -126,6 +126,7 @@
       "signInLink": "Sign in"
     },
     "google": "Continue with Google",
+    "apple": "Continue with Apple",
     "strength": {
       "weak": "Weak",
       "medium": "Medium",

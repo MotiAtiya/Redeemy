@@ -93,8 +93,6 @@ function makeStyles(colors: AppColors, isRTL: boolean) {
     },
     googleLogo: { width: 20, height: 20 },
     socialButtonText: { fontSize: 16, fontWeight: '500', color: '#3C4043' },
-    // Apple button — uses native AppleAuthenticationButton for HIG compliance
-    appleButton: { height: 52, marginBottom: 12 },
     footer: { flexDirection: 'row', justifyContent: 'center', marginTop: 12, gap: 4 },
     footerText: { color: colors.textSecondary, fontSize: 14 },
     link: { color: colors.primary, fontSize: 14, fontWeight: '600' },
@@ -117,6 +115,7 @@ export default function SignInScreen() {
   const [generalError, setGeneralError] = useState('');
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
+  const [appleLoading, setAppleLoading] = useState(false);
 
   // ---- validation ----------------------------------------------------------
 
@@ -172,11 +171,13 @@ export default function SignInScreen() {
 
   async function handleAppleSignIn() {
     setGeneralError('');
+    setAppleLoading(true);
     try {
       await signInWithApple();
-      // null = cancelled — AuthGate handles redirect on success
     } catch (err: any) {
       setGeneralError(mapFirebaseAuthError(err?.code ?? ''));
+    } finally {
+      setAppleLoading(false);
     }
   }
 
@@ -300,13 +301,22 @@ export default function SignInScreen() {
 
           {/* Apple Sign-In — iOS only */}
           {isAppleAuthAvailable && (
-            <AppleAuthentication.AppleAuthenticationButton
-              buttonType={AppleAuthentication.AppleAuthenticationButtonType.SIGN_IN}
-              buttonStyle={AppleAuthentication.AppleAuthenticationButtonStyle.BLACK}
-              cornerRadius={10}
-              style={styles.appleButton}
+            <TouchableOpacity
+              style={[styles.socialButton, appleLoading && styles.buttonDisabled]}
               onPress={handleAppleSignIn}
-            />
+              disabled={loading || googleLoading || appleLoading}
+              accessibilityRole="button"
+              accessibilityLabel={t('auth.apple')}
+            >
+              {appleLoading ? (
+                <ActivityIndicator color="#3C4043" />
+              ) : (
+                <>
+                  <Ionicons name="logo-apple" size={22} color="#000000" />
+                  <Text style={styles.socialButtonText}>{t('auth.apple')}</Text>
+                </>
+              )}
+            </TouchableOpacity>
           )}
 
           {/* Create account */}
