@@ -3,6 +3,7 @@ import {
   View,
   Text,
   TouchableOpacity,
+  Switch,
   StyleSheet,
   ActivityIndicator,
   Alert,
@@ -16,6 +17,7 @@ import { Image } from 'expo-image';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import { signOut } from '@/lib/auth';
+import { cancelAllNotifications, rescheduleAllNotifications } from '@/lib/notifications';
 import { useAuthStore } from '@/stores/authStore';
 import { useCreditsStore } from '@/stores/creditsStore';
 import { useUIStore } from '@/stores/uiStore';
@@ -208,10 +210,13 @@ export default function MoreScreen() {
   ];
 
   const currentUser = useAuthStore((s) => s.currentUser);
+  const credits = useCreditsStore((s) => s.credits);
   const themeMode = useSettingsStore((s) => s.themeMode);
   const setThemeMode = useSettingsStore((s) => s.setThemeMode);
   const language = useSettingsStore((s) => s.language);
   const setLanguage = useSettingsStore((s) => s.setLanguage);
+  const notificationsEnabled = useSettingsStore((s) => s.notificationsEnabled);
+  const setNotificationsEnabled = useSettingsStore((s) => s.setNotificationsEnabled);
 
   const [signingOut, setSigningOut] = useState(false);
   const [showAppearanceSheet, setShowAppearanceSheet] = useState(false);
@@ -219,6 +224,16 @@ export default function MoreScreen() {
 
   const themeModeLabel = THEME_OPTIONS.find((o) => o.mode === themeMode)?.label ?? t('more.theme.system');
   const languageLabel = LANGUAGE_OPTIONS.find((o) => o.value === language)?.label ?? t('more.language.system');
+
+  async function handleNotificationsToggle(enabled: boolean) {
+    setNotificationsEnabled(enabled);
+    if (!enabled) {
+      await cancelAllNotifications();
+    } else {
+      const activeCredits = credits.filter((c) => c.status === 'active');
+      await rescheduleAllNotifications(activeCredits);
+    }
+  }
 
   async function handleSignOut() {
     Alert.alert(t('more.signOut.title'), t('more.signOut.message'), [
@@ -308,6 +323,19 @@ export default function MoreScreen() {
               <Text style={styles.settingsSubtitle}>{themeModeLabel}</Text>
               <Ionicons name={isRTL ? 'chevron-back' : 'chevron-forward'} size={16} color={colors.textTertiary} />
             </TouchableOpacity>
+            <View style={styles.separator} />
+            <View style={styles.settingsRow}>
+              <Ionicons name="notifications-outline" size={20} color={colors.textSecondary} />
+              <View style={{ flex: 1 }}>
+                <Text style={styles.settingsLabel}>{t('more.notifications.label')}</Text>
+              </View>
+              <Switch
+                value={notificationsEnabled}
+                onValueChange={handleNotificationsToggle}
+                trackColor={{ false: colors.separator, true: colors.primary }}
+                thumbColor="#FFFFFF"
+              />
+            </View>
           </View>
         </View>
 

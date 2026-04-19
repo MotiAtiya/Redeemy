@@ -64,6 +64,9 @@
       "about": "ABOUT"
     },
     "appearance": "Appearance",
+    "notifications": {
+      "label": "Notifications"
+    },
     "theme": {
       "light": "Light",
       "dark": "Dark",

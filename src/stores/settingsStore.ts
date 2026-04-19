@@ -8,6 +8,8 @@ interface SettingsStore {
   setThemeMode: (mode: ThemeMode) => void;
   language: AppLanguage;
   setLanguage: (lang: AppLanguage) => void;
+  notificationsEnabled: boolean;
+  setNotificationsEnabled: (enabled: boolean) => void;
 }
 
 export const useSettingsStore = create<SettingsStore>()((set) => ({
@@ -15,4 +17,6 @@ export const useSettingsStore = create<SettingsStore>()((set) => ({
   setThemeMode: (themeMode) => set({ themeMode }),
   language: 'system',
   setLanguage: (language) => set({ language }),
+  notificationsEnabled: true,
+  setNotificationsEnabled: (notificationsEnabled) => set({ notificationsEnabled }),
 }));

@@ -64,6 +64,9 @@
       "about": "אודות"
     },
     "appearance": "מראה",
+    "notifications": {
+      "label": "התראות"
+    },
     "theme": {
       "light": "בהיר",
       "dark": "כהה",

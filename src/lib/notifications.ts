@@ -2,6 +2,7 @@ import * as Notifications from 'expo-notifications';
 import { Platform } from 'react-native';
 import { CreditStatus, type Credit } from '@/types/creditTypes';
 import { formatCurrency } from './formatCurrency';
+import { useSettingsStore } from '@/stores/settingsStore';
 
 // ---------------------------------------------------------------------------
 // Handler — show notification when app is in foreground
@@ -50,6 +51,8 @@ export async function scheduleReminderNotification(
   credit: Pick<Credit, 'id' | 'storeName' | 'amount' | 'expirationDate' | 'reminderDays'>,
   existingNotificationId?: string
 ): Promise<string | null> {
+  if (!useSettingsStore.getState().notificationsEnabled) return null;
+
   const granted = await requestNotificationPermission();
   if (!granted) return null;
 
@@ -87,6 +90,28 @@ export async function cancelNotification(
 ): Promise<void> {
   if (!notificationId) return;
   await Notifications.cancelScheduledNotificationAsync(notificationId);
+}
+
+/**
+ * Cancels ALL scheduled notifications (used when user disables notifications).
+ */
+export async function cancelAllNotifications(): Promise<void> {
+  await Notifications.cancelAllScheduledNotificationsAsync();
+}
+
+/**
+ * Re-schedules notifications for all active credits (used when user re-enables notifications).
+ * Returns a map of creditId → new notificationId for Firestore updates.
+ */
+export async function rescheduleAllNotifications(
+  credits: Pick<Credit, 'id' | 'storeName' | 'amount' | 'expirationDate' | 'reminderDays' | 'notificationId'>[]
+): Promise<Record<string, string>> {
+  const updates: Record<string, string> = {};
+  for (const credit of credits) {
+    const id = await scheduleReminderNotification(credit, credit.notificationId);
+    if (id) updates[credit.id] = id;
+  }
+  return updates;
 }
 
 // ---------------------------------------------------------------------------
