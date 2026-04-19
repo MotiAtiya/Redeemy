@@ -291,9 +291,11 @@ export default function CreditDetailScreen() {
     }
   }
 
-  const expirationDate = credit.expirationDate instanceof Date
-    ? credit.expirationDate
-    : new Date(credit.expirationDate as unknown as string);
+  const expirationDate = credit.expirationDate
+    ? (credit.expirationDate instanceof Date
+        ? credit.expirationDate
+        : new Date(credit.expirationDate as unknown as string))
+    : null;
 
   return (
     <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
@@ -329,7 +331,7 @@ export default function CreditDetailScreen() {
         <View style={styles.card}>
           <Text style={styles.storeName}>{credit.storeName}</Text>
           <Text style={styles.amount}>{formatCurrency(credit.amount)}</Text>
-          <ExpirationBadge expirationDate={expirationDate} />
+          <ExpirationBadge expirationDate={expirationDate ?? undefined} />
         </View>
 
         <View style={styles.detailsCard}>
@@ -345,17 +347,23 @@ export default function CreditDetailScreen() {
             <Ionicons name="calendar-outline" size={18} color={colors.textTertiary} />
             <View style={styles.detailRowContent}>
               <Text style={styles.detailLabel}>{t('credit.detail.expires')}</Text>
-              <Text style={styles.detailValue}>{expirationDate.toLocaleDateString('en-GB')}</Text>
+              <Text style={styles.detailValue}>
+                {expirationDate ? expirationDate.toLocaleDateString('en-GB') : t('credit.detail.noExpiry')}
+              </Text>
             </View>
           </View>
-          <View style={styles.separator} />
-          <View style={styles.detailRow}>
-            <Ionicons name="notifications-outline" size={18} color={colors.textTertiary} />
-            <View style={styles.detailRowContent}>
-              <Text style={styles.detailLabel}>{t('credit.detail.reminder')}</Text>
-              <Text style={styles.detailValue}>{t('credit.detail.reminderDays', { count: credit.reminderDays })}</Text>
-            </View>
-          </View>
+          {expirationDate && (
+            <>
+              <View style={styles.separator} />
+              <View style={styles.detailRow}>
+                <Ionicons name="notifications-outline" size={18} color={colors.textTertiary} />
+                <View style={styles.detailRowContent}>
+                  <Text style={styles.detailLabel}>{t('credit.detail.reminder')}</Text>
+                  <Text style={styles.detailValue}>{t('credit.detail.reminderDays', { count: credit.reminderDays })}</Text>
+                </View>
+              </View>
+            </>
+          )}
           {credit.notes ? (
             <>
               <View style={styles.separator} />

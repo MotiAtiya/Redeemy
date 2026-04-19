@@ -5,6 +5,7 @@ import {
   updateDoc,
   deleteDoc,
   getDocs,
+  deleteField,
   doc,
   serverTimestamp,
   query,
@@ -43,7 +44,9 @@ export function subscribeToCredits(userId: string): Unsubscribe {
           ...(data as Omit<Credit, 'id' | 'expirationDate' | 'createdAt' | 'updatedAt'>),
           id: d.id,
           // Convert Firestore Timestamps to JS Dates
-          expirationDate: data.expirationDate?.toDate?.() ?? new Date(data.expirationDate),
+          expirationDate: data.expirationDate
+            ? (data.expirationDate?.toDate?.() ?? new Date(data.expirationDate))
+            : undefined,
           createdAt: data.createdAt?.toDate?.() ?? new Date(data.createdAt),
           updatedAt: data.updatedAt?.toDate?.() ?? new Date(data.updatedAt),
           redeemedAt: data.redeemedAt?.toDate?.() ?? undefined,
@@ -58,10 +61,10 @@ export function subscribeToCredits(userId: string): Unsubscribe {
       const today = new Date();
       today.setHours(0, 0, 0, 0);
       const toExpire = credits.filter(
-        (c) => c.status === CreditStatus.ACTIVE && new Date(c.expirationDate) < today
+        (c) => c.status === CreditStatus.ACTIVE && c.expirationDate && new Date(c.expirationDate) < today
       );
       for (const c of toExpire) {
-        const expiredAt = new Date(c.expirationDate);
+        const expiredAt = new Date(c.expirationDate!);
         expiredAt.setHours(23, 59, 59, 999);
         updateCredit(c.id, { status: CreditStatus.EXPIRED, expiredAt });
       }
@@ -88,11 +91,12 @@ export async function createCredit(
   creditData: Omit<Credit, 'id' | 'createdAt' | 'updatedAt'>
 ): Promise<string> {
   const colRef = collection(db, CREDITS_COLLECTION);
-  const docRef = await addDoc(colRef, {
-    ...creditData,
-    createdAt: serverTimestamp(),
-    updatedAt: serverTimestamp(),
-  });
+  // Strip undefined fields — Firestore rejects them
+  const data = Object.fromEntries(
+    Object.entries({ ...creditData, createdAt: serverTimestamp(), updatedAt: serverTimestamp() })
+      .filter(([, v]) => v !== undefined)
+  );
+  const docRef = await addDoc(colRef, data);
 
   // Write the auto-generated ID back into the document
   await updateDoc(docRef, { id: docRef.id });
@@ -109,10 +113,12 @@ export async function updateCredit(
   changes: Partial<Omit<Credit, 'id' | 'createdAt'>>
 ): Promise<void> {
   const docRef = doc(db, CREDITS_COLLECTION, creditId);
-  await updateDoc(docRef, {
-    ...changes,
-    updatedAt: serverTimestamp(),
-  });
+  // Replace undefined values with deleteField() so Firestore removes those fields
+  const payload: Record<string, unknown> = { updatedAt: serverTimestamp() };
+  for (const [k, v] of Object.entries(changes as Record<string, unknown>)) {
+    payload[k] = v === undefined ? deleteField() : v;
+  }
+  await updateDoc(docRef, payload);
 }
 
 /**

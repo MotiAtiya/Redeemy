@@ -11,8 +11,12 @@ export type HistoryDateRange = 'thisMonth' | 'last3Months' | 'thisYear' | 'allTi
 export function sortCreditsHome(credits: Credit[], key: HomeSortKey): Credit[] {
   return [...credits].sort((a, b) => {
     switch (key) {
-      case 'expiration':
+      case 'expiration': {
+        if (!a.expirationDate && !b.expirationDate) return 0;
+        if (!a.expirationDate) return 1; // no expiry sorts last
+        if (!b.expirationDate) return -1;
         return new Date(a.expirationDate).getTime() - new Date(b.expirationDate).getTime();
+      }
       case 'amount':
         return b.amount - a.amount;
       case 'storeName':

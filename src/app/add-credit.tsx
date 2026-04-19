@@ -12,6 +12,7 @@ import {
   KeyboardAvoidingView,
   Dimensions,
   Keyboard,
+  Switch,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { Image } from 'expo-image';
@@ -141,6 +142,13 @@ function makeStyles(colors: AppColors, isRTL: boolean) {
     reminderChipSelected: { backgroundColor: colors.primary, borderColor: colors.primary },
     reminderChipText: { fontSize: 13, color: colors.textSecondary },
     reminderChipTextSelected: { color: '#FFFFFF', fontWeight: '600' },
+    noExpiryRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      marginTop: 8,
+    },
+    noExpiryLabel: { fontSize: 14, color: colors.textSecondary },
     notesToggle: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
     notesInput: {
       minHeight: 80,
@@ -181,6 +189,7 @@ export default function AddCreditScreen() {
   const [amountInput, setAmountInput] = useState('');
   const [category, setCategory] = useState(DEFAULT_CATEGORY_ID);
   const [expirationDate, setExpirationDate] = useState<Date | null>(null);
+  const [noExpiry, setNoExpiry] = useState(false);
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [reminderDays, setReminderDays] = useState(DEFAULT_REMINDER_DAYS);
   const [notes, setNotes] = useState('');
@@ -221,10 +230,14 @@ export default function AddCreditScreen() {
       setStoreName(existingCredit.storeName);
       setAmountInput((existingCredit.amount / 100).toFixed(2));
       setCategory(existingCredit.category);
-      const expDate = existingCredit.expirationDate instanceof Date
-        ? existingCredit.expirationDate
-        : new Date(existingCredit.expirationDate as unknown as string);
-      setExpirationDate(expDate);
+      if (existingCredit.expirationDate) {
+        const expDate = existingCredit.expirationDate instanceof Date
+          ? existingCredit.expirationDate
+          : new Date(existingCredit.expirationDate as unknown as string);
+        setExpirationDate(expDate);
+      } else {
+        setNoExpiry(true);
+      }
       setReminderDays(existingCredit.reminderDays);
       if (existingCredit.notes) { setNotes(existingCredit.notes); setShowNotes(true); }
       if (existingCredit.imageUrl) setImageUri(existingCredit.imageUrl);
@@ -262,8 +275,10 @@ export default function AddCreditScreen() {
     if (!amountInput.trim()) errs.amount = t('addCredit.validation.amountRequired');
     else if (isNaN(agot)) errs.amount = t('addCredit.validation.amountInvalid');
     if (!category) errs.category = t('addCredit.validation.categoryRequired');
-    if (!expirationDate) errs.expirationDate = t('addCredit.validation.dateRequired');
-    else if (expirationDate <= new Date()) errs.expirationDate = t('addCredit.validation.datePast');
+    if (!noExpiry) {
+      if (!expirationDate) errs.expirationDate = t('addCredit.validation.dateRequired');
+      else if (expirationDate <= new Date()) errs.expirationDate = t('addCredit.validation.datePast');
+    }
     setErrors(errs);
     return Object.keys(errs).length === 0;
   }
@@ -281,14 +296,15 @@ export default function AddCreditScreen() {
 
     if (isEditing && existingCredit) {
       try {
+        const finalExpiry = noExpiry ? null : expirationDate;
         const changes: Partial<Credit> = {
           storeName: storeName.trim(), amount: agot, category,
-          expirationDate: expirationDate!, reminderDays,
+          expirationDate: finalExpiry ?? undefined, reminderDays,
           notes: notes.trim(), updatedAt: new Date(),
         };
         updateCreditInStore(existingCredit.id, changes);
         const { reminderId, expiryId } = await scheduleReminderNotification(
-          { id: existingCredit.id, storeName: storeName.trim(), amount: agot, expirationDate: expirationDate!, reminderDays },
+          { id: existingCredit.id, storeName: storeName.trim(), amount: agot, expirationDate: finalExpiry ?? undefined, reminderDays },
           existingCredit.notificationId,
           existingCredit.expirationNotificationId,
         );
@@ -312,21 +328,22 @@ export default function AddCreditScreen() {
     const tempId = `temp-${Date.now()}`;
     const optimisticCredit: Credit = {
       id: tempId, userId: currentUser.uid, storeName: storeName.trim(),
-      amount: agot, category, expirationDate: expirationDate!, reminderDays: reminderDays,
+      amount: agot, category, expirationDate: noExpiry ? undefined : expirationDate ?? undefined, reminderDays: reminderDays,
       notes: notes.trim(), status: CreditStatus.ACTIVE, imageUri: imageUri ?? undefined,
       createdAt: new Date(), updatedAt: new Date(),
     } as unknown as Credit;
     addCredit(optimisticCredit);
 
     try {
+      const finalExpiry = noExpiry ? undefined : expirationDate ?? undefined;
       const newCreditId = await createCredit({
         userId: currentUser.uid, storeName: storeName.trim(), amount: agot, category,
-        expirationDate: expirationDate!, reminderDays: reminderDays,
+        expirationDate: finalExpiry, reminderDays: reminderDays,
         notes: notes.trim(), status: CreditStatus.ACTIVE,
       });
       const { reminderId, expiryId } = await scheduleReminderNotification({
         id: newCreditId, storeName: storeName.trim(), amount: agot,
-        expirationDate: expirationDate!, reminderDays: reminderDays,
+        expirationDate: finalExpiry, reminderDays: reminderDays,
       });
       if (reminderId || expiryId) {
         await updateCredit(newCreditId, {
@@ -342,7 +359,8 @@ export default function AddCreditScreen() {
       }
       removeCredit(tempId);
       router.back();
-    } catch {
+    } catch (e) {
+      console.error('Save error:', e);
       removeCredit(tempId);
       setSaving(false);
       Alert.alert(t('addCredit.error.save'), t('addCredit.error.saveMessage'));
@@ -422,43 +440,64 @@ export default function AddCreditScreen() {
             onLayout={(e) => { dateFieldY.current = e.nativeEvent.layout.y; }}
           >
             <Text style={styles.label}>{t('addCredit.expirationDate')}</Text>
-            <TouchableOpacity
-              style={[styles.dateButton, errors.expirationDate ? styles.inputError : null]}
-              onPress={() => setShowDatePicker((v) => !v)}
-            >
-              <Ionicons name="calendar-outline" size={18} color={colors.textSecondary} />
-              <Text style={[styles.dateButtonText, !expirationDate && styles.datePlaceholder]}>
-                {expirationDate ? formatDate(expirationDate) : t('addCredit.datePlaceholder')}
-              </Text>
-            </TouchableOpacity>
-            {errors.expirationDate ? <Text style={styles.errorText}>{errors.expirationDate}</Text> : null}
-            {showDatePicker && (
-              <View style={styles.datePickerWrapper}>
-                <DateTimePicker value={expirationDate ?? new Date()} mode="date" display={Platform.OS === 'ios' ? 'spinner' : 'default'} minimumDate={new Date()} onChange={onDateChange} locale="en-GB" />
-                {Platform.OS === 'ios' && (
-                  <TouchableOpacity style={styles.datePickerConfirm} onPress={() => setShowDatePicker(false)} hitSlop={8}>
-                    <Ionicons name="checkmark" size={16} color="#FFFFFF" />
-                  </TouchableOpacity>
+            {!noExpiry && (
+              <>
+                <TouchableOpacity
+                  style={[styles.dateButton, errors.expirationDate ? styles.inputError : null]}
+                  onPress={() => setShowDatePicker((v) => !v)}
+                >
+                  <Ionicons name="calendar-outline" size={18} color={colors.textSecondary} />
+                  <Text style={[styles.dateButtonText, !expirationDate && styles.datePlaceholder]}>
+                    {expirationDate ? formatDate(expirationDate) : t('addCredit.datePlaceholder')}
+                  </Text>
+                </TouchableOpacity>
+                {errors.expirationDate ? <Text style={styles.errorText}>{errors.expirationDate}</Text> : null}
+                {showDatePicker && (
+                  <View style={styles.datePickerWrapper}>
+                    <DateTimePicker value={expirationDate ?? new Date()} mode="date" display={Platform.OS === 'ios' ? 'spinner' : 'default'} minimumDate={new Date()} onChange={onDateChange} locale="en-GB" />
+                    {Platform.OS === 'ios' && (
+                      <TouchableOpacity style={styles.datePickerConfirm} onPress={() => setShowDatePicker(false)} hitSlop={8}>
+                        <Ionicons name="checkmark" size={16} color="#FFFFFF" />
+                      </TouchableOpacity>
+                    )}
+                  </View>
                 )}
-              </View>
+              </>
             )}
-          </View>
-
-          <View style={styles.field}>
-            <Text style={styles.label}>{t('addCredit.reminder')}</Text>
-            <View style={styles.reminderChips}>
-              {REMINDER_PRESETS.map((preset) => {
-                const isSelected = reminderDays === preset.days;
-                const reminderKey = preset.days === 1 ? 'reminder.1day' : preset.days === 7 ? 'reminder.1week' : preset.days === 30 ? 'reminder.1month' : 'reminder.3months';
-                return (
-                  <TouchableOpacity key={preset.days} style={[styles.reminderChip, isSelected && styles.reminderChipSelected]}
-                    onPress={() => setReminderDays(preset.days)}>
-                    <Text style={[styles.reminderChipText, isSelected && styles.reminderChipTextSelected]}>{t(reminderKey)}</Text>
-                  </TouchableOpacity>
-                );
-              })}
+            <View style={styles.noExpiryRow}>
+              <Text style={styles.noExpiryLabel}>{t('addCredit.noExpiry')}</Text>
+              <Switch
+                value={noExpiry}
+                onValueChange={(v) => {
+                  setNoExpiry(v);
+                  if (v) {
+                    setShowDatePicker(false);
+                    setErrors((e) => ({ ...e, expirationDate: undefined }));
+                  }
+                }}
+                trackColor={{ false: colors.separator, true: colors.primary }}
+                thumbColor="#FFFFFF"
+              />
             </View>
           </View>
+
+          {!noExpiry && (
+            <View style={styles.field}>
+              <Text style={styles.label}>{t('addCredit.reminder')}</Text>
+              <View style={styles.reminderChips}>
+                {REMINDER_PRESETS.map((preset) => {
+                  const isSelected = reminderDays === preset.days;
+                  const reminderKey = preset.days === 1 ? 'reminder.1day' : preset.days === 7 ? 'reminder.1week' : preset.days === 30 ? 'reminder.1month' : 'reminder.3months';
+                  return (
+                    <TouchableOpacity key={preset.days} style={[styles.reminderChip, isSelected && styles.reminderChipSelected]}
+                      onPress={() => setReminderDays(preset.days)}>
+                      <Text style={[styles.reminderChipText, isSelected && styles.reminderChipTextSelected]}>{t(reminderKey)}</Text>
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+            </View>
+          )}
 
           <View style={styles.field} onLayout={(e) => { notesFieldY.current = e.nativeEvent.layout.y; }}>
             <TouchableOpacity

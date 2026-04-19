@@ -21,7 +21,7 @@ export interface Credit {
   /** Amount in agot (₪ × 100). e.g. ₪50.00 → 5000 */
   amount: number;
   category: string;
-  expirationDate: Date;
+  expirationDate?: Date;
   /** Days before expiration the reminder fires (e.g. 7 = 1 week before) */
   reminderDays: number;
   notes?: string;
@@ -49,7 +49,8 @@ export interface CreditFormData {
   /** User-typed amount string, e.g. "50" or "50.00" */
   amountInput: string;
   category: string;
-  expirationDate: Date;
+  expirationDate: Date | null;
+  noExpiry: boolean;
   reminderDays: number;
   notes: string;
   /** Local image URI returned by expo-image-picker — before upload */

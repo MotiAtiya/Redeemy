@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { useAppTheme } from '@/hooks/useAppTheme';
 
 interface Props {
-  expirationDate: Date;
+  expirationDate?: Date;
 }
 
 function getDaysRemaining(expirationDate: Date): number {
@@ -15,6 +15,13 @@ function getDaysRemaining(expirationDate: Date): number {
 export function ExpirationBadge({ expirationDate }: Props) {
   const colors = useAppTheme();
   const { t } = useTranslation();
+  if (!expirationDate) {
+    return (
+      <View style={[styles.badge, { backgroundColor: colors.urgencyGreenSurface, borderColor: colors.urgencyGreen }]}>
+        <Text style={[styles.text, { color: colors.urgencyGreen }]}>{t('badge.noExpiry')}</Text>
+      </View>
+    );
+  }
   const days = getDaysRemaining(expirationDate);
 
   let textColor: string;

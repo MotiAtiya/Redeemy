@@ -52,6 +52,7 @@ export async function scheduleReminderNotification(
   existingNotificationId?: string,
   existingExpirationNotificationId?: string,
 ): Promise<{ reminderId: string | null; expiryId: string | null }> {
+  if (!credit.expirationDate) return { reminderId: null, expiryId: null };
   if (!useSettingsStore.getState().notificationsEnabled) return { reminderId: null, expiryId: null };
 
   const granted = await requestNotificationPermission();

@@ -155,6 +155,7 @@
     "category": "Category",
     "expirationDate": "Expiration Date",
     "datePlaceholder": "DD/MM/YYYY",
+    "noExpiry": "No expiration date",
     "reminder": "Reminder",
     "notes": "Notes",
     "notesPlaceholder": "Optional — any extra info about this credit",
@@ -210,6 +211,7 @@
     "detail": {
       "category": "Category",
       "expires": "Expires",
+      "noExpiry": "No expiration",
       "reminder": "Reminder",
       "reminderDays_one": "{{count}} day before",
       "reminderDays_other": "{{count}} days before",
@@ -226,6 +228,7 @@
   },
   "badge": {
     "expired": "Expired",
+    "noExpiry": "No expiry",
     "today": "Today",
     "oneDay": "1 day left",
     "days": "{{days}}d left",

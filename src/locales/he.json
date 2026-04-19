@@ -154,6 +154,7 @@
     "amount": "סכום",
     "category": "קטגוריה",
     "expirationDate": "תאריך תפוגה",
+    "noExpiry": "ללא תאריך תפוגה",
     "reminder": "תזכורת",
     "notes": "הערות",
     "notesPlaceholder": "אופציונלי — מידע נוסף על הזיכוי",
@@ -209,6 +210,7 @@
     "detail": {
       "category": "קטגוריה",
       "expires": "תפוגה",
+      "noExpiry": "ללא תפוגה",
       "reminder": "תזכורת",
       "reminderDays_one": "יום אחד לפני",
       "reminderDays_other": "{{count}} ימים לפני",
@@ -225,6 +227,7 @@
   },
   "badge": {
     "expired": "פג תוקף",
+    "noExpiry": "ללא תפוגה",
     "today": "היום",
     "oneDay": "נותר יום אחד",
     "days": "נותרו {{days}} ימים",
