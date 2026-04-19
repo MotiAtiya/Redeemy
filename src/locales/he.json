@@ -188,6 +188,12 @@
       "delete": "מחק",
       "restore": "החזר לפעיל"
     },
+    "image": {
+      "savedTitle": "נשמר",
+      "savedMessage": "התמונה נשמרה לגלריה שלך.",
+      "saveError": "לא ניתן לשמור את התמונה. נסה שנית.",
+      "permissionDenied": "אפשר ל-Redeemy גישה לגלריה בהגדרות."
+    },
     "restore": {
       "error": "לא ניתן לשחזר את הזיכוי. נסה שנית."
     },

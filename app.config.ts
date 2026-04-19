@@ -62,6 +62,13 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
         cameraPermission: 'Redeemy uses the camera to photograph your store credits.',
       },
     ],
+    [
+      'expo-media-library',
+      {
+        photosPermission: 'Redeemy needs access to save credit images to your photo library.',
+        savePhotosPermission: 'Redeemy needs permission to save images to your photo library.',
+      },
+    ],
   ],
   experiments: {
     typedRoutes: true,

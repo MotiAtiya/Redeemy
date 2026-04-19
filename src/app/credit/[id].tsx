@@ -20,6 +20,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { ExpirationBadge } from '@/components/redeemy/ExpirationBadge';
 import { deleteCredit, updateCredit } from '@/lib/firestoreCredits';
 import { cancelCreditNotifications } from '@/lib/notifications';
+import * as MediaLibrary from 'expo-media-library';
+import { Paths, File } from 'expo-file-system';
 import { formatCurrency } from '@/lib/formatCurrency';
 import { useCreditsStore } from '@/stores/creditsStore';
 import { useAuthStore } from '@/stores/authStore';
@@ -130,6 +132,15 @@ function makeStyles(colors: AppColors) {
       borderRadius: 20,
       padding: 8,
     },
+    fullscreenDownload: {
+      position: 'absolute',
+      top: 56,
+      left: 16,
+      zIndex: 10,
+      backgroundColor: 'rgba(0,0,0,0.5)',
+      borderRadius: 20,
+      padding: 8,
+    },
     fullscreenScrollView: { flex: 1 },
     fullscreenScrollContent: {
       flex: 1,
@@ -157,6 +168,7 @@ export default function CreditDetailScreen() {
 
   const [showActionSheet, setShowActionSheet] = useState(false);
   const [showFullscreenImage, setShowFullscreenImage] = useState(false);
+  const [downloading, setDownloading] = useState(false);
   const [loading, setLoading] = useState(false);
   const afterDismissRef = useRef<(() => void) | null>(null);
   const isRedeemed = credit?.status === CreditStatus.REDEEMED;
@@ -234,6 +246,27 @@ export default function CreditDetailScreen() {
         },
       },
     ]);
+  }
+
+  async function handleDownloadImage() {
+    if (!credit?.imageUrl) return;
+    setDownloading(true);
+    try {
+      const { status } = await MediaLibrary.requestPermissionsAsync();
+      if (status !== 'granted') {
+        Alert.alert(t('common.error'), t('credit.image.permissionDenied'));
+        return;
+      }
+      const filename = `redeemy-${credit.storeName.replace(/\s+/g, '-')}-${Date.now()}.jpg`;
+      const dest = new File(Paths.cache, filename);
+      const downloaded = await File.downloadFileAsync(credit.imageUrl, dest);
+      await MediaLibrary.saveToLibraryAsync(downloaded.uri);
+      Alert.alert(t('credit.image.savedTitle'), t('credit.image.savedMessage'));
+    } catch {
+      Alert.alert(t('common.error'), t('credit.image.saveError'));
+    } finally {
+      setDownloading(false);
+    }
   }
 
   function handleEdit() {
@@ -408,6 +441,16 @@ export default function CreditDetailScreen() {
             hitSlop={12}
           >
             <Ionicons name="close" size={22} color="#FFFFFF" />
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.fullscreenDownload}
+            onPress={handleDownloadImage}
+            disabled={downloading}
+            hitSlop={12}
+          >
+            {downloading
+              ? <ActivityIndicator size="small" color="#FFFFFF" />
+              : <Ionicons name="download-outline" size={22} color="#FFFFFF" />}
           </TouchableOpacity>
         </View>
       </Modal>
