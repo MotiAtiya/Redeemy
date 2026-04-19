@@ -20,7 +20,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { ExpirationBadge } from '@/components/redeemy/ExpirationBadge';
 import { deleteCredit, updateCredit } from '@/lib/firestoreCredits';
 import { cancelCreditNotifications } from '@/lib/notifications';
-import * as MediaLibrary from 'expo-media-library';
+import * as Sharing from 'expo-sharing';
 import { Paths, File } from 'expo-file-system';
 import { formatCurrency } from '@/lib/formatCurrency';
 import { useCreditsStore } from '@/stores/creditsStore';
@@ -252,16 +252,10 @@ export default function CreditDetailScreen() {
     if (!credit?.imageUrl) return;
     setDownloading(true);
     try {
-      const { status } = await MediaLibrary.requestPermissionsAsync();
-      if (status !== 'granted') {
-        Alert.alert(t('common.error'), t('credit.image.permissionDenied'));
-        return;
-      }
       const filename = `redeemy-${credit.storeName.replace(/\s+/g, '-')}-${Date.now()}.jpg`;
       const dest = new File(Paths.cache, filename);
       const downloaded = await File.downloadFileAsync(credit.imageUrl, dest);
-      await MediaLibrary.saveToLibraryAsync(downloaded.uri);
-      Alert.alert(t('credit.image.savedTitle'), t('credit.image.savedMessage'));
+      await Sharing.shareAsync(downloaded.uri, { mimeType: 'image/jpeg', UTI: 'public.jpeg' });
     } catch {
       Alert.alert(t('common.error'), t('credit.image.saveError'));
     } finally {
