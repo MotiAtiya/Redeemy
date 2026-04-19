@@ -182,7 +182,11 @@
     },
     "action": {
       "edit": "Edit",
-      "delete": "Delete"
+      "delete": "Delete",
+      "restore": "Restore to Active"
+    },
+    "restore": {
+      "error": "Could not restore credit. Try again."
     },
     "detail": {
       "category": "Category",

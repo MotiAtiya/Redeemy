@@ -241,6 +241,22 @@ export default function CreditDetailScreen() {
     setShowActionSheet(false);
   }
 
+  async function handleRestore() {
+    setShowActionSheet(false);
+    const c = credit!;
+    setLoading(true);
+    try {
+      updateCreditInStore(c.id, { status: CreditStatus.ACTIVE, redeemedAt: undefined });
+      await updateCredit(c.id, { status: CreditStatus.ACTIVE, redeemedAt: null as any });
+      router.back();
+    } catch {
+      updateCreditInStore(c.id, { status: CreditStatus.REDEEMED, redeemedAt: c.redeemedAt });
+      Alert.alert(t('common.error'), t('credit.restore.error'));
+    } finally {
+      setLoading(false);
+    }
+  }
+
   const expirationDate = credit.expirationDate instanceof Date
     ? credit.expirationDate
     : new Date(credit.expirationDate as unknown as string);
@@ -414,6 +430,12 @@ export default function CreditDetailScreen() {
             <TouchableOpacity style={styles.actionSheetButton} onPress={handleEdit}>
               <Ionicons name="create-outline" size={22} color={colors.textPrimary} />
               <Text style={[styles.actionSheetLabel, { color: colors.textPrimary }]}>{t('credit.action.edit')}</Text>
+            </TouchableOpacity>
+          )}
+          {credit.status === CreditStatus.REDEEMED && (
+            <TouchableOpacity style={styles.actionSheetButton} onPress={handleRestore}>
+              <Ionicons name="refresh-outline" size={22} color={colors.primary} />
+              <Text style={[styles.actionSheetLabel, { color: colors.primary }]}>{t('credit.action.restore')}</Text>
             </TouchableOpacity>
           )}
           <TouchableOpacity style={styles.actionSheetButton} onPress={handleDelete}>
