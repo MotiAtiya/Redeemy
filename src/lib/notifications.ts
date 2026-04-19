@@ -67,9 +67,10 @@ export async function scheduleReminderNotification(
   await cancelNotification(existingNotificationId);
   await cancelNotification(existingExpirationNotificationId);
 
-  // --- Reminder notification (X days before expiration) ---
+  // --- Reminder notification (X days before expiration, at user's preferred time) ---
   const triggerDate = new Date(credit.expirationDate);
   triggerDate.setDate(triggerDate.getDate() - credit.reminderDays);
+  triggerDate.setHours(notificationHour, notificationMinute, 0, 0);
 
   let reminderId: string | null = null;
   if (triggerDate > now) {
