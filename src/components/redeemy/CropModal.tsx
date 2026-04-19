@@ -12,6 +12,7 @@ import {
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { Image } from 'expo-image';
+import { Ionicons } from '@expo/vector-icons';
 import * as ImageManipulator from 'expo-image-manipulator';
 
 const HANDLE_SIZE = 30;
@@ -50,19 +51,23 @@ function clamp(rect: Rect, bounds: Rect): Rect {
 
 export function CropModal({ uri, onCrop, onCancel }: Props) {
   const { t } = useTranslation();
+  const [currentUri, setCurrentUri] = useState(uri);
   const [containerSize, setContainerSize] = useState<Size | null>(null);
   const [naturalSize, setNaturalSize] = useState<Size | null>(null);
   const [cropRect, setCropRect] = useState<Rect | null>(null);
   const [cropping, setCropping] = useState(false);
+  const [rotating, setRotating] = useState(false);
 
   // Refs so PanResponder closures always see current values
   const cropRef = useRef<Rect | null>(null);
   const imageRectRef = useRef<Rect | null>(null);
 
-  // Get natural image dimensions
+  // Get natural image dimensions whenever the URI changes (e.g. after rotation).
+  // Reset first so imageRect becomes null while we wait → prevents stale crop init.
   useEffect(() => {
-    RNImage.getSize(uri, (w, h) => setNaturalSize({ width: w, height: h }));
-  }, [uri]);
+    setNaturalSize(null);
+    RNImage.getSize(currentUri, (w, h) => setNaturalSize({ width: w, height: h }));
+  }, [currentUri]);
 
   // Recalculate image display rect when inputs change
   const imageRect =
@@ -73,20 +78,23 @@ export function CropModal({ uri, onCrop, onCancel }: Props) {
     imageRectRef.current = imageRect;
   }, [imageRect]);
 
-  // Initialise crop rect to image bounds (with padding) on first layout
+  // Initialise (or re-initialise after rotation) crop rect to image bounds with padding.
+  // Triggers whenever imageRect changes — which happens both on first load and after
+  // rotation (URI change → naturalSize reset → new naturalSize → new imageRect).
   useEffect(() => {
-    if (imageRect && !cropRef.current) {
-      const pad = 24;
-      const r: Rect = {
-        x: imageRect.x + pad,
-        y: imageRect.y + pad,
-        width: imageRect.width - pad * 2,
-        height: imageRect.height - pad * 2,
-      };
-      cropRef.current = r;
-      setCropRect(r);
-    }
-  }, [imageRect]);
+    if (!imageRect) return;
+    const pad = 24;
+    const r: Rect = {
+      x: imageRect.x + pad,
+      y: imageRect.y + pad,
+      width: imageRect.width - pad * 2,
+      height: imageRect.height - pad * 2,
+    };
+    cropRef.current = r;
+    setCropRect(r);
+  // imageRect is stable-by-value but object-by-reference; key fields drive the reset
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [imageRect?.x, imageRect?.y, imageRect?.width, imageRect?.height]);
 
   // In RTL mode PanResponder inverts both dx and dy — negate them back to physical coords
   const isRTL = I18nManager.isRTL;
@@ -163,6 +171,23 @@ export function CropModal({ uri, onCrop, onCancel }: Props) {
     move: makeMovePan(),
   }).current;
 
+  async function handleRotate() {
+    if (rotating) return;
+    setRotating(true);
+    try {
+      const result = await ImageManipulator.manipulateAsync(
+        currentUri,
+        [{ rotate: 90 }],
+        { compress: 1, format: ImageManipulator.SaveFormat.JPEG }
+      );
+      // Reset crop rect so it recalculates for the new orientation
+      cropRef.current = null;
+      setCurrentUri(result.uri);
+    } finally {
+      setRotating(false);
+    }
+  }
+
   async function handleCrop() {
     const rect = cropRef.current;
     const imgRect = imageRectRef.current;
@@ -181,7 +206,7 @@ export function CropModal({ uri, onCrop, onCancel }: Props) {
 
     try {
       const result = await ImageManipulator.manipulateAsync(
-        uri,
+        currentUri,
         [{ crop }],
         { compress: 1, format: ImageManipulator.SaveFormat.JPEG }
       );
@@ -201,7 +226,7 @@ export function CropModal({ uri, onCrop, onCancel }: Props) {
           style={styles.imageArea}
           onLayout={(e) => setContainerSize(e.nativeEvent.layout)}
         >
-          <Image source={{ uri }} style={StyleSheet.absoluteFill} contentFit="contain" />
+          <Image source={{ uri: currentUri }} style={StyleSheet.absoluteFill} contentFit="contain" />
 
           {cropRect && (
             <>
@@ -265,14 +290,23 @@ export function CropModal({ uri, onCrop, onCancel }: Props) {
 
         {/* Toolbar */}
         <View style={styles.toolbar}>
-          <TouchableOpacity onPress={onCancel} style={styles.toolbarBtn} disabled={cropping}>
+          <TouchableOpacity onPress={onCancel} style={styles.toolbarBtn} disabled={cropping || rotating}>
             <Text style={styles.cancelText}>{t('crop.cancel')}</Text>
           </TouchableOpacity>
-          <Text style={styles.hint}>{t('crop.hint')}</Text>
+          <TouchableOpacity
+            onPress={handleRotate}
+            style={styles.toolbarBtn}
+            disabled={cropping || rotating}
+          >
+            {rotating
+              ? <ActivityIndicator color="#AAAAAA" size="small" />
+              : <Ionicons name="refresh-outline" size={22} color="#AAAAAA" />
+            }
+          </TouchableOpacity>
           <TouchableOpacity
             onPress={handleCrop}
             style={styles.toolbarBtn}
-            disabled={!cropRect || cropping}
+            disabled={!cropRect || cropping || rotating}
           >
             {cropping
               ? <ActivityIndicator color="#FFFFFF" size="small" />

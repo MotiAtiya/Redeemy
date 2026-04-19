@@ -203,8 +203,10 @@
     "titleAdd": "Add Credit",
     "titleEdit": "Edit Credit",
     "save": "Save",
-    "takePhoto": "Take Photo",
+    "continue": "Continue",
+    "takePhoto": "Open Camera",
     "chooseGallery": "Choose from Gallery",
+    "retakePhoto": "Retake Photo",
     "storeName": "Store Name",
     "amount": "Amount",
     "category": "Category",
@@ -213,7 +215,42 @@
     "noExpiry": "No expiration date",
     "reminder": "Reminder",
     "notes": "Notes",
-    "notesPlaceholder": "Optional — any extra info about this credit",
+    "notesPlaceholder": "Any extra info you want to remember…",
+    "notesYes": "Yes, add a note",
+    "notesNo": "Skip",
+    "noPhotoYet": "No photo taken yet",
+    "step": {
+      "storeName": "Store Name",
+      "category": "Category",
+      "amount": "Credit Amount",
+      "expiryDate": "Expiration Date",
+      "reminder": "Reminder",
+      "photo": "Photo",
+      "notesQuestion": "Notes",
+      "notesInput": "Notes",
+      "summary": "Looking good?"
+    },
+    "stepSub": {
+      "storeName": "Type the store or chain name",
+      "category": "Choose the right category",
+      "amount": "Don't lose the pennies",
+      "expiryDate": "When does this credit expire?",
+      "reminder": "How long before expiry should we remind you?",
+      "photo": "Take a photo of your credit slip",
+      "notesQuestion": "Would you like to add a note?",
+      "notesInput": "Write any info you want to remember",
+      "summary": "Review all details before saving"
+    },
+    "summary": {
+      "store": "Store",
+      "amount": "Amount",
+      "category": "Category",
+      "expiry": "Expires",
+      "noExpiry": "No expiration",
+      "reminder": "Reminder",
+      "notes": "Notes",
+      "photo": "Photo"
+    },
     "offline": {
       "adding": "Adding credits requires an internet connection.",
       "editing": "Editing credits requires an internet connection."
@@ -229,7 +266,8 @@
       "amountInvalid": "Enter a valid positive amount",
       "categoryRequired": "Category is required",
       "dateRequired": "Expiration date is required",
-      "datePast": "Expiration date must be in the future"
+      "datePast": "Expiration date must be in the future",
+      "photoRequired": "A photo is required"
     }
   },
   "credit": {

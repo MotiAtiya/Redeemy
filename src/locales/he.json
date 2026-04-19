@@ -203,8 +203,10 @@
     "titleAdd": "הוסף זיכוי",
     "titleEdit": "ערוך זיכוי",
     "save": "שמור",
-    "takePhoto": "צלם תמונה",
+    "continue": "המשך",
+    "takePhoto": "פתח מצלמה",
     "chooseGallery": "בחר מהגלריה",
+    "retakePhoto": "צלם מחדש",
     "storeName": "שם החנות",
     "amount": "סכום",
     "category": "קטגוריה",
@@ -212,7 +214,42 @@
     "noExpiry": "ללא תאריך תפוגה",
     "reminder": "תזכורת",
     "notes": "הערות",
-    "notesPlaceholder": "אופציונלי — מידע נוסף על הזיכוי",
+    "notesPlaceholder": "מידע נוסף שתרצה לזכור…",
+    "notesYes": "כן, אוסיף הערה",
+    "notesNo": "דלג",
+    "noPhotoYet": "טרם צולמה תמונה",
+    "step": {
+      "storeName": "שם החנות",
+      "category": "קטגוריה",
+      "amount": "סכום הזיכוי",
+      "expiryDate": "תאריך תפוגה",
+      "reminder": "תזכורת",
+      "photo": "תמונה",
+      "notesQuestion": "הערות",
+      "notesInput": "הערות",
+      "summary": "הכל נראה טוב?"
+    },
+    "stepSub": {
+      "storeName": "הקלד את שם החנות או הרשת",
+      "category": "בחר את הקטגוריה המתאימה",
+      "amount": "לא לזלזל באגורות",
+      "expiryDate": "מתי פוגה הזיכוי?",
+      "reminder": "כמה זמן לפני שתרצה לקבל תזכורת?",
+      "photo": "צלם את תעודת הזיכוי",
+      "notesQuestion": "האם ברצונך להוסיף הערה?",
+      "notesInput": "כתוב כל מידע שתרצה לזכור",
+      "summary": "בדוק את כל הפרטים לפני השמירה"
+    },
+    "summary": {
+      "store": "חנות",
+      "amount": "סכום",
+      "category": "קטגוריה",
+      "expiry": "תפוגה",
+      "noExpiry": "ללא תפוגה",
+      "reminder": "תזכורת",
+      "notes": "הערות",
+      "photo": "תמונה"
+    },
     "offline": {
       "adding": "הוספת זיכויים דורשת חיבור לאינטרנט.",
       "editing": "עריכת זיכויים דורשת חיבור לאינטרנט."
@@ -228,7 +265,8 @@
       "amountInvalid": "הכנס סכום חיובי תקין",
       "categoryRequired": "נדרשת קטגוריה",
       "dateRequired": "נדרש תאריך תפוגה",
-      "datePast": "תאריך התפוגה חייב להיות בעתיד"
+      "datePast": "תאריך התפוגה חייב להיות בעתיד",
+      "photoRequired": "נדרשת תמונה"
     }
   },
   "credit": {

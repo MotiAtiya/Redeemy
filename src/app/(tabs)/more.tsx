@@ -421,14 +421,6 @@ export default function MoreScreen() {
               </View>
               <Ionicons name={isRTL ? 'chevron-back' : 'chevron-forward'} size={16} color={colors.textTertiary} />
             </TouchableOpacity>
-            <View style={styles.separator} />
-            <View style={styles.aboutRow}>
-              <Ionicons name="code-slash-outline" size={20} color={colors.textSecondary} />
-              <View style={{ flex: 1 }}>
-                <Text style={styles.aboutLabel}>{t('more.about.madeWith')}</Text>
-              </View>
-              <Text style={styles.aboutValue}>{t('more.about.tech')}</Text>
-            </View>
           </View>
         </View>
 
