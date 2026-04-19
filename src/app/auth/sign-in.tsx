@@ -242,7 +242,7 @@ export default function SignInScreen() {
                 hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
               >
                 <Ionicons
-                  name={showPassword ? 'eye-off-outline' : 'eye-outline'}
+                  name={showPassword ? 'eye-outline' : 'eye-off-outline'}
                   size={20}
                   color={colors.textTertiary}
                 />

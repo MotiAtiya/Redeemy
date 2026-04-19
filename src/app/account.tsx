@@ -414,7 +414,7 @@ export default function AccountScreen() {
                 returnKeyType="next"
               />
               <TouchableOpacity onPress={() => setShowCurrentPwd((s) => !s)} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
-                <Ionicons name={showCurrentPwd ? 'eye-off-outline' : 'eye-outline'} size={20} color={colors.textTertiary} />
+                <Ionicons name={showCurrentPwd ? 'eye-outline' : 'eye-off-outline'} size={20} color={colors.textTertiary} />
               </TouchableOpacity>
             </View>
             {currentPasswordError ? <Text style={styles.sheetErrorText}>{currentPasswordError}</Text> : null}
@@ -431,7 +431,7 @@ export default function AccountScreen() {
                 returnKeyType="next"
               />
               <TouchableOpacity onPress={() => setShowNewPwd((s) => !s)} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
-                <Ionicons name={showNewPwd ? 'eye-off-outline' : 'eye-outline'} size={20} color={colors.textTertiary} />
+                <Ionicons name={showNewPwd ? 'eye-outline' : 'eye-off-outline'} size={20} color={colors.textTertiary} />
               </TouchableOpacity>
             </View>
             {newPasswordError ? <Text style={styles.sheetErrorText}>{newPasswordError}</Text> : null}
@@ -449,7 +449,7 @@ export default function AccountScreen() {
                 onSubmitEditing={handleSavePassword}
               />
               <TouchableOpacity onPress={() => setShowConfirmPwd((s) => !s)} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
-                <Ionicons name={showConfirmPwd ? 'eye-off-outline' : 'eye-outline'} size={20} color={colors.textTertiary} />
+                <Ionicons name={showConfirmPwd ? 'eye-outline' : 'eye-off-outline'} size={20} color={colors.textTertiary} />
               </TouchableOpacity>
             </View>
             {confirmPasswordError ? <Text style={styles.sheetErrorText}>{confirmPasswordError}</Text> : null}
