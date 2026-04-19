@@ -80,26 +80,6 @@ export async function scheduleReminderNotification(
 }
 
 /**
- * Schedules a test notification to fire in 10 seconds.
- * For development/testing purposes only.
- */
-export async function scheduleTestNotification(): Promise<void> {
-  const granted = await requestNotificationPermission();
-  if (!granted) return;
-
-  await Notifications.scheduleNotificationAsync({
-    content: {
-      title: '🧪 Test Notification',
-      body: 'Notifications are working correctly!',
-    },
-    trigger: {
-      type: Notifications.SchedulableTriggerInputTypes.TIME_INTERVAL,
-      seconds: 10,
-    },
-  });
-}
-
-/**
  * Cancels a scheduled notification by ID. Safe to call with undefined.
  */
 export async function cancelNotification(
