@@ -20,6 +20,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { ExpirationBadge } from '@/components/redeemy/ExpirationBadge';
 import { deleteCredit, updateCredit } from '@/lib/firestoreCredits';
 import { cancelNotification } from '@/lib/notifications';
+import { ConfirmDialog } from '@/components/redeemy/ConfirmDialog';
 import { formatCurrency } from '@/lib/formatCurrency';
 import { useCreditsStore } from '@/stores/creditsStore';
 import { useAuthStore } from '@/stores/authStore';
@@ -157,6 +158,8 @@ export default function CreditDetailScreen() {
 
   const [showActionSheet, setShowActionSheet] = useState(false);
   const [showFullscreenImage, setShowFullscreenImage] = useState(false);
+  const [showRedeemedDialog, setShowRedeemedDialog] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [loading, setLoading] = useState(false);
   const afterDismissRef = useRef<(() => void) | null>(null);
   const isRedeemed = credit?.status === CreditStatus.REDEEMED;
@@ -179,61 +182,52 @@ export default function CreditDetailScreen() {
     );
   }
 
-  async function handleMarkRedeemed() {
+  function handleMarkRedeemed() {
     if (useUIStore.getState().offlineMode) {
       Alert.alert(t('offline.title'), t('credit.markRedeemed.offlineMessage'));
       return;
     }
-    const c = credit!;
-    Alert.alert(t('credit.markRedeemed.title'), t('credit.markRedeemed.message'), [
-      { text: t('common.cancel'), style: 'cancel' },
-      {
-        text: t('credit.markRedeemed.confirm'),
-        onPress: async () => {
-          setLoading(true);
-          try {
-            await cancelNotification(c.notificationId);
-            updateCreditInStore(c.id, { status: CreditStatus.REDEEMED, redeemedAt: new Date() });
-            await updateCredit(c.id, { status: CreditStatus.REDEEMED, redeemedAt: new Date() });
-            router.back();
-          } catch {
-            updateCreditInStore(c.id, { status: CreditStatus.ACTIVE });
-            Alert.alert(t('common.error'), t('credit.markRedeemed.error'));
-          } finally {
-            setLoading(false);
-          }
-        },
-      },
-    ]);
+    setShowRedeemedDialog(true);
   }
 
-  async function handleDelete() {
+  async function doMarkRedeemed() {
+    const c = credit!;
+    setLoading(true);
+    try {
+      await cancelNotification(c.notificationId);
+      updateCreditInStore(c.id, { status: CreditStatus.REDEEMED, redeemedAt: new Date() });
+      await updateCredit(c.id, { status: CreditStatus.REDEEMED, redeemedAt: new Date() });
+      router.back();
+    } catch {
+      updateCreditInStore(c.id, { status: CreditStatus.ACTIVE });
+      Alert.alert(t('common.error'), t('credit.markRedeemed.error'));
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  function handleDelete() {
     if (useUIStore.getState().offlineMode) {
       setShowActionSheet(false);
       Alert.alert(t('offline.title'), t('credit.delete.offlineMessage'));
       return;
     }
-    const c = credit!;
     setShowActionSheet(false);
-    Alert.alert(t('credit.delete.title'), t('credit.delete.message', { storeName: c.storeName }), [
-      { text: t('common.cancel'), style: 'cancel' },
-      {
-        text: t('credit.delete.button'),
-        style: 'destructive',
-        onPress: async () => {
-          setLoading(true);
-          try {
-            await cancelNotification(c.notificationId);
-            removeCredit(c.id);
-            await deleteCredit(c.id);
-            router.back();
-          } catch {
-            setLoading(false);
-            Alert.alert(t('common.error'), t('credit.delete.error'));
-          }
-        },
-      },
-    ]);
+    setShowDeleteDialog(true);
+  }
+
+  async function doDelete() {
+    const c = credit!;
+    setLoading(true);
+    try {
+      await cancelNotification(c.notificationId);
+      removeCredit(c.id);
+      await deleteCredit(c.id);
+      router.back();
+    } catch {
+      setLoading(false);
+      Alert.alert(t('common.error'), t('credit.delete.error'));
+    }
   }
 
   function handleEdit() {
@@ -423,6 +417,28 @@ export default function CreditDetailScreen() {
           </TouchableOpacity>
         </View>
       </Modal>
+
+      <ConfirmDialog
+        visible={showRedeemedDialog}
+        title={t('credit.markRedeemed.title')}
+        message={t('credit.markRedeemed.message')}
+        onDismiss={() => setShowRedeemedDialog(false)}
+        buttons={[
+          { text: t('common.cancel'), style: 'cancel' },
+          { text: t('credit.markRedeemed.confirm'), onPress: doMarkRedeemed },
+        ]}
+      />
+
+      <ConfirmDialog
+        visible={showDeleteDialog}
+        title={t('credit.delete.title')}
+        message={t('credit.delete.message', { storeName: credit?.storeName ?? '' })}
+        onDismiss={() => setShowDeleteDialog(false)}
+        buttons={[
+          { text: t('common.cancel'), style: 'cancel' },
+          { text: t('credit.delete.button'), style: 'destructive', onPress: doDelete },
+        ]}
+      />
     </SafeAreaView>
   );
 }

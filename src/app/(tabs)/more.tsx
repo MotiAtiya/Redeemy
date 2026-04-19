@@ -15,6 +15,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import { signOut } from '@/lib/auth';
+import { ConfirmDialog } from '@/components/redeemy/ConfirmDialog';
 import { useAuthStore } from '@/stores/authStore';
 import { useCreditsStore } from '@/stores/creditsStore';
 import { useUIStore } from '@/stores/uiStore';
@@ -211,30 +212,26 @@ export default function MoreScreen() {
   const setLanguage = useSettingsStore((s) => s.setLanguage);
 
   const [signingOut, setSigningOut] = useState(false);
+  const [showSignOutDialog, setShowSignOutDialog] = useState(false);
   const [showAppearanceSheet, setShowAppearanceSheet] = useState(false);
   const [showLanguageSheet, setShowLanguageSheet] = useState(false);
 
   const themeModeLabel = THEME_OPTIONS.find((o) => o.mode === themeMode)?.label ?? t('more.theme.system');
   const languageLabel = LANGUAGE_OPTIONS.find((o) => o.value === language)?.label ?? t('more.language.system');
 
-  async function handleSignOut() {
-    Alert.alert(t('more.signOut.title'), t('more.signOut.message'), [
-      { text: t('common.cancel'), style: 'cancel' },
-      {
-        text: t('more.signOut.button'),
-        style: 'destructive',
-        onPress: async () => {
-          setSigningOut(true);
-          try {
-            resetAllStores();
-            await signOut();
-          } catch {
-            setSigningOut(false);
-            Alert.alert(t('common.error'), t('more.signOut.error'));
-          }
-        },
-      },
-    ]);
+  async function doSignOut() {
+    setSigningOut(true);
+    try {
+      resetAllStores();
+      await signOut();
+    } catch {
+      setSigningOut(false);
+      Alert.alert(t('common.error'), t('more.signOut.error'));
+    }
+  }
+
+  function handleSignOut() {
+    setShowSignOutDialog(true);
   }
 
   async function handleLanguageChange(newLang: AppLanguage) {
@@ -454,6 +451,17 @@ export default function MoreScreen() {
           ))}
         </View>
       </Modal>
+
+      <ConfirmDialog
+        visible={showSignOutDialog}
+        title={t('more.signOut.title')}
+        message={t('more.signOut.message')}
+        onDismiss={() => setShowSignOutDialog(false)}
+        buttons={[
+          { text: t('common.cancel'), style: 'cancel' },
+          { text: t('more.signOut.button'), style: 'destructive', onPress: doSignOut },
+        ]}
+      />
     </SafeAreaView>
   );
 }
