@@ -175,7 +175,7 @@ export default function AddCreditScreen() {
   const isEditing = !!creditId;
   const colors = useAppTheme();
   const { t, i18n } = useTranslation();
-  useSettingsStore((s) => s.dateFormat); // subscribe to trigger re-render on format change
+  const dateFormat = useSettingsStore((s) => s.dateFormat);
   const isRTL = i18n.language.startsWith('he');
   const styles = useMemo(() => makeStyles(colors, isRTL), [colors, isRTL]);
 
@@ -467,7 +467,7 @@ export default function AddCreditScreen() {
                 >
                   <Ionicons name="calendar-outline" size={18} color={colors.textSecondary} />
                   <Text style={[styles.dateButtonText, !expirationDate && styles.datePlaceholder]}>
-                    {expirationDate ? formatDate(expirationDate) : t('addCredit.datePlaceholder')}
+                    {expirationDate ? formatDate(expirationDate, dateFormat) : t('addCredit.datePlaceholder')}
                   </Text>
                 </TouchableOpacity>
                 {errors.expirationDate ? <Text style={styles.errorText}>{errors.expirationDate}</Text> : null}

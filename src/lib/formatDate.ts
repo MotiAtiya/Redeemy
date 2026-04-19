@@ -1,11 +1,11 @@
-import { useSettingsStore } from '@/stores/settingsStore';
+import type { DateFormat } from '@/stores/settingsStore';
 
 /**
- * Formats a Date using the user's chosen date format from settingsStore.
- * DD/MM/YYYY (default) or MM/DD/YYYY.
+ * Pure function — formats a Date using the provided format string.
+ * Pass `dateFormat` from `useSettingsStore((s) => s.dateFormat)` so the
+ * calling component re-renders reactively when the setting changes.
  */
-export function formatDate(date: Date): string {
-  const fmt = useSettingsStore.getState().dateFormat;
+export function formatDate(date: Date, fmt: DateFormat): string {
   const dd = String(date.getDate()).padStart(2, '0');
   const mm = String(date.getMonth() + 1).padStart(2, '0');
   const yyyy = date.getFullYear();

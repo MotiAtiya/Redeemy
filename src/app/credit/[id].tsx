@@ -163,7 +163,7 @@ export default function CreditDetailScreen() {
   const styles = useMemo(() => makeStyles(colors), [colors]);
   const { t } = useTranslation();
   const isRTL = I18nManager.isRTL;
-  useSettingsStore((s) => s.dateFormat); // subscribe to trigger re-render on format change
+  const dateFormat = useSettingsStore((s) => s.dateFormat);
 
   const credit = useCreditsStore((s) => s.credits.find((c) => c.id === id));
   const removeCredit = useCreditsStore((s) => s.removeCredit);
@@ -351,7 +351,7 @@ export default function CreditDetailScreen() {
             <View style={styles.detailRowContent}>
               <Text style={styles.detailLabel}>{t('credit.detail.expires')}</Text>
               <Text style={styles.detailValue}>
-                {expirationDate ? formatDate(expirationDate) : t('credit.detail.noExpiry')}
+                {expirationDate ? formatDate(expirationDate, dateFormat) : t('credit.detail.noExpiry')}
               </Text>
             </View>
           </View>
@@ -384,7 +384,7 @@ export default function CreditDetailScreen() {
             <Ionicons name="time-outline" size={18} color={colors.textTertiary} />
             <View style={styles.detailRowContent}>
               <Text style={styles.detailLabel}>{t('credit.detail.added')}</Text>
-              <Text style={styles.detailValue}>{formatDate(new Date(credit.createdAt as Date))}</Text>
+              <Text style={styles.detailValue}>{formatDate(new Date(credit.createdAt as Date), dateFormat)}</Text>
             </View>
           </View>
         </View>
@@ -396,7 +396,7 @@ export default function CreditDetailScreen() {
             <Ionicons name="checkmark-circle" size={18} color={colors.textTertiary} />
             <Text style={styles.redeemedBannerText}>
               {credit.redeemedAt
-                ? t('credit.redeemedOn', { date: formatDate(new Date(credit.redeemedAt as Date)) })
+                ? t('credit.redeemedOn', { date: formatDate(new Date(credit.redeemedAt as Date), dateFormat) })
                 : t('credit.redeemed')}
             </Text>
           </View>

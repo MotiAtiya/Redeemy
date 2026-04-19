@@ -78,16 +78,16 @@ export function CreditCard({ credit, onPress, variant = 'active' }: Props) {
   const colors = useAppTheme();
   const styles = useMemo(() => makeStyles(colors), [colors]);
   const { t } = useTranslation();
-  useSettingsStore((s) => s.dateFormat); // subscribe to trigger re-render on format change
+  const dateFormat = useSettingsStore((s) => s.dateFormat);
 
   const categoryMeta = CATEGORIES.find((c) => c.id === credit.category);
   const dimmed = variant === 'redeemed' || variant === 'expired';
 
   const badgeDate = (() => {
     if (variant === 'redeemed' && credit.redeemedAt)
-      return formatDate(new Date(credit.redeemedAt as Date));
+      return formatDate(new Date(credit.redeemedAt as Date), dateFormat);
     if (variant === 'expired' && credit.expiredAt)
-      return formatDate(new Date(credit.expiredAt as Date));
+      return formatDate(new Date(credit.expiredAt as Date), dateFormat);
     return null;
   })();
 
