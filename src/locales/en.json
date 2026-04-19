@@ -101,7 +101,7 @@
     "signIn": {
       "title": "Sign in",
       "button": "Sign in",
-      \"noAccount\": \"Don't have an account?\",
+      "noAccount": "Don't have an account?",
       "createLink": "Create Account"
     },
     "signUp": {
