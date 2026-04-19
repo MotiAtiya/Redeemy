@@ -253,7 +253,11 @@ export default function HistoryScreen() {
         data={filtered}
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => (
-          <CreditCard credit={item} variant="redeemed" onPress={() => router.push(`/credit/${item.id}`)} />
+          <CreditCard
+            credit={item}
+            variant={item.status === 'expired' ? 'expired' : 'redeemed'}
+            onPress={() => router.push(`/credit/${item.id}`)}
+          />
         )}
         ListEmptyComponent={
           <View style={styles.emptyState}>

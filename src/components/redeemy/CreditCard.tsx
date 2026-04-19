@@ -13,8 +13,8 @@ import type { AppColors } from '@/constants/colors';
 interface Props {
   credit: Credit;
   onPress: () => void;
-  /** Muted styling for redeemed credits */
-  variant?: 'active' | 'redeemed';
+  /** Muted styling for redeemed/expired credits */
+  variant?: 'active' | 'redeemed' | 'expired';
 }
 
 function makeStyles(colors: AppColors) {
@@ -78,12 +78,15 @@ export function CreditCard({ credit, onPress, variant = 'active' }: Props) {
   const { t } = useTranslation();
 
   const categoryMeta = CATEGORIES.find((c) => c.id === credit.category);
-  const dimmed = variant === 'redeemed';
+  const dimmed = variant === 'redeemed' || variant === 'expired';
 
-  const redeemedDate =
-    dimmed && credit.redeemedAt
-      ? new Date(credit.redeemedAt as Date).toLocaleDateString('en-GB')
-      : null;
+  const badgeDate = (() => {
+    if (variant === 'redeemed' && credit.redeemedAt)
+      return new Date(credit.redeemedAt as Date).toLocaleDateString('en-GB');
+    if (variant === 'expired' && credit.expiredAt)
+      return new Date(credit.expiredAt as Date).toLocaleDateString('en-GB');
+    return null;
+  })();
 
   return (
     <TouchableOpacity
@@ -131,9 +134,13 @@ export function CreditCard({ credit, onPress, variant = 'active' }: Props) {
               </View>
             )}
             {dimmed ? (
-              redeemedDate ? (
+              badgeDate ? (
                 <View style={styles.redeemedBadge}>
-                  <Text style={styles.redeemedBadgeText}>{t('creditCard.redeemed', { date: redeemedDate })}</Text>
+                  <Text style={styles.redeemedBadgeText}>
+                    {variant === 'expired'
+                      ? t('creditCard.expired', { date: badgeDate })
+                      : t('creditCard.redeemed', { date: badgeDate })}
+                  </Text>
                 </View>
               ) : null
             ) : (

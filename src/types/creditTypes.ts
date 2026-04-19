@@ -3,6 +3,7 @@ import type { Timestamp } from 'firebase/firestore';
 export enum CreditStatus {
   ACTIVE = 'active',
   REDEEMED = 'redeemed',
+  EXPIRED = 'expired',
 }
 
 /**
@@ -33,6 +34,8 @@ export interface Credit {
   updatedAt: Date | Timestamp;
   /** Set when status transitions to REDEEMED */
   redeemedAt?: Date | Timestamp;
+  /** Set when status transitions to EXPIRED */
+  expiredAt?: Date | Timestamp;
 }
 
 /**

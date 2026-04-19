@@ -27,8 +27,11 @@ export function sortCreditsHistory(credits: Credit[], key: HistorySortKey): Cred
   return [...credits].sort((a, b) => {
     switch (key) {
       case 'redeemedAt': {
-        const aT = a.redeemedAt ? new Date(a.redeemedAt as Date).getTime() : 0;
-        const bT = b.redeemedAt ? new Date(b.redeemedAt as Date).getTime() : 0;
+        // Use expiredAt for expired credits, redeemedAt for redeemed credits
+        const aDate = a.redeemedAt ?? a.expiredAt;
+        const bDate = b.redeemedAt ?? b.expiredAt;
+        const aT = aDate ? new Date(aDate as Date).getTime() : 0;
+        const bT = bDate ? new Date(bDate as Date).getTime() : 0;
         return bT - aT;
       }
       case 'storeName':
@@ -67,11 +70,14 @@ export function filterHistoryCredits(
   selectedCategories: string[]
 ): Credit[] {
   const rangeStart = dateRangeStart(dateRange);
-  let result = credits.filter((c) => c.status === CreditStatus.REDEEMED);
+  let result = credits.filter(
+    (c) => c.status === CreditStatus.REDEEMED || c.status === CreditStatus.EXPIRED
+  );
 
   result = result.filter((c) => {
-    if (!c.redeemedAt) return false;
-    return new Date(c.redeemedAt as Date) >= rangeStart;
+    const date = c.redeemedAt ?? c.expiredAt;
+    if (!date) return false;
+    return new Date(date as Date) >= rangeStart;
   });
 
   if (searchQuery.trim()) {

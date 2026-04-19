@@ -210,7 +210,8 @@
     "months": "{{months}}mo left"
   },
   "creditCard": {
-    "redeemed": "Redeemed {{date}}"
+    "redeemed": "Redeemed {{date}}",
+    "expired": "Expired {{date}}"
   },
   "crop": {
     "cancel": "Cancel",

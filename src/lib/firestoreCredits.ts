@@ -46,11 +46,24 @@ export function subscribeToCredits(userId: string): Unsubscribe {
           createdAt: data.createdAt?.toDate?.() ?? new Date(data.createdAt),
           updatedAt: data.updatedAt?.toDate?.() ?? new Date(data.updatedAt),
           redeemedAt: data.redeemedAt?.toDate?.() ?? undefined,
+          expiredAt: data.expiredAt?.toDate?.() ?? undefined,
         } as Credit;
       });
 
       useCreditsStore.getState().setCredits(credits);
       useCreditsStore.getState().setLoading(false);
+
+      // Auto-expire: any ACTIVE credit whose expiration date is before today
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const toExpire = credits.filter(
+        (c) => c.status === CreditStatus.ACTIVE && new Date(c.expirationDate) < today
+      );
+      for (const c of toExpire) {
+        const expiredAt = new Date(c.expirationDate);
+        expiredAt.setHours(23, 59, 59, 999);
+        updateCredit(c.id, { status: CreditStatus.EXPIRED, expiredAt });
+      }
     },
     (_error) => {
       useCreditsStore.getState().setError('Could not load credits. Check your connection.');

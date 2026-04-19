@@ -209,7 +209,8 @@
     "months": "נותרו {{months}} חודשים"
   },
   "creditCard": {
-    "redeemed": "מומש {{date}}"
+    "redeemed": "מומש {{date}}",
+    "expired": "פג תוקפו {{date}}"
   },
   "crop": {
     "cancel": "ביטול",
