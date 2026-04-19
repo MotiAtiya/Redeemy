@@ -85,7 +85,7 @@
       "ok": "OK"
     },
     "about": {
-      "tagline": "Never let a gift card expire",
+      "tagline": "Credits you won't forget",
       "contact": "Contact Support",
       "madeWith": "Made with",
       "tech": "React Native + Expo"
@@ -95,6 +95,23 @@
       "title": "Sign Out",
       "message": "Are you sure you want to sign out?",
       "error": "Could not sign out. Please try again."
+    },
+    "editName": {
+      "label": "Change Name",
+      "title": "Change Name",
+      "save": "Save"
+    },
+    "changePassword": {
+      "label": "Change Password",
+      "title": "Change Password",
+      "current": "Current Password",
+      "new": "New Password",
+      "confirm": "Confirm New Password",
+      "save": "Update Password",
+      "currentRequired": "Current password is required",
+      "wrongPassword": "Current password is incorrect",
+      "successTitle": "Password Updated",
+      "successMessage": "Your password has been changed successfully."
     },
     "deleteData": {
       "button": "Delete All Data",
@@ -106,8 +123,11 @@
       "error": "Could not delete data. Try again."
     }
   },
+  "account": {
+    "title": "Account"
+  },
   "auth": {
-    "tagline": "Your gift credits, organized.",
+    "tagline": "Credits you won't forget",
     "or": "or",
     "displayName": "Full Name",
     "email": "Email",
@@ -128,6 +148,15 @@
     },
     "google": "Continue with Google",
     "apple": "Continue with Apple",
+    "errors": {
+      "emailAlreadyInUse": "An account with this email already exists",
+      "invalidEmail": "Invalid email address",
+      "weakPassword": "Password is too weak",
+      "invalidCredential": "Incorrect email or password",
+      "tooManyRequests": "Too many attempts. Please try again later",
+      "networkError": "Network error. Check your connection",
+      "unexpected": "An unexpected error occurred. Please try again"
+    },
     "strength": {
       "weak": "Weak",
       "medium": "Medium",

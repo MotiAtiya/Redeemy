@@ -36,7 +36,8 @@ function makeStyles(colors: AppColors, isRTL: boolean) {
     container: { flex: 1, justifyContent: 'center', paddingHorizontal: 24 },
     header: { alignItems: 'center', marginBottom: 40 },
     logoImage: { width: 90, height: 90, borderRadius: 20 },
-    tagline: { fontSize: 14, color: colors.textSecondary, marginTop: 12 },
+    appName: { fontSize: 26, fontWeight: '700', color: colors.textPrimary, marginTop: 12 },
+    tagline: { fontSize: 14, color: colors.textSecondary, marginTop: 4 },
     form: { width: '100%' },
     title: { fontSize: 24, fontWeight: '600', color: colors.textPrimary, marginBottom: 24, alignSelf: 'flex-start' },
     fieldContainer: { marginBottom: 16 },
@@ -195,6 +196,7 @@ export default function SignInScreen() {
             style={styles.logoImage}
             contentFit="contain"
           />
+          <Text style={styles.appName}>Redeemy</Text>
           <Text style={styles.tagline}>{t('auth.tagline')}</Text>
         </View>
 

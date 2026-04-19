@@ -85,7 +85,7 @@
       "ok": "אישור"
     },
     "about": {
-      "tagline": "אל תן לכרטיס המתנה לפוג",
+      "tagline": "לא שוכחים זיכויים",
       "contact": "פנה לתמיכה",
       "madeWith": "פותח עם",
       "tech": "React Native + Expo"
@@ -95,6 +95,23 @@
       "title": "התנתקות",
       "message": "האם אתה בטוח שברצונך להתנתק?",
       "error": "לא ניתן להתנתק. נסה שנית."
+    },
+    "editName": {
+      "label": "שנה שם",
+      "title": "שנה שם",
+      "save": "שמור"
+    },
+    "changePassword": {
+      "label": "שנה סיסמה",
+      "title": "שנה סיסמה",
+      "current": "סיסמה נוכחית",
+      "new": "סיסמה חדשה",
+      "confirm": "אשר סיסמה חדשה",
+      "save": "עדכן סיסמה",
+      "currentRequired": "נדרשת סיסמה נוכחית",
+      "wrongPassword": "הסיסמה הנוכחית שגויה",
+      "successTitle": "הסיסמה עודכנה",
+      "successMessage": "הסיסמה שלך שונתה בהצלחה."
     },
     "deleteData": {
       "button": "מחק את כל הנתונים",
@@ -106,8 +123,11 @@
       "error": "לא ניתן למחוק את הנתונים. נסה שנית."
     }
   },
+  "account": {
+    "title": "חשבון"
+  },
   "auth": {
-    "tagline": "כרטיסי המתנה שלך, מאורגנים.",
+    "tagline": "לא שוכחים זיכויים",
     "or": "או",
     "displayName": "שם מלא",
     "email": "אימייל",
@@ -128,6 +148,15 @@
     },
     "google": "המשך עם Google",
     "apple": "המשך עם Apple",
+    "errors": {
+      "emailAlreadyInUse": "חשבון עם אימייל זה כבר קיים",
+      "invalidEmail": "כתובת אימייל לא תקינה",
+      "weakPassword": "הסיסמה חלשה מדי",
+      "invalidCredential": "אימייל או סיסמה שגויים",
+      "tooManyRequests": "יותר מדי ניסיונות. נסה שוב מאוחר יותר",
+      "networkError": "שגיאת רשת. בדוק את החיבור",
+      "unexpected": "אירעה שגיאה בלתי צפויה. נסה שוב"
+    },
     "strength": {
       "weak": "חלשה",
       "medium": "בינונית",

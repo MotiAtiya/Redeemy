@@ -3,6 +3,9 @@ import {
   signInWithEmailAndPassword,
   signInWithCredential,
   updateProfile,
+  updatePassword,
+  EmailAuthProvider,
+  reauthenticateWithCredential,
   GoogleAuthProvider,
   OAuthProvider,
   signOut as firebaseSignOut,
@@ -12,6 +15,7 @@ import { Platform } from 'react-native';
 import Constants from 'expo-constants';
 import * as Crypto from 'expo-crypto';
 import { auth, db } from './firebase';
+import i18n from './i18n';
 import type { User } from '@/types/userTypes';
 
 function generateNonce(length = 32): string {
@@ -69,23 +73,24 @@ export function configureGoogleSignIn() {
 // ---------------------------------------------------------------------------
 
 export function mapFirebaseAuthError(code: string): string {
+  const t = i18n.t.bind(i18n);
   switch (code) {
     case 'auth/email-already-in-use':
-      return 'An account with this email already exists';
+      return t('auth.errors.emailAlreadyInUse');
     case 'auth/invalid-email':
-      return 'Invalid email address';
+      return t('auth.errors.invalidEmail');
     case 'auth/weak-password':
-      return 'Password is too weak';
+      return t('auth.errors.weakPassword');
     case 'auth/user-not-found':
     case 'auth/wrong-password':
     case 'auth/invalid-credential':
-      return 'Incorrect email or password';
+      return t('auth.errors.invalidCredential');
     case 'auth/too-many-requests':
-      return 'Too many attempts. Please try again later';
+      return t('auth.errors.tooManyRequests');
     case 'auth/network-request-failed':
-      return 'Network error. Check your connection';
+      return t('auth.errors.networkError');
     default:
-      return 'An unexpected error occurred. Please try again';
+      return t('auth.errors.unexpected');
   }
 }
 
@@ -129,6 +134,25 @@ export async function registerWithEmail(
   });
 
   return userRecord;
+}
+
+export function isEmailUser(): boolean {
+  return auth.currentUser?.providerData.some((p) => p.providerId === 'password') ?? false;
+}
+
+export async function updateDisplayName(newName: string): Promise<void> {
+  const user = auth.currentUser;
+  if (!user) throw new Error('Not authenticated');
+  await updateProfile(user, { displayName: newName });
+  await setDoc(doc(db, 'users', user.uid), { displayName: newName }, { merge: true });
+}
+
+export async function changePassword(currentPassword: string, newPassword: string): Promise<void> {
+  const user = auth.currentUser;
+  if (!user?.email) throw new Error('Not authenticated');
+  const credential = EmailAuthProvider.credential(user.email, currentPassword);
+  await reauthenticateWithCredential(user, credential);
+  await updatePassword(user, newPassword);
 }
 
 export async function signInWithEmail(

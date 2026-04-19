@@ -13,10 +13,10 @@ import {
   ScrollView,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useRouter } from 'expo-router';
 import { Image } from 'expo-image';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
-import { signOut } from '@/lib/auth';
 import { cancelAllNotifications, rescheduleAllNotifications } from '@/lib/notifications';
 import { deleteAllUserCredits } from '@/lib/firestoreCredits';
 import { useAuthStore } from '@/stores/authStore';
@@ -192,6 +192,7 @@ function makeStyles(colors: AppColors, isRTL: boolean) {
 }
 
 export default function MoreScreen() {
+  const router = useRouter();
   const colors = useAppTheme();
   const isDark = useIsDark();
   const isRTL = I18nManager.isRTL;
@@ -219,7 +220,6 @@ export default function MoreScreen() {
   const notificationsEnabled = useSettingsStore((s) => s.notificationsEnabled);
   const setNotificationsEnabled = useSettingsStore((s) => s.setNotificationsEnabled);
 
-  const [signingOut, setSigningOut] = useState(false);
   const [deletingData, setDeletingData] = useState(false);
   const [showAppearanceSheet, setShowAppearanceSheet] = useState(false);
   const [showLanguageSheet, setShowLanguageSheet] = useState(false);
@@ -261,26 +261,6 @@ export default function MoreScreen() {
     ]);
   }
 
-  async function handleSignOut() {
-    Alert.alert(t('more.signOut.title'), t('more.signOut.message'), [
-      { text: t('common.cancel'), style: 'cancel' },
-      {
-        text: t('more.signOut.button'),
-        style: 'destructive',
-        onPress: async () => {
-          setSigningOut(true);
-          try {
-            resetAllStores();
-            await signOut();
-          } catch {
-            setSigningOut(false);
-            Alert.alert(t('common.error'), t('more.signOut.error'));
-          }
-        },
-      },
-    ]);
-  }
-
   async function handleLanguageChange(newLang: AppLanguage) {
     await saveLanguage(newLang);
     const resolved = resolveLanguage(newLang);
@@ -311,7 +291,12 @@ export default function MoreScreen() {
         {/* Account section */}
         <View style={styles.section}>
           <Text style={styles.sectionLabel}>{t('more.sections.account')}</Text>
-          <View style={styles.card}>
+          <TouchableOpacity
+            style={styles.card}
+            onPress={() => router.push('/account')}
+            accessibilityRole="button"
+            activeOpacity={0.7}
+          >
             <View style={styles.accountRow}>
               <View style={styles.avatar}>
                 <Text style={styles.avatarInitial}>
@@ -328,8 +313,9 @@ export default function MoreScreen() {
                   {currentUser?.email ?? ''}
                 </Text>
               </View>
+              <Ionicons name={isRTL ? 'chevron-back' : 'chevron-forward'} size={18} color={colors.textTertiary} />
             </View>
-          </View>
+          </TouchableOpacity>
         </View>
 
         {/* Settings section */}
@@ -443,27 +429,6 @@ export default function MoreScreen() {
           </View>
         </View>
 
-        {/* Sign out */}
-        <View style={styles.section}>
-          <View style={styles.card}>
-            <TouchableOpacity
-              style={styles.signOutRow}
-              onPress={handleSignOut}
-              disabled={signingOut}
-              accessibilityRole="button"
-              accessibilityLabel={t('more.signOut.button')}
-            >
-              {signingOut ? (
-                <ActivityIndicator color={colors.danger} size="small" />
-              ) : (
-                <>
-                  <Ionicons name="log-out-outline" size={20} color={colors.danger} />
-                  <Text style={styles.signOutText}>{t('more.signOut.button')}</Text>
-                </>
-              )}
-            </TouchableOpacity>
-          </View>
-        </View>
 
 
       </ScrollView>
