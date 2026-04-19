@@ -3,7 +3,6 @@ import {
   View,
   Text,
   TouchableOpacity,
-  Switch,
   StyleSheet,
   ActivityIndicator,
   Alert,
@@ -17,14 +16,12 @@ import { useRouter } from 'expo-router';
 import { Image } from 'expo-image';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
-import { cancelAllNotifications, rescheduleAllNotifications } from '@/lib/notifications';
-import DateTimePicker, { type DateTimePickerEvent } from '@react-native-community/datetimepicker';
+import { cancelAllNotifications } from '@/lib/notifications';
 import { deleteAllUserCredits } from '@/lib/firestoreCredits';
 import { useAuthStore } from '@/stores/authStore';
 import { useCreditsStore } from '@/stores/creditsStore';
 import { useUIStore } from '@/stores/uiStore';
 import { useSettingsStore, type DateFormat } from '@/stores/settingsStore';
-import { REMINDER_PRESETS } from '@/constants/reminders';
 import { useAppTheme, useIsDark } from '@/hooks/useAppTheme';
 
 const logoLight = require('../../../assets/images/logo-light.png');
@@ -219,68 +216,21 @@ export default function MoreScreen() {
   ];
 
   const currentUser = useAuthStore((s) => s.currentUser);
-  const credits = useCreditsStore((s) => s.credits);
   const themeMode = useSettingsStore((s) => s.themeMode);
   const setThemeMode = useSettingsStore((s) => s.setThemeMode);
   const language = useSettingsStore((s) => s.language);
   const setLanguage = useSettingsStore((s) => s.setLanguage);
   const notificationsEnabled = useSettingsStore((s) => s.notificationsEnabled);
-  const setNotificationsEnabled = useSettingsStore((s) => s.setNotificationsEnabled);
   const dateFormat = useSettingsStore((s) => s.dateFormat);
   const setDateFormat = useSettingsStore((s) => s.setDateFormat);
-  const defaultReminderDays = useSettingsStore((s) => s.defaultReminderDays);
-  const setDefaultReminderDays = useSettingsStore((s) => s.setDefaultReminderDays);
-  const notificationHour = useSettingsStore((s) => s.notificationHour);
-  const notificationMinute = useSettingsStore((s) => s.notificationMinute);
-  const setNotificationTime = useSettingsStore((s) => s.setNotificationTime);
 
   const [deletingData, setDeletingData] = useState(false);
   const [showAppearanceSheet, setShowAppearanceSheet] = useState(false);
   const [showLanguageSheet, setShowLanguageSheet] = useState(false);
   const [showDateFormatSheet, setShowDateFormatSheet] = useState(false);
-  const [showReminderSheet, setShowReminderSheet] = useState(false);
-  const [showNotifTimeSheet, setShowNotifTimeSheet] = useState(false);
-
-  function formatNotifTime(hour: number, minute: number): string {
-    const mm = String(minute).padStart(2, '0');
-    if (i18n.language === 'he') return `${String(hour).padStart(2, '0')}:${mm}`;
-    const suffix = hour < 12 ? 'AM' : 'PM';
-    const h = hour % 12 === 0 ? 12 : hour % 12;
-    return `${h}:${mm} ${suffix}`;
-  }
-
-  // Build a Date object representing today at the stored notification time (for the picker)
-  const notifTimeDate = new Date();
-  notifTimeDate.setHours(notificationHour, notificationMinute, 0, 0);
-
-  function reminderLabel(days: number): string {
-    if (days === 1) return t('reminder.1day');
-    if (days === 7) return t('reminder.1week');
-    if (days === 30) return t('reminder.1month');
-    return t('reminder.3months');
-  }
-
-  async function handleNotifTimeChange(_: DateTimePickerEvent, date?: Date) {
-    if (!date) return;
-    setNotificationTime(date.getHours(), date.getMinutes());
-    if (notificationsEnabled) {
-      const activeCredits = credits.filter((c) => c.status === 'active');
-      await rescheduleAllNotifications(activeCredits);
-    }
-  }
 
   const themeModeLabel = THEME_OPTIONS.find((o) => o.mode === themeMode)?.label ?? t('more.theme.system');
   const languageLabel = LANGUAGE_OPTIONS.find((o) => o.value === language)?.label ?? t('more.language.system');
-
-  async function handleNotificationsToggle(enabled: boolean) {
-    setNotificationsEnabled(enabled);
-    if (!enabled) {
-      await cancelAllNotifications();
-    } else {
-      const activeCredits = credits.filter((c) => c.status === 'active');
-      await rescheduleAllNotifications(activeCredits);
-    }
-  }
 
   async function handleDeleteAllData() {
     Alert.alert(t('more.deleteData.title'), t('more.deleteData.message'), [
@@ -381,34 +331,18 @@ export default function MoreScreen() {
               <Ionicons name={isRTL ? 'chevron-back' : 'chevron-forward'} size={16} color={colors.textTertiary} />
             </TouchableOpacity>
             <View style={styles.separator} />
-            <View style={styles.settingsRow}>
+            <TouchableOpacity
+              style={styles.settingsRow}
+              onPress={() => router.push('/notification-settings')}
+              accessibilityRole="button"
+            >
               <Ionicons name="notifications-outline" size={20} color={colors.textSecondary} />
               <View style={{ flex: 1 }}>
                 <Text style={styles.settingsLabel}>{t('more.notifications.label')}</Text>
               </View>
-              <Switch
-                value={notificationsEnabled}
-                onValueChange={handleNotificationsToggle}
-                trackColor={{ false: colors.separator, true: colors.primary }}
-                thumbColor="#FFFFFF"
-              />
-            </View>
-            <View style={styles.separator} />
-            <TouchableOpacity style={styles.settingsRow} onPress={() => setShowNotifTimeSheet(true)} accessibilityRole="button">
-              <Ionicons name="time-outline" size={20} color={colors.textSecondary} />
-              <View style={{ flex: 1 }}>
-                <Text style={styles.settingsLabel}>{t('more.notifTime.label')}</Text>
-              </View>
-              <Text style={styles.settingsSubtitle}>{formatNotifTime(notificationHour, notificationMinute)}</Text>
-              <Ionicons name={isRTL ? 'chevron-back' : 'chevron-forward'} size={16} color={colors.textTertiary} />
-            </TouchableOpacity>
-            <View style={styles.separator} />
-            <TouchableOpacity style={styles.settingsRow} onPress={() => setShowReminderSheet(true)} accessibilityRole="button">
-              <Ionicons name="alarm-outline" size={20} color={colors.textSecondary} />
-              <View style={{ flex: 1 }}>
-                <Text style={styles.settingsLabel}>{t('more.defaultReminder.label')}</Text>
-              </View>
-              <Text style={styles.settingsSubtitle}>{reminderLabel(defaultReminderDays)}</Text>
+              <Text style={styles.settingsSubtitle}>
+                {notificationsEnabled ? t('common.on') : t('common.off')}
+              </Text>
               <Ionicons name={isRTL ? 'chevron-back' : 'chevron-forward'} size={16} color={colors.textTertiary} />
             </TouchableOpacity>
             <View style={styles.separator} />
@@ -569,48 +503,6 @@ export default function MoreScreen() {
               {index < DATE_FORMAT_OPTIONS.length - 1 && <View style={styles.themeSeparator} />}
             </View>
           ))}
-        </View>
-      </Modal>
-
-      {/* Default Reminder bottom sheet */}
-      <Modal visible={showReminderSheet} transparent animationType="slide" onRequestClose={() => setShowReminderSheet(false)}>
-        <TouchableOpacity style={styles.overlay} activeOpacity={1} onPress={() => setShowReminderSheet(false)} />
-        <View style={styles.sheet}>
-          <View style={styles.sheetHandle} />
-          <Text style={styles.sheetTitle}>{t('more.defaultReminder.title')}</Text>
-          {REMINDER_PRESETS.map((preset, index) => (
-            <View key={preset.days}>
-              <TouchableOpacity
-                style={styles.themeOption}
-                onPress={() => { setDefaultReminderDays(preset.days); setShowReminderSheet(false); }}
-                accessibilityRole="radio"
-                accessibilityState={{ checked: defaultReminderDays === preset.days }}
-              >
-                <View style={{ flex: 1 }}>
-                  <Text style={styles.themeOptionLabel}>{reminderLabel(preset.days)}</Text>
-                </View>
-                {defaultReminderDays === preset.days && <Ionicons name="checkmark" size={20} color={colors.primary} />}
-              </TouchableOpacity>
-              {index < REMINDER_PRESETS.length - 1 && <View style={styles.themeSeparator} />}
-            </View>
-          ))}
-        </View>
-      </Modal>
-
-      {/* Notification Time bottom sheet */}
-      <Modal visible={showNotifTimeSheet} transparent animationType="slide" onRequestClose={() => setShowNotifTimeSheet(false)}>
-        <TouchableOpacity style={styles.overlay} activeOpacity={1} onPress={() => setShowNotifTimeSheet(false)} />
-        <View style={styles.sheet}>
-          <View style={styles.sheetHandle} />
-          <Text style={styles.sheetTitle}>{t('more.notifTime.title')}</Text>
-          <DateTimePicker
-            value={notifTimeDate}
-            mode="time"
-            display="spinner"
-            onChange={handleNotifTimeChange}
-            style={{ width: '100%' }}
-            textColor={colors.textPrimary}
-          />
         </View>
       </Modal>
 

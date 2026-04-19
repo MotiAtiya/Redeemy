@@ -96,6 +96,9 @@
       "label": "Notification Time",
       "title": "Notification Time"
     },
+    "expiryNotification": {
+      "label": "Notify on Expiry Day"
+    },
     "about": {
       "tagline": "Credits you won't forget",
       "contact": "Contact Support",
@@ -309,7 +312,16 @@
   "common": {
     "cancel": "Cancel",
     "error": "Error",
-    "ok": "OK"
+    "ok": "OK",
+    "on": "On",
+    "off": "Off"
+  },
+  "notificationSettings": {
+    "title": "Notifications",
+    "enable": "Enable Notifications",
+    "expiryDay": "Notify on Expiry Day",
+    "notifTime": "Notification Time",
+    "defaultReminder": "Default Reminder"
   },
   "reminder": {
     "1day": "1 Day",

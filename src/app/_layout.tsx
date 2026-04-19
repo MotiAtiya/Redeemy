@@ -110,6 +110,7 @@ export default function RootLayout() {
           <Stack.Screen name="credit/[id]" options={{ headerShown: false }} />
           <Stack.Screen name="store/[name]" options={{ headerShown: false }} />
           <Stack.Screen name="account" options={{ headerShown: false }} />
+          <Stack.Screen name="notification-settings" options={{ headerShown: false }} />
         </Stack>
       </AuthGate>
     </GluestackProvider>

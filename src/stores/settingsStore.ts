@@ -13,6 +13,8 @@ interface SettingsStore {
   setLanguage: (lang: AppLanguage) => void;
   notificationsEnabled: boolean;
   setNotificationsEnabled: (enabled: boolean) => void;
+  expiryNotificationEnabled: boolean;
+  setExpiryNotificationEnabled: (enabled: boolean) => void;
   dateFormat: DateFormat;
   setDateFormat: (format: DateFormat) => void;
   defaultReminderDays: number;
@@ -31,6 +33,8 @@ export const useSettingsStore = create<SettingsStore>()(
       setLanguage: (language) => set({ language }),
       notificationsEnabled: true,
       setNotificationsEnabled: (notificationsEnabled) => set({ notificationsEnabled }),
+      expiryNotificationEnabled: true,
+      setExpiryNotificationEnabled: (expiryNotificationEnabled) => set({ expiryNotificationEnabled }),
       dateFormat: 'DD/MM/YYYY',
       setDateFormat: (dateFormat) => set({ dateFormat }),
       defaultReminderDays: 7,

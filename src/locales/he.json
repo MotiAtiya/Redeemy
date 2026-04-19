@@ -96,6 +96,9 @@
       "label": "שעת התראה",
       "title": "שעת התראה"
     },
+    "expiryNotification": {
+      "label": "התראה ביום הפקיעה"
+    },
     "about": {
       "tagline": "לא שוכחים זיכויים",
       "contact": "פנה לתמיכה",
@@ -308,7 +311,16 @@
   "common": {
     "cancel": "ביטול",
     "error": "שגיאה",
-    "ok": "אישור"
+    "ok": "אישור",
+    "on": "פעיל",
+    "off": "כבוי"
+  },
+  "notificationSettings": {
+    "title": "התראות",
+    "enable": "אפשר התראות",
+    "expiryDay": "התראה ביום הפקיעה",
+    "notifTime": "שעת התראה",
+    "defaultReminder": "תזכורת ברירת מחדל"
   },
   "reminder": {
     "1day": "יום אחד",
