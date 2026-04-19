@@ -16,6 +16,7 @@ import { Image } from 'expo-image';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import { signOut } from '@/lib/auth';
+import { scheduleTestNotification } from '@/lib/notifications';
 import { useAuthStore } from '@/stores/authStore';
 import { useCreditsStore } from '@/stores/creditsStore';
 import { useUIStore } from '@/stores/uiStore';
@@ -388,6 +389,18 @@ export default function MoreScreen() {
             </TouchableOpacity>
           </View>
         </View>
+
+        {/* DEV: Test notification — remove before release */}
+        <TouchableOpacity
+          style={[styles.signOutRow, { marginTop: 16 }]}
+          onPress={async () => {
+            await scheduleTestNotification();
+            Alert.alert('🧪 Test', 'Notification scheduled — lock the screen and wait 10 seconds.');
+          }}
+        >
+          <Ionicons name="notifications-outline" size={20} color={colors.textSecondary} />
+          <Text style={[styles.signOutText, { color: colors.textSecondary }]}>Test Notification (10s)</Text>
+        </TouchableOpacity>
       </ScrollView>
 
       {/* Appearance bottom sheet */}
