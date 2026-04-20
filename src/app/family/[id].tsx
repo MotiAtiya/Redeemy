@@ -18,6 +18,15 @@ import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import { useFamilyStore } from '@/stores/familyStore';
+
+// expo-clipboard uses a native module not available in Expo Go — guard it.
+let clipboardModule: { setStringAsync: (text: string) => Promise<void> } | null = null;
+try {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  clipboardModule = require('expo-clipboard');
+} catch {
+  clipboardModule = null;
+}
 import { useAuthStore } from '@/stores/authStore';
 import { useSettingsStore } from '@/stores/settingsStore';
 import {
@@ -328,13 +337,15 @@ export default function FamilyManageScreen() {
 
   async function handleCopyCode() {
     if (!family || secondsLeft <= 0) return;
-    try {
-      const Clipboard = await import('expo-clipboard');
-      await Clipboard.setStringAsync(family.inviteCode);
-      showToast(t('family.manageScreen.inviteCopiedToast'));
-    } catch {
-      showToast(family.inviteCode);
+    if (clipboardModule) {
+      try {
+        await clipboardModule.setStringAsync(family.inviteCode);
+        showToast(t('family.manageScreen.inviteCopiedToast'));
+        return;
+      } catch {}
     }
+    // Fallback: show the code in a toast so the user can read it
+    showToast(family.inviteCode);
   }
 
   async function handleRegenerate() {
