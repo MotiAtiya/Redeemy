@@ -2,6 +2,7 @@
   "tabs": {
     "credits": "זיכויים",
     "stores": "חנויות",
+    "warranties": "אחריות",
     "history": "היסטוריה",
     "more": "עוד"
   },
@@ -24,6 +25,8 @@
   "stores": {
     "title": "חנויות",
     "search": "חפש חנויות…",
+    "activeCredits_one": "זיכוי פעיל אחד",
+    "activeCredits_other": "{{count}} זיכויים פעילים",
     "empty": {
       "title": "אין זיכויים פעילים עדיין",
       "subtitle": "הוסף את הזיכוי הראשון שלך כדי להתחיל",
@@ -32,6 +35,8 @@
   },
   "history": {
     "title": "היסטוריה",
+    "sectionCredits": "זיכויים שנוצלו",
+    "sectionWarranties": "אחריות שפגה / נסגרה",
     "dateRange": {
       "thisMonth": "החודש",
       "last3Months": "3 חודשים אחרונים",
@@ -47,6 +52,10 @@
     "filter": {
       "title": "סנן היסטוריה",
       "dateRange": "טווח תאריכים",
+      "type": "סוג",
+      "typeAll": "הכל",
+      "typeCredits": "זיכויים",
+      "typeWarranties": "אחריות",
       "category": "קטגוריה",
       "apply": "החל סינון"
     },
@@ -109,7 +118,7 @@
     },
     "about": {
       "tagline": "לא שוכחים זיכויים",
-      "contact": "פנה לתמיכה",
+      "contact": "פנה לתמיכה"
     },
     "signOut": {
       "button": "התנתק",
@@ -198,6 +207,7 @@
     }
   },
   "addCredit": {
+    "title": "הוספת זיכוי",
     "titleAdd": "הוסף זיכוי",
     "titleEdit": "ערוך זיכוי",
     "save": "שמור",
@@ -266,6 +276,98 @@
       "datePast": "תאריך התפוגה חייב להיות בעתיד",
       "photoRequired": "נדרשת תמונה"
     }
+  },
+  "addWarranty": {
+    "title": "הוספת אחריות",
+    "titleEdit": "עריכת אחריות",
+    "step": {
+      "storeName": "שם החנות",
+      "category": "קטגוריה",
+      "productName": "שם המוצר",
+      "expiryDate": "תאריך תפוגה",
+      "reminder": "תזכורת",
+      "photo": "צלם את הקבלה",
+      "notesQuestion": "להוסיף הערות?",
+      "notesInput": "הערות",
+      "summary": "הכל נראה טוב?"
+    },
+    "productNamePlaceholder": "לדוגמה: תנור אפייה Bosch HBF154",
+    "noExpiry": "ללא תאריך תפוגה",
+    "continue": "המשך",
+    "save": "שמור אחריות",
+    "retakePhoto": "צלם מחדש",
+    "chooseGallery": "בחר מהגלריה",
+    "takePhoto": "צלם תמונה",
+    "notesYes": "הוסף הערות",
+    "notesNo": "דלג",
+    "notesPlaceholder": "פרטי אחריות, מספר סידורי...",
+    "summary": {
+      "store": "חנות",
+      "product": "מוצר",
+      "category": "קטגוריה",
+      "expiry": "תפוגה",
+      "reminder": "תזכורת",
+      "notes": "הערות",
+      "noExpiry": "ללא תפוגה"
+    },
+    "offline": {
+      "adding": "הוספת אחריות מצריכה חיבור לאינטרנט."
+    },
+    "error": {
+      "save": "לא ניתן לשמור",
+      "saveMessage": "אנא נסה שוב.",
+      "photo": "העלאת התמונה נכשלה — האחריות נשמרה ללא תמונה."
+    }
+  },
+  "warranties": {
+    "title": "אחריות",
+    "empty": {
+      "title": "אין אחריות עדיין",
+      "subtitle": "הוסף את האחריות הראשונה שלך ואל תפספס שום תוקף",
+      "action": "הוסף אחריות"
+    },
+    "sort": {
+      "expiry": "תאריך תפוגה",
+      "productName": "שם מוצר",
+      "storeName": "שם חנות",
+      "recent": "נוסף לאחרונה"
+    },
+    "markClosed": "סמן כנסגר",
+    "closedToast": "האחריות נסגרה",
+    "deletedToast": "האחריות נמחקה",
+    "closedConfirm": {
+      "title": "לסגור את האחריות?",
+      "message": "היא תועבר להיסטוריה.",
+      "confirm": "סגור",
+      "cancel": "ביטול"
+    }
+  },
+  "warranty": {
+    "notFound": "האחריות לא נמצאה",
+    "markClosed": {
+      "offlineMessage": "סימון אחריות כנסגרת דורש חיבור לאינטרנט.",
+      "error": "לא ניתן לסגור את האחריות. נסה שנית."
+    },
+    "delete": {
+      "offlineMessage": "מחיקת אחריות דורשת חיבור לאינטרנט.",
+      "title": "מחק אחריות",
+      "message": "למחוק את האחריות של {{productName}}? לא ניתן לבטל פעולה זו.",
+      "button": "מחק",
+      "error": "לא ניתן למחוק את האחריות. נסה שנית."
+    },
+    "action": {
+      "edit": "ערוך",
+      "delete": "מחק"
+    },
+    "detail": {
+      "category": "קטגוריה",
+      "expires": "תפוגה",
+      "noExpiry": "ללא תפוגה",
+      "reminder": "תזכורת",
+      "notes": "הערות",
+      "added": "נוסף"
+    },
+    "closedOn": "נסגר ב-{{date}}"
   },
   "credit": {
     "notFound": "הזיכוי לא נמצא",

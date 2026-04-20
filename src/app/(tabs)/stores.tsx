@@ -63,7 +63,7 @@ function makeStyles(colors: AppColors, isRTL: boolean) {
       elevation: 1,
     },
     searchIcon: { marginEnd: 8 },
-    searchInput: { flex: 1, fontSize: 15, color: colors.textPrimary, textAlign: isRTL ? 'right' : 'left' },
+    searchInput: { flex: 1, fontSize: 15, color: colors.textPrimary, textAlign: isRTL ? 'right' : 'left', letterSpacing: 0 },
     listContent: { paddingBottom: 32 },
     listContentEmpty: { flex: 1 },
     row: {
@@ -193,7 +193,7 @@ export default function StoresScreen() {
             <View style={styles.rowContent}>
               <Text style={styles.rowName} numberOfLines={1}>{item.storeName}</Text>
               <Text style={styles.rowMeta}>
-                {item.activeCount} active credit{item.activeCount !== 1 ? 's' : ''}
+                {t('stores.activeCredits', { count: item.activeCount })}
               </Text>
             </View>
             <Text style={styles.rowAmount}>{formatCurrency(item.totalAgot, currencySymbol)}</Text>

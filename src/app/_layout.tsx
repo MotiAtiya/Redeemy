@@ -7,6 +7,7 @@ import { useAuthState } from '@/hooks/useAuthState';
 import { useBadgeUpdater } from '@/hooks/useBadgeUpdater';
 import { useNetworkMonitor } from '@/hooks/useNetworkMonitor';
 import { useFamilyListener } from '@/hooks/useFamilyListener';
+import { useWarrantiesListener } from '@/hooks/useWarrantiesListener';
 import { useAppTheme, useIsDark } from '@/hooks/useAppTheme';
 import { OfflineToast } from '@/components/redeemy/OfflineToast';
 import { useAuthStore } from '@/stores/authStore';
@@ -31,6 +32,7 @@ function AuthGate({ children }: { children: React.ReactNode }) {
   useFamilyListener(familyId);
 
   const currentUser = useAuthStore((s) => s.currentUser);
+  useWarrantiesListener(currentUser?.uid ?? null, familyId ?? null);
   useEffect(() => {
     if (!familyId || !currentUser?.uid || familyCreditsMigrated) return;
     const displayName = currentUser.displayName ?? currentUser.email?.split('@')[0] ?? 'Member';
@@ -120,7 +122,12 @@ export default function RootLayout() {
           name="add-credit"
           options={{ headerShown: false, presentation: 'modal' }}
         />
+        <Stack.Screen
+          name="add-warranty"
+          options={{ headerShown: false, presentation: 'modal' }}
+        />
         <Stack.Screen name="credit/[id]" options={{ headerShown: false }} />
+        <Stack.Screen name="warranty/[id]" options={{ headerShown: false }} />
         <Stack.Screen name="store/[name]" options={{ headerShown: false }} />
         <Stack.Screen name="account" options={{ headerShown: false }} />
         <Stack.Screen name="notification-settings" options={{ headerShown: false }} />

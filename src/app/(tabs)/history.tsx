@@ -4,6 +4,7 @@ import {
   Text,
   TextInput,
   FlatList,
+  ScrollView,
   TouchableOpacity,
   StyleSheet,
   Modal,
@@ -14,20 +15,26 @@ import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import { CreditCard } from '@/components/redeemy/CreditCard';
+import { WarrantyCard } from '@/components/redeemy/WarrantyCard';
 import { useCreditsStore } from '@/stores/creditsStore';
+import { useWarrantiesStore } from '@/stores/warrantiesStore';
 import { useAppTheme } from '@/hooks/useAppTheme';
 import { sortCreditsHistory, filterHistoryCredits, type HistorySortKey, type HistoryDateRange } from '@/lib/creditUtils';
 import { CATEGORIES } from '@/constants/categories';
+import { CreditStatus } from '@/types/creditTypes';
+import { WarrantyStatus } from '@/types/warrantyTypes';
 import type { AppColors } from '@/constants/colors';
 
 type SortKey = HistorySortKey;
 type DateRange = HistoryDateRange;
 
+type ItemType = 'all' | 'credits' | 'warranties';
+
 interface FilterState {
   categories: string[];
   dateRange: DateRange;
+  type: ItemType;
 }
-
 
 function makeStyles(colors: AppColors, isRTL: boolean) {
   return StyleSheet.create({
@@ -58,7 +65,7 @@ function makeStyles(colors: AppColors, isRTL: boolean) {
       elevation: 1,
     },
     searchIcon: { marginEnd: 8 },
-    searchInput: { flex: 1, fontSize: 15, color: colors.textPrimary, textAlign: isRTL ? 'right' : 'left' },
+    searchInput: { flex: 1, fontSize: 15, color: colors.textPrimary, textAlign: isRTL ? 'right' : 'left', letterSpacing: 0 },
     activeFilters: {
       flexDirection: 'row',
       flexWrap: 'wrap',
@@ -78,9 +85,16 @@ function makeStyles(colors: AppColors, isRTL: boolean) {
       backgroundColor: colors.primarySurface,
     },
     activeFilterChipText: { fontSize: 12, color: colors.primary, fontWeight: '500' },
-    sortLabel: { fontSize: 12, color: colors.textTertiary, paddingHorizontal: 16, marginBottom: 8, alignSelf: 'flex-start' },
-    listContent: { paddingBottom: 32 },
-    listContentEmpty: { flex: 1 },
+    sectionHeader: {
+      fontSize: 13,
+      fontWeight: '700',
+      color: colors.textTertiary,
+      letterSpacing: 0.5,
+      paddingHorizontal: 16,
+      paddingTop: 16,
+      paddingBottom: 8,
+    },
+    scrollContent: { paddingBottom: 32 },
     emptyState: {
       flex: 1,
       justifyContent: 'center',
@@ -150,6 +164,7 @@ export default function HistoryScreen() {
   const styles = useMemo(() => makeStyles(colors, isRTL), [colors, isRTL]);
   const { t } = useTranslation();
   const credits = useCreditsStore((s) => s.credits);
+  const warranties = useWarrantiesStore((s) => s.warranties);
 
   const DATE_RANGE_OPTIONS: { key: DateRange; label: string }[] = [
     { key: 'thisMonth',   label: t('history.dateRange.thisMonth')   },
@@ -164,12 +179,19 @@ export default function HistoryScreen() {
     { key: 'amount',     label: t('history.sort.amountHighLow')    },
   ];
 
+  const TYPE_OPTIONS: { key: ItemType; label: string }[] = [
+    { key: 'all',        label: t('history.filter.typeAll')        },
+    { key: 'credits',    label: t('history.filter.typeCredits')    },
+    { key: 'warranties', label: t('history.filter.typeWarranties') },
+  ];
+
   const [search, setSearch] = useState('');
   const [sortKey, setSortKey] = useState<SortKey>('redeemedAt');
-  const [filters, setFilters] = useState<FilterState>({ categories: [], dateRange: 'allTime' });
+  const [filters, setFilters] = useState<FilterState>({ categories: [], dateRange: 'allTime', type: 'all' });
   const [showFilterSheet, setShowFilterSheet] = useState(false);
 
-  const filtered = useMemo(
+  // Redeemed + expired credits
+  const filteredCredits = useMemo(
     () => sortCreditsHistory(
       filterHistoryCredits(credits, search, filters.dateRange, filters.categories),
       sortKey
@@ -177,8 +199,29 @@ export default function HistoryScreen() {
     [credits, search, filters, sortKey]
   );
 
+  // Closed + auto-expired warranties
+  const historyWarranties = useMemo(() => {
+    const now = new Date();
+    return warranties
+      .filter((w) =>
+        (w.status === WarrantyStatus.CLOSED ||
+          (w.status === WarrantyStatus.ACTIVE && w.expirationDate && w.expirationDate < now))
+        && (!search.trim() ||
+          w.storeName.toLowerCase().includes(search.toLowerCase()) ||
+          w.productName.toLowerCase().includes(search.toLowerCase()))
+      )
+      .sort((a, b) => {
+        const aDate = (a.closedAt ?? a.updatedAt ?? a.createdAt).getTime();
+        const bDate = (b.closedAt ?? b.updatedAt ?? b.createdAt).getTime();
+        return bDate - aDate;
+      });
+  }, [warranties, search]);
+
   const activeFilterChips = useMemo(() => {
     const chips: { key: string; label: string }[] = [];
+    if (filters.type !== 'all') {
+      chips.push({ key: 'type', label: TYPE_OPTIONS.find((o) => o.key === filters.type)?.label ?? '' });
+    }
     if (filters.dateRange !== 'allTime') {
       chips.push({ key: 'dateRange', label: DATE_RANGE_OPTIONS.find((o) => o.key === filters.dateRange)?.label ?? '' });
     }
@@ -190,7 +233,8 @@ export default function HistoryScreen() {
   }, [filters]);
 
   function removeFilterChip(key: string) {
-    if (key === 'dateRange') setFilters((f) => ({ ...f, dateRange: 'allTime' }));
+    if (key === 'type') setFilters((f) => ({ ...f, type: 'all' }));
+    else if (key === 'dateRange') setFilters((f) => ({ ...f, dateRange: 'allTime' }));
     else setFilters((f) => ({ ...f, categories: f.categories.filter((c) => c !== key) }));
   }
 
@@ -202,6 +246,10 @@ export default function HistoryScreen() {
         : [...f.categories, catId],
     }));
   }
+
+  const showCredits    = filters.type !== 'warranties';
+  const showWarranties = filters.type !== 'credits';
+  const isEmpty = (showCredits ? filteredCredits.length : 0) === 0 && (showWarranties ? historyWarranties.length : 0) === 0;
 
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
@@ -247,34 +295,74 @@ export default function HistoryScreen() {
         </View>
       )}
 
-      <Text style={styles.sortLabel}>{SORT_OPTIONS.find((o) => o.key === sortKey)?.label}</Text>
-
-      <FlatList
-        data={filtered}
-        keyExtractor={(item) => item.id}
-        renderItem={({ item }) => (
-          <CreditCard
-            credit={item}
-            variant={item.status === 'expired' ? 'expired' : 'redeemed'}
-            onPress={() => router.push(`/credit/${item.id}`)}
-          />
-        )}
-        ListEmptyComponent={
+      {isEmpty ? (
+        <View style={{ flex: 1 }}>
           <View style={styles.emptyState}>
             <Ionicons name="time-outline" size={56} color={colors.textTertiary} />
             <Text style={styles.emptyTitle}>{t('history.empty.title')}</Text>
             <Text style={styles.emptySubtitle}>{t('history.empty.subtitle')}</Text>
           </View>
-        }
-        contentContainerStyle={[styles.listContent, filtered.length === 0 && styles.listContentEmpty]}
-        showsVerticalScrollIndicator={false}
-      />
+        </View>
+      ) : (
+        <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
+          {showCredits && filteredCredits.length > 0 && (
+            <>
+              <Text style={styles.sectionHeader}>{t('history.sectionCredits').toUpperCase()}</Text>
+              <FlatList
+                data={filteredCredits}
+                keyExtractor={(item) => item.id}
+                scrollEnabled={false}
+                renderItem={({ item }) => (
+                  <CreditCard
+                    credit={item}
+                    variant={item.status === CreditStatus.EXPIRED ? 'expired' : 'redeemed'}
+                    onPress={() => router.push(`/credit/${item.id}`)}
+                  />
+                )}
+              />
+            </>
+          )}
+          {showWarranties && historyWarranties.length > 0 && (
+            <>
+              <Text style={styles.sectionHeader}>{t('history.sectionWarranties').toUpperCase()}</Text>
+              <FlatList
+                data={historyWarranties}
+                keyExtractor={(item) => item.id}
+                scrollEnabled={false}
+                renderItem={({ item }) => (
+                  <WarrantyCard
+                    warranty={item}
+                    variant={item.status === WarrantyStatus.CLOSED ? 'closed' : 'expired'}
+                    onPress={() => router.push({ pathname: '/warranty/[id]', params: { id: item.id } })}
+                  />
+                )}
+              />
+            </>
+          )}
+        </ScrollView>
+      )}
 
       <Modal visible={showFilterSheet} transparent animationType="slide" onRequestClose={() => setShowFilterSheet(false)}>
         <TouchableOpacity style={styles.overlay} activeOpacity={1} onPress={() => setShowFilterSheet(false)} />
         <View style={styles.filterSheet}>
           <View style={styles.sheetHandle} />
           <Text style={styles.sheetTitle}>{t('history.filter.title')}</Text>
+
+          <Text style={styles.filterSectionLabel}>{t('history.filter.type')}</Text>
+          <View style={styles.chipRow}>
+            {TYPE_OPTIONS.map((opt) => {
+              const isActive = filters.type === opt.key;
+              return (
+                <TouchableOpacity
+                  key={opt.key}
+                  style={[styles.filterChip, isActive && styles.filterChipActive]}
+                  onPress={() => setFilters((f) => ({ ...f, type: opt.key }))}
+                >
+                  <Text style={[styles.filterChipText, isActive && styles.filterChipTextActive]}>{opt.label}</Text>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
 
           <Text style={styles.filterSectionLabel}>{t('history.filter.dateRange')}</Text>
           <View style={styles.chipRow}>

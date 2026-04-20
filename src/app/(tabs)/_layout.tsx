@@ -46,6 +46,13 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
+        name="warranties"
+        options={{
+          title: t('tabs.warranties'),
+          tabBarIcon: tabIcon('shield-checkmark-outline'),
+        }}
+      />
+      <Tabs.Screen
         name="history"
         options={{
           title: t('tabs.history'),

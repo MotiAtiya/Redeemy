@@ -81,7 +81,7 @@ function makeStyles(colors: AppColors, isRTL: boolean) {
       elevation: 1,
     },
     searchIcon: { marginEnd: 8 },
-    searchInput: { flex: 1, fontSize: 15, color: colors.textPrimary, textAlign: isRTL ? 'right' : 'left' },
+    searchInput: { flex: 1, fontSize: 15, color: colors.textPrimary, textAlign: isRTL ? 'right' : 'left', letterSpacing: 0 },
     filterChips: { paddingHorizontal: 16, paddingBottom: 10, gap: 8 },
     filterChip: {
       paddingVertical: 6,

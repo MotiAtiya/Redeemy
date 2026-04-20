@@ -18,19 +18,16 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { ExpirationBadge } from '@/components/redeemy/ExpirationBadge';
-import { deleteCredit, updateCredit } from '@/lib/firestoreCredits';
-import { cancelCreditNotifications } from '@/lib/notifications';
-import * as MediaLibrary from 'expo-media-library';
-import * as FileSystem from 'expo-file-system/legacy';
-import { formatCurrency } from '@/lib/formatCurrency';
+import { deleteWarranty, updateWarranty } from '@/lib/firestoreWarranties';
+import { cancelNotification } from '@/lib/notifications';
 import { formatDate } from '@/lib/formatDate';
-import { useCreditsStore } from '@/stores/creditsStore';
-import { useSettingsStore, CURRENCY_SYMBOLS } from '@/stores/settingsStore';
+import { useWarrantiesStore } from '@/stores/warrantiesStore';
+import { useSettingsStore } from '@/stores/settingsStore';
 import { useAuthStore } from '@/stores/authStore';
 import { useFamilyStore } from '@/stores/familyStore';
 import { useUIStore } from '@/stores/uiStore';
 import { useAppTheme } from '@/hooks/useAppTheme';
-import { CreditStatus } from '@/types/creditTypes';
+import { WarrantyStatus } from '@/types/warrantyTypes';
 import { CATEGORIES } from '@/constants/categories';
 import type { AppColors } from '@/constants/colors';
 
@@ -62,7 +59,7 @@ function makeStyles(colors: AppColors) {
     },
     card: { backgroundColor: colors.surface, borderRadius: 14, padding: 16, gap: 8 },
     storeName: { fontSize: 22, fontWeight: '700', color: colors.textPrimary, alignSelf: 'flex-start' },
-    amount: { fontSize: 36, fontWeight: '800', color: colors.textPrimary, letterSpacing: -1, alignSelf: 'flex-start' },
+    productName: { fontSize: 28, fontWeight: '800', color: colors.textPrimary, letterSpacing: -0.5, alignSelf: 'flex-start' },
     detailsCard: { backgroundColor: colors.surface, borderRadius: 14, overflow: 'hidden' },
     detailRow: { flexDirection: 'row', alignItems: 'flex-start', padding: 14, gap: 12 },
     detailRowContent: { flex: 1, gap: 2 },
@@ -78,7 +75,7 @@ function makeStyles(colors: AppColors) {
       borderTopWidth: 1,
       borderTopColor: colors.separator,
     },
-    redeemButton: {
+    closeButton: {
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'center',
@@ -88,7 +85,17 @@ function makeStyles(colors: AppColors) {
       borderRadius: 12,
     },
     buttonDisabled: { opacity: 0.7 },
-    redeemButtonText: { color: '#FFFFFF', fontSize: 16, fontWeight: '700' },
+    closeButtonText: { color: '#FFFFFF', fontSize: 16, fontWeight: '700' },
+    closedBanner: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: 8,
+      paddingVertical: 14,
+      backgroundColor: colors.background,
+      borderRadius: 12,
+    },
+    closedBannerText: { fontSize: 15, color: colors.textTertiary, fontWeight: '500' },
     overlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.35)' },
     actionSheet: {
       backgroundColor: colors.surface,
@@ -116,31 +123,11 @@ function makeStyles(colors: AppColors) {
       borderRadius: 10,
     },
     cancelText: { fontSize: 16, fontWeight: '600', color: colors.textPrimary },
-    redeemedBanner: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'center',
-      gap: 8,
-      paddingVertical: 14,
-      backgroundColor: colors.background,
-      borderRadius: 12,
-    },
-    redeemedBannerText: { fontSize: 15, color: colors.textTertiary, fontWeight: '500' },
-    // Full-screen image viewer — always LTR regardless of app language
     fullscreenModal: { flex: 1, backgroundColor: '#000000', direction: 'ltr' },
     fullscreenClose: {
       position: 'absolute',
       top: 56,
       right: 16,
-      zIndex: 10,
-      backgroundColor: 'rgba(0,0,0,0.5)',
-      borderRadius: 20,
-      padding: 8,
-    },
-    fullscreenDownload: {
-      position: 'absolute',
-      top: 56,
-      left: 16,
       zIndex: 10,
       backgroundColor: 'rgba(0,0,0,0.5)',
       borderRadius: 20,
@@ -159,7 +146,7 @@ function makeStyles(colors: AppColors) {
   });
 }
 
-export default function CreditDetailScreen() {
+export default function WarrantyDetailScreen() {
   const router = useRouter();
   const { id } = useLocalSearchParams<{ id: string }>();
   const colors = useAppTheme();
@@ -167,146 +154,116 @@ export default function CreditDetailScreen() {
   const { t } = useTranslation();
   const isRTL = I18nManager.isRTL;
   const dateFormat = useSettingsStore((s) => s.dateFormat);
-  const currencySymbol = CURRENCY_SYMBOLS[useSettingsStore((s) => s.currency)];
 
-  const credit = useCreditsStore((s) => s.credits.find((c) => c.id === id));
-  const removeCredit = useCreditsStore((s) => s.removeCredit);
-  const updateCreditInStore = useCreditsStore((s) => s.updateCredit);
+  const warranty = useWarrantiesStore((s) => s.warranties.find((w) => w.id === id));
+  const removeWarranty = useWarrantiesStore((s) => s.removeWarranty);
+  const updateWarrantyInStore = useWarrantiesStore((s) => s.updateWarranty);
   const currentUid = useAuthStore((s) => s.currentUser?.uid);
   const familyAdminId = useFamilyStore((s) => s.family?.adminId);
-  const canDelete = credit
-    ? credit.userId === currentUid || familyAdminId === currentUid
+  const canDelete = warranty
+    ? warranty.userId === currentUid || familyAdminId === currentUid
     : false;
 
   const [showActionSheet, setShowActionSheet] = useState(false);
   const [showFullscreenImage, setShowFullscreenImage] = useState(false);
-  const [downloading, setDownloading] = useState(false);
   const [loading, setLoading] = useState(false);
   const afterDismissRef = useRef<(() => void) | null>(null);
-  const isRedeemed = credit?.status === CreditStatus.REDEEMED;
+  const isClosed = warranty?.status === WarrantyStatus.CLOSED;
 
   const categoryMeta = useMemo(
-    () => CATEGORIES.find((c) => c.id === credit?.category),
-    [credit?.category]
+    () => CATEGORIES.find((c) => c.id === warranty?.category),
+    [warranty?.category]
   );
 
-  if (!credit) {
+  if (!warranty) {
     return (
       <SafeAreaView style={styles.safe}>
         <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
           <Ionicons name={isRTL ? 'arrow-forward' : 'arrow-back'} size={24} color={colors.textPrimary} />
         </TouchableOpacity>
         <View style={styles.notFound}>
-          <Text style={styles.notFoundText}>{t('credit.notFound')}</Text>
+          <Text style={styles.notFoundText}>{t('warranty.notFound')}</Text>
         </View>
       </SafeAreaView>
     );
   }
 
-  async function handleMarkRedeemed() {
+  async function handleMarkClosed() {
     if (useUIStore.getState().offlineMode) {
-      Alert.alert(t('offline.title'), t('credit.markRedeemed.offlineMessage'));
+      Alert.alert(t('offline.title'), t('warranty.markClosed.offlineMessage'));
       return;
     }
-    const c = credit!;
-    Alert.alert(t('credit.markRedeemed.title'), t('credit.markRedeemed.message'), [
-      { text: t('common.cancel'), style: 'cancel' },
-      {
-        text: t('credit.markRedeemed.confirm'),
-        onPress: async () => {
-          setLoading(true);
-          try {
-            await cancelCreditNotifications(c.notificationId, c.expirationNotificationId);
-            updateCreditInStore(c.id, { status: CreditStatus.REDEEMED, redeemedAt: new Date() });
-            await updateCredit(c.id, { status: CreditStatus.REDEEMED, redeemedAt: new Date() });
-            router.back();
-          } catch {
-            updateCreditInStore(c.id, { status: CreditStatus.ACTIVE });
-            Alert.alert(t('common.error'), t('credit.markRedeemed.error'));
-          } finally {
-            setLoading(false);
-          }
+    const w = warranty!;
+    Alert.alert(
+      t('warranties.closedConfirm.title'),
+      t('warranties.closedConfirm.message'),
+      [
+        { text: t('warranties.closedConfirm.cancel'), style: 'cancel' },
+        {
+          text: t('warranties.closedConfirm.confirm'),
+          onPress: async () => {
+            setLoading(true);
+            try {
+              await cancelNotification(w.notificationId);
+              await cancelNotification(w.expirationNotificationId);
+              updateWarrantyInStore(w.id, { status: WarrantyStatus.CLOSED, closedAt: new Date() });
+              await updateWarranty(w.id, { status: WarrantyStatus.CLOSED, closedAt: new Date() });
+              router.back();
+            } catch {
+              updateWarrantyInStore(w.id, { status: WarrantyStatus.ACTIVE, closedAt: undefined });
+              Alert.alert(t('common.error'), t('warranty.markClosed.error'));
+            } finally {
+              setLoading(false);
+            }
+          },
         },
-      },
-    ]);
+      ]
+    );
   }
 
   async function handleDelete() {
     if (useUIStore.getState().offlineMode) {
       setShowActionSheet(false);
-      Alert.alert(t('offline.title'), t('credit.delete.offlineMessage'));
+      Alert.alert(t('offline.title'), t('warranty.delete.offlineMessage'));
       return;
     }
-    const c = credit!;
+    const w = warranty!;
     setShowActionSheet(false);
-    Alert.alert(t('credit.delete.title'), t('credit.delete.message', { storeName: c.storeName }), [
-      { text: t('common.cancel'), style: 'cancel' },
-      {
-        text: t('credit.delete.button'),
-        style: 'destructive',
-        onPress: async () => {
-          setLoading(true);
-          try {
-            await cancelCreditNotifications(c.notificationId, c.expirationNotificationId);
-            removeCredit(c.id);
-            await deleteCredit(c.id);
-            router.back();
-          } catch {
-            setLoading(false);
-            Alert.alert(t('common.error'), t('credit.delete.error'));
-          }
+    Alert.alert(
+      t('warranty.delete.title'),
+      t('warranty.delete.message', { productName: w.productName }),
+      [
+        { text: t('common.cancel'), style: 'cancel' },
+        {
+          text: t('warranty.delete.button'),
+          style: 'destructive',
+          onPress: async () => {
+            setLoading(true);
+            try {
+              await cancelNotification(w.notificationId);
+              await cancelNotification(w.expirationNotificationId);
+              removeWarranty(w.id);
+              await deleteWarranty(w.id);
+              router.back();
+            } catch {
+              setLoading(false);
+              Alert.alert(t('common.error'), t('warranty.delete.error'));
+            }
+          },
         },
-      },
-    ]);
-  }
-
-  async function handleDownloadImage() {
-    if (!credit?.imageUrl) return;
-    setDownloading(true);
-    try {
-      const { status } = await MediaLibrary.requestPermissionsAsync();
-      if (status !== 'granted') {
-        Alert.alert(t('common.error'), t('credit.image.permissionDenied'));
-        return;
-      }
-      const filename = `redeemy-${Date.now()}.jpg`;
-      const localUri = FileSystem.cacheDirectory + filename;
-      const { uri } = await FileSystem.downloadAsync(credit.imageUrl, localUri);
-      await MediaLibrary.saveToLibraryAsync(uri);
-      Alert.alert(t('credit.image.savedTitle'), t('credit.image.savedMessage'));
-    } catch (e) {
-      console.error('Download error:', e);
-      Alert.alert(t('common.error'), t('credit.image.saveError'));
-    } finally {
-      setDownloading(false);
-    }
+      ]
+    );
   }
 
   function handleEdit() {
-    afterDismissRef.current = () => { router.push(`/add-credit?creditId=${credit!.id}`); };
+    afterDismissRef.current = () => { router.push(`/add-warranty?warrantyId=${warranty!.id}`); };
     setShowActionSheet(false);
   }
 
-  async function handleRestore() {
-    setShowActionSheet(false);
-    const c = credit!;
-    setLoading(true);
-    try {
-      updateCreditInStore(c.id, { status: CreditStatus.ACTIVE, redeemedAt: undefined });
-      await updateCredit(c.id, { status: CreditStatus.ACTIVE, redeemedAt: null as any });
-      router.back();
-    } catch {
-      updateCreditInStore(c.id, { status: CreditStatus.REDEEMED, redeemedAt: c.redeemedAt });
-      Alert.alert(t('common.error'), t('credit.restore.error'));
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  const expirationDate = credit.expirationDate
-    ? (credit.expirationDate instanceof Date
-        ? credit.expirationDate
-        : new Date(credit.expirationDate as unknown as string))
+  const expirationDate = warranty.expirationDate
+    ? (warranty.expirationDate instanceof Date
+        ? warranty.expirationDate
+        : new Date(warranty.expirationDate as unknown as string))
     : null;
 
   return (
@@ -316,7 +273,7 @@ export default function CreditDetailScreen() {
           <Ionicons name={isRTL ? 'arrow-forward' : 'arrow-back'} size={24} color={colors.textPrimary} />
         </TouchableOpacity>
         <View style={{ flex: 1 }}>
-          <Text style={styles.headerTitle} numberOfLines={1}>{credit.storeName}</Text>
+          <Text style={styles.headerTitle} numberOfLines={1}>{warranty.storeName}</Text>
         </View>
         <TouchableOpacity onPress={() => setShowActionSheet(true)} hitSlop={8}>
           <Ionicons name="ellipsis-horizontal" size={22} color={colors.textPrimary} />
@@ -324,10 +281,10 @@ export default function CreditDetailScreen() {
       </View>
 
       <ScrollView style={styles.scroll} contentContainerStyle={styles.scrollContent}>
-        {credit.imageUrl ? (
+        {warranty.imageUrl ? (
           <TouchableOpacity onPress={() => setShowFullscreenImage(true)} activeOpacity={0.9}>
             <Image
-              source={{ uri: credit.imageUrl }}
+              source={{ uri: warranty.imageUrl }}
               style={styles.image}
               contentFit="cover"
               placeholder={{ blurhash: 'L6PZfSi_.AyE_3t7t7R**0o#DgR4' }}
@@ -336,55 +293,59 @@ export default function CreditDetailScreen() {
           </TouchableOpacity>
         ) : (
           <View style={styles.imagePlaceholder}>
-            <Ionicons name="image-outline" size={40} color={colors.textTertiary} />
+            <Ionicons name="shield-checkmark-outline" size={40} color={colors.textTertiary} />
           </View>
         )}
 
         <View style={styles.card}>
-          <Text style={styles.storeName}>{credit.storeName}</Text>
-          <Text style={styles.amount}>{formatCurrency(credit.amount, currencySymbol)}</Text>
-          <ExpirationBadge expirationDate={expirationDate ?? undefined} />
+          <Text style={styles.storeName}>{warranty.storeName}</Text>
+          <Text style={styles.productName}>{warranty.productName}</Text>
+          {!warranty.noExpiry && <ExpirationBadge expirationDate={expirationDate ?? undefined} />}
         </View>
 
         <View style={styles.detailsCard}>
           <View style={styles.detailRow}>
             <Ionicons name="pricetag-outline" size={18} color={colors.textTertiary} />
             <View style={styles.detailRowContent}>
-              <Text style={styles.detailLabel}>{t('credit.detail.category')}</Text>
-              <Text style={styles.detailValue}>{categoryMeta ? t('category.' + categoryMeta.id) : credit.category}</Text>
+              <Text style={styles.detailLabel}>{t('warranty.detail.category')}</Text>
+              <Text style={styles.detailValue}>{categoryMeta ? t('category.' + categoryMeta.id) : warranty.category}</Text>
             </View>
           </View>
           <View style={styles.separator} />
           <View style={styles.detailRow}>
             <Ionicons name="calendar-outline" size={18} color={colors.textTertiary} />
             <View style={styles.detailRowContent}>
-              <Text style={styles.detailLabel}>{t('credit.detail.expires')}</Text>
+              <Text style={styles.detailLabel}>{t('warranty.detail.expires')}</Text>
               <Text style={styles.detailValue}>
-                {expirationDate ? formatDate(expirationDate, dateFormat) : t('credit.detail.noExpiry')}
+                {warranty.noExpiry
+                  ? t('warranty.detail.noExpiry')
+                  : expirationDate
+                  ? formatDate(expirationDate, dateFormat)
+                  : t('warranty.detail.noExpiry')}
               </Text>
             </View>
           </View>
-          {expirationDate && (
+          {expirationDate && !warranty.noExpiry && (
             <>
               <View style={styles.separator} />
               <View style={styles.detailRow}>
                 <Ionicons name="notifications-outline" size={18} color={colors.textTertiary} />
                 <View style={styles.detailRowContent}>
-                  <Text style={styles.detailLabel}>{t('credit.detail.reminder')}</Text>
-                  <Text style={styles.detailValue}>{t('credit.detail.reminderDays', { count: credit.reminderDays })}</Text>
+                  <Text style={styles.detailLabel}>{t('warranty.detail.reminder')}</Text>
+                  <Text style={styles.detailValue}>{t('credit.detail.reminderDays', { count: warranty.reminderDays })}</Text>
                 </View>
               </View>
             </>
           )}
-          {credit.notes ? (
+          {warranty.notes ? (
             <>
               <View style={styles.separator} />
               <View style={styles.detailRow}>
                 <Ionicons name="document-text-outline" size={18} color={colors.textTertiary} />
                 <View style={[styles.detailRowContent, { alignItems: 'stretch' }]}>
-                  <Text style={styles.detailLabel}>{t('credit.detail.notes')}</Text>
+                  <Text style={styles.detailLabel}>{t('warranty.detail.notes')}</Text>
                   <View style={styles.notesValueWrap}>
-                    <Text style={styles.notesValue}>{credit.notes}</Text>
+                    <Text style={styles.notesValue}>{warranty.notes}</Text>
                   </View>
                 </View>
               </View>
@@ -394,37 +355,37 @@ export default function CreditDetailScreen() {
           <View style={styles.detailRow}>
             <Ionicons name="time-outline" size={18} color={colors.textTertiary} />
             <View style={styles.detailRowContent}>
-              <Text style={styles.detailLabel}>{t('credit.detail.added')}</Text>
-              <Text style={styles.detailValue}>{formatDate(new Date(credit.createdAt as Date), dateFormat)}</Text>
+              <Text style={styles.detailLabel}>{t('warranty.detail.added')}</Text>
+              <Text style={styles.detailValue}>{formatDate(new Date(warranty.createdAt as Date), dateFormat)}</Text>
             </View>
           </View>
         </View>
       </ScrollView>
 
       <View style={styles.footer}>
-        {isRedeemed ? (
-          <View style={styles.redeemedBanner}>
+        {isClosed ? (
+          <View style={styles.closedBanner}>
             <Ionicons name="checkmark-circle" size={18} color={colors.textTertiary} />
-            <Text style={styles.redeemedBannerText}>
-              {credit.redeemedAt
-                ? t('credit.redeemedOn', { date: formatDate(new Date(credit.redeemedAt as Date), dateFormat) })
-                : t('credit.redeemed')}
+            <Text style={styles.closedBannerText}>
+              {warranty.closedAt
+                ? t('warranty.closedOn', { date: formatDate(new Date(warranty.closedAt as Date), dateFormat) })
+                : t('warranties.closedToast')}
             </Text>
           </View>
         ) : (
           <TouchableOpacity
-            style={[styles.redeemButton, loading && styles.buttonDisabled]}
-            onPress={handleMarkRedeemed}
+            style={[styles.closeButton, loading && styles.buttonDisabled]}
+            onPress={handleMarkClosed}
             disabled={loading}
             accessibilityRole="button"
-            accessibilityLabel={t('credit.markRedeemed.button')}
+            accessibilityLabel={t('warranties.markClosed')}
           >
             {loading ? (
               <ActivityIndicator color="#FFFFFF" />
             ) : (
               <>
                 <Ionicons name="checkmark-circle-outline" size={20} color="#FFFFFF" />
-                <Text style={styles.redeemButtonText}>{t('credit.markRedeemed.button')}</Text>
+                <Text style={styles.closeButtonText}>{t('warranties.markClosed')}</Text>
               </>
             )}
           </TouchableOpacity>
@@ -452,7 +413,7 @@ export default function CreditDetailScreen() {
             bouncesZoom
           >
             <Image
-              source={{ uri: credit.imageUrl! }}
+              source={{ uri: warranty.imageUrl! }}
               style={styles.fullscreenImage}
               contentFit="contain"
               transition={200}
@@ -464,16 +425,6 @@ export default function CreditDetailScreen() {
             hitSlop={12}
           >
             <Ionicons name="close" size={22} color="#FFFFFF" />
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.fullscreenDownload}
-            onPress={handleDownloadImage}
-            disabled={downloading}
-            hitSlop={12}
-          >
-            {downloading
-              ? <ActivityIndicator size="small" color="#FFFFFF" />
-              : <Ionicons name="download-outline" size={22} color="#FFFFFF" />}
           </TouchableOpacity>
         </View>
       </Modal>
@@ -492,22 +443,16 @@ export default function CreditDetailScreen() {
         <TouchableOpacity style={styles.overlay} activeOpacity={1} onPress={() => setShowActionSheet(false)} />
         <View style={styles.actionSheet}>
           <View style={styles.actionSheetHandle} />
-          {credit.status === CreditStatus.ACTIVE && (
+          {warranty.status === WarrantyStatus.ACTIVE && (
             <TouchableOpacity style={styles.actionSheetButton} onPress={handleEdit}>
               <Ionicons name="create-outline" size={22} color={colors.textPrimary} />
-              <Text style={[styles.actionSheetLabel, { color: colors.textPrimary }]}>{t('credit.action.edit')}</Text>
-            </TouchableOpacity>
-          )}
-          {credit.status === CreditStatus.REDEEMED && (
-            <TouchableOpacity style={styles.actionSheetButton} onPress={handleRestore}>
-              <Ionicons name="refresh-outline" size={22} color={colors.primary} />
-              <Text style={[styles.actionSheetLabel, { color: colors.primary }]}>{t('credit.action.restore')}</Text>
+              <Text style={[styles.actionSheetLabel, { color: colors.textPrimary }]}>{t('warranty.action.edit')}</Text>
             </TouchableOpacity>
           )}
           {canDelete && (
             <TouchableOpacity style={styles.actionSheetButton} onPress={handleDelete}>
               <Ionicons name="trash-outline" size={22} color={colors.danger} />
-              <Text style={[styles.actionSheetLabel, { color: colors.danger }]}>{t('credit.action.delete')}</Text>
+              <Text style={[styles.actionSheetLabel, { color: colors.danger }]}>{t('warranty.action.delete')}</Text>
             </TouchableOpacity>
           )}
           <TouchableOpacity style={styles.cancelButton} onPress={() => setShowActionSheet(false)}>

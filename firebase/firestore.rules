@@ -44,6 +44,28 @@ service cloud.firestore {
       );
     }
 
+    // Warranties — owner OR family member can read/write
+    match /warranties/{warrantyId} {
+      allow read: if request.auth != null && (
+        request.auth.uid == resource.data.userId ||
+        isFamilyMember(resource.data.familyId)
+      );
+
+      allow create: if request.auth != null &&
+        request.resource.data.userId == request.auth.uid;
+
+      allow update: if request.auth != null && (
+        request.auth.uid == resource.data.userId ||
+        isFamilyMember(resource.data.familyId)
+      );
+
+      // Only the warranty owner OR the family admin can delete
+      allow delete: if request.auth != null && (
+        request.auth.uid == resource.data.userId ||
+        isFamilyAdmin(resource.data.familyId)
+      );
+    }
+
     // Families collection
     match /families/{familyId} {
       // Any authenticated user can read to validate an invite code

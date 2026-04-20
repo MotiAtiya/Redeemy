@@ -24,17 +24,15 @@ import { Ionicons } from '@expo/vector-icons';
 import DateTimePicker, { type DateTimePickerEvent } from '@react-native-community/datetimepicker';
 import { StoreAutocomplete } from '@/components/redeemy/StoreAutocomplete';
 import { StepProgressBar } from '@/components/redeemy/StepProgressBar';
-import { openCamera, openGallery } from '@/lib/imageUpload';
-import { uploadCreditImage } from '@/lib/imageUpload';
+import { openCamera, openGallery, uploadCreditImage } from '@/lib/imageUpload';
 import { CropModal } from '@/components/redeemy/CropModal';
-import { createCredit, updateCredit } from '@/lib/firestoreCredits';
-import { scheduleReminderNotification } from '@/lib/notifications';
-import { parseAmountToAgot, formatCurrency } from '@/constants/currencies';
+import { createWarranty, updateWarranty } from '@/lib/firestoreWarranties';
+import { scheduleReminderNotification, cancelNotification } from '@/lib/notifications';
 import { useAuthStore } from '@/stores/authStore';
-import { useCreditsStore } from '@/stores/creditsStore';
+import { useWarrantiesStore } from '@/stores/warrantiesStore';
 import { useUIStore } from '@/stores/uiStore';
 import { useAppTheme } from '@/hooks/useAppTheme';
-import { CreditStatus, type Credit } from '@/types/creditTypes';
+import { WarrantyStatus, type Warranty } from '@/types/warrantyTypes';
 import { DEFAULT_CATEGORY_ID, CATEGORIES } from '@/constants/categories';
 import { getCategoryForStore } from '@/data/israeliStores';
 import { REMINDER_PRESETS } from '@/constants/reminders';
@@ -49,7 +47,7 @@ import type { AppColors } from '@/constants/colors';
 type StepId =
   | 'storeName'
   | 'category'
-  | 'amount'
+  | 'productName'
   | 'expiryDate'
   | 'reminder'
   | 'photo'
@@ -58,7 +56,7 @@ type StepId =
   | 'summary';
 
 function getSteps(noExpiry: boolean, wantsNotes: boolean | null, skipNotesQuestion = false): StepId[] {
-  const steps: StepId[] = ['storeName', 'category', 'amount', 'expiryDate'];
+  const steps: StepId[] = ['storeName', 'category', 'productName', 'expiryDate'];
   if (!noExpiry) steps.push('reminder');
   steps.push('photo');
   if (!skipNotesQuestion) steps.push('notesQuestion');
@@ -129,34 +127,19 @@ function makeStyles(colors: AppColors, isRTL: boolean) {
     },
     continueBtnDisabled: { backgroundColor: colors.separator },
     continueBtnText: { fontSize: 17, fontWeight: '700', color: '#FFFFFF' },
-    // Store name step
-    // (uses StoreAutocomplete)
-    // Amount step
-    amountInputContainer: {
+    // Product Name step
+    productNameInput: {
       height: 64,
-      flexDirection: 'row',
-      direction: 'ltr',
-      alignItems: 'center',
       borderWidth: 1,
       borderColor: colors.separator,
       borderRadius: 12,
       paddingHorizontal: 16,
-      backgroundColor: colors.background,
-      gap: 6,
-    },
-    amountSymbol: {
       fontSize: 20,
       fontWeight: '500',
-      color: colors.textSecondary,
-    },
-    amountInput: {
-      flex: 1,
-      fontSize: 28,
-      fontWeight: '500',
       color: colors.textPrimary,
-      textAlign: 'left',
+      backgroundColor: colors.background,
+      textAlign: isRTL ? 'right' : 'left',
     },
-    amountError: { fontSize: 13, color: colors.danger, marginTop: 8 },
     // Category step — grid
     categoryGrid: {
       flexDirection: 'row',
@@ -178,7 +161,6 @@ function makeStyles(colors: AppColors, isRTL: boolean) {
       borderColor: colors.primary,
       backgroundColor: colors.primarySurface,
     },
-    // Inner container so icon+label are grouped and centered as a unit
     categoryCellInner: {
       alignItems: 'center',
       gap: 6,
@@ -360,11 +342,9 @@ function makeStyles(colors: AppColors, isRTL: boolean) {
       borderWidth: 1,
       borderColor: colors.separator,
       overflow: 'hidden',
-      // Force LTR so we can control label/value positioning manually
       direction: 'ltr',
     },
     summaryRow: {
-      // row-reverse in LTR context = right-to-left: label on right, value on left
       flexDirection: isRTL ? 'row-reverse' : 'row',
       alignItems: 'center',
       paddingVertical: 14,
@@ -379,7 +359,6 @@ function makeStyles(colors: AppColors, isRTL: boolean) {
       color: colors.textTertiary,
       fontWeight: '500',
       width: 72,
-      // RTL: label column is on the right → right-align text to hug the right edge
       textAlign: isRTL ? 'right' : 'left',
     },
     summaryValue: {
@@ -387,11 +366,10 @@ function makeStyles(colors: AppColors, isRTL: boolean) {
       fontSize: 15,
       color: colors.textPrimary,
       fontWeight: '500',
-      // Always left-align: in RTL the value column is on the physical left
       textAlign: 'left',
     },
-    summaryAmountValue: {
-      fontSize: 22,
+    summaryProductValue: {
+      fontSize: 18,
       fontWeight: '700',
       color: colors.primary,
     },
@@ -402,10 +380,10 @@ function makeStyles(colors: AppColors, isRTL: boolean) {
 // Main screen
 // ---------------------------------------------------------------------------
 
-export default function AddCreditScreen() {
+export default function AddWarrantyScreen() {
   const router = useRouter();
-  const { creditId } = useLocalSearchParams<{ creditId?: string }>();
-  const isEditing = !!creditId;
+  const { warrantyId } = useLocalSearchParams<{ warrantyId?: string }>();
+  const isEditing = !!warrantyId;
   const colors = useAppTheme();
   const { t } = useTranslation();
   const isRTL = I18nManager.isRTL;
@@ -414,18 +392,17 @@ export default function AddCreditScreen() {
 
   const currentUser = useAuthStore((s) => s.currentUser);
   const familyId = useSettingsStore((s) => s.familyId);
-  const addCreditToStore = useCreditsStore((s) => s.addCredit);
-  const removeCredit = useCreditsStore((s) => s.removeCredit);
-  const updateCreditInStore = useCreditsStore((s) => s.updateCredit);
-  const existingCredit = useCreditsStore((s) =>
-    creditId ? s.credits.find((c) => c.id === creditId) : undefined
+  const addWarrantyToStore = useWarrantiesStore((s) => s.addWarranty);
+  const removeWarranty = useWarrantiesStore((s) => s.removeWarranty);
+  const updateWarrantyInStore = useWarrantiesStore((s) => s.updateWarranty);
+  const existingWarranty = useWarrantiesStore((s) =>
+    warrantyId ? s.warranties.find((w) => w.id === warrantyId) : undefined
   );
-  const allCredits = useCreditsStore((s) => s.credits);
 
   // Form state
   const [storeName, setStoreName] = useState('');
   const [category, setCategory] = useState(DEFAULT_CATEGORY_ID);
-  const [amountInput, setAmountInput] = useState('');
+  const [productName, setProductName] = useState('');
   const [noExpiry, setNoExpiry] = useState(false);
   const [expirationDate, setExpirationDate] = useState<Date | null>(null);
   const [showDatePicker, setShowDatePicker] = useState(false);
@@ -438,7 +415,6 @@ export default function AddCreditScreen() {
   const [skipNotesQuestion, setSkipNotesQuestion] = useState(false);
   const [notes, setNotes] = useState('');
   const [saving, setSaving] = useState(false);
-  const [amountError, setAmountError] = useState('');
   const [dateError, setDateError] = useState('');
 
   // Step state
@@ -446,7 +422,7 @@ export default function AddCreditScreen() {
   const fadeAnim = useRef(new Animated.Value(1)).current;
   const slideAnim = useRef(new Animated.Value(0)).current;
 
-  // Keyboard tracking — keeps footer above keyboard on iOS & Android
+  // Keyboard tracking
   const keyboardPadding = useRef(new Animated.Value(0)).current;
   useEffect(() => {
     const showEvent = Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow';
@@ -475,53 +451,40 @@ export default function AddCreditScreen() {
 
   // Pre-fill for edit mode
   useEffect(() => {
-    if (!isEditing || !existingCredit) return;
-    setStoreName(existingCredit.storeName);
-    setAmountInput((existingCredit.amount / 100).toFixed(2));
-    setCategory(existingCredit.category);
-    if (existingCredit.expirationDate) {
+    if (!isEditing || !existingWarranty) return;
+    setStoreName(existingWarranty.storeName);
+    setProductName(existingWarranty.productName);
+    setCategory(existingWarranty.category);
+    if (existingWarranty.expirationDate) {
       const d =
-        existingCredit.expirationDate instanceof Date
-          ? existingCredit.expirationDate
-          : new Date(existingCredit.expirationDate as unknown as string);
+        existingWarranty.expirationDate instanceof Date
+          ? existingWarranty.expirationDate
+          : new Date(existingWarranty.expirationDate as unknown as string);
       setExpirationDate(d);
       setNoExpiry(false);
     } else {
       setNoExpiry(true);
     }
-    setReminderDays(existingCredit.reminderDays);
-    if (existingCredit.notes) {
-      setNotes(existingCredit.notes);
+    setReminderDays(existingWarranty.reminderDays);
+    if (existingWarranty.notes) {
+      setNotes(existingWarranty.notes);
       setWantsNotes(true);
       setSkipNotesQuestion(true);
     } else {
       setWantsNotes(false);
     }
-    if (existingCredit.imageUrl) setImageUri(existingCredit.imageUrl);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    if (existingWarranty.imageUrl) setImageUri(existingWarranty.imageUrl);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Auto-detect category when a store is selected from autocomplete.
-  // Priority: 1) most recent credit for this store, 2) store→category map.
+  // Auto-detect category when a store is selected from autocomplete
   function handleSelectStoreSuggestion(selectedName: string) {
-    const match = [...allCredits]
-      .filter((c) => c.storeName.toLowerCase() === selectedName.toLowerCase())
-      .sort(
-        (a, b) =>
-          new Date(b.createdAt as Date).getTime() -
-          new Date(a.createdAt as Date).getTime()
-      )[0];
-    if (match) {
-      setCategory(match.category);
-      return;
-    }
     const mapped = getCategoryForStore(selectedName);
     if (mapped) setCategory(mapped);
   }
 
-  // Also resolve category when continuing from storeName step manually (without selecting a suggestion).
   function applyStoreCategoryIfNeeded(name: string) {
-    if (category !== DEFAULT_CATEGORY_ID) return; // already customised
+    if (category !== DEFAULT_CATEGORY_ID) return;
     const mapped = getCategoryForStore(name);
     if (mapped) setCategory(mapped);
   }
@@ -570,24 +533,11 @@ export default function AddCreditScreen() {
   }
 
   // ---------------------------------------------------------------------------
-  // Validation helpers
+  // Validation
   // ---------------------------------------------------------------------------
 
   function validateCurrentStep(): boolean {
     switch (currentStepId) {
-      case 'amount': {
-        const agot = parseAmountToAgot(amountInput);
-        if (!amountInput.trim()) {
-          setAmountError(t('addCredit.validation.amountRequired'));
-          return false;
-        }
-        if (isNaN(agot)) {
-          setAmountError(t('addCredit.validation.amountInvalid'));
-          return false;
-        }
-        setAmountError('');
-        return true;
-      }
       case 'expiryDate': {
         if (!noExpiry) {
           if (!expirationDate) {
@@ -621,17 +571,14 @@ export default function AddCreditScreen() {
     switch (currentStepId) {
       case 'storeName': return storeName.trim().length > 0;
       case 'category': return true;
-      case 'amount': {
-        const agot = parseAmountToAgot(amountInput);
-        return amountInput.trim().length > 0 && !isNaN(agot);
-      }
+      case 'productName': return productName.trim().length > 0;
       case 'expiryDate': return noExpiry || expirationDate !== null;
       case 'reminder': return true;
       case 'photo': return imageUri !== null;
       case 'notesInput': return true;
       default: return false;
     }
-  }, [currentStepId, storeName, amountInput, noExpiry, expirationDate, imageUri]);
+  }, [currentStepId, storeName, productName, noExpiry, expirationDate, imageUri]);
 
   // ---------------------------------------------------------------------------
   // Photo helpers
@@ -660,123 +607,134 @@ export default function AddCreditScreen() {
     if (useUIStore.getState().offlineMode) {
       Alert.alert(
         t('offline.title'),
-        isEditing ? t('addCredit.offline.editing') : t('addCredit.offline.adding'),
+        t('addWarranty.offline.adding'),
         [{ text: t('common.ok') }]
       );
       return;
     }
 
-    const agot = parseAmountToAgot(amountInput);
     setSaving(true);
 
-    if (isEditing && existingCredit) {
+    if (isEditing && existingWarranty) {
       try {
-        const finalExpiry = noExpiry ? null : expirationDate;
-        const changes: Partial<Credit> = {
+        const finalExpiry = noExpiry ? undefined : expirationDate ?? undefined;
+        const changes: Partial<Warranty> = {
           storeName: storeName.trim(),
-          amount: agot,
+          productName: productName.trim(),
           category,
-          expirationDate: finalExpiry ?? undefined,
+          expirationDate: finalExpiry,
+          noExpiry,
           reminderDays,
           notes: notes.trim(),
           updatedAt: new Date(),
         };
-        updateCreditInStore(existingCredit.id, changes);
-        const { reminderId, expiryId } = await scheduleReminderNotification(
-          {
-            id: existingCredit.id,
-            storeName: storeName.trim(),
-            amount: agot,
-            expirationDate: finalExpiry ?? undefined,
-            reminderDays,
-          },
-          existingCredit.notificationId,
-          existingCredit.expirationNotificationId
-        );
-        if (reminderId) {
-          changes.notificationId = reminderId;
-          updateCreditInStore(existingCredit.id, { notificationId: reminderId });
+        updateWarrantyInStore(existingWarranty.id, changes);
+
+        // Cancel old notifications and schedule new ones
+        await cancelNotification(existingWarranty.notificationId);
+        await cancelNotification(existingWarranty.expirationNotificationId);
+        if (finalExpiry) {
+          const { reminderId, expiryId } = await scheduleReminderNotification(
+            {
+              id: existingWarranty.id,
+              storeName: storeName.trim(),
+              amount: 0,
+              expirationDate: finalExpiry,
+              reminderDays,
+            }
+          );
+          if (reminderId) {
+            changes.notificationId = reminderId;
+            updateWarrantyInStore(existingWarranty.id, { notificationId: reminderId });
+          }
+          if (expiryId) {
+            changes.expirationNotificationId = expiryId;
+            updateWarrantyInStore(existingWarranty.id, { expirationNotificationId: expiryId });
+          }
         }
-        if (expiryId) {
-          changes.expirationNotificationId = expiryId;
-          updateCreditInStore(existingCredit.id, { expirationNotificationId: expiryId });
-        }
-        if (imageUri && imageUri !== existingCredit.imageUrl) {
-          const { imageUrl, thumbnailUrl } = await uploadCreditImage(imageUri, existingCredit.id);
+        if (imageUri && imageUri !== existingWarranty.imageUrl) {
+          const { imageUrl, thumbnailUrl } = await uploadCreditImage(imageUri, existingWarranty.id);
           changes.imageUrl = imageUrl;
           changes.thumbnailUrl = thumbnailUrl;
-          updateCreditInStore(existingCredit.id, { imageUrl, thumbnailUrl });
+          updateWarrantyInStore(existingWarranty.id, { imageUrl, thumbnailUrl });
         }
-        await updateCredit(existingCredit.id, changes);
+        await updateWarranty(existingWarranty.id, changes);
         router.back();
       } catch {
-        updateCreditInStore(existingCredit.id, existingCredit as Partial<Credit>);
+        updateWarrantyInStore(existingWarranty.id, existingWarranty as Partial<Warranty>);
         setSaving(false);
-        Alert.alert(t('addCredit.error.save'), t('addCredit.error.saveMessage'));
+        Alert.alert(t('addWarranty.error.save'), t('addWarranty.error.saveMessage'));
       }
       return;
     }
 
-    // Create new credit
+    // Create new warranty
     const tempId = `temp-${Date.now()}`;
-    const optimisticCredit: Credit = {
+    const optimisticWarranty: Warranty = {
       id: tempId,
       userId: currentUser.uid,
       storeName: storeName.trim(),
-      amount: agot,
+      productName: productName.trim(),
       category,
       expirationDate: noExpiry ? undefined : expirationDate ?? undefined,
+      noExpiry,
       reminderDays,
       notes: notes.trim(),
-      status: CreditStatus.ACTIVE,
+      status: WarrantyStatus.ACTIVE,
       imageUri: imageUri ?? undefined,
       createdAt: new Date(),
       updatedAt: new Date(),
-    } as unknown as Credit;
-    addCreditToStore(optimisticCredit);
+    };
+    addWarrantyToStore(optimisticWarranty);
 
     try {
       const finalExpiry = noExpiry ? undefined : expirationDate ?? undefined;
       const displayName = currentUser.displayName ?? currentUser.email?.split('@')[0] ?? 'Member';
-      const newCreditId = await createCredit({
+      const newWarrantyId = await createWarranty({
         userId: currentUser.uid,
         storeName: storeName.trim(),
-        amount: agot,
+        productName: productName.trim(),
         category,
         expirationDate: finalExpiry,
+        noExpiry,
         reminderDays,
         notes: notes.trim(),
-        status: CreditStatus.ACTIVE,
+        status: WarrantyStatus.ACTIVE,
         ...(familyId ? { familyId, createdBy: currentUser.uid, createdByName: displayName } : {}),
       });
-      const { reminderId, expiryId } = await scheduleReminderNotification({
-        id: newCreditId,
-        storeName: storeName.trim(),
-        amount: agot,
-        expirationDate: finalExpiry,
-        reminderDays,
-      });
-      if (reminderId || expiryId) {
-        await updateCredit(newCreditId, {
-          ...(reminderId ? { notificationId: reminderId } : {}),
-          ...(expiryId ? { expirationNotificationId: expiryId } : {}),
+
+      if (finalExpiry) {
+        const { reminderId, expiryId } = await scheduleReminderNotification({
+          id: newWarrantyId,
+          storeName: storeName.trim(),
+          amount: 0,
+          expirationDate: finalExpiry,
+          reminderDays,
         });
-      }
-      if (imageUri) {
-        try {
-          const { imageUrl, thumbnailUrl } = await uploadCreditImage(imageUri, newCreditId);
-          await updateCredit(newCreditId, { imageUrl, thumbnailUrl });
-        } catch {
-          Alert.alert(t('addCredit.error.photo'));
+        if (reminderId || expiryId) {
+          await updateWarranty(newWarrantyId, {
+            ...(reminderId ? { notificationId: reminderId } : {}),
+            ...(expiryId ? { expirationNotificationId: expiryId } : {}),
+          });
         }
       }
-      removeCredit(tempId);
+
+      if (imageUri) {
+        try {
+          const { imageUrl, thumbnailUrl } = await uploadCreditImage(imageUri, newWarrantyId);
+          await updateWarranty(newWarrantyId, { imageUrl, thumbnailUrl });
+        } catch {
+          Alert.alert(t('addWarranty.error.photo'));
+        }
+      }
+
+      removeWarranty(tempId);
       router.back();
     } catch (e) {
-      console.error('Save error:', e);
-      removeCredit(tempId);
+      console.error('Save warranty error:', e);
+      removeWarranty(tempId);
       setSaving(false);
-      Alert.alert(t('addCredit.error.save'), t('addCredit.error.saveMessage'));
+      Alert.alert(t('addWarranty.error.save'), t('addWarranty.error.saveMessage'));
     }
   }
 
@@ -803,7 +761,7 @@ export default function AddCreditScreen() {
         contentContainerStyle={styles.stepContent}
         keyboardShouldPersistTaps="handled"
       >
-        <Text style={styles.stepTitle}>{t('addCredit.step.storeName')}</Text>
+        <Text style={styles.stepTitle}>{t('addWarranty.step.storeName')}</Text>
         <StoreAutocomplete
           value={storeName}
           onChange={setStoreName}
@@ -821,7 +779,7 @@ export default function AddCreditScreen() {
         contentContainerStyle={styles.stepContent}
         keyboardShouldPersistTaps="handled"
       >
-        <Text style={styles.stepTitle}>{t('addCredit.step.category')}</Text>
+        <Text style={styles.stepTitle}>{t('addWarranty.step.category')}</Text>
         <View style={styles.categoryGrid}>
           {CATEGORIES.map((cat) => {
             const isSelected = cat.id === category;
@@ -854,30 +812,26 @@ export default function AddCreditScreen() {
     );
   }
 
-  function renderAmountStep() {
+  function renderProductNameStep() {
     return (
       <ScrollView
         style={styles.stepScroll}
         contentContainerStyle={styles.stepContent}
         keyboardShouldPersistTaps="handled"
       >
-        <Text style={styles.stepTitle}>{t('addCredit.step.amount')}</Text>
-        <View style={styles.amountInputContainer}>
-          <Text style={styles.amountSymbol}>₪</Text>
-          <TextInput
-            style={styles.amountInput}
-            placeholder="0.00"
-            placeholderTextColor={colors.textTertiary}
-            keyboardType="decimal-pad"
-            value={amountInput}
-            onChangeText={(v) => {
-              setAmountInput(v);
-              setAmountError('');
-            }}
-            autoFocus
-          />
-        </View>
-        {!!amountError && <Text style={styles.amountError}>{amountError}</Text>}
+        <Text style={styles.stepTitle}>{t('addWarranty.step.productName')}</Text>
+        <TextInput
+          style={styles.productNameInput}
+          placeholder={t('addWarranty.productNamePlaceholder')}
+          placeholderTextColor={colors.textTertiary}
+          value={productName}
+          onChangeText={setProductName}
+          autoFocus
+          autoCapitalize="sentences"
+          autoCorrect={false}
+          spellCheck={false}
+          returnKeyType="next"
+        />
       </ScrollView>
     );
   }
@@ -889,7 +843,7 @@ export default function AddCreditScreen() {
         contentContainerStyle={[styles.stepContent, { paddingBottom: showDatePicker ? 320 : 16 }]}
         keyboardShouldPersistTaps="handled"
       >
-        <Text style={styles.stepTitle}>{t('addCredit.step.expiryDate')}</Text>
+        <Text style={styles.stepTitle}>{t('addWarranty.step.expiryDate')}</Text>
 
         {!noExpiry && (
           <>
@@ -923,7 +877,7 @@ export default function AddCreditScreen() {
         )}
 
         <View style={styles.noExpiryRow}>
-          <Text style={styles.noExpiryLabel}>{t('addCredit.noExpiry')}</Text>
+          <Text style={styles.noExpiryLabel}>{t('addWarranty.noExpiry')}</Text>
           <Switch
             value={noExpiry}
             onValueChange={(v) => {
@@ -947,8 +901,7 @@ export default function AddCreditScreen() {
         style={styles.stepScroll}
         contentContainerStyle={styles.stepContent}
       >
-        <Text style={styles.stepTitle}>{t('addCredit.step.reminder')}</Text>
-        <Text style={styles.stepSubtitle}>{t('addCredit.stepSub.reminder')}</Text>
+        <Text style={styles.stepTitle}>{t('addWarranty.step.reminder')}</Text>
         <View style={styles.reminderGrid}>
           {REMINDER_PRESETS.map((preset) => {
             const isSelected = reminderDays === preset.days;
@@ -995,11 +948,11 @@ export default function AddCreditScreen() {
             />
             <TouchableOpacity style={styles.retakeBtn} onPress={handleCamera}>
               <Ionicons name="camera-outline" size={16} color={colors.primary} />
-              <Text style={styles.retakeBtnText}>{t('addCredit.retakePhoto')}</Text>
+              <Text style={styles.retakeBtnText}>{t('addWarranty.retakePhoto')}</Text>
             </TouchableOpacity>
             <TouchableOpacity style={styles.retakeBtn} onPress={handleGallery}>
               <Ionicons name="images-outline" size={16} color={colors.primary} />
-              <Text style={styles.retakeBtnText}>{t('addCredit.chooseGallery')}</Text>
+              <Text style={styles.retakeBtnText}>{t('addWarranty.chooseGallery')}</Text>
             </TouchableOpacity>
           </>
         ) : (
@@ -1007,11 +960,11 @@ export default function AddCreditScreen() {
             <View style={styles.photoPlaceholderIcon}>
               <Ionicons name="camera-outline" size={44} color={colors.primary} />
             </View>
-            <Text style={styles.photoPlaceholderLabel}>{t('addCredit.stepSub.photo')}</Text>
+            <Text style={styles.photoPlaceholderLabel}>{t('addWarranty.step.photo')}</Text>
             <View style={styles.photoButtons}>
               <TouchableOpacity style={styles.photoBtn} onPress={handleCamera}>
                 <Ionicons name="camera-outline" size={20} color="#FFFFFF" />
-                <Text style={styles.photoBtnText}>{t('addCredit.takePhoto')}</Text>
+                <Text style={styles.photoBtnText}>{t('addWarranty.takePhoto')}</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={[styles.photoBtn, styles.photoBtnSecondary]}
@@ -1019,7 +972,7 @@ export default function AddCreditScreen() {
               >
                 <Ionicons name="images-outline" size={20} color={colors.primary} />
                 <Text style={[styles.photoBtnText, styles.photoBtnTextSecondary]}>
-                  {t('addCredit.chooseGallery')}
+                  {t('addWarranty.chooseGallery')}
                 </Text>
               </TouchableOpacity>
             </View>
@@ -1035,13 +988,11 @@ export default function AddCreditScreen() {
         <View style={styles.notesQIcon}>
           <Ionicons name="chatbubble-ellipses-outline" size={40} color={colors.primary} />
         </View>
-        <Text style={styles.notesQTitle}>{t('addCredit.step.notesQuestion')}</Text>
-        <Text style={styles.notesQSub}>{t('addCredit.stepSub.notesQuestion')}</Text>
+        <Text style={styles.notesQTitle}>{t('addWarranty.step.notesQuestion')}</Text>
         <TouchableOpacity
           style={styles.notesQBtn}
           onPress={() => {
             setWantsNotes(true);
-            // steps will recompute to include notesInput
             animateTransition('forward', () => {
               const updatedSteps = getSteps(noExpiry, true);
               const nextIdx = updatedSteps.indexOf('notesInput');
@@ -1049,7 +1000,7 @@ export default function AddCreditScreen() {
             });
           }}
         >
-          <Text style={styles.notesQBtnText}>{t('addCredit.notesYes')}</Text>
+          <Text style={styles.notesQBtnText}>{t('addWarranty.notesYes')}</Text>
         </TouchableOpacity>
         <TouchableOpacity
           style={[styles.notesQBtn, styles.notesQBtnSecondary]}
@@ -1059,7 +1010,7 @@ export default function AddCreditScreen() {
           }}
         >
           <Text style={[styles.notesQBtnText, styles.notesQBtnTextSecondary]}>
-            {t('addCredit.notesNo')}
+            {t('addWarranty.notesNo')}
           </Text>
         </TouchableOpacity>
       </View>
@@ -1073,11 +1024,10 @@ export default function AddCreditScreen() {
         contentContainerStyle={styles.stepContent}
         keyboardShouldPersistTaps="handled"
       >
-        <Text style={styles.stepTitle}>{t('addCredit.step.notesInput')}</Text>
-        <Text style={styles.stepSubtitle}>{t('addCredit.stepSub.notesInput')}</Text>
+        <Text style={styles.stepTitle}>{t('addWarranty.step.notesInput')}</Text>
         <TextInput
           style={styles.notesInput}
-          placeholder={t('addCredit.notesPlaceholder')}
+          placeholder={t('addWarranty.notesPlaceholder')}
           placeholderTextColor={colors.textTertiary}
           multiline
           numberOfLines={5}
@@ -1090,7 +1040,6 @@ export default function AddCreditScreen() {
   }
 
   function renderSummaryStep() {
-    const agot = parseAmountToAgot(amountInput);
     const categoryObj = CATEGORIES.find((c) => c.id === category);
     const reminderKey =
       reminderDays === 1
@@ -1106,8 +1055,7 @@ export default function AddCreditScreen() {
         style={styles.stepScroll}
         contentContainerStyle={styles.stepContent}
       >
-        <Text style={styles.stepTitle}>{t('addCredit.step.summary')}</Text>
-        <Text style={styles.stepSubtitle}>{t('addCredit.stepSub.summary')}</Text>
+        <Text style={styles.stepTitle}>{t('addWarranty.step.summary')}</Text>
 
         {imageUri && (
           <Image
@@ -1120,19 +1068,17 @@ export default function AddCreditScreen() {
 
         <View style={styles.summaryCard}>
           <View style={styles.summaryRow}>
-            <Text style={styles.summaryLabel}>{t('addCredit.summary.store')}</Text>
+            <Text style={styles.summaryLabel}>{t('addWarranty.summary.store')}</Text>
             <Text style={styles.summaryValue}>{storeName}</Text>
           </View>
 
           <View style={styles.summaryRow}>
-            <Text style={styles.summaryLabel}>{t('addCredit.summary.amount')}</Text>
-            <Text style={[styles.summaryValue, styles.summaryAmountValue]}>
-              {!isNaN(agot) ? formatCurrency(agot) : amountInput}
-            </Text>
+            <Text style={styles.summaryLabel}>{t('addWarranty.summary.product')}</Text>
+            <Text style={[styles.summaryValue, styles.summaryProductValue]}>{productName}</Text>
           </View>
 
           <View style={styles.summaryRow}>
-            <Text style={styles.summaryLabel}>{t('addCredit.summary.category')}</Text>
+            <Text style={styles.summaryLabel}>{t('addWarranty.summary.category')}</Text>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, flex: 1 }}>
               {categoryObj && (
                 <Ionicons name={categoryObj.icon} size={16} color={colors.textSecondary} />
@@ -1142,10 +1088,10 @@ export default function AddCreditScreen() {
           </View>
 
           <View style={styles.summaryRow}>
-            <Text style={styles.summaryLabel}>{t('addCredit.summary.expiry')}</Text>
+            <Text style={styles.summaryLabel}>{t('addWarranty.summary.expiry')}</Text>
             <Text style={styles.summaryValue}>
               {noExpiry
-                ? t('addCredit.summary.noExpiry')
+                ? t('addWarranty.summary.noExpiry')
                 : expirationDate
                 ? formatDate(expirationDate, dateFormat)
                 : '—'}
@@ -1154,21 +1100,15 @@ export default function AddCreditScreen() {
 
           {!noExpiry && (
             <View style={styles.summaryRow}>
-              <Text style={styles.summaryLabel}>{t('addCredit.summary.reminder')}</Text>
+              <Text style={styles.summaryLabel}>{t('addWarranty.summary.reminder')}</Text>
               <Text style={styles.summaryValue}>{t(reminderKey)}</Text>
             </View>
           )}
 
           {notes.trim().length > 0 && (
             <View style={[styles.summaryRow, styles.summaryRowLast]}>
-              <Text style={styles.summaryLabel}>{t('addCredit.summary.notes')}</Text>
+              <Text style={styles.summaryLabel}>{t('addWarranty.summary.notes')}</Text>
               <Text style={styles.summaryValue} numberOfLines={3}>{notes}</Text>
-            </View>
-          )}
-
-          {!notes.trim() && noExpiry && (
-            <View style={[styles.summaryRow, styles.summaryRowLast]}>
-              {/* keeps border bottom clean when last row */}
             </View>
           )}
         </View>
@@ -1180,7 +1120,7 @@ export default function AddCreditScreen() {
     switch (currentStepId) {
       case 'storeName': return renderStoreNameStep();
       case 'category': return renderCategoryStep();
-      case 'amount': return renderAmountStep();
+      case 'productName': return renderProductNameStep();
       case 'expiryDate': return renderExpiryDateStep();
       case 'reminder': return renderReminderStep();
       case 'photo': return renderPhotoStep();
@@ -1206,7 +1146,7 @@ export default function AddCreditScreen() {
           {saving ? (
             <ActivityIndicator color="#FFFFFF" />
           ) : (
-            <Text style={styles.continueBtnText}>{t('addCredit.save')}</Text>
+            <Text style={styles.continueBtnText}>{t('addWarranty.save')}</Text>
           )}
         </TouchableOpacity>
       );
@@ -1218,20 +1158,16 @@ export default function AddCreditScreen() {
         disabled={!canContinue}
         activeOpacity={canContinue ? 0.8 : 1}
       >
-        <Text style={styles.continueBtnText}>{t('addCredit.continue')}</Text>
+        <Text style={styles.continueBtnText}>{t('addWarranty.continue')}</Text>
       </TouchableOpacity>
     );
   }
 
   // ---------------------------------------------------------------------------
-  // Header title
-  // ---------------------------------------------------------------------------
-
-  const headerTitle = isEditing ? t('addCredit.titleEdit') : t('addCredit.title');
-
-  // ---------------------------------------------------------------------------
   // Render
   // ---------------------------------------------------------------------------
+
+  const headerTitle = isEditing ? t('addWarranty.titleEdit') : t('addWarranty.title');
 
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
@@ -1261,9 +1197,7 @@ export default function AddCreditScreen() {
         <View style={styles.headerRight} />
       </View>
 
-      {/* Keyboard-aware wrapper: paddingBottom tracks keyboard height so footer stays visible */}
       <Animated.View style={[styles.flex, { paddingBottom: keyboardPadding }]}>
-        {/* Step content with animation */}
         <Animated.View
           style={[
             styles.stepContainer,
@@ -1273,7 +1207,6 @@ export default function AddCreditScreen() {
           {renderCurrentStep()}
         </Animated.View>
 
-        {/* Footer: progress bar + button */}
         <View style={styles.footer}>
           <StepProgressBar totalSteps={steps.length} currentStep={currentStepIndex} />
           {renderFooterButton()}

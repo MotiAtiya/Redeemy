@@ -2,6 +2,7 @@
   "tabs": {
     "credits": "Credits",
     "stores": "Stores",
+    "warranties": "Warranties",
     "history": "History",
     "more": "More"
   },
@@ -24,6 +25,8 @@
   "stores": {
     "title": "Stores",
     "search": "Search stores…",
+    "activeCredits_one": "{{count}} active credit",
+    "activeCredits_other": "{{count}} active credits",
     "empty": {
       "title": "No active credits yet",
       "subtitle": "Add your first credit to get started",
@@ -32,6 +35,8 @@
   },
   "history": {
     "title": "History",
+    "sectionCredits": "Redeemed Credits",
+    "sectionWarranties": "Expired & Closed Warranties",
     "dateRange": {
       "thisMonth": "This Month",
       "last3Months": "Last 3 Months",
@@ -47,6 +52,10 @@
     "filter": {
       "title": "Filter History",
       "dateRange": "DATE RANGE",
+      "type": "TYPE",
+      "typeAll": "All",
+      "typeCredits": "Credits",
+      "typeWarranties": "Warranties",
       "category": "CATEGORY",
       "apply": "Apply Filters"
     },
@@ -109,7 +118,7 @@
     },
     "about": {
       "tagline": "Credits you won't forget",
-      "contact": "Contact Support",
+      "contact": "Contact Support"
     },
     "signOut": {
       "button": "Sign Out",
@@ -198,6 +207,7 @@
     }
   },
   "addCredit": {
+    "title": "Add Credit",
     "titleAdd": "Add Credit",
     "titleEdit": "Edit Credit",
     "save": "Save",
@@ -267,6 +277,98 @@
       "datePast": "Expiration date must be in the future",
       "photoRequired": "A photo is required"
     }
+  },
+  "addWarranty": {
+    "title": "Add Warranty",
+    "titleEdit": "Edit Warranty",
+    "step": {
+      "storeName": "Store Name",
+      "category": "Category",
+      "productName": "Product Name",
+      "expiryDate": "Expiry Date",
+      "reminder": "Reminder",
+      "photo": "Take a photo of your receipt",
+      "notesQuestion": "Add notes?",
+      "notesInput": "Notes",
+      "summary": "Looking good?"
+    },
+    "productNamePlaceholder": "e.g. Bosch Oven HBF154",
+    "noExpiry": "No expiry date",
+    "continue": "Continue",
+    "save": "Save Warranty",
+    "retakePhoto": "Retake Photo",
+    "chooseGallery": "Choose from Gallery",
+    "takePhoto": "Take Photo",
+    "notesYes": "Add Notes",
+    "notesNo": "Skip",
+    "notesPlaceholder": "Warranty details, serial number...",
+    "summary": {
+      "store": "Store",
+      "product": "Product",
+      "category": "Category",
+      "expiry": "Expiry",
+      "reminder": "Reminder",
+      "notes": "Notes",
+      "noExpiry": "No expiry"
+    },
+    "offline": {
+      "adding": "Adding warranties requires an internet connection."
+    },
+    "error": {
+      "save": "Couldn't save",
+      "saveMessage": "Please try again.",
+      "photo": "Photo upload failed — warranty saved without photo."
+    }
+  },
+  "warranties": {
+    "title": "Warranties",
+    "empty": {
+      "title": "No warranties yet",
+      "subtitle": "Add your first warranty to keep track of product guarantees",
+      "action": "Add Warranty"
+    },
+    "sort": {
+      "expiry": "Expiry Date",
+      "productName": "Product Name",
+      "storeName": "Store Name",
+      "recent": "Recently Added"
+    },
+    "markClosed": "Mark as Closed",
+    "closedToast": "Warranty closed",
+    "deletedToast": "Warranty deleted",
+    "closedConfirm": {
+      "title": "Close warranty?",
+      "message": "It will move to your history.",
+      "confirm": "Close",
+      "cancel": "Cancel"
+    }
+  },
+  "warranty": {
+    "notFound": "Warranty not found",
+    "markClosed": {
+      "offlineMessage": "Marking warranties as closed requires an internet connection.",
+      "error": "Could not close warranty. Try again."
+    },
+    "delete": {
+      "offlineMessage": "Deleting warranties requires an internet connection.",
+      "title": "Delete Warranty",
+      "message": "Delete the {{productName}} warranty? This cannot be undone.",
+      "button": "Delete",
+      "error": "Could not delete warranty. Try again."
+    },
+    "action": {
+      "edit": "Edit",
+      "delete": "Delete"
+    },
+    "detail": {
+      "category": "Category",
+      "expires": "Expires",
+      "noExpiry": "No expiration",
+      "reminder": "Reminder",
+      "notes": "Notes",
+      "added": "Added"
+    },
+    "closedOn": "Closed on {{date}}"
   },
   "credit": {
     "notFound": "Credit not found",

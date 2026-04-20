@@ -39,7 +39,7 @@
 # Stories 9.1 (dark-mode) and 9.2 (settings-improvements) are ready-for-dev there.
 
 generated: 2026-04-20
-last_updated: 2026-04-20
+last_updated: 2026-04-20  # updated: stories 10-1, 10-2, 10-3, 11-1 marked done
 project: Redeemy
 project_key: NOKEY
 tracking_system: file-system
@@ -105,8 +105,13 @@ development_status:
   epic-9-retrospective: optional
 
   # Epic 10: Family Sharing
-  epic-10: in-progress
-  10-1-create-family-and-invite-code: review
-  10-2-join-family-and-shared-credits: review
-  10-3-leave-family-and-management: review
+  epic-10: done
+  10-1-create-family-and-invite-code: done
+  10-2-join-family-and-shared-credits: done
+  10-3-leave-family-and-management: done
   epic-10-retrospective: optional
+
+  # Epic 11: Warranty Management
+  epic-11: done
+  11-1-warranty-management: done
+  epic-11-retrospective: optional
