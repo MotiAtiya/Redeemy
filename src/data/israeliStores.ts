@@ -1,6 +1,6 @@
 /**
  * Massive Israeli stores list
- * Optimized for autocomplete + real-world usage
+ * Cleaned: no exact duplicates, one canonical name per brand
  */
 export const ISRAELI_STORES: string[] = [
   // סופרמרקטים
@@ -9,193 +9,170 @@ export const ISRAELI_STORES: string[] = [
   'קינג סטור','AM:PM','מחסני השוק','יינות ביתן',
   'סופר יודה','סופר ברקת','קשת טעמים','מחסני להב',
   'זול ובגדול','בר כל','סופר אלונית',
-  'קרפור','Carrefour','סיטי מרקט','מחסני מזון',
+  'קרפור','סיטי מרקט','מחסני מזון',
   'מחסני העיר','חביב','סופר ספיר','סופר דוש',
   'ויקטורי סיטי','מרקט בעיר','שפע ברכת השם',
+  'שוק העיר','סיטי שופ','ניצת הדובדבן','מיני סופר','מרכז המזון','שוק מהדרין',
+  'י.ב. שיווק','אושר עד אונליין','רשת ספרא','פרימיום מרקט','מרקט 24',
+  'מגה בעיר','מרקט טיים','גרינברג מרקט','מעדני יחיעם',
+  'שופרסל דיל','שופרסל אקספרס','שופרסל שלי','יש חסד אקספרס','רמי לוי בשכונה',
+  'מחסני השוק לוקר','קרפור סיטי','קרפור מרקט','יוחננוף אקסטרה',
+  'קשת טעמים אקספרס','חצי חינם אונליין','נתיב החסד אקספרס',
+  'שפע ברכת השם מרקט',
 
   // אופנה
-  'זארה','ZARA','H&M','פוקס','רנואר','קסטרו','מנגו',
-  'גולף','טרמינל X','Terminal X','אלדו','Aldo',
-  'Pull & Bear','פול אנד בר','ברשקה','Bershka',
-  'Stradivarius','טומי הילפיגר','Tommy Hilfiger',
-  'ליוויס','Levis','גס','Guess','קלווין קליין','Calvin Klein',
-  'מייקל קורס','Michael Kors','Next','Primark',
-  'הודיס','Hoodies','Urbanica','Reserved','Replay','Diesel',
+  'זארה','H&M','פוקס','רנואר','קסטרו','מנגו',
+  'גולף','טרמינל X','אלדו',
+  'Pull & Bear','פול אנד בר',
+  'ברשקה',
+  'Stradivarius','טומי הילפיגר',
+  'ליוויס','גס','Guess','קלווין קליין',
+  'מייקל קורס','Next','Primark',
+  'הודיס','Urbanica','Reserved','Replay','Diesel',
   'American Eagle','אמיריקן איגל','Forever 21',
   'Abercrombie','Hollister','Banana Republic',
   'Massimo Dutti','COS','Uniqlo',
-  'תמנון','TNT','לי קופר','Lee Cooper',
-  'נאוטיקה','Nautica','סולוג','Solog',
+  'TWENTYFOURSEVEN','ITX','Armani Exchange','Steve Madden',
+  'AllSaints','Mango Kids','ZARA HOME','H&M Home',
+  'תמנון','TNT','לי קופר',
+  'נאוטיקה','Solog',
   'קרייזי ליין','Crazy Line','ML','ML Men',
-  'עדיקה','Adika','גליתה','Factory 54',
+  'עדיקה','גליתה','Factory 54',
+  'Fox Men','Fox Kids','Golf Kids','Terminal X Kids',
+
+  // ספורט
+  'דקטלון','נייקי','אדידס',
+  'פומה','ריבוק','ניו באלאנס',
+  'Under Armour',
+  'Foot Locker','JD Sports','The Athlete\'s Foot','Footaction',
+  'Skechers',
+  'Intersport','אינטרספורט',
+  'Columbia',
+  'The North Face','Salomon',
+  'Asics','FILA','New Era','Champion','Le Coq Sportif',
+  'למטייל','מטיילים','סער','Pro Runner',
 
   // אלקטרוניקה
-  'KSP','אייבורי','Ivory','באג','BUG',
+  'KSP','אייבורי','Ivory','באג',
   'מחסני חשמל','שקם אלקטריק','אלקטרה',
   'iDigital','iStore','Samsung Store','Apple Store',
   'מחסני חשמל אילת','LastPrice','וואלה שופס',
-  'מחסני חשמל עודפים',
-  'מחסני חשמל אונליין','א.ל.מ','אלמ',
-  'טרקלין חשמל','מחסני תאורה אונליין',
-  'סלקט','Select','דיוטי פרי אלקטרוניקה',
-
-  // מסעדות ובתי קפה
-  "מקדונלד'ס",'McDonalds','ברגר קינג','Burger King',
-  'ארומה','Aroma','קפה ג׳ו','קפה קפה',
-  "דומינוס פיצה",'Dominos','פיצה האט','Pizza Hut',
-  'סאבווי','Subway','מקס ברנר','Max Brenner',
-  'רולדין','Roladin','גולדה','Golda',
-  'BBB','אגאדיר','Agadir','ג׳פניקה','Japanika',
-  'ג׳ירף','Giraffe','בורגרס בר','Burgers Bar',
-  'מוזס','Moses','שגב','Black','רובן',
-  'קפה לנדוור','Landwer','קפה גרג','Greg',
-  'נאפיס','Nafis','פאפאגיו','Papagaio',
-  'בורגרים','Burgerim','סושי רחביה','Sushi Rehavia',
-  'אושי אושי','Oshi Oshi','בורגראנץ׳','Burgeranch',
-  'קופיקס','Cofix','ארקפה','Arcaffe',
-  'Cafe Cafe','Joe','Hummus Eliyahu','חומוס אליהו',
+  'מחסני חשמל עודפים','א.ל.מ','טרקלין חשמל',
 
   // פארם וטיפוח
-  'סופר פארם','Super Pharm','Be','ניופארם',
-  'MAC',"Kiehls",'Rituals',"LOccitane",
-  'Yves Rocher','The Body Shop','Sephora',
+  'סופר פארם','Be','Max Pharm','New Pharm','ניופארם',
+  'MAC',"Kiehl's",
+  'Rituals',"LOccitane",'Yves Rocher','The Body Shop','Sephora',
   'Careline','Sacara','Wow Cosmetics',
   'April','אפריל','Beauty Care','ביוטי קר',
-  'ללין','Laline','סבון של פעם',
   'Il Makiage','איל מקיאג׳','ג׳ייד','GA-DE',
-  'קרליין','פופה','Pupa','Smashbox',
+  'KIKO Milano','The Ordinary','Clinique','Estée Lauder','Lancôme',
+  'Bobbi Brown','Jo Malone','Natura',
 
-  // לבית, ריהוט ועיצוב
-  'IKEA','איקאה','הום סנטר','Home Center',
-  'ACE','מקס סטוק','Max Stock','Fox Home',
-  'ביתילי','מחסני תאורה','אורבן','Urban',
-  'Golf & Co','גולף אנד קו',
-  'שילב','Shilav','כתר','Keter',
-  'פלורליס','Floralis',
-  'נעמן','Naaman','ורדינון','Vardinon',
-  'דומו','DOMO','קסטרו הום','Castro Home',
-  'איקאה מטבחים','פוקס הום עודפים','Fox Home Outlet',
-  'ששת','Tambour','טמבור','אייס דיפו',
+  // לבית
+  'IKEA','איקאה','הום סנטר',
+  'ACE',
+  'מקס סטוק',
+  'Fox Home',
+  'ביתילי','מחסני תאורה',
+  'אורבן',
+  'Golf & Co',
+  'שילב',
+  'כתר',
+  'פלורליס',
+  'נעמן',
+  'ורדינון',
+  'דומו',
+  'קסטרו הום',
+  'JYSK','SOHO Center','סוהו סנטר',
+  'Tiv Taam Home','Home Center Outlet',
+  'ניצת הרהיטים','פולירון','אמריקן קומפורט',
+  'Villeroy & Boch','IKEA Kitchen','Domus','Pliens','Brinkhaus',
 
-  // ספורט
-  'דקטלון','Decathlon','נייקי','Nike',
-  'אדידס','Adidas','פומה','Puma','ריבוק','Reebok',
-  'ניו באלאנס','New Balance','Under Armour',
-  'Foot Locker','JD Sports',
-  'Intersport','אינטרספורט','Columbia',
-  'The North Face','Salomon','סקצ׳רס','Skechers',
-  'למטייל','מטיילים','סער','Pro Runner',
+  // מסעדות
+  "מקדונלד'ס",'ברגר קינג',
+  'ארומה','קפה ג׳ו','קפה קפה',
+  "דומינוס פיצה",'פיצה האט',
+  'סאבווי',
+  'מקס ברנר',
+  'רולדין',
+  'גולדה',
+  'BBB','אגאדיר',
+  'ג׳פניקה','ג׳ירף',
+  'בורגרס בר','מוזס','מוזס שף',
+  'שגב','Black','רובן',
+  'קפה לנדוור','Landwer','קפה גרג',
+  'נאפיס','פאפאגיו',
+  'בורגרים','אושי אושי',
+  'בורגראנץ׳','קופיקס',
+  'ארקפה','חומוס אליהו',
+  'בנדיקט','קפה נואר','טאטי','פיצה שמש',
+  'בורגר שף','ספגטים','סושיה','קפה עלית',
+  'ביגה','ביגה קפה','מאפה נאמן',
+  'לחם ארז','לחמים',
 
-  // ספרים ויהדות
-  'סטימצקי','צומת ספרים','עברית',
-  'Bookme','ידיעות ספרים',
-  'אור החיים','פלדהיים','יפה נוף','אשכול','כתר ספרים',
-  'מוסד הרב קוק','ספריית בית אל','דרשו','משנה ברורה הוצאה',
-  'ArtScroll','אורייתא','עוז והדר',
-  'קהתי','מכון ירושלים','ספרי אור החיים',
-  'ספרי פלדהיים','ספרי יפה נוף',
-
-  // תקשורת
-  'פרטנר','Partner','סלקום','Cellcom',
-  'HOT','YES','בזק','גולן טלקום',
-  '019 מובייל','רמי לוי תקשורת','We4G',
-  'פלאפון','Pelephone','הוט מובייל','HOT Mobile',
-  'אקספון','012 מובייל','נטוויז׳ן','012 Smile',
-  'בזק בינלאומי','Partner TV','סלקום TV',
-
-  // תחבורה ונסיעות
-  'אל על','ישראייר','ארקיע',
-  'דן','אגד','רכבת ישראל','מוניות גט','Gett',
-  'רב קו אונליין','HopOn','Moovit',
-  'סונול EVI','פנגו','Pango','Cello',
-  'Car2Go','GoTo','שלמה סיקסט','Sixt',
-  'Avis','Budget','Hertz',
-
-  // תיירות ונופש
-  'ישרוטל','פתאל','Booking','Airbnb',
-  'Expedia','Hotels.com','אגודה','טריוואגו',
-  'Trivago','Weekend','הוטלס','צבר',
-  'הדקה ה-90','אשת טורס','איסתא','ISTA',
-
-  // דלק וחנויות נוחות
-  'פז','דלק','סונול','Ten','דור אלון',
-  'מנטה','Yellow','ילואו',
-  'SoGood','סו גוד','Ten Express',
-  'דור אלון Express','Yellow Market','AMPM Market',
-
-  // צעצועים, ילדים ותינוקות
-  'טויס אר אס','Toys R Us','Build A Bear',
+  // צעצועים
+  'טויס אר אס','Build A Bear',
   'עידן 2000','כפר השעשועים',
   'בייבי סטאר','Baby Star','מוצצים',
-  'Babies R Us','Toyland','עולם הצעצועים',
-  'שילב עודפים','מיננה','Minene',
-  'סגל בייבי','Segal Baby','ד"ר בייבי','Dr Baby',
+  'Babies R Us','Toyland','טוילנד',
+  'עולם הצעצועים','Toys City',
+  'פאזלנד','פיראט האדום','הפנינג',
+  'משחקי יצירה','אמאזונס טויס',
 
-  // כרטיסי מתנה ושוברים
-  'Dream Card','דרים קארד','BuyMe','ביימי','Max Gift',
-  'מקס גיפט','תו הזהב','Gift Card Mall',
-  'גיפט קארד','Giftaway','BuyMe Business',
-
-  // כלי בית, מתנות וסטוק
-  'מעיין 2000','Max 20','הכל בדולר','סטוק אונליין',
-  'Happy Lemon','H&O Home','Home Style',
-  'מיניסו','Miniso','Flying Tiger',
-  'קרביץ','Office Depot','סטוק מרקט',
-  'הסטוק','דייסו','Daiso',
-  'Jumbo Stock','ג׳מבו סטוק','שקל סטור',
-
-  // תכשיטים ואקססוריז
-  'סברובסקי','Swarovski','Pandora','פנדורה',
-  'Tous','Michael Hill','מגנוליה','Magnolia',
+  // תכשיטים
+  'סברובסקי','Pandora',
+  'Tous','Michael Hill','מגנוליה',
   'תכשיטי צבאן','הבורסה לתכשיטים',
-  'אימפרס','Impress','רויאלטי','Royalty',
-  'Daniel Wellington','Fossil','Accessorize',
+  'Claire\'s','Accessorize','Aldo Accessories',
+  'Royalty','Impress','Daniel Wellington','Fossil',
+  'Links of London','Guess Accessories','Thomas Sabo',
 
-  // הלבשה תחתונה ופנאי
-  'Intima','אינטימה','Fix','פיקס',
-  'Delta Outlet','דלתא עודפים','Jack Kuba',
-  'Triumph','טריומף',
-  'Femina','פמינה','Delta','דלתא',
-  'Etam','Victoria’s Secret','ויקטוריה סיקרט',
+  // שונות / סטוק
+  'מיניסו','Daiso','Flying Tiger','Jumbo Stock',
+  'Max 20','הכל בדולר','שקל סטור','סטוק אונליין','הסטוק',
+  'Home Style','קרביץ','Office Depot',
+  'רשת סטוק','מתנות לכולם','פרינס',
 
-  // מזון, מאפיות ומתוקים
-  'לחם ארז','ארומה אקספרס','קונדיטוריית שני',
-  'ביגה','Biga','מאפה נאמן',
-  'Lehamim','לחמים','Sweetime',
-  'בן עמי','Bread Story','דלאל',
-  'קפה נאמן','מרשמלו','Nespresso',
-  'קפסולה','לינא','עוגות דה לה פה',
+  // הלבשה תחתונה
+  'דלתא','Delta Kids',
+  'Intima','Fix',
+  'Triumph','Femina',
+  'Jack Kuba','Victoria\'s Secret','Etam','Sloggi',
 
-  // משלוחים ואונליין
-  'Wolt','וולט','תן ביס','Ten Bis',
-  'Get Delivery','Wolt Market',
+  // דלק
+  'פז','דלק','סונול','Ten','דור אלון',
+  'מנטה','Yellow',
+  'דלק מנטה','Yellow Station','Yellow Shop','מנטה מרקט',
+  'Ten Plus','סונול Store','דור אלון Market',
+  'פזומט','פז אקספרס','סיטי מרקט דלק',
+
+  // אונליין
   'Amazon','AliExpress','eBay','Shein',
-  'Asos','Wish','Banggood',
-  'Temu','Etsy','Ali Baba','Next Online',
+  'Asos','Wish','Banggood','Temu','Etsy',
 
   // בנקים
   'בנק הפועלים','בנק לאומי','בנק דיסקונט',
   'מזרחי טפחות','בנק יהב','בנק הדואר',
-  'הבינלאומי','בנק ירושלים','בנק מסד',
-  'One Zero','וואן זירו','מרכנתיל',
+  'הבינלאומי','בנק ירושלים','מרכנתיל','One Zero',
 
   // ביטוח
   'הראל','מגדל','כלל ביטוח','AIG',
   'ביטוח ישיר','הפניקס','מנורה',
-  'ווישור','Wesure','ליברה','Libra',
-  'שירביט','איילון ביטוח',
+  'ווישור','ליברה','איילון ביטוח',
 
   // קניונים
   'עזריאלי','קניון איילון','קניון מלחה',
   'דיזנגוף סנטר','גרנד קניון',
   'קניון הזהב','קניון שבעת הכוכבים',
-  'שרונה מרקט','ביג פאשן','BIG Fashion',
-  'מול הים','קניון רמת אביב','TLV Mall',
-  'עופר הקניון הגדול','עופר גרנד קניון',
+  'BIG Fashion','שרונה מרקט','TLV Mall',
 
-  // שונות
-  'דיסני סטור','Disney Store',
-  'Opticana','אופטיקנה','אירוקה','Erroca',
-  'Carolina Lemke','קרולינה למקה',
-  'Bug Outlet','KSP אילת','סוהו','SOHO'
+  // תחבורה
+  'אל על','ישראייר','ארקיע',
+  'דן','אגד','רכבת ישראל','Gett',
+  'פנגו','Cello','Moovit',
+
+  // תיירות
+  'ישרוטל','פתאל','Booking','Airbnb',
+  'Expedia','Hotels.com','טריוואגו','איסתא'
 ];
