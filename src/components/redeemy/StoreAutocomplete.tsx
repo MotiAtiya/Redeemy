@@ -101,6 +101,7 @@ export function StoreAutocomplete({
   const [isFocused, setIsFocused] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const inputRef = useRef<TextInput>(null);
+  const blurTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const credits = useCreditsStore((s) => s.credits);
 
@@ -174,8 +175,7 @@ export function StoreAutocomplete({
           onFocus={() => { setIsFocused(true); setDropdownOpen(true); }}
           onBlur={() => {
             setIsFocused(false);
-            // Delay closing so tap on item registers first
-            setTimeout(() => setDropdownOpen(false), 150);
+            blurTimerRef.current = setTimeout(() => setDropdownOpen(false), 200);
           }}
           returnKeyType="next"
           autoCapitalize="words"
@@ -193,10 +193,21 @@ export function StoreAutocomplete({
       </View>
 
       {showDropdown && (
-        <View style={styles.dropdown}>
+        <View
+          style={styles.dropdown}
+          onTouchStart={() => {
+            // Cancel the blur-close timer when user touches the dropdown
+            if (blurTimerRef.current) clearTimeout(blurTimerRef.current);
+          }}
+        >
           <ScrollView
             keyboardShouldPersistTaps="always"
             showsVerticalScrollIndicator={true}
+            onScrollBeginDrag={() => {
+              // Re-focus input to keep keyboard open while scrolling
+              if (blurTimerRef.current) clearTimeout(blurTimerRef.current);
+              inputRef.current?.focus();
+            }}
           >
             {suggestions.map((item, index) => {
               const parts = highlightMatch(item);
