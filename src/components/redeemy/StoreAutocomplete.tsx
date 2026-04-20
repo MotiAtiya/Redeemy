@@ -4,7 +4,6 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
-  ScrollView,
   StyleSheet,
   I18nManager,
 } from 'react-native';
@@ -27,7 +26,7 @@ const MAX_SUGGESTIONS = 100;
 
 function makeStyles(colors: AppColors, isRTL: boolean) {
   return StyleSheet.create({
-    container: { position: 'relative', zIndex: 10 },
+    container: {},
     inputRow: {
       height: 52,
       flexDirection: 'row',
@@ -48,11 +47,7 @@ function makeStyles(colors: AppColors, isRTL: boolean) {
     },
     clearBtn: { padding: 4, marginStart: 4 },
     dropdown: {
-      position: 'absolute',
-      top: 56,
-      left: 0,
-      right: 0,
-      maxHeight: 220,
+      marginTop: 4,
       backgroundColor: colors.surface,
       borderRadius: 12,
       borderWidth: 1,
@@ -63,7 +58,6 @@ function makeStyles(colors: AppColors, isRTL: boolean) {
       shadowRadius: 8,
       elevation: 8,
       overflow: 'hidden',
-      zIndex: 20,
       // Force LTR layout inside the dropdown so we control icon/text placement manually
       direction: 'ltr',
     },
@@ -101,7 +95,6 @@ export function StoreAutocomplete({
   const [isFocused, setIsFocused] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const inputRef = useRef<TextInput>(null);
-  const blurTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const credits = useCreditsStore((s) => s.credits);
 
@@ -175,7 +168,8 @@ export function StoreAutocomplete({
           onFocus={() => { setIsFocused(true); setDropdownOpen(true); }}
           onBlur={() => {
             setIsFocused(false);
-            blurTimerRef.current = setTimeout(() => setDropdownOpen(false), 200);
+            // Delay so a tap on a suggestion item registers before closing
+            setTimeout(() => setDropdownOpen(false), 150);
           }}
           returnKeyType="next"
           autoCapitalize="words"
@@ -193,46 +187,30 @@ export function StoreAutocomplete({
       </View>
 
       {showDropdown && (
-        <View
-          style={styles.dropdown}
-          onTouchStart={() => {
-            // Cancel the blur-close timer when user touches the dropdown
-            if (blurTimerRef.current) clearTimeout(blurTimerRef.current);
-          }}
-        >
-          <ScrollView
-            keyboardShouldPersistTaps="always"
-            showsVerticalScrollIndicator={true}
-            onScrollBeginDrag={() => {
-              // Re-focus input to keep keyboard open while scrolling
-              if (blurTimerRef.current) clearTimeout(blurTimerRef.current);
-              inputRef.current?.focus();
-            }}
-          >
-            {suggestions.map((item, index) => {
-              const parts = highlightMatch(item);
-              const isLast = index === suggestions.length - 1;
-              return (
-                <TouchableOpacity
-                  key={item}
-                  style={[styles.item, isLast && styles.itemLast]}
-                  onPress={() => handleSelect(item)}
-                  activeOpacity={0.7}
-                >
-                  <Ionicons name="storefront-outline" size={16} color={colors.textTertiary} />
-                  {typeof parts === 'string' ? (
-                    <Text style={styles.itemText}>{parts}</Text>
-                  ) : (
-                    <Text style={styles.itemText}>
-                      <Text>{parts.before}</Text>
-                      <Text style={styles.itemTextMatch}>{parts.match}</Text>
-                      <Text>{parts.after}</Text>
-                    </Text>
-                  )}
-                </TouchableOpacity>
-              );
-            })}
-          </ScrollView>
+        <View style={styles.dropdown}>
+          {suggestions.map((item, index) => {
+            const parts = highlightMatch(item);
+            const isLast = index === suggestions.length - 1;
+            return (
+              <TouchableOpacity
+                key={item}
+                style={[styles.item, isLast && styles.itemLast]}
+                onPress={() => handleSelect(item)}
+                activeOpacity={0.7}
+              >
+                <Ionicons name="storefront-outline" size={16} color={colors.textTertiary} />
+                {typeof parts === 'string' ? (
+                  <Text style={styles.itemText}>{parts}</Text>
+                ) : (
+                  <Text style={styles.itemText}>
+                    <Text>{parts.before}</Text>
+                    <Text style={styles.itemTextMatch}>{parts.match}</Text>
+                    <Text>{parts.after}</Text>
+                  </Text>
+                )}
+              </TouchableOpacity>
+            );
+          })}
         </View>
       )}
     </View>
