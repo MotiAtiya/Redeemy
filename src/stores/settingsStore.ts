@@ -32,6 +32,8 @@ interface SettingsStore {
   notificationHour: number;
   notificationMinute: number;
   setNotificationTime: (hour: number, minute: number) => void;
+  familyId: string | null;
+  setFamilyId: (id: string | null) => void;
 }
 
 export const useSettingsStore = create<SettingsStore>()(
@@ -54,6 +56,8 @@ export const useSettingsStore = create<SettingsStore>()(
       notificationHour: 9,
       notificationMinute: 0,
       setNotificationTime: (notificationHour, notificationMinute) => set({ notificationHour, notificationMinute }),
+      familyId: null,
+      setFamilyId: (familyId) => set({ familyId }),
     }),
     {
       name: 'redeemy-settings',

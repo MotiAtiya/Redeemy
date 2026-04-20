@@ -32,6 +32,12 @@ export interface Credit {
   notificationId?: string;
   /** Notification scheduled for the expiration day itself */
   expirationNotificationId?: string;
+  /** Family this credit belongs to (set on join / create while in family) */
+  familyId?: string;
+  /** UID of the family member who created this credit */
+  createdBy?: string;
+  /** Display name of the family member who created this credit */
+  createdByName?: string;
   createdAt: Date | Timestamp;
   updatedAt: Date | Timestamp;
   /** Set when status transitions to REDEEMED */

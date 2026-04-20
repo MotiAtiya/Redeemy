@@ -6,6 +6,7 @@ import * as Notifications from 'expo-notifications';
 import { useAuthState } from '@/hooks/useAuthState';
 import { useBadgeUpdater } from '@/hooks/useBadgeUpdater';
 import { useNetworkMonitor } from '@/hooks/useNetworkMonitor';
+import { useFamilyListener } from '@/hooks/useFamilyListener';
 import { useAppTheme, useIsDark } from '@/hooks/useAppTheme';
 import { OfflineToast } from '@/components/redeemy/OfflineToast';
 import { useAuthStore } from '@/stores/authStore';
@@ -23,6 +24,8 @@ function AuthGate({ children }: { children: React.ReactNode }) {
   useAuthState();
   useBadgeUpdater();
   useNetworkMonitor();
+  const familyId = useSettingsStore((s) => s.familyId);
+  useFamilyListener(familyId);
 
   const router = useRouter();
   const segments = useSegments();
@@ -109,6 +112,9 @@ export default function RootLayout() {
         <Stack.Screen name="store/[name]" options={{ headerShown: false }} />
         <Stack.Screen name="account" options={{ headerShown: false }} />
         <Stack.Screen name="notification-settings" options={{ headerShown: false }} />
+        <Stack.Screen name="family/create" options={{ headerShown: false }} />
+        <Stack.Screen name="family/[id]" options={{ headerShown: false }} />
+        <Stack.Screen name="family/join" options={{ headerShown: false }} />
       </Stack>
     </AuthGate>
   );

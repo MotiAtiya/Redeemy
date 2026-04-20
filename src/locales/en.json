@@ -373,6 +373,48 @@
     "1month": "1 Month",
     "3months": "3 Months"
   },
+  "family": {
+    "sectionLabel": "FAMILY",
+    "createRow": "Create Family",
+    "joinRow": "Join Family",
+    "memberCount_one": "{{count}} member",
+    "memberCount_other": "{{count}} members",
+    "createScreen": {
+      "title": "Create Family",
+      "namePlaceholder": "Family Name",
+      "nameHelper": "e.g. Smith Family",
+      "createButton": "Create",
+      "successToast": "Family created!"
+    },
+    "manageScreen": {
+      "inviteSection": "INVITE CODE",
+      "inviteExpires": "Expires in {{time}}",
+      "inviteExpired": "Code expired",
+      "inviteCopy": "Copy",
+      "inviteRegenerate": "Regenerate",
+      "inviteGenerateNew": "Generate new code",
+      "inviteCopiedToast": "Invite code copied",
+      "membersSection": "MEMBERS",
+      "adminBadge": "Admin"
+    },
+    "join": {
+      "title": "Join Family",
+      "subtitle": "Enter the 6-character invite code shared by your family admin.",
+      "codeLabel": "INVITE CODE",
+      "button": "Join",
+      "errors": {
+        "invalidCode": "Invalid invite code. Please check and try again.",
+        "expiredCode": "This invite code has expired. Ask your admin to generate a new one.",
+        "familyFull": "This family is full (maximum 6 members).",
+        "alreadyInFamily": "You're already a member of this family.",
+        "networkError": "Couldn't join. Check your connection and try again."
+      }
+    },
+    "errors": {
+      "createFailed": "Couldn't create family. Try again.",
+      "generateFailed": "Couldn't generate invite code. Try again."
+    }
+  },
   "category": {
     "food": "Food & Dining",
     "fashion": "Fashion",

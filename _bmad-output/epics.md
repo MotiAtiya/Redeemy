@@ -896,9 +896,160 @@ So that I never lose data.
 
 ---
 
+## Epic 10: Family Sharing
+
+**Goal:** Users can create a named family group (up to 6 members) and share all credits in real time — every credit added, edited, or redeemed by any member is instantly visible to all. A secure invite-code flow handles onboarding, and a clean leave flow handles data separation.
+
+**User value:** Couples and households manage store credits together — no credit falls through the cracks because only one person knew about it.
+
+---
+
+### Story 10.1: Create Family & Invite Code
+
+As a user,
+I want to create a named family group and get an invite code to share with my family members,
+So that I can start sharing credits with them.
+
+**Acceptance Criteria:**
+
+**Given** the user is in the More tab with no family
+**When** they tap "Create Family"
+**Then** `src/app/family/create.tsx` opens with a name field ("Family Name", e.g. "אטיה Family") and a Confirm button
+
+**Given** the user submits a valid name (1–40 chars)
+**When** the family is created
+**Then**:
+- A `/families/{familyId}` document is created in Firestore with: `name`, `adminId` (current user), `members: { [userId]: { displayName, photoURL?, joinedAt } }`, `inviteCode` (6-char uppercase alphanumeric, no ambiguous chars), `inviteCodeExpiresAt` (now + 30 minutes), `maxMembers: 6`, `createdAt`, `updatedAt`
+- `familyStore.setFamily(family)` is called immediately
+- User is navigated to `family/[id].tsx` showing the family management screen
+
+**Given** the family management screen is open
+**When** the invite code section is shown
+**Then**:
+- The 6-char code is displayed in large monospace text, in LTR direction (regardless of device locale)
+- A countdown shows time remaining: "Expires in 28:42" (live countdown, updates every second)
+- A copy-to-clipboard button is shown next to the code
+- A "Regenerate Code" button is shown — tapping it generates a new code with a fresh 30-min TTL
+- When the code expires (countdown hits 0:00), it shows "Code expired — tap to regenerate" with no active code visible
+
+**Given** the user taps "Copy"
+**When** the code is copied to clipboard
+**Then** a toast appears: "Invite code copied" (auto-dismisses in 2 seconds)
+
+**And** the More tab shows the family name and member count instead of "Create Family" once a family exists
+
+**Prerequisites:** Stories 1.4, 2.4
+
+**Technical Notes:**
+- New file: `src/types/familyTypes.ts` — `Family`, `FamilyMember`, `FamilyRole` enum (`ADMIN`, `MEMBER`)
+- New file: `src/lib/firestoreFamilies.ts` — `createFamily()`, `generateInviteCode()`, `subscribeToFamily()`
+- New file: `src/stores/familyStore.ts` — shape: `{ family, isLoading, error, setFamily, setLoading, setError }`
+- New screens: `src/app/family/create.tsx`, `src/app/family/[id].tsx`
+- New hook: `src/hooks/useFamilyListener.ts` — `onSnapshot` on `/families/{familyId}` → `familyStore`
+- Invite code charset: `ABCDEFGHJKLMNPQRSTUVWXYZ23456789` (excludes ambiguous: 0, O, 1, I)
+- Update `firebase/firestore.rules` — new `/families/{familyId}` rules + updated `/credits/{creditId}` rules (see Story Technical section)
+- Update `more.tsx` — add Family section
+- Add i18n strings to `he.json` and `en.json`
+
+---
+
+### Story 10.2: Join Family & Shared Credits
+
+As a user,
+I want to enter a family invite code to join an existing family and see all shared credits,
+So that my partner and I manage credits from the same pool.
+
+**Acceptance Criteria:**
+
+**Given** the user has no family and taps "Join Family"
+**When** `src/app/family/join.tsx` opens
+**Then** a 6-char code input field is shown (auto-uppercase, auto-advance, LTR direction), plus a "Join" button
+
+**Given** the user submits a valid, non-expired code
+**When** the join completes
+**Then**:
+- User is added to `family.members` map via Firestore transaction (atomic — prevents race conditions with concurrent joins)
+- All existing user credits are batch-updated: `familyId` field set to `familyId` on all credits where `userId == currentUser.uid`
+- `subscribeToCredits` listener switches from `userId` query to `familyId` query — all family credits appear
+- `familyStore.setFamily(family)` is called
+- User is navigated to the Credits tab with all family credits visible
+- Toast: "You joined [Family Name]!"
+
+**Given** the invite code is expired or does not exist
+**Then** inline error: "Invalid or expired code — ask your family member to generate a new one"
+
+**Given** the family already has 6 members
+**Then** inline error: "This family is full (6/6 members)"
+
+**Given** the user is already in a family
+**Then** inline error: "You're already in a family. Leave it first to join another."
+
+**And** `CreditCard.tsx` shows a small initials circle (first letter of `displayName`, Sage teal background) on credits NOT created by the current user
+
+**Prerequisites:** Story 10.1
+
+**Technical Notes:**
+- Add `familyId?: string` and `createdBy?: string` (userId) and `createdByName?: string` to `Credit` type in `creditTypes.ts`
+- `subscribeToCredits` in `firestoreCredits.ts`: if `familyId` exists, query `where('familyId', '==', familyId)` instead of `where('userId', '==', userId)`
+- Join transaction: `runTransaction` — check memberCount < 6, check code valid + not expired, add member atomically
+- Batch migration: `writeBatch` — update all user's credits with `{ familyId, createdBy: userId, createdByName: displayName }`
+- New `createCredit()` calls: always include `createdBy` + `familyId` (if in family) in the document
+- Composite Firestore index needed: `familyId ASC` on `credits` collection
+- Update Security Rules: credits readable/writable by family members (see Story 10.1 technical notes)
+
+---
+
+### Story 10.3: Leave Family & Family Management
+
+As a user,
+I want to leave my family if needed, and as an admin I want to manage the family,
+So that the data always reflects the real household situation.
+
+**Acceptance Criteria:**
+
+**Given** the user is in `family/[id].tsx`
+**When** they tap "Leave Family"
+**Then** a confirmation bottom sheet appears: "Leave [Family Name]? Your credits will stay with you." with Leave and Cancel buttons
+
+**Given** the user confirms leaving
+**When** the leave executes
+**Then**:
+- All credits where `createdBy == currentUser.uid` are batch-updated: `familyId` set to `null` / deleted
+- User is removed from `family.members` map
+- If this was the last member (family now empty): the `/families/{familyId}` document is deleted
+- `familyStore.setFamily(null)`
+- `subscribeToCredits` switches back to `userId` query
+- User is navigated to Credits tab (shows only their own credits now)
+- Toast: "You left [Family Name]. Your credits are still here."
+
+**Given** the user is the admin and taps "Remove Member"
+**When** the remove completes
+**Then**:
+- The removed member's credits have `familyId` set to `null` (they keep their credits personally)
+- Member is removed from the `members` map
+- Removed member's listener detects the change and switches back to personal credits automatically
+
+**Given** the admin taps "Rename Family"
+**Then** an inline text field replaces the family name, with Save and Cancel actions
+
+**Given** the admin taps "Transfer Admin"
+**Then** a member picker bottom sheet appears; selecting a member updates `adminId` on the family document
+
+**Prerequisites:** Story 10.2
+
+**Technical Notes:**
+- Leave batch: `writeBatch` — null out `familyId` + `createdBy` on all credits where `createdBy == uid`, then `updateDoc` family to remove member from map
+- `useFamilyListener` detects when current user is no longer in `family.members` → auto-triggers leave cleanup on the listener side
+- Family dissolution check: after removing member from map, if `Object.keys(members).length === 0` → `deleteDoc(familyRef)`
+- Rename: `updateDoc(familyRef, { name: newName, updatedAt: serverTimestamp() })`
+- Admin transfer: `updateDoc(familyRef, { adminId: newAdminId, updatedAt: serverTimestamp() })`
+- No FCM push notifications for management actions (join/leave) in this story — low priority
+
+---
+
 ## Summary
 
-**Total: 7 Epics · 24 Stories**
+**Total: 10 Epics · 27 Stories**
 
 | Epic | Stories | Delivers |
 |------|---------|---------|
@@ -909,6 +1060,8 @@ So that I never lose data.
 | Epic 5: Reminders | 3 | The core promise — no credit expires forgotten |
 | Epic 6: Redeem & History | 3 | Close the loop — credits are used, history is kept |
 | Epic 7: Offline Support | 2 | App works anywhere — no signal, no problem |
+| Epic 9: Theme & Appearance | 2 | Dark mode + settings improvements |
+| Epic 10: Family Sharing | 3 | Shared credit pool — household management |
 
 **Context incorporated:**
 - ✅ Product Brief requirements (all 14 FRs)

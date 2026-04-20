@@ -7,6 +7,7 @@ import { ExpirationBadge } from './ExpirationBadge';
 import { formatCurrency } from '@/lib/formatCurrency';
 import { formatDate } from '@/lib/formatDate';
 import { useSettingsStore, CURRENCY_SYMBOLS } from '@/stores/settingsStore';
+import { useAuthStore } from '@/stores/authStore';
 import { CATEGORIES } from '@/constants/categories';
 import { CreditStatus, type Credit } from '@/types/creditTypes';
 import { useAppTheme } from '@/hooks/useAppTheme';
@@ -71,6 +72,24 @@ function makeStyles(colors: AppColors) {
       justifyContent: 'center',
       alignItems: 'center',
     },
+    memberAvatar: {
+      position: 'absolute',
+      bottom: -4,
+      end: -4,
+      width: 22,
+      height: 22,
+      borderRadius: 11,
+      backgroundColor: colors.primary,
+      justifyContent: 'center',
+      alignItems: 'center',
+      borderWidth: 1.5,
+      borderColor: colors.surface,
+    },
+    memberAvatarText: {
+      fontSize: 9,
+      fontWeight: '700',
+      color: '#FFFFFF',
+    },
   });
 }
 
@@ -80,9 +99,24 @@ export function CreditCard({ credit, onPress, variant = 'active' }: Props) {
   const { t } = useTranslation();
   const dateFormat = useSettingsStore((s) => s.dateFormat);
   const currencySymbol = CURRENCY_SYMBOLS[useSettingsStore((s) => s.currency)];
+  const currentUid = useAuthStore((s) => s.currentUser?.uid);
 
   const categoryMeta = CATEGORIES.find((c) => c.id === credit.category);
   const dimmed = variant === 'redeemed' || variant === 'expired';
+
+  const showMemberAvatar =
+    credit.familyId &&
+    credit.createdBy &&
+    credit.createdByName &&
+    credit.createdBy !== currentUid;
+  const memberInitials = showMemberAvatar
+    ? credit.createdByName!
+        .split(' ')
+        .slice(0, 2)
+        .map((w) => w[0])
+        .join('')
+        .toUpperCase()
+    : null;
 
   const badgeDate = (() => {
     if (variant === 'redeemed' && credit.redeemedAt)
@@ -101,19 +135,26 @@ export function CreditCard({ credit, onPress, variant = 'active' }: Props) {
       accessibilityLabel={`${credit.storeName} credit, ${formatCurrency(credit.amount, currencySymbol)}`}
     >
       <View style={styles.content}>
-        {credit.thumbnailUrl ? (
-          <Image
-            source={{ uri: credit.thumbnailUrl }}
-            style={[styles.thumbnail, dimmed && styles.thumbnailDimmed]}
-            contentFit="cover"
-            placeholder={{ blurhash: 'L6PZfSi_.AyE_3t7t7R**0o#DgR4' }}
-            transition={200}
-          />
-        ) : (
-          <View style={styles.thumbnailPlaceholder}>
-            <Ionicons name="image-outline" size={24} color={colors.textTertiary} />
-          </View>
-        )}
+        <View>
+          {credit.thumbnailUrl ? (
+            <Image
+              source={{ uri: credit.thumbnailUrl }}
+              style={[styles.thumbnail, dimmed && styles.thumbnailDimmed]}
+              contentFit="cover"
+              placeholder={{ blurhash: 'L6PZfSi_.AyE_3t7t7R**0o#DgR4' }}
+              transition={200}
+            />
+          ) : (
+            <View style={styles.thumbnailPlaceholder}>
+              <Ionicons name="image-outline" size={24} color={colors.textTertiary} />
+            </View>
+          )}
+          {showMemberAvatar && (
+            <View style={styles.memberAvatar}>
+              <Text style={styles.memberAvatarText}>{memberInitials}</Text>
+            </View>
+          )}
+        </View>
 
         <View style={styles.left}>
           <Text style={[styles.storeName, dimmed && styles.textDimmed]} numberOfLines={1}>

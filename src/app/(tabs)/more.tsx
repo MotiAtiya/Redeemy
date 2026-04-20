@@ -22,6 +22,7 @@ import { useAuthStore } from '@/stores/authStore';
 import { useCreditsStore } from '@/stores/creditsStore';
 import { useUIStore } from '@/stores/uiStore';
 import { useSettingsStore, type DateFormat, type CurrencyCode, CURRENCY_SYMBOLS } from '@/stores/settingsStore';
+import { useFamilyStore } from '@/stores/familyStore';
 import { useAppTheme, useIsDark } from '@/hooks/useAppTheme';
 
 const logoLight = require('../../../assets/images/logo-light.png');
@@ -48,6 +49,9 @@ function resetAllStores() {
   const ui = useUIStore.getState();
   ui.setActiveTab('credits');
   ui.setOfflineMode(false);
+
+  useFamilyStore.getState().setFamily(null);
+  useSettingsStore.getState().setFamilyId(null);
 }
 
 function makeStyles(colors: AppColors, isRTL: boolean) {
@@ -223,6 +227,7 @@ export default function MoreScreen() {
   ];
 
   const currentUser = useAuthStore((s) => s.currentUser);
+  const family = useFamilyStore((s) => s.family);
   const themeMode = useSettingsStore((s) => s.themeMode);
   const setThemeMode = useSettingsStore((s) => s.setThemeMode);
   const language = useSettingsStore((s) => s.language);
@@ -321,6 +326,58 @@ export default function MoreScreen() {
               <Ionicons name={isRTL ? 'chevron-back' : 'chevron-forward'} size={18} color={colors.textTertiary} />
             </View>
           </TouchableOpacity>
+        </View>
+
+        {/* Family section */}
+        <View style={styles.section}>
+          <Text style={styles.sectionLabel}>{t('family.sectionLabel')}</Text>
+          <View style={styles.card}>
+            {family ? (
+              <TouchableOpacity
+                style={styles.settingsRow}
+                onPress={() => router.push(`/family/${family.id}`)}
+                accessibilityRole="button"
+                activeOpacity={0.7}
+              >
+                <Ionicons name="people-outline" size={20} color={colors.textSecondary} />
+                <View style={{ flex: 1 }}>
+                  <Text style={[styles.settingsLabel, { fontWeight: '600' }]}>{family.name}</Text>
+                </View>
+                <Text style={styles.settingsSubtitle}>
+                  {t('family.memberCount', { count: family.memberList.length })}
+                </Text>
+                <Ionicons name={isRTL ? 'chevron-back' : 'chevron-forward'} size={16} color={colors.textTertiary} />
+              </TouchableOpacity>
+            ) : (
+              <>
+                <TouchableOpacity
+                  style={styles.settingsRow}
+                  onPress={() => router.push('/family/create')}
+                  accessibilityRole="button"
+                  activeOpacity={0.7}
+                >
+                  <Ionicons name="people-outline" size={20} color={colors.textSecondary} />
+                  <View style={{ flex: 1 }}>
+                    <Text style={styles.settingsLabel}>{t('family.createRow')}</Text>
+                  </View>
+                  <Ionicons name={isRTL ? 'chevron-back' : 'chevron-forward'} size={16} color={colors.textTertiary} />
+                </TouchableOpacity>
+                <View style={styles.separator} />
+                <TouchableOpacity
+                  style={styles.settingsRow}
+                  onPress={() => router.push('/family/join')}
+                  accessibilityRole="button"
+                  activeOpacity={0.7}
+                >
+                  <Ionicons name="link-outline" size={20} color={colors.textSecondary} />
+                  <View style={{ flex: 1 }}>
+                    <Text style={styles.settingsLabel}>{t('family.joinRow')}</Text>
+                  </View>
+                  <Ionicons name={isRTL ? 'chevron-back' : 'chevron-forward'} size={16} color={colors.textTertiary} />
+                </TouchableOpacity>
+              </>
+            )}
+          </View>
         </View>
 
         {/* Settings section */}

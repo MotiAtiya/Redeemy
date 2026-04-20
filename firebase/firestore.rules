@@ -3,23 +3,52 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
+    // Helper: check if user is a member of a given family
+    function isFamilyMember(familyId) {
+      return familyId != null &&
+        exists(/databases/$(database)/documents/families/$(familyId)) &&
+        request.auth.uid in get(/databases/$(database)/documents/families/$(familyId)).data.members;
+    }
+
     // Users — each user can only read/write their own profile
     match /users/{userId} {
       allow read, write: if request.auth != null && request.auth.uid == userId;
     }
 
-    // Credits — owner-only access
+    // Credits — owner OR family member can read/write
     match /credits/{creditId} {
-      allow read: if request.auth != null && request.auth.uid == resource.data.userId;
+      allow read: if request.auth != null && (
+        request.auth.uid == resource.data.userId ||
+        isFamilyMember(resource.data.familyId)
+      );
 
       allow create: if request.auth != null &&
         request.resource.data.userId == request.auth.uid;
 
-      allow update: if request.auth != null &&
-        request.auth.uid == resource.data.userId;
+      allow update: if request.auth != null && (
+        request.auth.uid == resource.data.userId ||
+        isFamilyMember(resource.data.familyId)
+      );
 
+      allow delete: if request.auth != null && (
+        request.auth.uid == resource.data.userId ||
+        isFamilyMember(resource.data.familyId)
+      );
+    }
+
+    // Families collection
+    match /families/{familyId} {
+      // Any authenticated user can read to validate an invite code
+      allow read: if request.auth != null;
+      // Only authenticated users can create (Story 10.1 creates the doc client-side)
+      allow create: if request.auth != null &&
+        request.resource.data.adminId == request.auth.uid;
+      // Members can update (join, leave, manage)
+      allow update: if request.auth != null &&
+        request.auth.uid in resource.data.members;
+      // Only admin can delete
       allow delete: if request.auth != null &&
-        request.auth.uid == resource.data.userId;
+        request.auth.uid == resource.data.adminId;
     }
   }
 }

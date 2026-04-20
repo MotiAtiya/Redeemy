@@ -1,0 +1,112 @@
+# generated: 2026-04-20
+# last_updated: 2026-04-20
+# project: Redeemy
+# project_key: NOKEY
+# tracking_system: file-system
+# story_location: _bmad-output/implementation-artifacts
+
+# STATUS DEFINITIONS:
+# ==================
+# Epic Status:
+#   - backlog: Epic not yet started
+#   - in-progress: Epic actively being worked on
+#   - done: All stories in epic completed
+#
+# Epic Status Transitions:
+#   - backlog → in-progress: Automatically when first story is created (via create-story)
+#   - in-progress → done: Manually when all stories reach 'done' status
+#
+# Story Status:
+#   - backlog: Story only exists in epic file
+#   - ready-for-dev: Story file created in stories folder
+#   - in-progress: Developer actively working on implementation
+#   - review: Ready for code review (via Dev's code-review workflow)
+#   - done: Story completed
+#
+# Retrospective Status:
+#   - optional: Can be completed but not required
+#   - done: Retrospective has been completed
+#
+# WORKFLOW NOTES:
+# ===============
+# - Epic transitions to 'in-progress' automatically when first story is created
+# - Stories can be worked in parallel if team capacity allows
+# - Developer typically creates next story after previous one is 'done' to incorporate learnings
+# - Dev moves story to 'review', then runs code-review (fresh context, different LLM recommended)
+#
+# NOTE: Status inferred from git commit history — no story files were tracked during implementation.
+# Epic 9 (Theme & Appearance) exists in planning-artifacts but is not in epics.md.
+# Stories 9.1 (dark-mode) and 9.2 (settings-improvements) are ready-for-dev there.
+
+generated: 2026-04-20
+last_updated: 2026-04-20
+project: Redeemy
+project_key: NOKEY
+tracking_system: file-system
+story_location: _bmad-output/implementation-artifacts
+
+development_status:
+  # Epic 1: Foundation & Project Setup
+  epic-1: done
+  1-1-initialize-expo-project-and-repository-structure: done
+  1-2-firebase-project-and-sdk-integration: done
+  1-3-gluestack-ui-theme-and-navigation-shell: done
+  1-4-zustand-stores-and-core-types: done
+  epic-1-retrospective: optional
+
+  # Epic 2: User Authentication
+  epic-2: done
+  2-1-email-registration-and-sign-in-screen: done
+  2-2-google-sign-in: done
+  2-3-apple-sign-in-ios: done
+  2-4-auth-gate-session-persistence-and-sign-out: done
+  epic-2-retrospective: optional
+
+  # Epic 3: Credit Management (Core)
+  epic-3: done
+  3-1-image-pipeline-capture-compress-and-upload: done
+  3-2-add-credit-form-fields-and-validation: done
+  3-3-save-credit-to-firestore: done
+  3-4-new-store-auto-registration: done
+  3-5-active-credits-list-view: done
+  3-6-credit-detail-edit-and-delete: done
+  epic-3-retrospective: optional
+
+  # Epic 4: Stores & Discovery
+  epic-4: done
+  4-1-stores-list-tab: done
+  4-2-store-detail-all-credits-for-a-store: done
+  epic-4-retrospective: optional
+
+  # Epic 5: Reminders & Notifications
+  epic-5: done
+  5-1-local-notification-scheduling: done
+  5-2-app-icon-badge-for-expiring-credits: done
+  5-3-in-app-expiration-alerts-and-reminder-management: done
+  epic-5-retrospective: optional
+
+  # Epic 6: Redeem & History
+  epic-6: done
+  6-1-mark-credit-as-redeemed: done
+  6-2-redeemed-credits-history-view: done
+  6-3-history-search-and-filter: done
+  epic-6-retrospective: optional
+
+  # Epic 7: Offline Support
+  epic-7: done
+  7-1-offline-read-and-browse: done
+  7-2-sync-recovery-on-reconnect: done
+  epic-7-retrospective: optional
+
+  # Epic 9: Theme & Appearance
+  epic-9: done
+  9-1-dark-mode-support: done
+  9-2-settings-improvements: done
+  epic-9-retrospective: optional
+
+  # Epic 10: Family Sharing
+  epic-10: in-progress
+  10-1-create-family-and-invite-code: review
+  10-2-join-family-and-shared-credits: review
+  10-3-leave-family-and-management: backlog
+  epic-10-retrospective: optional

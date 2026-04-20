@@ -372,6 +372,48 @@
     "1month": "חודש",
     "3months": "3 חודשים"
   },
+  "family": {
+    "sectionLabel": "משפחה",
+    "createRow": "יצירת משפחה",
+    "joinRow": "הצטרף למשפחה",
+    "memberCount_one": "חבר {{count}}",
+    "memberCount_other": "{{count}} חברים",
+    "createScreen": {
+      "title": "יצירת משפחה",
+      "namePlaceholder": "שם המשפחה",
+      "nameHelper": "לדוגמה: משפחת אטיה",
+      "createButton": "יצירה",
+      "successToast": "המשפחה נוצרה!"
+    },
+    "manageScreen": {
+      "inviteSection": "קוד הזמנה",
+      "inviteExpires": "פג תוקף בעוד {{time}}",
+      "inviteExpired": "הקוד פג תוקף",
+      "inviteCopy": "העתק",
+      "inviteRegenerate": "חדש קוד",
+      "inviteGenerateNew": "צור קוד חדש",
+      "inviteCopiedToast": "קוד ההזמנה הועתק",
+      "membersSection": "חברים",
+      "adminBadge": "מנהל"
+    },
+    "join": {
+      "title": "הצטרף למשפחה",
+      "subtitle": "הזן את קוד ההזמנה בן 6 התווים שנשלח אליך ממנהל המשפחה.",
+      "codeLabel": "קוד הזמנה",
+      "button": "הצטרף",
+      "errors": {
+        "invalidCode": "קוד הזמנה לא חוקי. בדוק ונסה שוב.",
+        "expiredCode": "קוד ההזמנה פג תוקף. בקש מהמנהל ליצור קוד חדש.",
+        "familyFull": "המשפחה מלאה (מקסימום 6 חברים).",
+        "alreadyInFamily": "אתה כבר חבר במשפחה זו.",
+        "networkError": "לא ניתן להצטרף. בדוק את החיבור ונסה שוב."
+      }
+    },
+    "errors": {
+      "createFailed": "לא ניתן ליצור משפחה. נסה שוב.",
+      "generateFailed": "לא ניתן ליצור קוד הזמנה. נסה שוב."
+    }
+  },
   "category": {
     "food": "אוכל ומסעדות",
     "fashion": "אופנה",

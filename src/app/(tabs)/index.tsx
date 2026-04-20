@@ -20,6 +20,7 @@ import { subscribeToCredits } from '@/lib/firestoreCredits';
 import { sortCreditsHome, filterActiveCredits, type HomeSortKey } from '@/lib/creditUtils';
 import { useAuthStore } from '@/stores/authStore';
 import { useCreditsStore } from '@/stores/creditsStore';
+import { useSettingsStore } from '@/stores/settingsStore';
 import { useAppTheme } from '@/hooks/useAppTheme';
 import { CreditStatus } from '@/types/creditTypes';
 import type { AppColors } from '@/constants/colors';
@@ -149,6 +150,7 @@ export default function CreditsScreen() {
   ];
 
   const currentUser = useAuthStore((s) => s.currentUser);
+  const familyId = useSettingsStore((s) => s.familyId);
   const credits = useCreditsStore((s) => s.credits);
   const isLoading = useCreditsStore((s) => s.isLoading);
   const searchQuery = useCreditsStore((s) => s.searchQuery);
@@ -162,9 +164,9 @@ export default function CreditsScreen() {
   useEffect(() => {
     if (!currentUser?.uid) return;
     setLoading(true);
-    const unsubscribe = subscribeToCredits(currentUser.uid);
+    const unsubscribe = subscribeToCredits(currentUser.uid, familyId);
     return unsubscribe;
-  }, [currentUser?.uid, setLoading]);
+  }, [currentUser?.uid, familyId, setLoading]);
 
   const filteredCredits = useMemo(
     () => sortCreditsHome(filterActiveCredits(credits, searchQuery, selectedCategory), sortKey),

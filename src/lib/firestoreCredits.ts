@@ -10,6 +10,7 @@ import {
   serverTimestamp,
   query,
   where,
+  writeBatch,
   onSnapshot,
   type Unsubscribe,
 } from 'firebase/firestore';
@@ -24,16 +25,16 @@ const CREDITS_COLLECTION = 'credits';
 // ---------------------------------------------------------------------------
 
 /**
- * Subscribes to ALL of the current user's credits (active + redeemed).
+ * Subscribes to credits for the current user (or family if in one).
+ * When familyId is provided, queries by familyId to get all family credits.
+ * When familyId is null/undefined, queries by userId for personal credits only.
  * Writes updates directly into creditsStore.
- * Client-side filtering handles active/redeemed views.
  * Returns an unsubscribe function — call on screen unmount.
  */
-export function subscribeToCredits(userId: string): Unsubscribe {
-  const q = query(
-    collection(db, CREDITS_COLLECTION),
-    where('userId', '==', userId)
-  );
+export function subscribeToCredits(userId: string, familyId?: string | null): Unsubscribe {
+  const q = familyId
+    ? query(collection(db, CREDITS_COLLECTION), where('familyId', '==', familyId))
+    : query(collection(db, CREDITS_COLLECTION), where('userId', '==', userId));
 
   return onSnapshot(
     q,
@@ -142,4 +143,50 @@ export async function deleteAllUserCredits(userId: string): Promise<void> {
       Promise.all([deleteDoc(d.ref), deleteCreditImages(d.id)])
     )
   );
+}
+
+/**
+ * Batch-assigns familyId (and createdBy info) to all credits belonging to a user.
+ * Called when a user joins a family — makes their credits visible to all family members.
+ */
+export async function migrateCreditsToFamily(
+  userId: string,
+  familyId: string,
+  createdByName: string
+): Promise<void> {
+  const q = query(collection(db, CREDITS_COLLECTION), where('userId', '==', userId));
+  const snapshot = await getDocs(q);
+  if (snapshot.empty) return;
+
+  const batch = writeBatch(db);
+  snapshot.docs.forEach((d) => {
+    batch.update(d.ref, {
+      familyId,
+      createdBy: userId,
+      createdByName,
+      updatedAt: serverTimestamp(),
+    });
+  });
+  await batch.commit();
+}
+
+/**
+ * Batch-removes familyId and createdBy from all credits belonging to a user.
+ * Called when a user leaves a family — their credits revert to personal ownership.
+ */
+export async function migrateCreditsFromFamily(userId: string): Promise<void> {
+  const q = query(collection(db, CREDITS_COLLECTION), where('userId', '==', userId));
+  const snapshot = await getDocs(q);
+  if (snapshot.empty) return;
+
+  const batch = writeBatch(db);
+  snapshot.docs.forEach((d) => {
+    batch.update(d.ref, {
+      familyId: deleteField(),
+      createdBy: deleteField(),
+      createdByName: deleteField(),
+      updatedAt: serverTimestamp(),
+    });
+  });
+  await batch.commit();
 }

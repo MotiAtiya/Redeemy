@@ -21,6 +21,8 @@ import { isEmailUser, updateDisplayName, changePassword, signOut } from '@/lib/a
 import { useAuthStore } from '@/stores/authStore';
 import { useCreditsStore } from '@/stores/creditsStore';
 import { useUIStore } from '@/stores/uiStore';
+import { useSettingsStore } from '@/stores/settingsStore';
+import { useFamilyStore } from '@/stores/familyStore';
 import { useAppTheme } from '@/hooks/useAppTheme';
 import type { AppColors } from '@/constants/colors';
 
@@ -197,6 +199,8 @@ export default function AccountScreen() {
             useCreditsStore.getState().setLoading(false);
             useUIStore.getState().setActiveTab('credits');
             useUIStore.getState().setOfflineMode(false);
+            useFamilyStore.getState().setFamily(null);
+            useSettingsStore.getState().setFamilyId(null);
             await signOut();
           } catch {
             setSigningOut(false);
