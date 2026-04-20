@@ -394,7 +394,20 @@
       "inviteGenerateNew": "צור קוד חדש",
       "inviteCopiedToast": "קוד ההזמנה הועתק",
       "membersSection": "חברים",
-      "adminBadge": "מנהל"
+      "adminBadge": "מנהל",
+      "actionsSection": "משפחה",
+      "renameButton": "שינוי שם משפחה",
+      "transferAdminButton": "העברת ניהול",
+      "transferAdminTitle": "העברת ניהול",
+      "transferAdminMessage": "בחר חבר שיהפוך למנהל החדש:",
+      "transferAdminConfirm": "הפוך למנהל",
+      "leaveButton": "עזוב משפחה",
+      "leaveConfirmTitle": "לעזוב את {{name}}?",
+      "leaveConfirmMessage": "הזיכויים שלך יישארו אצלך.",
+      "leaveConfirmAction": "עזוב",
+      "removeConfirmTitle": "להסיר את {{name}}?",
+      "removeConfirmMessage": "הזיכויים שלהם יישארו אצלהם.",
+      "removeConfirmAction": "הסר"
     },
     "join": {
       "title": "הצטרף למשפחה",
@@ -411,7 +424,11 @@
     },
     "errors": {
       "createFailed": "לא ניתן ליצור משפחה. נסה שוב.",
-      "generateFailed": "לא ניתן ליצור קוד הזמנה. נסה שוב."
+      "generateFailed": "לא ניתן ליצור קוד הזמנה. נסה שוב.",
+      "leaveFailed": "לא ניתן לעזוב את המשפחה. נסה שוב.",
+      "removeFailed": "לא ניתן להסיר את החבר. נסה שוב.",
+      "renameFailed": "לא ניתן לשנות את שם המשפחה. נסה שוב.",
+      "transferAdminFailed": "לא ניתן להעביר ניהול. נסה שוב."
     }
   },
   "category": {

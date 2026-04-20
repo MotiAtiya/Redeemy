@@ -395,7 +395,20 @@
       "inviteGenerateNew": "Generate new code",
       "inviteCopiedToast": "Invite code copied",
       "membersSection": "MEMBERS",
-      "adminBadge": "Admin"
+      "adminBadge": "Admin",
+      "actionsSection": "FAMILY",
+      "renameButton": "Rename Family",
+      "transferAdminButton": "Transfer Admin",
+      "transferAdminTitle": "Transfer Admin",
+      "transferAdminMessage": "Choose a member to become the new admin:",
+      "transferAdminConfirm": "Make Admin",
+      "leaveButton": "Leave Family",
+      "leaveConfirmTitle": "Leave {{name}}?",
+      "leaveConfirmMessage": "Your credits will stay with you.",
+      "leaveConfirmAction": "Leave",
+      "removeConfirmTitle": "Remove {{name}}?",
+      "removeConfirmMessage": "Their credits will stay with them.",
+      "removeConfirmAction": "Remove"
     },
     "join": {
       "title": "Join Family",
@@ -412,7 +425,11 @@
     },
     "errors": {
       "createFailed": "Couldn't create family. Try again.",
-      "generateFailed": "Couldn't generate invite code. Try again."
+      "generateFailed": "Couldn't generate invite code. Try again.",
+      "leaveFailed": "Couldn't leave family. Try again.",
+      "removeFailed": "Couldn't remove member. Try again.",
+      "renameFailed": "Couldn't rename family. Try again.",
+      "transferAdminFailed": "Couldn't transfer admin. Try again."
     }
   },
   "category": {

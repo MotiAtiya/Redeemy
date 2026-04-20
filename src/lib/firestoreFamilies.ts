@@ -2,6 +2,8 @@ import {
   collection,
   addDoc,
   updateDoc,
+  deleteDoc,
+  deleteField,
   doc,
   serverTimestamp,
   onSnapshot,
@@ -99,9 +101,15 @@ export async function generateInviteCode(familyId: string): Promise<{ code: stri
 /**
  * Sets up a real-time onSnapshot listener for a family document.
  * Converts Timestamps to JS Dates and writes to familyStore.
+ * Calls onUserRemoved when the current user is no longer in the members map
+ * (kicked by admin or family dissolved) — caller should clear familyId.
  * Returns unsubscribe function — call on cleanup.
  */
-export function subscribeToFamily(familyId: string): Unsubscribe {
+export function subscribeToFamily(
+  familyId: string,
+  currentUid?: string,
+  onUserRemoved?: () => void,
+): Unsubscribe {
   const docRef = doc(db, FAMILIES_COLLECTION, familyId);
 
   return onSnapshot(
@@ -109,10 +117,19 @@ export function subscribeToFamily(familyId: string): Unsubscribe {
     (snapshot) => {
       if (!snapshot.exists()) {
         useFamilyStore.getState().setFamily(null);
+        onUserRemoved?.();
         return;
       }
 
-      const data = snapshot.data();
+      const rawData = snapshot.data();
+      // Detect if current user was removed from the family
+      if (currentUid && !(currentUid in (rawData.members ?? {}))) {
+        useFamilyStore.getState().setFamily(null);
+        onUserRemoved?.();
+        return;
+      }
+
+      const data = rawData;
       const adminId: string = data.adminId;
 
       const members: Family['members'] = data.members ?? {};
@@ -228,4 +245,71 @@ export async function joinFamily(
   });
 
   return familyId;
+}
+
+/**
+ * Removes a user from a family.
+ * If the leaving user is admin and others remain, auto-transfers to first member.
+ * If no members remain after leaving, the family document is deleted.
+ * Note: caller is responsible for migrating credits (migrateCreditsFromFamily).
+ */
+export async function leaveFamily(familyId: string, userId: string): Promise<void> {
+  const familyRef = doc(db, FAMILIES_COLLECTION, familyId);
+
+  await runTransaction(db, async (transaction) => {
+    const snap = await transaction.get(familyRef);
+    if (!snap.exists()) return;
+
+    const data = snap.data();
+    const remainingMembers = Object.keys(data.members ?? {}).filter((uid) => uid !== userId);
+
+    if (remainingMembers.length === 0) {
+      transaction.delete(familyRef);
+      return;
+    }
+
+    const updates: Record<string, unknown> = {
+      [`members.${userId}`]: deleteField(),
+      updatedAt: serverTimestamp(),
+    };
+    // If admin is leaving, auto-transfer to first remaining member
+    if (data.adminId === userId) {
+      updates.adminId = remainingMembers[0];
+    }
+    transaction.update(familyRef, updates);
+  });
+}
+
+/**
+ * Admin removes a member from the family.
+ * Caller is responsible for migrating that member's credits (migrateCreditsFromFamily).
+ */
+export async function removeMember(familyId: string, targetUid: string): Promise<void> {
+  const familyRef = doc(db, FAMILIES_COLLECTION, familyId);
+  await updateDoc(familyRef, {
+    [`members.${targetUid}`]: deleteField(),
+    updatedAt: serverTimestamp(),
+  });
+}
+
+/**
+ * Renames a family (admin only).
+ */
+export async function renameFamily(familyId: string, newName: string): Promise<void> {
+  const familyRef = doc(db, FAMILIES_COLLECTION, familyId);
+  await updateDoc(familyRef, {
+    name: newName.trim(),
+    updatedAt: serverTimestamp(),
+  });
+}
+
+/**
+ * Transfers admin role to another member (current admin only).
+ */
+export async function transferAdmin(familyId: string, newAdminId: string): Promise<void> {
+  const familyRef = doc(db, FAMILIES_COLLECTION, familyId);
+  await updateDoc(familyRef, {
+    adminId: newAdminId,
+    updatedAt: serverTimestamp(),
+  });
 }
