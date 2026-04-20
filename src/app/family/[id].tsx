@@ -6,6 +6,9 @@ import {
   TouchableOpacity,
   StyleSheet,
   ScrollView,
+  Modal,
+  KeyboardAvoidingView,
+  Platform,
   I18nManager,
   ActivityIndicator,
   Alert,
@@ -52,7 +55,7 @@ function useToast() {
 // Styles
 // ---------------------------------------------------------------------------
 
-function makeStyles(colors: AppColors) {
+function makeStyles(colors: AppColors, isRTL: boolean) {
   return StyleSheet.create({
     safe: { flex: 1, backgroundColor: colors.background },
     header: {
@@ -60,7 +63,6 @@ function makeStyles(colors: AppColors) {
       alignItems: 'center',
       paddingHorizontal: 16,
       paddingVertical: 12,
-      gap: 8,
     },
     backButton: { padding: 4 },
     headerTitle: {
@@ -68,23 +70,9 @@ function makeStyles(colors: AppColors) {
       fontSize: 17,
       fontWeight: '600',
       color: colors.textPrimary,
-      alignSelf: 'flex-start',
+      textAlign: 'center',
+      marginEnd: 32, // compensate for back button width
     },
-    headerEditButton: { padding: 4, marginStart: 4 },
-    headerRenameInput: {
-      flex: 1,
-      fontSize: 17,
-      fontWeight: '600',
-      color: colors.textPrimary,
-      borderBottomWidth: 1,
-      borderBottomColor: colors.primary,
-      paddingBottom: 2,
-    },
-    headerRenameActions: {
-      flexDirection: 'row',
-      gap: 4,
-    },
-    headerActionBtn: { padding: 6 },
     scrollContent: { paddingHorizontal: 16, paddingBottom: 40 },
     sectionLabel: {
       fontSize: 11,
@@ -119,12 +107,6 @@ function makeStyles(colors: AppColors) {
       writingDirection: 'ltr',
       textAlign: 'center',
     },
-    inviteCodeExpired: {
-      fontSize: 28,
-      fontWeight: '300',
-      color: colors.textTertiary,
-      textAlign: 'center',
-    },
     copyButton: {
       padding: 8,
       backgroundColor: colors.primarySurface,
@@ -133,12 +115,6 @@ function makeStyles(colors: AppColors) {
     countdownText: {
       fontSize: 13,
       color: colors.textSecondary,
-      textAlign: 'center',
-      marginBottom: 12,
-    },
-    countdownExpired: {
-      fontSize: 13,
-      color: colors.danger,
       textAlign: 'center',
       marginBottom: 12,
     },
@@ -158,7 +134,6 @@ function makeStyles(colors: AppColors) {
       paddingVertical: 12,
       paddingHorizontal: 24,
       alignSelf: 'center',
-      marginTop: 4,
     },
     generateNewText: {
       fontSize: 15,
@@ -189,7 +164,6 @@ function makeStyles(colors: AppColors) {
       flex: 1,
       fontSize: 15,
       color: colors.textPrimary,
-      alignSelf: 'flex-start',
     },
     adminBadge: {
       backgroundColor: colors.primarySurface,
@@ -207,32 +181,69 @@ function makeStyles(colors: AppColors) {
       gap: 4,
     },
     memberActionBtn: { padding: 6 },
-    // Action rows card
-    actionRow: {
+    // Action rows
+    row: {
       flexDirection: 'row',
       alignItems: 'center',
       padding: 16,
       gap: 12,
     },
-    actionRowText: {
-      flex: 1,
-      fontSize: 15,
-      color: colors.textPrimary,
-    },
-    // Leave button
-    leaveButton: {
-      marginTop: 28,
-      marginHorizontal: 0,
-      paddingVertical: 16,
-      borderRadius: 12,
+    rowLabel: { flex: 1, fontSize: 15, color: colors.textPrimary },
+    // Danger row (sign-out / leave style)
+    dangerRow: {
+      flexDirection: 'row',
       alignItems: 'center',
-      backgroundColor: `${colors.danger}18`,
+      justifyContent: 'center',
+      padding: 16,
+      gap: 8,
     },
-    leaveButtonText: {
+    dangerText: { fontSize: 15, fontWeight: '600', color: colors.danger },
+    // Bottom sheet (same pattern as account.tsx)
+    overlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.35)' },
+    sheet: {
+      backgroundColor: colors.surface,
+      borderTopLeftRadius: 20,
+      borderTopRightRadius: 20,
+      padding: 20,
+      paddingBottom: 40,
+    },
+    sheetHandle: {
+      width: 36,
+      height: 4,
+      borderRadius: 2,
+      backgroundColor: colors.separator,
+      alignSelf: 'center',
+      marginBottom: 16,
+    },
+    sheetTitle: {
+      fontSize: 17,
+      fontWeight: '700',
+      color: colors.textPrimary,
+      marginBottom: 16,
+      alignSelf: 'flex-start',
+    },
+    sheetInput: {
+      height: 52,
+      borderWidth: 1,
+      borderColor: colors.separator,
+      borderRadius: 10,
+      paddingHorizontal: 16,
       fontSize: 16,
-      fontWeight: '600',
-      color: colors.danger,
+      color: colors.textPrimary,
+      backgroundColor: colors.background,
+      textAlign: isRTL ? 'right' : 'left',
+      marginBottom: 8,
     },
+    sheetButton: {
+      height: 52,
+      backgroundColor: colors.primary,
+      borderRadius: 10,
+      justifyContent: 'center',
+      alignItems: 'center',
+      marginTop: 8,
+    },
+    sheetButtonDisabled: { opacity: 0.7 },
+    sheetButtonText: { color: '#FFFFFF', fontSize: 16, fontWeight: '600' },
     // Loading state
     centered: { flex: 1, justifyContent: 'center', alignItems: 'center' },
     // Toast
@@ -245,11 +256,7 @@ function makeStyles(colors: AppColors) {
       paddingHorizontal: 20,
       paddingVertical: 10,
     },
-    toastText: {
-      color: '#FFFFFF',
-      fontSize: 14,
-      fontWeight: '500',
-    },
+    toastText: { color: '#FFFFFF', fontSize: 14, fontWeight: '500' },
   });
 }
 
@@ -260,9 +267,9 @@ function makeStyles(colors: AppColors) {
 export default function FamilyManageScreen() {
   const router = useRouter();
   const colors = useAppTheme();
-  const styles = useMemo(() => makeStyles(colors), [colors]);
-  const { t } = useTranslation();
   const isRTL = I18nManager.isRTL;
+  const styles = useMemo(() => makeStyles(colors, isRTL), [colors, isRTL]);
+  const { t } = useTranslation();
   const { toastMessage, showToast } = useToast();
 
   const { created } = useLocalSearchParams<{ created?: string }>();
@@ -277,9 +284,10 @@ export default function FamilyManageScreen() {
   const [secondsLeft, setSecondsLeft] = useState(0);
   const [isRegenerating, setIsRegenerating] = useState(false);
 
-  // Rename state
-  const [isRenaming, setIsRenaming] = useState(false);
+  // Rename sheet
+  const [showRenameSheet, setShowRenameSheet] = useState(false);
   const [renameValue, setRenameValue] = useState('');
+  const [isSavingRename, setIsSavingRename] = useState(false);
   const renameInputRef = useRef<TextInput>(null);
 
   // Action loading
@@ -345,28 +353,24 @@ export default function FamilyManageScreen() {
   // Rename handlers
   // ---------------------------------------------------------------------------
 
-  function startRename() {
+  function openRenameSheet() {
     if (!family) return;
     setRenameValue(family.name);
-    setIsRenaming(true);
-    setTimeout(() => renameInputRef.current?.focus(), 50);
+    setShowRenameSheet(true);
+    setTimeout(() => renameInputRef.current?.focus(), 100);
   }
 
-  function cancelRename() {
-    setIsRenaming(false);
-    setRenameValue('');
-  }
-
-  async function confirmRename() {
-    if (!family || !renameValue.trim() || renameValue.trim() === family.name) {
-      cancelRename();
-      return;
-    }
+  async function handleSaveRename() {
+    if (!family || !renameValue.trim()) return;
+    if (renameValue.trim() === family.name) { setShowRenameSheet(false); return; }
+    setIsSavingRename(true);
     try {
       await renameFamily(family.id, renameValue.trim());
-      setIsRenaming(false);
+      setShowRenameSheet(false);
     } catch {
       Alert.alert(t('common.error'), t('family.errors.renameFailed'));
+    } finally {
+      setIsSavingRename(false);
     }
   }
 
@@ -376,9 +380,7 @@ export default function FamilyManageScreen() {
 
   function handleTransferAdmin() {
     if (!family) return;
-    const candidates = family.memberList.filter(
-      (m) => m.userId !== currentUser?.uid
-    );
+    const candidates = family.memberList.filter((m) => m.userId !== currentUser?.uid);
     if (candidates.length === 0) return;
 
     const buttons = candidates.map((m) => ({
@@ -416,7 +418,6 @@ export default function FamilyManageScreen() {
           onPress: async () => {
             setRemovingUid(member.userId);
             try {
-              // Migrate credits first (while admin is still a member)
               await migrateCreditsFromFamily(member.userId);
               await removeMember(family.id, member.userId);
             } catch {
@@ -463,7 +464,7 @@ export default function FamilyManageScreen() {
   }
 
   // ---------------------------------------------------------------------------
-  // Render helpers
+  // Render
   // ---------------------------------------------------------------------------
 
   const formattedCountdown = `${String(Math.floor(secondsLeft / 60)).padStart(2, '0')}:${String(secondsLeft % 60).padStart(2, '0')}`;
@@ -485,39 +486,8 @@ export default function FamilyManageScreen() {
             color={colors.textPrimary}
           />
         </TouchableOpacity>
-
         {family ? (
-          isRenaming ? (
-            <>
-              <TextInput
-                ref={renameInputRef}
-                style={styles.headerRenameInput}
-                value={renameValue}
-                onChangeText={setRenameValue}
-                maxLength={40}
-                returnKeyType="done"
-                onSubmitEditing={confirmRename}
-                autoCapitalize="words"
-              />
-              <View style={styles.headerRenameActions}>
-                <TouchableOpacity style={styles.headerActionBtn} onPress={confirmRename} hitSlop={8}>
-                  <Ionicons name="checkmark" size={22} color={colors.primary} />
-                </TouchableOpacity>
-                <TouchableOpacity style={styles.headerActionBtn} onPress={cancelRename} hitSlop={8}>
-                  <Ionicons name="close" size={22} color={colors.textSecondary} />
-                </TouchableOpacity>
-              </View>
-            </>
-          ) : (
-            <>
-              <Text style={styles.headerTitle} numberOfLines={1}>{family.name}</Text>
-              {isAdmin && (
-                <TouchableOpacity style={styles.headerEditButton} onPress={startRename} hitSlop={8}>
-                  <Ionicons name="pencil-outline" size={18} color={colors.textSecondary} />
-                </TouchableOpacity>
-              )}
-            </>
-          )
+          <Text style={styles.headerTitle} numberOfLines={1}>{family.name}</Text>
         ) : null}
       </View>
 
@@ -532,32 +502,8 @@ export default function FamilyManageScreen() {
           <Text style={styles.sectionLabel}>{t('family.manageScreen.inviteSection')}</Text>
           <View style={styles.card}>
             <View style={styles.inviteCardPadding}>
-              <View style={styles.inviteCodeRow}>
-                {isExpired ? (
-                  <Text style={styles.inviteCodeExpired}>—</Text>
-                ) : (
-                  <>
-                    <Text style={styles.inviteCode}>{family.inviteCode}</Text>
-                    <TouchableOpacity
-                      style={styles.copyButton}
-                      onPress={handleCopyCode}
-                      accessibilityRole="button"
-                    >
-                      <Ionicons name="copy-outline" size={20} color={colors.primary} />
-                    </TouchableOpacity>
-                  </>
-                )}
-              </View>
-
               {isExpired ? (
-                <Text style={styles.countdownExpired}>{t('family.manageScreen.inviteExpired')}</Text>
-              ) : (
-                <Text style={styles.countdownText}>
-                  {t('family.manageScreen.inviteExpires', { time: formattedCountdown })}
-                </Text>
-              )}
-
-              {isExpired ? (
+                /* Expired: just show generate button */
                 <TouchableOpacity
                   style={styles.generateNewButton}
                   onPress={handleRegenerate}
@@ -570,17 +516,25 @@ export default function FamilyManageScreen() {
                   )}
                 </TouchableOpacity>
               ) : (
-                <TouchableOpacity
-                  style={styles.regenerateButton}
-                  onPress={handleRegenerate}
-                  disabled={isRegenerating}
-                >
-                  {isRegenerating ? (
-                    <ActivityIndicator color={colors.primary} size="small" />
-                  ) : (
-                    <Text style={styles.regenerateText}>{t('family.manageScreen.inviteRegenerate')}</Text>
-                  )}
-                </TouchableOpacity>
+                /* Active: show code + countdown + actions */
+                <>
+                  <View style={styles.inviteCodeRow}>
+                    <Text style={styles.inviteCode}>{family.inviteCode}</Text>
+                    <TouchableOpacity style={styles.copyButton} onPress={handleCopyCode}>
+                      <Ionicons name="copy-outline" size={20} color={colors.primary} />
+                    </TouchableOpacity>
+                  </View>
+                  <Text style={styles.countdownText}>
+                    {t('family.manageScreen.inviteExpires', { time: formattedCountdown })}
+                  </Text>
+                  <TouchableOpacity style={styles.regenerateButton} onPress={handleRegenerate} disabled={isRegenerating}>
+                    {isRegenerating ? (
+                      <ActivityIndicator color={colors.primary} size="small" />
+                    ) : (
+                      <Text style={styles.regenerateText}>{t('family.manageScreen.inviteRegenerate')}</Text>
+                    )}
+                  </TouchableOpacity>
+                </>
               )}
             </View>
           </View>
@@ -618,7 +572,6 @@ export default function FamilyManageScreen() {
                           <ActivityIndicator size="small" color={colors.textTertiary} />
                         ) : (
                           <>
-                            {/* Transfer admin */}
                             <TouchableOpacity
                               style={styles.memberActionBtn}
                               onPress={() => {
@@ -641,16 +594,13 @@ export default function FamilyManageScreen() {
                                 );
                               }}
                               hitSlop={8}
-                              accessibilityRole="button"
                             >
                               <Ionicons name="shield-outline" size={18} color={colors.textSecondary} />
                             </TouchableOpacity>
-                            {/* Remove member */}
                             <TouchableOpacity
                               style={styles.memberActionBtn}
                               onPress={() => handleRemoveMember(member)}
                               hitSlop={8}
-                              accessibilityRole="button"
                             >
                               <Ionicons name="person-remove-outline" size={18} color={colors.danger} />
                             </TouchableOpacity>
@@ -664,31 +614,23 @@ export default function FamilyManageScreen() {
             })}
           </View>
 
-          {/* Admin actions (rename + transfer admin) */}
+          {/* Admin actions */}
           {isAdmin && (
             <>
               <Text style={styles.sectionLabel}>{t('family.manageScreen.actionsSection')}</Text>
               <View style={styles.card}>
-                <TouchableOpacity style={styles.actionRow} onPress={startRename}>
+                <TouchableOpacity style={styles.row} onPress={openRenameSheet}>
                   <Ionicons name="pencil-outline" size={20} color={colors.textSecondary} />
-                  <Text style={styles.actionRowText}>{t('family.manageScreen.renameButton')}</Text>
-                  <Ionicons
-                    name={isRTL ? 'chevron-back' : 'chevron-forward'}
-                    size={16}
-                    color={colors.textTertiary}
-                  />
+                  <Text style={styles.rowLabel}>{t('family.manageScreen.renameButton')}</Text>
+                  <Ionicons name={isRTL ? 'chevron-back' : 'chevron-forward'} size={16} color={colors.textTertiary} />
                 </TouchableOpacity>
                 {family.memberList.length > 1 && (
                   <>
                     <View style={styles.separator} />
-                    <TouchableOpacity style={styles.actionRow} onPress={handleTransferAdmin}>
+                    <TouchableOpacity style={styles.row} onPress={handleTransferAdmin}>
                       <Ionicons name="shield-outline" size={20} color={colors.textSecondary} />
-                      <Text style={styles.actionRowText}>{t('family.manageScreen.transferAdminButton')}</Text>
-                      <Ionicons
-                        name={isRTL ? 'chevron-back' : 'chevron-forward'}
-                        size={16}
-                        color={colors.textTertiary}
-                      />
+                      <Text style={styles.rowLabel}>{t('family.manageScreen.transferAdminButton')}</Text>
+                      <Ionicons name={isRTL ? 'chevron-back' : 'chevron-forward'} size={16} color={colors.textTertiary} />
                     </TouchableOpacity>
                   </>
                 )}
@@ -696,19 +638,24 @@ export default function FamilyManageScreen() {
             </>
           )}
 
-          {/* Leave family */}
-          <TouchableOpacity
-            style={styles.leaveButton}
-            onPress={handleLeave}
-            disabled={isLeaving}
-            accessibilityRole="button"
-          >
-            {isLeaving ? (
-              <ActivityIndicator color={colors.danger} size="small" />
-            ) : (
-              <Text style={styles.leaveButtonText}>{t('family.manageScreen.leaveButton')}</Text>
-            )}
-          </TouchableOpacity>
+          {/* Leave family — same dangerRow style as sign-out in account.tsx */}
+          <View style={[styles.card, { marginTop: 28 }]}>
+            <TouchableOpacity
+              style={styles.dangerRow}
+              onPress={handleLeave}
+              disabled={isLeaving}
+              accessibilityRole="button"
+            >
+              {isLeaving ? (
+                <ActivityIndicator color={colors.danger} size="small" />
+              ) : (
+                <>
+                  <Ionicons name="exit-outline" size={20} color={colors.danger} />
+                  <Text style={styles.dangerText}>{t('family.manageScreen.leaveButton')}</Text>
+                </>
+              )}
+            </TouchableOpacity>
+          </View>
 
         </ScrollView>
       )}
@@ -719,6 +666,43 @@ export default function FamilyManageScreen() {
           <Text style={styles.toastText}>{toastMessage}</Text>
         </View>
       ) : null}
+
+      {/* Rename bottom sheet */}
+      <Modal
+        visible={showRenameSheet}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setShowRenameSheet(false)}
+      >
+        <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+          <TouchableOpacity style={styles.overlay} activeOpacity={1} onPress={() => setShowRenameSheet(false)} />
+          <View style={styles.sheet}>
+            <View style={styles.sheetHandle} />
+            <Text style={styles.sheetTitle}>{t('family.manageScreen.renameButton')}</Text>
+            <TextInput
+              ref={renameInputRef}
+              style={styles.sheetInput}
+              value={renameValue}
+              onChangeText={setRenameValue}
+              maxLength={40}
+              autoCapitalize="words"
+              returnKeyType="done"
+              onSubmitEditing={handleSaveRename}
+            />
+            <TouchableOpacity
+              style={[styles.sheetButton, isSavingRename && styles.sheetButtonDisabled]}
+              onPress={handleSaveRename}
+              disabled={isSavingRename}
+            >
+              {isSavingRename ? (
+                <ActivityIndicator color="#FFFFFF" />
+              ) : (
+                <Text style={styles.sheetButtonText}>{t('more.editName.save')}</Text>
+              )}
+            </TouchableOpacity>
+          </View>
+        </KeyboardAvoidingView>
+      </Modal>
     </SafeAreaView>
   );
 }
