@@ -23,7 +23,7 @@ interface Props {
   autoFocus?: boolean;
 }
 
-const MAX_SUGGESTIONS = 7;
+const MAX_SUGGESTIONS = 100;
 
 function makeStyles(colors: AppColors, isRTL: boolean) {
   return StyleSheet.create({
