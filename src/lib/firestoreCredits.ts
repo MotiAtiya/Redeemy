@@ -174,8 +174,14 @@ export async function migrateCreditsToFamily(
  * Batch-removes familyId and createdBy from all credits belonging to a user.
  * Called when a user leaves a family — their credits revert to personal ownership.
  */
-export async function migrateCreditsFromFamily(userId: string): Promise<void> {
-  const q = query(collection(db, CREDITS_COLLECTION), where('userId', '==', userId));
+export async function migrateCreditsFromFamily(userId: string, familyId?: string): Promise<void> {
+  // When called by an admin removing another member, scope to credits that have
+  // this familyId so the admin's read permission (isFamilyMember) works correctly.
+  // When called by the user themselves leaving, no scoping needed — they own their credits.
+  const constraints = familyId
+    ? [where('userId', '==', userId), where('familyId', '==', familyId)]
+    : [where('userId', '==', userId)];
+  const q = query(collection(db, CREDITS_COLLECTION), ...constraints);
   const snapshot = await getDocs(q);
   if (snapshot.empty) return;
 

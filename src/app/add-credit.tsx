@@ -36,6 +36,7 @@ import { useUIStore } from '@/stores/uiStore';
 import { useAppTheme } from '@/hooks/useAppTheme';
 import { CreditStatus, type Credit } from '@/types/creditTypes';
 import { DEFAULT_CATEGORY_ID, CATEGORIES } from '@/constants/categories';
+import { getCategoryForStore } from '@/data/israeliStores';
 import { REMINDER_PRESETS } from '@/constants/reminders';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { formatDate } from '@/lib/formatDate';
@@ -500,7 +501,8 @@ export default function AddCreditScreen() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Auto-suggest category from previous credits for same store
+  // Auto-detect category when a store is selected from autocomplete.
+  // Priority: 1) most recent credit for this store, 2) store→category map.
   function handleSelectStoreSuggestion(selectedName: string) {
     const match = [...allCredits]
       .filter((c) => c.storeName.toLowerCase() === selectedName.toLowerCase())
@@ -509,7 +511,19 @@ export default function AddCreditScreen() {
           new Date(b.createdAt as Date).getTime() -
           new Date(a.createdAt as Date).getTime()
       )[0];
-    if (match) setCategory(match.category);
+    if (match) {
+      setCategory(match.category);
+      return;
+    }
+    const mapped = getCategoryForStore(selectedName);
+    if (mapped) setCategory(mapped);
+  }
+
+  // Also resolve category when continuing from storeName step manually (without selecting a suggestion).
+  function applyStoreCategoryIfNeeded(name: string) {
+    if (category !== DEFAULT_CATEGORY_ID) return; // already customised
+    const mapped = getCategoryForStore(name);
+    if (mapped) setCategory(mapped);
   }
 
   // ---------------------------------------------------------------------------
@@ -595,6 +609,7 @@ export default function AddCreditScreen() {
 
   function handleContinue() {
     if (!validateCurrentStep()) return;
+    if (currentStepId === 'storeName') applyStoreCategoryIfNeeded(storeName);
     goNext();
   }
 

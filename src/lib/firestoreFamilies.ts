@@ -24,7 +24,7 @@ const FAMILIES_COLLECTION = 'families';
 const INVITE_CODE_CHARSET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
 // Excludes: 0 (zero), O (letter O), 1 (one), I (letter I) — visually ambiguous
 
-const INVITE_CODE_TTL_MINUTES = 30;
+const INVITE_CODE_TTL_MINUTES = 5;
 
 function generateCode(): string {
   return Array.from({ length: 6 }, () =>

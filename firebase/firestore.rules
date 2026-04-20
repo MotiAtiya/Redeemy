@@ -10,6 +10,13 @@ service cloud.firestore {
         request.auth.uid in get(/databases/$(database)/documents/families/$(familyId)).data.members;
     }
 
+    // Helper: check if user is the admin of a given family
+    function isFamilyAdmin(familyId) {
+      return familyId != null &&
+        exists(/databases/$(database)/documents/families/$(familyId)) &&
+        get(/databases/$(database)/documents/families/$(familyId)).data.adminId == request.auth.uid;
+    }
+
     // Users — each user can only read/write their own profile
     match /users/{userId} {
       allow read, write: if request.auth != null && request.auth.uid == userId;
@@ -30,9 +37,10 @@ service cloud.firestore {
         isFamilyMember(resource.data.familyId)
       );
 
+      // Only the credit owner OR the family admin can delete
       allow delete: if request.auth != null && (
         request.auth.uid == resource.data.userId ||
-        isFamilyMember(resource.data.familyId)
+        isFamilyAdmin(resource.data.familyId)
       );
     }
 

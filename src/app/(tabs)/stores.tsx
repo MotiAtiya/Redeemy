@@ -17,12 +17,22 @@ import { useSettingsStore, CURRENCY_SYMBOLS } from '@/stores/settingsStore';
 import { useAppTheme } from '@/hooks/useAppTheme';
 import { formatCurrency } from '@/lib/formatCurrency';
 import { CreditStatus } from '@/types/creditTypes';
+import { CATEGORIES, DEFAULT_CATEGORY_ID } from '@/constants/categories';
+import { getCategoryForStore } from '@/data/israeliStores';
 import type { AppColors } from '@/constants/colors';
+import type { ComponentProps } from 'react';
+
+type IoniconsName = ComponentProps<typeof Ionicons>['name'];
 
 interface StoreRow {
   storeName: string;
   activeCount: number;
   totalAgot: number;
+  category: string;
+}
+
+function getIconForCategory(categoryId: string): IoniconsName {
+  return CATEGORIES.find((c) => c.id === categoryId)?.icon ?? 'storefront-outline';
 }
 
 function makeStyles(colors: AppColors, isRTL: boolean) {
@@ -116,7 +126,16 @@ export default function StoresScreen() {
         existing.activeCount += 1;
         existing.totalAgot += credit.amount;
       } else {
-        map.set(credit.storeName, { storeName: credit.storeName, activeCount: 1, totalAgot: credit.amount });
+        const category =
+          credit.category && credit.category !== DEFAULT_CATEGORY_ID
+            ? credit.category
+            : getCategoryForStore(credit.storeName) ?? DEFAULT_CATEGORY_ID;
+        map.set(credit.storeName, {
+          storeName: credit.storeName,
+          activeCount: 1,
+          totalAgot: credit.amount,
+          category,
+        });
       }
     }
     return [...map.values()].sort((a, b) => a.storeName.localeCompare(b.storeName));
@@ -169,7 +188,7 @@ export default function StoresScreen() {
             accessibilityLabel={`${item.storeName}, ${item.activeCount} credits, ${formatCurrency(item.totalAgot, currencySymbol)}`}
           >
             <View style={styles.rowIcon}>
-              <Ionicons name="storefront-outline" size={20} color={colors.primary} />
+              <Ionicons name={getIconForCategory(item.category)} size={20} color={colors.primary} />
             </View>
             <View style={styles.rowContent}>
               <Text style={styles.rowName} numberOfLines={1}>{item.storeName}</Text>

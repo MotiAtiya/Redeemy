@@ -27,6 +27,7 @@ import { formatDate } from '@/lib/formatDate';
 import { useCreditsStore } from '@/stores/creditsStore';
 import { useSettingsStore, CURRENCY_SYMBOLS } from '@/stores/settingsStore';
 import { useAuthStore } from '@/stores/authStore';
+import { useFamilyStore } from '@/stores/familyStore';
 import { useUIStore } from '@/stores/uiStore';
 import { useAppTheme } from '@/hooks/useAppTheme';
 import { CreditStatus } from '@/types/creditTypes';
@@ -169,6 +170,11 @@ export default function CreditDetailScreen() {
   const credit = useCreditsStore((s) => s.credits.find((c) => c.id === id));
   const removeCredit = useCreditsStore((s) => s.removeCredit);
   const updateCreditInStore = useCreditsStore((s) => s.updateCredit);
+  const currentUid = useAuthStore((s) => s.currentUser?.uid);
+  const familyAdminId = useFamilyStore((s) => s.family?.adminId);
+  const canDelete = credit
+    ? credit.userId === currentUid || familyAdminId === currentUid
+    : false;
 
   const [showActionSheet, setShowActionSheet] = useState(false);
   const [showFullscreenImage, setShowFullscreenImage] = useState(false);
@@ -494,10 +500,12 @@ export default function CreditDetailScreen() {
               <Text style={[styles.actionSheetLabel, { color: colors.primary }]}>{t('credit.action.restore')}</Text>
             </TouchableOpacity>
           )}
-          <TouchableOpacity style={styles.actionSheetButton} onPress={handleDelete}>
-            <Ionicons name="trash-outline" size={22} color={colors.danger} />
-            <Text style={[styles.actionSheetLabel, { color: colors.danger }]}>{t('credit.action.delete')}</Text>
-          </TouchableOpacity>
+          {canDelete && (
+            <TouchableOpacity style={styles.actionSheetButton} onPress={handleDelete}>
+              <Ionicons name="trash-outline" size={22} color={colors.danger} />
+              <Text style={[styles.actionSheetLabel, { color: colors.danger }]}>{t('credit.action.delete')}</Text>
+            </TouchableOpacity>
+          )}
           <TouchableOpacity style={styles.cancelButton} onPress={() => setShowActionSheet(false)}>
             <Text style={styles.cancelText}>{t('common.cancel')}</Text>
           </TouchableOpacity>

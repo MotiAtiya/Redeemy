@@ -419,7 +419,7 @@ export default function FamilyManageScreen() {
           onPress: async () => {
             setRemovingUid(member.userId);
             try {
-              await migrateCreditsFromFamily(member.userId);
+              await migrateCreditsFromFamily(member.userId, family.id);
               await removeMember(family.id, member.userId);
             } catch {
               Alert.alert(t('common.error'), t('family.errors.removeFailed'));
@@ -499,9 +499,9 @@ export default function FamilyManageScreen() {
       ) : (
         <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
 
-          {/* Invite Code section */}
-          <Text style={styles.sectionLabel}>{t('family.manageScreen.inviteSection')}</Text>
-          <View style={styles.card}>
+          {/* Invite Code section — admin only */}
+          {isAdmin && <Text style={styles.sectionLabel}>{t('family.manageScreen.inviteSection')}</Text>}
+          {isAdmin && <View style={styles.card}>
             <View style={styles.inviteCardPadding}>
               {isExpired ? (
                 /* Expired: just show generate button */
@@ -538,7 +538,7 @@ export default function FamilyManageScreen() {
                 </>
               )}
             </View>
-          </View>
+          </View>}
 
           {/* Members section */}
           <Text style={styles.sectionLabel}>{t('family.manageScreen.membersSection')}</Text>
@@ -574,40 +574,13 @@ export default function FamilyManageScreen() {
                         {removingUid === member.userId ? (
                           <ActivityIndicator size="small" color={colors.textTertiary} />
                         ) : (
-                          <>
-                            <TouchableOpacity
-                              style={styles.memberActionBtn}
-                              onPress={() => {
-                                Alert.alert(
-                                  t('family.manageScreen.transferAdminTitle'),
-                                  `${t('family.manageScreen.transferAdminConfirm')} ${member.displayName}?`,
-                                  [
-                                    { text: t('common.cancel'), style: 'cancel' },
-                                    {
-                                      text: t('family.manageScreen.transferAdminConfirm'),
-                                      onPress: async () => {
-                                        try {
-                                          await transferAdmin(family.id, member.userId);
-                                        } catch {
-                                          Alert.alert(t('common.error'), t('family.errors.transferAdminFailed'));
-                                        }
-                                      },
-                                    },
-                                  ]
-                                );
-                              }}
-                              hitSlop={8}
-                            >
-                              <Ionicons name="shield-outline" size={18} color={colors.textSecondary} />
-                            </TouchableOpacity>
-                            <TouchableOpacity
+                          <TouchableOpacity
                               style={styles.memberActionBtn}
                               onPress={() => handleRemoveMember(member)}
                               hitSlop={8}
                             >
                               <Ionicons name="person-remove-outline" size={18} color={colors.danger} />
                             </TouchableOpacity>
-                          </>
                         )}
                       </View>
                     )}

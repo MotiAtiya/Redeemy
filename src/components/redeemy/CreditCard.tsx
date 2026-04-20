@@ -43,6 +43,7 @@ function makeStyles(colors: AppColors) {
     left: { flex: 1, gap: 6, alignItems: 'flex-start' },
     storeName: { fontSize: 15, fontWeight: '700', color: colors.textPrimary },
     amount: { fontSize: 26, fontWeight: '800', color: colors.textPrimary, letterSpacing: -0.5 },
+    amountCents: { fontSize: 15, fontWeight: '600', letterSpacing: 0 },
     amountDimmed: { color: colors.textTertiary },
     textDimmed: { color: colors.textTertiary },
     meta: { flexDirection: 'row', alignItems: 'center', gap: 8, flexWrap: 'wrap' },
@@ -162,7 +163,15 @@ export function CreditCard({ credit, onPress, variant = 'active' }: Props) {
           </Text>
 
           <Text style={[styles.amount, dimmed && styles.amountDimmed]}>
-            {formatCurrency(credit.amount, currencySymbol)}
+            {(() => {
+              const [whole, cents] = formatCurrency(credit.amount, currencySymbol).split('.');
+              return (
+                <>
+                  {whole}
+                  <Text style={styles.amountCents}>.{cents}</Text>
+                </>
+              );
+            })()}
           </Text>
 
           <View style={styles.meta}>

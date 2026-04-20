@@ -433,14 +433,20 @@
     }
   },
   "category": {
-    "food": "Food & Dining",
+    "food": "Supermarket",
+    "dining": "Dining & Cafes",
     "fashion": "Fashion",
     "electronics": "Electronics",
     "home": "Home & Garden",
     "beauty": "Beauty & Health",
-    "books": "Books & Media",
     "sports": "Sports & Fitness",
     "travel": "Travel",
+    "toys": "Toys & Kids",
+    "online": "Online Shopping",
+    "finance": "Finance",
+    "books": "Books & Media",
+    "jewelry": "Jewelry & Watches",
+    "health": "Health & Wellness",
     "other": "Other"
   }
 }

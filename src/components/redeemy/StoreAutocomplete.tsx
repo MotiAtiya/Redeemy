@@ -11,8 +11,12 @@ import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import { useCreditsStore } from '@/stores/creditsStore';
 import { useAppTheme } from '@/hooks/useAppTheme';
-import { ISRAELI_STORES } from '@/data/israeliStores';
+import { ISRAELI_STORES, getCategoryForStore } from '@/data/israeliStores';
+import { CATEGORIES } from '@/constants/categories';
 import type { AppColors } from '@/constants/colors';
+import type { ComponentProps } from 'react';
+
+type IoniconsName = ComponentProps<typeof Ionicons>['name'];
 
 interface Props {
   value: string;
@@ -79,6 +83,24 @@ function makeStyles(colors: AppColors, isRTL: boolean) {
     },
     itemTextMatch: { color: colors.primary, fontWeight: '600' },
   });
+}
+
+function getIconForStore(name: string, userCredits: { storeName: string; category: string }[]): IoniconsName {
+  // 1. If the user already has a credit for this store, use that category's icon
+  const creditMatch = userCredits.find(
+    (c) => c.storeName.toLowerCase() === name.toLowerCase()
+  );
+  if (creditMatch) {
+    const cat = CATEGORIES.find((c) => c.id === creditMatch.category);
+    if (cat) return cat.icon;
+  }
+  // 2. Fall back to the static store→category map
+  const categoryId = getCategoryForStore(name);
+  if (categoryId) {
+    const cat = CATEGORIES.find((c) => c.id === categoryId);
+    if (cat) return cat.icon;
+  }
+  return 'storefront-outline';
 }
 
 export function StoreAutocomplete({
@@ -200,7 +222,7 @@ export function StoreAutocomplete({
                 onPress={() => handleSelect(item)}
                 activeOpacity={0.7}
               >
-                <Ionicons name="storefront-outline" size={16} color={colors.textTertiary} />
+                <Ionicons name={getIconForStore(item, credits)} size={16} color={colors.textTertiary} />
                 {typeof parts === 'string' ? (
                   <Text style={styles.itemText}>{parts}</Text>
                 ) : (
