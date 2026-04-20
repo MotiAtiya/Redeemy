@@ -160,11 +160,13 @@ function makeStyles(colors: AppColors, isRTL: boolean) {
       fontWeight: '700',
       color: '#FFFFFF',
     },
-    memberName: {
+    memberNameWrapper: {
       flex: 1,
+    },
+    memberName: {
       fontSize: 15,
       color: colors.textPrimary,
-      textAlign: isRTL ? 'right' : 'left',
+      alignSelf: 'flex-start',
     },
     adminBadge: {
       backgroundColor: colors.primarySurface,
@@ -189,7 +191,7 @@ function makeStyles(colors: AppColors, isRTL: boolean) {
       padding: 16,
       gap: 12,
     },
-    rowLabel: { flex: 1, fontSize: 15, color: colors.textPrimary, textAlign: isRTL ? 'right' : 'left' },
+    rowLabel: { fontSize: 15, color: colors.textPrimary, alignSelf: 'flex-start' },
     // Danger row (sign-out / leave style)
     dangerRow: {
       flexDirection: 'row',
@@ -222,7 +224,6 @@ function makeStyles(colors: AppColors, isRTL: boolean) {
       color: colors.textPrimary,
       marginBottom: 16,
       alignSelf: 'flex-start',
-      textAlign: isRTL ? 'right' : 'left',
     },
     sheetInput: {
       height: 52,
@@ -556,9 +557,11 @@ export default function FamilyManageScreen() {
                         {member.displayName[0]?.toUpperCase() ?? '?'}
                       </Text>
                     </View>
-                    <Text style={styles.memberName} numberOfLines={1}>
-                      {member.displayName}
-                    </Text>
+                    <View style={styles.memberNameWrapper}>
+                      <Text style={styles.memberName} numberOfLines={1}>
+                        {member.displayName}
+                      </Text>
+                    </View>
                     {isMemberAdmin && (
                       <View style={styles.adminBadge}>
                         <Text style={styles.adminBadgeText}>
@@ -620,7 +623,9 @@ export default function FamilyManageScreen() {
               <Text style={styles.sectionLabel}>{t('family.manageScreen.actionsSection')}</Text>
               <View style={styles.card}>
                 <TouchableOpacity style={styles.row} onPress={openRenameSheet}>
-                  <Text style={styles.rowLabel}>{t('family.manageScreen.renameButton')}</Text>
+                  <View style={{ flex: 1 }}>
+                    <Text style={styles.rowLabel}>{t('family.manageScreen.renameButton')}</Text>
+                  </View>
                   <Ionicons name={isRTL ? 'chevron-back' : 'chevron-forward'} size={16} color={colors.textTertiary} />
                 </TouchableOpacity>
                 {family.memberList.length > 1 && (
@@ -628,7 +633,9 @@ export default function FamilyManageScreen() {
                     <View style={styles.separator} />
                     <TouchableOpacity style={styles.row} onPress={handleTransferAdmin}>
                       <Ionicons name="shield-outline" size={20} color={colors.textSecondary} />
-                      <Text style={styles.rowLabel}>{t('family.manageScreen.transferAdminButton')}</Text>
+                      <View style={{ flex: 1 }}>
+                        <Text style={styles.rowLabel}>{t('family.manageScreen.transferAdminButton')}</Text>
+                      </View>
                       <Ionicons name={isRTL ? 'chevron-back' : 'chevron-forward'} size={16} color={colors.textTertiary} />
                     </TouchableOpacity>
                   </>
