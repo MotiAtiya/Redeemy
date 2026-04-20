@@ -214,7 +214,7 @@ function makeStyles(colors: AppColors, isRTL: boolean) {
     },
     dateButtonText: { flex: 1, fontSize: 16, color: colors.textPrimary },
     datePlaceholder: { color: colors.textTertiary },
-    dateError: { fontSize: 12, color: colors.danger, marginTop: 6, textAlign: isRTL ? 'right' : 'left' },
+    dateError: { fontSize: 12, color: colors.danger, marginTop: 6, alignSelf: 'flex-start' },
     // Reminder step
     reminderGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 12 },
     reminderChip: {

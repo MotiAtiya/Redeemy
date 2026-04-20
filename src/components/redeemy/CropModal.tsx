@@ -197,8 +197,16 @@ export function CropModal({ uri, onCrop, onCancel }: Props) {
     const scaleX = naturalSize.width / imgRect.width;
     const scaleY = naturalSize.height / imgRect.height;
 
+    // In RTL the displayed image is mirrored relative to the physical coordinate
+    // space used by the crop rect. Convert the physical left-offset to the
+    // image's natural (LTR) x origin before passing to ImageManipulator.
+    const physicalOffsetX = rect.x - imgRect.x;
+    const nativeOriginX = isRTL
+      ? imgRect.width - physicalOffsetX - rect.width
+      : physicalOffsetX;
+
     const crop = {
-      originX: Math.max(0, Math.round((rect.x - imgRect.x) * scaleX)),
+      originX: Math.max(0, Math.round(nativeOriginX * scaleX)),
       originY: Math.max(0, Math.round((rect.y - imgRect.y) * scaleY)),
       width: Math.round(rect.width * scaleX),
       height: Math.round(rect.height * scaleY),
