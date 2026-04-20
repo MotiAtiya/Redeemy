@@ -164,6 +164,7 @@ function makeStyles(colors: AppColors, isRTL: boolean) {
       flex: 1,
       fontSize: 15,
       color: colors.textPrimary,
+      textAlign: isRTL ? 'right' : 'left',
     },
     adminBadge: {
       backgroundColor: colors.primarySurface,
@@ -221,6 +222,7 @@ function makeStyles(colors: AppColors, isRTL: boolean) {
       color: colors.textPrimary,
       marginBottom: 16,
       alignSelf: 'flex-start',
+      textAlign: isRTL ? 'right' : 'left',
     },
     sheetInput: {
       height: 52,
@@ -684,7 +686,6 @@ export default function FamilyManageScreen() {
               placeholderTextColor={colors.textTertiary}
               maxLength={40}
               autoCapitalize="words"
-              autoFocus
               returnKeyType="done"
               onSubmitEditing={handleSaveRename}
             />
