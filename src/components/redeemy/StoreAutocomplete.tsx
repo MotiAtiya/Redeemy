@@ -4,7 +4,7 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
-  FlatList,
+  ScrollView,
   StyleSheet,
   I18nManager,
 } from 'react-native';
@@ -194,17 +194,16 @@ export function StoreAutocomplete({
 
       {showDropdown && (
         <View style={styles.dropdown}>
-          <FlatList
-            data={suggestions}
-            keyExtractor={(item) => item}
-            scrollEnabled={true}
-            nestedScrollEnabled={true}
+          <ScrollView
             keyboardShouldPersistTaps="always"
-            renderItem={({ item, index }) => {
+            showsVerticalScrollIndicator={true}
+          >
+            {suggestions.map((item, index) => {
               const parts = highlightMatch(item);
               const isLast = index === suggestions.length - 1;
               return (
                 <TouchableOpacity
+                  key={item}
                   style={[styles.item, isLast && styles.itemLast]}
                   onPress={() => handleSelect(item)}
                   activeOpacity={0.7}
@@ -221,8 +220,8 @@ export function StoreAutocomplete({
                   )}
                 </TouchableOpacity>
               );
-            }}
-          />
+            })}
+          </ScrollView>
         </View>
       )}
     </View>
