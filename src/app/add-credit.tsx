@@ -412,6 +412,7 @@ export default function AddCreditScreen() {
   const styles = useMemo(() => makeStyles(colors, isRTL), [colors, isRTL]);
 
   const currentUser = useAuthStore((s) => s.currentUser);
+  const familyId = useSettingsStore((s) => s.familyId);
   const addCreditToStore = useCreditsStore((s) => s.addCredit);
   const removeCredit = useCreditsStore((s) => s.removeCredit);
   const updateCreditInStore = useCreditsStore((s) => s.updateCredit);
@@ -721,6 +722,7 @@ export default function AddCreditScreen() {
 
     try {
       const finalExpiry = noExpiry ? undefined : expirationDate ?? undefined;
+      const displayName = currentUser.displayName ?? currentUser.email?.split('@')[0] ?? 'Member';
       const newCreditId = await createCredit({
         userId: currentUser.uid,
         storeName: storeName.trim(),
@@ -730,6 +732,7 @@ export default function AddCreditScreen() {
         reminderDays,
         notes: notes.trim(),
         status: CreditStatus.ACTIVE,
+        ...(familyId ? { familyId, createdBy: currentUser.uid, createdByName: displayName } : {}),
       });
       const { reminderId, expiryId } = await scheduleReminderNotification({
         id: newCreditId,
