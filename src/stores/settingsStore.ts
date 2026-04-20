@@ -34,6 +34,8 @@ interface SettingsStore {
   setNotificationTime: (hour: number, minute: number) => void;
   familyId: string | null;
   setFamilyId: (id: string | null) => void;
+  familyCreditsMigrated: boolean;
+  setFamilyCreditsMigrated: (done: boolean) => void;
 }
 
 export const useSettingsStore = create<SettingsStore>()(
@@ -58,6 +60,8 @@ export const useSettingsStore = create<SettingsStore>()(
       setNotificationTime: (notificationHour, notificationMinute) => set({ notificationHour, notificationMinute }),
       familyId: null,
       setFamilyId: (familyId) => set({ familyId }),
+      familyCreditsMigrated: false,
+      setFamilyCreditsMigrated: (familyCreditsMigrated) => set({ familyCreditsMigrated }),
     }),
     {
       name: 'redeemy-settings',

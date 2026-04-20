@@ -201,6 +201,7 @@ export default function AccountScreen() {
             useUIStore.getState().setOfflineMode(false);
             useFamilyStore.getState().setFamily(null);
             useSettingsStore.getState().setFamilyId(null);
+            useSettingsStore.getState().setFamilyCreditsMigrated(false);
             await signOut();
           } catch {
             setSigningOut(false);

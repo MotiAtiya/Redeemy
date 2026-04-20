@@ -11,6 +11,7 @@ import { useAppTheme, useIsDark } from '@/hooks/useAppTheme';
 import { OfflineToast } from '@/components/redeemy/OfflineToast';
 import { useAuthStore } from '@/stores/authStore';
 import { useSettingsStore } from '@/stores/settingsStore';
+import { migrateCreditsToFamily } from '@/lib/firestoreCredits';
 import { AuthStatus } from '@/types/userTypes';
 import { configureGoogleSignIn } from '@/lib/auth';
 import { registerNotificationCategories, getCreditIdFromNotification } from '@/lib/notifications';
@@ -25,7 +26,18 @@ function AuthGate({ children }: { children: React.ReactNode }) {
   useBadgeUpdater();
   useNetworkMonitor();
   const familyId = useSettingsStore((s) => s.familyId);
+  const familyCreditsMigrated = useSettingsStore((s) => s.familyCreditsMigrated);
+  const setFamilyCreditsMigrated = useSettingsStore((s) => s.setFamilyCreditsMigrated);
   useFamilyListener(familyId);
+
+  const currentUser = useAuthStore((s) => s.currentUser);
+  useEffect(() => {
+    if (!familyId || !currentUser?.uid || familyCreditsMigrated) return;
+    const displayName = currentUser.displayName ?? currentUser.email?.split('@')[0] ?? 'Member';
+    migrateCreditsToFamily(currentUser.uid, familyId, displayName)
+      .then(() => setFamilyCreditsMigrated(true))
+      .catch(() => { /* silent — will retry next launch */ });
+  }, [familyId, currentUser?.uid, familyCreditsMigrated, setFamilyCreditsMigrated]);
 
   const router = useRouter();
   const segments = useSegments();

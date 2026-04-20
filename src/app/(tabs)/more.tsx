@@ -52,6 +52,7 @@ function resetAllStores() {
 
   useFamilyStore.getState().setFamily(null);
   useSettingsStore.getState().setFamilyId(null);
+  useSettingsStore.getState().setFamilyCreditsMigrated(false);
 }
 
 function makeStyles(colors: AppColors, isRTL: boolean) {
