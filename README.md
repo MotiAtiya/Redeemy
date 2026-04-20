@@ -88,5 +88,13 @@ assets/           # Images, fonts, icons
 ## Running Tests
 
 ```bash
-npm test
+npm test           # watch mode
+npm run test:ci    # single run + coverage (used in CI)
+npm run typecheck  # TypeScript
+npm run lint       # expo lint
+npm run format     # prettier --write .
 ```
+
+## CI/CD
+
+See [`docs/devops.md`](docs/devops.md) for the full pipeline: GitHub Actions workflows (CI, EAS Build/Update/Submit, Firebase deploy), required secrets, branching model, and release flow.

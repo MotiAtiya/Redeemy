@@ -1,0 +1,70 @@
+name: EAS Update (OTA)
+
+on:
+  push:
+    branches:
+      - develop
+      - main
+    paths-ignore:
+      - '**/*.md'
+      - '.github/**'
+      - 'firebase/**'
+      - 'docs/**'
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: EAS Update branch
+        required: true
+        default: preview
+        type: choice
+        options:
+          - preview
+          - production
+      message:
+        description: Update message
+        required: false
+
+jobs:
+  update:
+    name: Publish OTA update
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Setup EAS
+        uses: expo/expo-github-action@v8
+        with:
+          eas-version: latest
+          token: ${{ secrets.EXPO_TOKEN }}
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Resolve update branch
+        id: branch
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "name=${{ inputs.branch }}" >> "$GITHUB_OUTPUT"
+          elif [ "${{ github.ref_name }}" = "main" ]; then
+            echo "name=production" >> "$GITHUB_OUTPUT"
+          else
+            echo "name=preview" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Publish update
+        run: |
+          eas update \
+            --branch ${{ steps.branch.outputs.name }} \
+            --message "${{ inputs.message || github.event.head_commit.message }}" \
+            --non-interactive

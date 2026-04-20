@@ -1,0 +1,10 @@
+node_modules
+dist
+coverage
+.expo
+ios
+android
+package-lock.json
+*.md
+_bmad
+_bmad-output

@@ -1,0 +1,57 @@
+name: Firebase Deploy
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+    paths:
+      - 'firebase/**'
+      - 'firebase.json'
+      - '.firebaserc'
+      - '.github/workflows/firebase-deploy.yml'
+  workflow_dispatch:
+    inputs:
+      target:
+        description: Firebase project alias
+        required: true
+        default: default
+        type: string
+
+jobs:
+  deploy:
+    name: Deploy Firestore + Storage rules
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment: ${{ github.ref_name == 'main' && 'production' || 'development' }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install Firebase CLI
+        run: npm install -g firebase-tools@latest
+
+      - name: Deploy rules and indexes
+        env:
+          FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
+          GOOGLE_APPLICATION_CREDENTIALS: ${{ github.workspace }}/firebase-sa.json
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+        run: |
+          if [ -n "$FIREBASE_SERVICE_ACCOUNT" ]; then
+            echo "$FIREBASE_SERVICE_ACCOUNT" > "$GOOGLE_APPLICATION_CREDENTIALS"
+            firebase deploy \
+              --only firestore:rules,firestore:indexes,storage:rules \
+              --non-interactive
+          else
+            firebase deploy \
+              --only firestore:rules,firestore:indexes,storage:rules \
+              --token "$FIREBASE_TOKEN" \
+              --non-interactive
+          fi
