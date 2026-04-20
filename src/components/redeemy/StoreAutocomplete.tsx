@@ -173,6 +173,8 @@ export function StoreAutocomplete({
           }}
           returnKeyType="next"
           autoCapitalize="words"
+          autoCorrect={false}
+          spellCheck={false}
           autoFocus={autoFocus}
         />
         {value.length > 0 && (
