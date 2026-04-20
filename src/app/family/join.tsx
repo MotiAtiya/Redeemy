@@ -15,7 +15,6 @@ import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import { joinFamily, type JoinFamilyError } from '@/lib/firestoreFamilies';
-import { migrateCreditsToFamily } from '@/lib/firestoreCredits';
 import { useAuthStore } from '@/stores/authStore';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { useAppTheme } from '@/hooks/useAppTheme';
@@ -119,6 +118,7 @@ export default function JoinFamilyScreen() {
 
   const currentUser = useAuthStore((s) => s.currentUser);
   const setFamilyId = useSettingsStore((s) => s.setFamilyId);
+  const setFamilyCreditsMigrated = useSettingsStore((s) => s.setFamilyCreditsMigrated);
 
   const [code, setCode] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -141,10 +141,10 @@ export default function JoinFamilyScreen() {
 
     try {
       const familyId = await joinFamily(trimmed, currentUser);
-      // Migrate existing credits to family
-      const displayName = currentUser.displayName ?? currentUser.email?.split('@')[0] ?? 'Member';
-      await migrateCreditsToFamily(currentUser.uid, familyId, displayName);
-      // Persist familyId (triggers useFamilyListener + credits re-subscription)
+      // Persist familyId immediately — this triggers useFamilyListener and
+      // credits re-subscription. Credit migration runs in _layout.tsx on next
+      // render (familyCreditsMigrated = false → startup migration effect fires).
+      setFamilyCreditsMigrated(false);
       setFamilyId(familyId);
       router.replace('/(tabs)');
     } catch (err) {
