@@ -105,7 +105,6 @@ const JOIN_ERRORS: Record<JoinFamilyError, string> = {
   'invalid-code': 'family.join.errors.invalidCode',
   'expired-code': 'family.join.errors.expiredCode',
   'family-full': 'family.join.errors.familyFull',
-  'already-in-family': 'family.join.errors.alreadyInFamily',
   'network-error': 'family.join.errors.networkError',
 };
 

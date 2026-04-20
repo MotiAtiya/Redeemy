@@ -181,7 +181,6 @@ export type JoinFamilyError =
   | 'invalid-code'
   | 'expired-code'
   | 'family-full'
-  | 'already-in-family'
   | 'network-error';
 
 /**
@@ -224,8 +223,9 @@ export async function joinFamily(
     const members: Record<string, unknown> = data.members ?? {};
     if (Object.keys(members).length >= (data.maxMembers ?? 6)) throw 'family-full' as JoinFamilyError;
 
-    // Validate not already a member
-    if (user.uid in members) throw 'already-in-family' as JoinFamilyError;
+    // If already a member (e.g. app lost state after a previous join), skip the
+    // write and let the caller re-hydrate local state from the existing doc.
+    if (user.uid in members) return;
 
     // Add user to members map
     const memberEntry = {
