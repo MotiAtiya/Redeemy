@@ -241,6 +241,8 @@ export async function joinFamily(
   }).catch((err) => {
     // Re-throw JoinFamilyError strings as-is; wrap anything else
     if (typeof err === 'string') throw err;
+    const code = (err as { code?: string })?.code ?? '';
+    if (code === 'permission-denied') throw 'invalid-code' as JoinFamilyError;
     throw 'network-error' as JoinFamilyError;
   });
 
