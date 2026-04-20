@@ -188,7 +188,7 @@ function makeStyles(colors: AppColors, isRTL: boolean) {
       padding: 16,
       gap: 12,
     },
-    rowLabel: { flex: 1, fontSize: 15, color: colors.textPrimary },
+    rowLabel: { flex: 1, fontSize: 15, color: colors.textPrimary, textAlign: isRTL ? 'right' : 'left' },
     // Danger row (sign-out / leave style)
     dangerRow: {
       flexDirection: 'row',
@@ -288,7 +288,6 @@ export default function FamilyManageScreen() {
   const [showRenameSheet, setShowRenameSheet] = useState(false);
   const [renameValue, setRenameValue] = useState('');
   const [isSavingRename, setIsSavingRename] = useState(false);
-  const renameInputRef = useRef<TextInput>(null);
 
   // Action loading
   const [isLeaving, setIsLeaving] = useState(false);
@@ -357,7 +356,6 @@ export default function FamilyManageScreen() {
     if (!family) return;
     setRenameValue(family.name);
     setShowRenameSheet(true);
-    setTimeout(() => renameInputRef.current?.focus(), 100);
   }
 
   async function handleSaveRename() {
@@ -620,7 +618,6 @@ export default function FamilyManageScreen() {
               <Text style={styles.sectionLabel}>{t('family.manageScreen.actionsSection')}</Text>
               <View style={styles.card}>
                 <TouchableOpacity style={styles.row} onPress={openRenameSheet}>
-                  <Ionicons name="pencil-outline" size={20} color={colors.textSecondary} />
                   <Text style={styles.rowLabel}>{t('family.manageScreen.renameButton')}</Text>
                   <Ionicons name={isRTL ? 'chevron-back' : 'chevron-forward'} size={16} color={colors.textTertiary} />
                 </TouchableOpacity>
@@ -680,12 +677,14 @@ export default function FamilyManageScreen() {
             <View style={styles.sheetHandle} />
             <Text style={styles.sheetTitle}>{t('family.manageScreen.renameButton')}</Text>
             <TextInput
-              ref={renameInputRef}
               style={styles.sheetInput}
               value={renameValue}
               onChangeText={setRenameValue}
+              placeholder={t('family.createScreen.namePlaceholder')}
+              placeholderTextColor={colors.textTertiary}
               maxLength={40}
               autoCapitalize="words"
+              autoFocus
               returnKeyType="done"
               onSubmitEditing={handleSaveRename}
             />
