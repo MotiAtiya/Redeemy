@@ -52,6 +52,7 @@ function makeStyles(colors: AppColors, isRTL: boolean) {
       top: 56,
       left: 0,
       right: 0,
+      maxHeight: 220,
       backgroundColor: colors.surface,
       borderRadius: 12,
       borderWidth: 1,
@@ -196,7 +197,8 @@ export function StoreAutocomplete({
           <FlatList
             data={suggestions}
             keyExtractor={(item) => item}
-            scrollEnabled={false}
+            scrollEnabled={true}
+            nestedScrollEnabled={true}
             keyboardShouldPersistTaps="always"
             renderItem={({ item, index }) => {
               const parts = highlightMatch(item);
