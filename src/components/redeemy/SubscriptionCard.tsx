@@ -6,6 +6,7 @@ import { useAppTheme } from '@/hooks/useAppTheme';
 import { useAuthStore } from '@/stores/authStore';
 import { useSettingsStore, CURRENCY_SYMBOLS } from '@/stores/settingsStore';
 import { formatCurrency } from '@/lib/formatCurrency';
+import { formatDate } from '@/lib/formatDate';
 import { SUBSCRIPTION_CATEGORIES } from '@/constants/subscriptionCategories';
 import {
   SubscriptionBillingCycle,
@@ -70,6 +71,14 @@ function makeStyles(colors: AppColors) {
       shadowRadius: 4,
       elevation: 2,
     },
+    cardDimmed: { opacity: 0.6 },
+    cancelledBadge: {
+      paddingHorizontal: 7,
+      paddingVertical: 2,
+      borderRadius: 8,
+      backgroundColor: colors.separator,
+    },
+    cancelledBadgeText: { fontSize: 11, fontWeight: '600', color: colors.textTertiary },
     content: {
       flexDirection: 'row',
       alignItems: 'center',
@@ -169,17 +178,28 @@ function makeStyles(colors: AppColors) {
 interface Props {
   subscription: Subscription;
   onPress: () => void;
+  variant?: 'active' | 'cancelled';
 }
 
-export function SubscriptionCard({ subscription: sub, onPress }: Props) {
+export function SubscriptionCard({ subscription: sub, onPress, variant = 'active' }: Props) {
   const colors = useAppTheme();
   const styles = useMemo(() => makeStyles(colors), [colors]);
   const { t } = useTranslation();
   const currencySymbol = CURRENCY_SYMBOLS[sub.currency ?? 'ILS'];
+  const dateFormat = useSettingsStore((s) => s.dateFormat);
   const currentUid = useAuthStore((s) => s.currentUser?.uid);
 
+  const isCancelled = variant === 'cancelled';
   const categoryMeta = SUBSCRIPTION_CATEGORIES.find((c) => c.id === sub.category);
   const intentConfig = INTENT_CONFIG[sub.intent];
+  const cancelledDate = isCancelled && sub.cancelledAt
+    ? formatDate(
+        sub.cancelledAt instanceof Date
+          ? sub.cancelledAt
+          : new Date(sub.cancelledAt as unknown as string),
+        dateFormat
+      )
+    : null;
 
   // Family member avatar
   const showMemberAvatar =
@@ -249,7 +269,7 @@ export function SubscriptionCard({ subscription: sub, onPress }: Props) {
 
   return (
     <TouchableOpacity
-      style={styles.card}
+      style={[styles.card, isCancelled && styles.cardDimmed]}
       onPress={onPress}
       activeOpacity={0.75}
       accessibilityRole="button"
@@ -304,11 +324,21 @@ export function SubscriptionCard({ subscription: sub, onPress }: Props) {
             </Text>
           </View>
 
-          <View style={[styles.urgencyBadge, { backgroundColor: urgencyBg, borderColor: urgencyText }]}>
-            <Text style={[styles.urgencyBadgeText, { color: urgencyText }]}>
-              {urgencyLabel}
-            </Text>
-          </View>
+          {isCancelled ? (
+            <View style={styles.cancelledBadge}>
+              <Text style={styles.cancelledBadgeText}>
+                {cancelledDate
+                  ? t('subscriptionCard.cancelledOn', { date: cancelledDate })
+                  : t('subscriptionCard.cancelled')}
+              </Text>
+            </View>
+          ) : (
+            <View style={[styles.urgencyBadge, { backgroundColor: urgencyBg, borderColor: urgencyText }]}>
+              <Text style={[styles.urgencyBadgeText, { color: urgencyText }]}>
+                {urgencyLabel}
+              </Text>
+            </View>
+          )}
         </View>
 
         {/* Category icon circle (end side) */}

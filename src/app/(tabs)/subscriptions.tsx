@@ -15,9 +15,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import { SubscriptionCard } from '@/components/redeemy/SubscriptionCard';
 import { useSubscriptionsStore } from '@/stores/subscriptionsStore';
-import { useAuthStore } from '@/stores/authStore';
-import { useSettingsStore, CURRENCY_SYMBOLS } from '@/stores/settingsStore';
-import { useSubscriptionsListener } from '@/hooks/useSubscriptionsListener';
+import { CURRENCY_SYMBOLS } from '@/stores/settingsStore';
 import { useAppTheme } from '@/hooks/useAppTheme';
 import { formatMultiCurrencyTotal } from '@/lib/formatCurrency';
 import { SubscriptionStatus, type Subscription } from '@/types/subscriptionTypes';
@@ -155,11 +153,7 @@ export default function SubscriptionsScreen() {
   const styles = useMemo(() => makeStyles(colors, isRTL), [colors, isRTL]);
   const { t } = useTranslation();
 
-  const currentUser = useAuthStore((s) => s.currentUser);
-  const familyId = useSettingsStore((s) => s.familyId);
   const currencySymbols = CURRENCY_SYMBOLS;
-
-  useSubscriptionsListener(currentUser?.uid ?? null, familyId);
 
   const subscriptions = useSubscriptionsStore((s) => s.subscriptions);
   const isLoading = useSubscriptionsStore((s) => s.isLoading);

@@ -16,13 +16,17 @@ import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import { CreditCard } from '@/components/redeemy/CreditCard';
 import { WarrantyCard } from '@/components/redeemy/WarrantyCard';
+import { SubscriptionCard } from '@/components/redeemy/SubscriptionCard';
 import { useCreditsStore } from '@/stores/creditsStore';
 import { useWarrantiesStore } from '@/stores/warrantiesStore';
+import { useSubscriptionsStore } from '@/stores/subscriptionsStore';
 import { useAppTheme } from '@/hooks/useAppTheme';
-import { sortCreditsHistory, filterHistoryCredits, type HistorySortKey, type HistoryDateRange } from '@/lib/creditUtils';
+import { sortCreditsHistory, filterHistoryCredits, dateRangeStart, type HistorySortKey, type HistoryDateRange } from '@/lib/creditUtils';
+import { normalizeToMonthlyAgorot } from '@/lib/subscriptionUtils';
 import { CATEGORIES } from '@/constants/categories';
 import { CreditStatus } from '@/types/creditTypes';
 import { WarrantyStatus } from '@/types/warrantyTypes';
+import { SubscriptionStatus } from '@/types/subscriptionTypes';
 import type { AppColors } from '@/constants/colors';
 
 type SortKey = HistorySortKey;
@@ -166,6 +170,7 @@ export default function HistoryScreen() {
   const { t } = useTranslation();
   const credits = useCreditsStore((s) => s.credits);
   const warranties = useWarrantiesStore((s) => s.warranties);
+  const subscriptions = useSubscriptionsStore((s) => s.subscriptions);
 
   const DATE_RANGE_OPTIONS: { key: DateRange; label: string }[] = [
     { key: 'thisMonth',   label: t('history.dateRange.thisMonth')   },
@@ -228,6 +233,37 @@ export default function HistoryScreen() {
       });
   }, [warranties, search]);
 
+  // Cancelled subscriptions
+  const cancelledSubscriptions = useMemo(() => {
+    const rangeStart = dateRangeStart(filters.dateRange);
+    const q = search.trim().toLowerCase();
+    return subscriptions
+      .filter((s) => {
+        if (s.status !== SubscriptionStatus.CANCELLED) return false;
+        const when = s.cancelledAt ?? s.updatedAt ?? s.createdAt;
+        if (!when) return false;
+        if (new Date(when as Date) < rangeStart) return false;
+        if (q && !s.serviceName.toLowerCase().includes(q) && !(s.notes ?? '').toLowerCase().includes(q)) {
+          return false;
+        }
+        return true;
+      })
+      .sort((a, b) => {
+        switch (sortKey) {
+          case 'storeName':
+            return a.serviceName.localeCompare(b.serviceName);
+          case 'amount':
+            return normalizeToMonthlyAgorot(b) - normalizeToMonthlyAgorot(a);
+          case 'redeemedAt':
+          default: {
+            const aT = (a.cancelledAt ?? a.updatedAt ?? a.createdAt).getTime();
+            const bT = (b.cancelledAt ?? b.updatedAt ?? b.createdAt).getTime();
+            return bT - aT;
+          }
+        }
+      });
+  }, [subscriptions, search, filters.dateRange, sortKey]);
+
   // Auto-expired warranties (active but past expiration date)
   const expiredWarranties = useMemo(() => {
     const now = new Date();
@@ -275,11 +311,13 @@ export default function HistoryScreen() {
     }));
   }
 
-  const showCredits    = filters.type !== 'warranties' && filters.type !== 'subscriptions';
-  const showWarranties = filters.type !== 'credits' && filters.type !== 'subscriptions';
+  const showCredits       = filters.type !== 'warranties' && filters.type !== 'subscriptions';
+  const showWarranties    = filters.type !== 'credits' && filters.type !== 'subscriptions';
+  const showSubscriptions = filters.type !== 'credits' && filters.type !== 'warranties';
   const isEmpty =
     (showCredits ? redeemedCredits.length + expiredCredits.length : 0) === 0 &&
-    (showWarranties ? closedWarranties.length + expiredWarranties.length : 0) === 0;
+    (showWarranties ? closedWarranties.length + expiredWarranties.length : 0) === 0 &&
+    (showSubscriptions ? cancelledSubscriptions.length : 0) === 0;
 
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
@@ -398,6 +436,23 @@ export default function HistoryScreen() {
                     warranty={item}
                     variant="expired"
                     onPress={() => router.push({ pathname: '/warranty/[id]', params: { id: item.id } })}
+                  />
+                )}
+              />
+            </>
+          )}
+          {showSubscriptions && cancelledSubscriptions.length > 0 && (
+            <>
+              <Text style={styles.sectionHeader}>{t('history.sectionSubscriptionsCancelled').toUpperCase()}</Text>
+              <FlatList
+                data={cancelledSubscriptions}
+                keyExtractor={(item) => item.id}
+                scrollEnabled={false}
+                renderItem={({ item }) => (
+                  <SubscriptionCard
+                    subscription={item}
+                    variant="cancelled"
+                    onPress={() => router.push({ pathname: '/subscription/[id]', params: { id: item.id } })}
                   />
                 )}
               />

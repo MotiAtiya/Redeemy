@@ -8,6 +8,7 @@ import { useBadgeUpdater } from '@/hooks/useBadgeUpdater';
 import { useNetworkMonitor } from '@/hooks/useNetworkMonitor';
 import { useFamilyListener } from '@/hooks/useFamilyListener';
 import { useWarrantiesListener } from '@/hooks/useWarrantiesListener';
+import { useSubscriptionsListener } from '@/hooks/useSubscriptionsListener';
 import { useAppTheme, useIsDark } from '@/hooks/useAppTheme';
 import { OfflineToast } from '@/components/redeemy/OfflineToast';
 import { useAuthStore } from '@/stores/authStore';
@@ -33,6 +34,7 @@ function AuthGate({ children }: { children: React.ReactNode }) {
 
   const currentUser = useAuthStore((s) => s.currentUser);
   useWarrantiesListener(currentUser?.uid ?? null, familyId ?? null);
+  useSubscriptionsListener(currentUser?.uid ?? null, familyId ?? null);
   useEffect(() => {
     if (!familyId || !currentUser?.uid || familyCreditsMigrated) return;
     const displayName = currentUser.displayName ?? currentUser.email?.split('@')[0] ?? 'Member';

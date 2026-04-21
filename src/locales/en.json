@@ -40,6 +40,7 @@
     "sectionCreditsExpired": "Expired Credits",
     "sectionWarrantiesClosed": "Redeemed Warranties",
     "sectionWarrantiesExpired": "Expired Warranties",
+    "sectionSubscriptionsCancelled": "Cancelled Subscriptions",
     "dateRange": {
       "thisMonth": "This Month",
       "last3Months": "Last 3 Months",
@@ -646,7 +647,9 @@
     "renewsInDays": "Renews in {{days}} days",
     "renewsOnDay": "Renews on the {{day}}th each month",
     "renewsOnDayInDays": "Renews on the {{day}}th — in {{days}} days",
-    "renewsOnDate": "Renews in {{days}} days — {{date}}"
+    "renewsOnDate": "Renews in {{days}} days — {{date}}",
+    "cancelled": "Cancelled",
+    "cancelledOn": "Cancelled on {{date}}"
   },
   "subscription": {
     "notFound": "Subscription not found",
