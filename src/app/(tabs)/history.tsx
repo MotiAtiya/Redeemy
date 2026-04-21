@@ -93,6 +93,7 @@ function makeStyles(colors: AppColors, isRTL: boolean) {
       paddingHorizontal: 16,
       paddingTop: 16,
       paddingBottom: 8,
+      textAlign: isRTL ? 'right' : 'left',
     },
     scrollContent: { paddingBottom: 32 },
     emptyState: {

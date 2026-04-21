@@ -12,6 +12,8 @@ import {
   StatusBar,
   I18nManager,
 } from 'react-native';
+import * as MediaLibrary from 'expo-media-library';
+import * as FileSystem from 'expo-file-system/legacy';
 import { useTranslation } from 'react-i18next';
 import { Image } from 'expo-image';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -132,6 +134,15 @@ function makeStyles(colors: AppColors) {
       borderRadius: 20,
       padding: 8,
     },
+    fullscreenDownload: {
+      position: 'absolute',
+      top: 56,
+      left: 16,
+      zIndex: 10,
+      backgroundColor: 'rgba(0,0,0,0.5)',
+      borderRadius: 20,
+      padding: 8,
+    },
     fullscreenScrollView: { flex: 1 },
     fullscreenScrollContent: {
       flex: 1,
@@ -165,6 +176,7 @@ export default function WarrantyDetailScreen() {
 
   const [showActionSheet, setShowActionSheet] = useState(false);
   const [showFullscreenImage, setShowFullscreenImage] = useState(false);
+  const [downloading, setDownloading] = useState(false);
   const [loading, setLoading] = useState(false);
   const afterDismissRef = useRef<(() => void) | null>(null);
   const isClosed = warranty?.status === WarrantyStatus.CLOSED;
@@ -252,6 +264,28 @@ export default function WarrantyDetailScreen() {
         },
       ]
     );
+  }
+
+  async function handleDownloadImage() {
+    if (!warranty?.imageUrl) return;
+    setDownloading(true);
+    try {
+      const { status } = await MediaLibrary.requestPermissionsAsync();
+      if (status !== 'granted') {
+        Alert.alert(t('common.error'), t('credit.image.permissionDenied'));
+        return;
+      }
+      const filename = `redeemy-warranty-${Date.now()}.jpg`;
+      const localUri = FileSystem.cacheDirectory + filename;
+      const { uri } = await FileSystem.downloadAsync(warranty.imageUrl, localUri);
+      await MediaLibrary.saveToLibraryAsync(uri);
+      Alert.alert(t('credit.image.savedTitle'), t('credit.image.savedMessage'));
+    } catch (e) {
+      console.error('Download error:', e);
+      Alert.alert(t('common.error'), t('credit.image.saveError'));
+    } finally {
+      setDownloading(false);
+    }
   }
 
   function handleEdit() {
@@ -422,6 +456,16 @@ export default function WarrantyDetailScreen() {
             hitSlop={12}
           >
             <Ionicons name="close" size={22} color="#FFFFFF" />
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.fullscreenDownload}
+            onPress={handleDownloadImage}
+            disabled={downloading}
+            hitSlop={12}
+          >
+            {downloading
+              ? <ActivityIndicator size="small" color="#FFFFFF" />
+              : <Ionicons name="download-outline" size={22} color="#FFFFFF" />}
           </TouchableOpacity>
         </View>
       </Modal>
