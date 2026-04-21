@@ -135,10 +135,10 @@ type StepId =
 function getSteps(): StepId[] {
   return [
     'serviceName',
+    'category',
     'billingType',
     'amount',
     'billingDate',
-    'category',
     'intent',
     'reminder',
     'website',
