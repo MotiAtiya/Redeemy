@@ -172,7 +172,7 @@ export async function updateBadgeCount(credits: Credit[]): Promise<void> {
   const count = credits.filter(
     (c) =>
       c.status === CreditStatus.ACTIVE &&
-      new Date(c.expirationDate) <= sevenDaysFromNow
+      c.expirationDate != null && new Date(c.expirationDate) <= sevenDaysFromNow
   ).length;
 
   await Notifications.setBadgeCountAsync(count);

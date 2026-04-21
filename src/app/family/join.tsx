@@ -110,9 +110,9 @@ const JOIN_ERRORS: Record<JoinFamilyError, string> = {
 export default function JoinFamilyScreen() {
   const router = useRouter();
   const colors = useAppTheme();
-  const styles = useMemo(() => makeStyles(colors, isRTL), [colors, isRTL]);
   const { t } = useTranslation();
   const isRTL = I18nManager.isRTL;
+  const styles = useMemo(() => makeStyles(colors, isRTL), [colors, isRTL]);
 
   const currentUser = useAuthStore((s) => s.currentUser);
   const setFamilyId = useSettingsStore((s) => s.setFamilyId);
