@@ -15,7 +15,13 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: npm
+
+      - name: Cache node_modules
+        id: node-modules-cache
+        uses: actions/cache@v4
+        with:
+          path: node_modules
+          key: ${{ runner.os }}-node-modules-${{ hashFiles('package-lock.json') }}
 
       - uses: expo/expo-github-action@v8
         with:
@@ -27,6 +33,7 @@ jobs:
           echo "${{ secrets.GOOGLE_SERVICES_PLIST_B64 }}" | base64 --decode > GoogleService-Info.plist
 
       - name: Install dependencies
+        if: steps.node-modules-cache.outputs.cache-hit != 'true'
         run: npm ci
 
       - name: Push OTA update
