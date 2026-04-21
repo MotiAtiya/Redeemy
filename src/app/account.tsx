@@ -17,12 +17,15 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
-import { isEmailUser, updateDisplayName, changePassword, signOut } from '@/lib/auth';
+import { isEmailUser, updateDisplayName, changePassword, reauthenticateForDeletion, deleteAccount, signOut } from '@/lib/auth';
 import { useAuthStore } from '@/stores/authStore';
 import { useCreditsStore } from '@/stores/creditsStore';
 import { useUIStore } from '@/stores/uiStore';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { useFamilyStore } from '@/stores/familyStore';
+import { deleteAllUserCredits } from '@/lib/firestoreCredits';
+import { deleteAllUserWarranties } from '@/lib/firestoreWarranties';
+import { leaveFamily } from '@/lib/firestoreFamilies';
 import { useAppTheme } from '@/hooks/useAppTheme';
 import type { AppColors } from '@/constants/colors';
 
@@ -37,12 +40,10 @@ function makeStyles(colors: AppColors, isRTL: boolean) {
       gap: 8,
     },
     headerTitle: {
+      flexShrink: 1,
       fontSize: 17,
       fontWeight: '600',
       color: colors.textPrimary,
-      flex: 1,
-      textAlign: 'center',
-      marginEnd: 32, // compensate for back button
     },
     // Avatar card
     avatarCard: {
@@ -171,6 +172,13 @@ export default function AccountScreen() {
   const [newDisplayNameError, setNewDisplayNameError] = useState('');
   const [savingName, setSavingName] = useState(false);
 
+  // Delete account sheet (email users need password confirmation)
+  const [showDeleteAccountSheet, setShowDeleteAccountSheet] = useState(false);
+  const [deletePassword, setDeletePassword] = useState('');
+  const [deletePasswordError, setDeletePasswordError] = useState('');
+  const [showDeletePwd, setShowDeletePwd] = useState(false);
+  const [deletingAccount, setDeletingAccount] = useState(false);
+
   // Change password sheet
   const [showChangePasswordSheet, setShowChangePasswordSheet] = useState(false);
   const [currentPasswordInput, setCurrentPasswordInput] = useState('');
@@ -183,6 +191,83 @@ export default function AccountScreen() {
   const [newPasswordError, setNewPasswordError] = useState('');
   const [confirmPasswordError, setConfirmPasswordError] = useState('');
   const [savingPassword, setSavingPassword] = useState(false);
+
+  function openDeleteAccountSheet() {
+    setDeletePassword('');
+    setDeletePasswordError('');
+    setShowDeletePwd(false);
+    setShowDeleteAccountSheet(true);
+  }
+
+  async function performAccountDeletion(password?: string) {
+    const uid = currentUser?.uid;
+    if (!uid) return;
+
+    setDeletingAccount(true);
+    try {
+      // Step 1: Reauthenticate FIRST — throws immediately if password is wrong.
+      // No data is touched until this succeeds.
+      await reauthenticateForDeletion(password);
+
+      // Step 2: Delete all user data only after successful authentication.
+      const familyId = useSettingsStore.getState().familyId;
+      if (familyId) {
+        await leaveFamily(familyId, uid).catch(() => { /* silent */ });
+      }
+      await deleteAllUserCredits(uid);
+      await deleteAllUserWarranties(uid);
+
+      // Step 3: Delete Firebase Auth user + Firestore user doc.
+      await deleteAccount();
+
+      // Step 4: Clear all local stores.
+      useCreditsStore.getState().setCredits([]);
+      useCreditsStore.getState().setSearchQuery('');
+      useCreditsStore.getState().setError(null);
+      useCreditsStore.getState().setLoading(false);
+      useUIStore.getState().setActiveTab('credits');
+      useUIStore.getState().setOfflineMode(false);
+      useFamilyStore.getState().setFamily(null);
+      useSettingsStore.getState().setFamilyId(null);
+      useSettingsStore.getState().setFamilyCreditsMigrated(false);
+    } catch (err: any) {
+      setDeletingAccount(false);
+      const code = err?.code ?? '';
+      if (code === 'auth/wrong-password' || code === 'auth/invalid-credential') {
+        setDeletePasswordError(t('account.deleteAccount.wrongPassword'));
+      } else {
+        Alert.alert(t('common.error'), t('account.deleteAccount.error'));
+        setShowDeleteAccountSheet(false);
+      }
+    }
+  }
+
+  function handleDeleteAccount() {
+    if (emailUser) {
+      openDeleteAccountSheet();
+    } else {
+      Alert.alert(
+        t('account.deleteAccount.reauthTitle'),
+        t('account.deleteAccount.reauthMessage'),
+        [
+          { text: t('common.cancel'), style: 'cancel' },
+          {
+            text: t('account.deleteAccount.confirm'),
+            style: 'destructive',
+            onPress: () => performAccountDeletion(),
+          },
+        ]
+      );
+    }
+  }
+
+  async function handleConfirmDeleteWithPassword() {
+    if (!deletePassword) {
+      setDeletePasswordError(t('account.deleteAccount.passwordRequired'));
+      return;
+    }
+    await performAccountDeletion(deletePassword);
+  }
 
   function handleSignOut() {
     Alert.alert(t('more.signOut.title'), t('more.signOut.message'), [
@@ -349,6 +434,25 @@ export default function AccountScreen() {
             )}
           </TouchableOpacity>
         </View>
+
+        {/* Delete account */}
+        <View style={styles.card}>
+          <TouchableOpacity
+            style={styles.dangerRow}
+            onPress={handleDeleteAccount}
+            disabled={deletingAccount || signingOut}
+            accessibilityRole="button"
+          >
+            {deletingAccount ? (
+              <ActivityIndicator color={colors.danger} size="small" />
+            ) : (
+              <>
+                <Ionicons name="trash-outline" size={20} color={colors.danger} />
+                <Text style={styles.dangerText}>{t('account.deleteAccount.button')}</Text>
+              </>
+            )}
+          </TouchableOpacity>
+        </View>
       </ScrollView>
 
       {/* Edit name bottom sheet */}
@@ -380,6 +484,52 @@ export default function AccountScreen() {
               disabled={savingName}
             >
               {savingName ? <ActivityIndicator color="#FFFFFF" /> : <Text style={styles.sheetButtonText}>{t('more.editName.save')}</Text>}
+            </TouchableOpacity>
+          </View>
+        </KeyboardAvoidingView>
+      </Modal>
+
+      {/* Delete account bottom sheet (email users only) */}
+      <Modal
+        visible={showDeleteAccountSheet}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setShowDeleteAccountSheet(false)}
+      >
+        <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+          <TouchableOpacity style={styles.overlay} activeOpacity={1} onPress={() => setShowDeleteAccountSheet(false)} />
+          <View style={styles.sheet}>
+            <View style={styles.sheetHandle} />
+            <Text style={styles.sheetTitle}>{t('account.deleteAccount.passwordTitle')}</Text>
+            <Text style={[styles.sheetErrorText, { color: colors.textSecondary, marginBottom: 16 }]}>
+              {t('account.deleteAccount.passwordMessage')}
+            </Text>
+            <View style={[styles.inputRow, deletePasswordError ? styles.inputRowError : null]}>
+              <TextInput
+                style={styles.inputFlex}
+                value={deletePassword}
+                onChangeText={(v) => { setDeletePassword(v); setDeletePasswordError(''); }}
+                placeholder={t('account.deleteAccount.passwordPlaceholder')}
+                placeholderTextColor={colors.textTertiary}
+                secureTextEntry={!showDeletePwd}
+                returnKeyType="done"
+                onSubmitEditing={handleConfirmDeleteWithPassword}
+              />
+              <TouchableOpacity onPress={() => setShowDeletePwd((s) => !s)} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+                <Ionicons name={showDeletePwd ? 'eye-outline' : 'eye-off-outline'} size={20} color={colors.textTertiary} />
+              </TouchableOpacity>
+            </View>
+            {deletePasswordError ? <Text style={styles.sheetErrorText}>{deletePasswordError}</Text> : null}
+            <TouchableOpacity
+              style={[styles.sheetButton, { backgroundColor: colors.danger }, deletingAccount && styles.sheetButtonDisabled]}
+              onPress={handleConfirmDeleteWithPassword}
+              disabled={deletingAccount}
+            >
+              {deletingAccount ? (
+                <ActivityIndicator color="#FFFFFF" />
+              ) : (
+                <Text style={styles.sheetButtonText}>{t('account.deleteAccount.confirm')}</Text>
+              )}
             </TouchableOpacity>
           </View>
         </KeyboardAvoidingView>

@@ -33,12 +33,10 @@ function makeStyles(colors: AppColors, isRTL: boolean) {
       gap: 8,
     },
     headerTitle: {
+      flexShrink: 1,
       fontSize: 17,
       fontWeight: '600',
       color: colors.textPrimary,
-      flex: 1,
-      textAlign: 'center',
-      marginEnd: 32,
     },
     sectionLabel: {
       fontSize: 11,

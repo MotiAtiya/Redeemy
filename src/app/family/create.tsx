@@ -21,7 +21,7 @@ import { useSettingsStore } from '@/stores/settingsStore';
 import { useAppTheme } from '@/hooks/useAppTheme';
 import type { AppColors } from '@/constants/colors';
 
-function makeStyles(colors: AppColors) {
+function makeStyles(colors: AppColors, isRTL: boolean) {
   return StyleSheet.create({
     safe: { flex: 1, backgroundColor: colors.background },
     keyboardAvoid: { flex: 1 },
@@ -34,16 +34,22 @@ function makeStyles(colors: AppColors) {
     },
     backButton: { padding: 4 },
     headerTitle: {
-      flex: 1,
+      flexShrink: 1,
       fontSize: 17,
       fontWeight: '600',
       color: colors.textPrimary,
-      alignSelf: 'flex-start',
     },
     content: {
       flex: 1,
       paddingHorizontal: 16,
       paddingTop: 24,
+    },
+    description: {
+      fontSize: 14,
+      color: colors.textSecondary,
+      marginBottom: 24,
+      lineHeight: 20,
+      textAlign: 'left',
     },
     label: {
       fontSize: 13,
@@ -63,16 +69,11 @@ function makeStyles(colors: AppColors) {
       color: colors.textPrimary,
       borderWidth: 1,
       borderColor: colors.separator,
+      textAlign: isRTL ? 'right' : 'left',
+      letterSpacing: 0,
     },
     inputError: {
       borderColor: colors.danger,
-    },
-    helperText: {
-      fontSize: 12,
-      color: colors.textTertiary,
-      marginTop: 6,
-      marginStart: 4,
-      alignSelf: 'flex-start',
     },
     errorText: {
       fontSize: 13,
@@ -102,9 +103,9 @@ function makeStyles(colors: AppColors) {
 export default function CreateFamilyScreen() {
   const router = useRouter();
   const colors = useAppTheme();
-  const styles = useMemo(() => makeStyles(colors), [colors]);
-  const { t } = useTranslation();
   const isRTL = I18nManager.isRTL;
+  const styles = useMemo(() => makeStyles(colors, isRTL), [colors, isRTL]);
+  const { t } = useTranslation();
 
   const currentUser = useAuthStore((s) => s.currentUser);
   const setFamilyId = useSettingsStore((s) => s.setFamilyId);
@@ -167,6 +168,7 @@ export default function CreateFamilyScreen() {
         </View>
 
         <View style={styles.content}>
+          <Text style={styles.description}>{t('family.createScreen.description')}</Text>
           <Text style={styles.label}>{t('family.createScreen.namePlaceholder')}</Text>
           <TextInput
             ref={inputRef}
@@ -183,11 +185,7 @@ export default function CreateFamilyScreen() {
             onSubmitEditing={canCreate ? handleCreate : undefined}
             editable={!isLoading}
           />
-          {error ? (
-            <Text style={styles.errorText}>{error}</Text>
-          ) : (
-            <Text style={styles.helperText}>{t('family.createScreen.nameHelper')}</Text>
-          )}
+          {error ? <Text style={styles.errorText}>{error}</Text> : null}
 
           <TouchableOpacity
             style={[styles.createButton, !canCreate ? styles.createButtonDisabled : null]}

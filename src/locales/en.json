@@ -154,7 +154,21 @@
     }
   },
   "account": {
-    "title": "Account"
+    "title": "Account",
+    "deleteAccount": {
+      "button": "Delete Account",
+      "title": "Delete Account",
+      "message": "This will permanently delete your account and all data (credits, warranties). This cannot be undone.",
+      "confirm": "Delete My Account",
+      "passwordTitle": "Confirm Your Identity",
+      "passwordMessage": "Enter your current password to confirm account deletion.",
+      "passwordPlaceholder": "Current Password",
+      "passwordRequired": "Password is required to delete your account",
+      "wrongPassword": "Incorrect password",
+      "error": "Could not delete account. Sign out and back in, then try again.",
+      "reauthTitle": "Confirm Deletion",
+      "reauthMessage": "Your account and all data will be permanently deleted. Continue?"
+    }
   },
   "auth": {
     "tagline": "Credits you won't forget",
@@ -166,7 +180,16 @@
       "title": "Sign in",
       "button": "Sign in",
       "noAccount": "Don't have an account?",
-      "createLink": "Create Account"
+      "createLink": "Create Account",
+      "forgotPassword": "Forgot password?"
+    },
+    "forgotPassword": {
+      "title": "Reset Password",
+      "description": "Enter your email and we'll send you a link to reset your password.",
+      "button": "Send Reset Link",
+      "successTitle": "Email sent!",
+      "successDescription": "Check your inbox for a password reset link. If you don't see it, check your spam folder.",
+      "backToSignIn": "Back to Sign in"
     },
     "signUp": {
       "title": "Create Account",
@@ -484,7 +507,8 @@
     "createScreen": {
       "title": "Create Family",
       "namePlaceholder": "Family Name",
-      "nameHelper": "e.g. Smith Family",
+      "nameHelper": "e.g. Cohen Family",
+      "description": "Create a shared space for your family's gift cards. Everyone can add their credits, and the whole family stays updated in real time.",
       "createButton": "Create",
       "successToast": "Family created!"
     },

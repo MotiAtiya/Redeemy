@@ -233,6 +233,7 @@ export default function SignUpScreen() {
               placeholderTextColor={colors.textTertiary}
               autoCapitalize="none"
               keyboardType="email-address"
+              textContentType="emailAddress"
               returnKeyType="next"
               value={email}
               onChangeText={(v) => {

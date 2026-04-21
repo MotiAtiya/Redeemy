@@ -75,12 +75,10 @@ function makeStyles(colors: AppColors, isRTL: boolean) {
     },
     backButton: { padding: 4 },
     headerTitle: {
-      flex: 1,
+      flexShrink: 1,
       fontSize: 17,
       fontWeight: '600',
       color: colors.textPrimary,
-      textAlign: 'center',
-      marginEnd: 32, // compensate for back button width
     },
     scrollContent: { paddingHorizontal: 16, paddingBottom: 40 },
     sectionLabel: {
@@ -462,6 +460,7 @@ export default function FamilyManageScreen() {
             try {
               await migrateCreditsFromFamily(currentUser.uid);
               await leaveFamily(family.id, currentUser.uid);
+              useFamilyStore.getState().setFamily(null);
               setFamilyId(null);
               setFamilyCreditsMigrated(false);
               router.replace('/(tabs)');

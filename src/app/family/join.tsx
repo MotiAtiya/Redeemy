@@ -20,7 +20,7 @@ import { useSettingsStore } from '@/stores/settingsStore';
 import { useAppTheme } from '@/hooks/useAppTheme';
 import type { AppColors } from '@/constants/colors';
 
-function makeStyles(colors: AppColors) {
+function makeStyles(colors: AppColors, isRTL: boolean) {
   return StyleSheet.create({
     safe: { flex: 1, backgroundColor: colors.background },
     keyboardAvoid: { flex: 1 },
@@ -33,11 +33,10 @@ function makeStyles(colors: AppColors) {
     },
     backButton: { padding: 4 },
     headerTitle: {
-      flex: 1,
+      flexShrink: 1,
       fontSize: 17,
       fontWeight: '600',
       color: colors.textPrimary,
-      alignSelf: 'flex-start',
     },
     content: {
       flex: 1,
@@ -48,7 +47,7 @@ function makeStyles(colors: AppColors) {
       fontSize: 14,
       color: colors.textSecondary,
       marginBottom: 24,
-      alignSelf: 'flex-start',
+      textAlign: 'left',
     },
     label: {
       fontSize: 13,
@@ -111,7 +110,7 @@ const JOIN_ERRORS: Record<JoinFamilyError, string> = {
 export default function JoinFamilyScreen() {
   const router = useRouter();
   const colors = useAppTheme();
-  const styles = useMemo(() => makeStyles(colors), [colors]);
+  const styles = useMemo(() => makeStyles(colors, isRTL), [colors, isRTL]);
   const { t } = useTranslation();
   const isRTL = I18nManager.isRTL;
 

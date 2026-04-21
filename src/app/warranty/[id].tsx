@@ -65,8 +65,7 @@ function makeStyles(colors: AppColors) {
     detailRowContent: { flex: 1, gap: 2 },
     detailLabel: { fontSize: 12, color: colors.textTertiary, fontWeight: '500', alignSelf: 'flex-start' },
     detailValue: { fontSize: 15, color: colors.textPrimary, alignSelf: 'flex-start' },
-    notesValue: { fontSize: 15, color: colors.textPrimary, textAlign: 'right' },
-    notesValueWrap: { alignSelf: 'stretch' },
+    notesValue: { fontSize: 15, color: colors.textPrimary, alignSelf: 'flex-start', textAlign: 'left' },
     separator: { height: 1, backgroundColor: colors.separator, marginStart: 44 },
     footer: {
       padding: 16,
@@ -150,9 +149,9 @@ export default function WarrantyDetailScreen() {
   const router = useRouter();
   const { id } = useLocalSearchParams<{ id: string }>();
   const colors = useAppTheme();
+  const isRTL = I18nManager.isRTL;
   const styles = useMemo(() => makeStyles(colors), [colors]);
   const { t } = useTranslation();
-  const isRTL = I18nManager.isRTL;
   const dateFormat = useSettingsStore((s) => s.dateFormat);
 
   const warranty = useWarrantiesStore((s) => s.warranties.find((w) => w.id === id));
@@ -342,11 +341,9 @@ export default function WarrantyDetailScreen() {
               <View style={styles.separator} />
               <View style={styles.detailRow}>
                 <Ionicons name="document-text-outline" size={18} color={colors.textTertiary} />
-                <View style={[styles.detailRowContent, { alignItems: 'stretch' }]}>
+                <View style={styles.detailRowContent}>
                   <Text style={styles.detailLabel}>{t('warranty.detail.notes')}</Text>
-                  <View style={styles.notesValueWrap}>
-                    <Text style={styles.notesValue}>{warranty.notes}</Text>
-                  </View>
+                  <Text style={styles.notesValue}>{warranty.notes}</Text>
                 </View>
               </View>
             </>

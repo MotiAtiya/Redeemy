@@ -93,6 +93,8 @@ function makeStyles(colors: AppColors, isRTL: boolean) {
     },
     googleLogo: { width: 20, height: 20 },
     socialButtonText: { fontSize: 16, fontWeight: '500', color: colors.textPrimary },
+    forgotLink: { alignSelf: 'flex-start', marginTop: 6, marginBottom: 4 },
+    forgotLinkText: { color: colors.primary, fontSize: 14 },
     footer: { flexDirection: 'row', justifyContent: 'center', marginTop: 12, gap: 4 },
     footerText: { color: colors.textSecondary, fontSize: 14 },
     link: { color: colors.primary, fontSize: 14, fontWeight: '600' },
@@ -211,6 +213,7 @@ export default function SignInScreen() {
               placeholderTextColor={colors.textTertiary}
               autoCapitalize="none"
               keyboardType="email-address"
+              textContentType="emailAddress"
               returnKeyType="next"
               value={email}
               onChangeText={(v) => {
@@ -249,6 +252,9 @@ export default function SignInScreen() {
               </TouchableOpacity>
             </View>
             {passwordError ? <Text style={styles.errorText}>{passwordError}</Text> : null}
+            <TouchableOpacity style={styles.forgotLink} onPress={() => router.push('/auth/forgot-password')}>
+              <Text style={styles.forgotLinkText}>{t('auth.signIn.forgotPassword')}</Text>
+            </TouchableOpacity>
           </View>
 
           {/* General / Firebase error */}

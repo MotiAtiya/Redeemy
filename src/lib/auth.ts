@@ -4,13 +4,15 @@ import {
   signInWithCredential,
   updateProfile,
   updatePassword,
+  deleteUser,
   EmailAuthProvider,
   reauthenticateWithCredential,
   GoogleAuthProvider,
   OAuthProvider,
   signOut as firebaseSignOut,
+  sendPasswordResetEmail as firebaseSendPasswordResetEmail,
 } from 'firebase/auth';
-import { doc, setDoc, getDoc, serverTimestamp } from 'firebase/firestore';
+import { doc, setDoc, getDoc, deleteDoc, serverTimestamp } from 'firebase/firestore';
 import { Platform } from 'react-native';
 import Constants from 'expo-constants';
 import * as Crypto from 'expo-crypto';
@@ -264,6 +266,59 @@ export async function signInWithApple(): Promise<User | null> {
     if ((err as { code?: string })?.code === 'ERR_CANCELED') return null;
     throw err;
   }
+}
+
+// ---------------------------------------------------------------------------
+// Password reset
+// ---------------------------------------------------------------------------
+
+export async function sendPasswordResetEmail(email: string): Promise<void> {
+  await firebaseSendPasswordResetEmail(auth, email);
+}
+
+// ---------------------------------------------------------------------------
+// Account deletion
+// ---------------------------------------------------------------------------
+
+/**
+ * Step 1: Reauthenticate the current user before account deletion.
+ * Throws auth/wrong-password / auth/invalid-credential if the password is wrong.
+ * Call this BEFORE deleting any user data.
+ */
+export async function reauthenticateForDeletion(currentPassword?: string): Promise<void> {
+  const user = auth.currentUser;
+  if (!user) throw new Error('Not authenticated');
+
+  const emailProvider = user.providerData.find((p) => p.providerId === 'password');
+
+  if (emailProvider && currentPassword) {
+    const credential = EmailAuthProvider.credential(user.email!, currentPassword);
+    await reauthenticateWithCredential(user, credential);
+  } else if (!emailProvider) {
+    // Google — trigger re-sign-in to get a fresh credential
+    if (_GoogleSignin) {
+      await _GoogleSignin.hasPlayServices();
+      const response = await _GoogleSignin.signIn();
+      if (response.type !== 'cancelled') {
+        const { idToken } = response.data;
+        const googleCredential = GoogleAuthProvider.credential(idToken);
+        await reauthenticateWithCredential(user, googleCredential);
+      }
+    }
+    // Apple: if session is recent enough Firebase will allow deletion without explicit reauth
+  }
+}
+
+/**
+ * Step 2: Delete the Firebase Auth user + their /users/{uid} Firestore document.
+ * Call this only AFTER reauthenticateForDeletion() succeeded and all user data was deleted.
+ */
+export async function deleteAccount(): Promise<void> {
+  const user = auth.currentUser;
+  if (!user) throw new Error('Not authenticated');
+
+  await deleteDoc(doc(db, 'users', user.uid));
+  await deleteUser(user);
 }
 
 // ---------------------------------------------------------------------------
