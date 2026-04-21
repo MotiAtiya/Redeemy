@@ -6,9 +6,10 @@ on:
       profile:
         description: Build profile
         required: true
-        default: development
+        default: development-simulator
         type: choice
         options:
+          - development-simulator
           - development
           - preview
           - production
