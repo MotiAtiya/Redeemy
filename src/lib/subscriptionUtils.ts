@@ -63,3 +63,19 @@ export function computeMonthlyTotal(subscriptions: Subscription[]): number {
     .filter((s) => s.status === SubscriptionStatus.ACTIVE && !s.isFree)
     .reduce((acc, s) => acc + normalizeToMonthlyAgorot(s), 0);
 }
+
+/**
+ * Returns a map of currency code → monthly agorot for all active non-free subscriptions.
+ * e.g. { ILS: 15000, USD: 1700 }
+ */
+export function computeMonthlyTotalByCurrency(
+  subscriptions: Subscription[]
+): Partial<Record<string, number>> {
+  const result: Partial<Record<string, number>> = {};
+  for (const s of subscriptions) {
+    if (s.status !== SubscriptionStatus.ACTIVE || s.isFree) continue;
+    const code = s.currency ?? 'ILS';
+    result[code] = (result[code] ?? 0) + normalizeToMonthlyAgorot(s);
+  }
+  return result;
+}

@@ -1,5 +1,6 @@
 import type { ComponentProps } from 'react';
 import { Ionicons } from '@expo/vector-icons';
+import type { CurrencyCode } from '@/stores/settingsStore';
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 type _IoniconsName = ComponentProps<typeof Ionicons>['name'];
@@ -26,7 +27,8 @@ export interface Subscription {
   userId: string;
   serviceName: string;
   billingCycle: SubscriptionBillingCycle;
-  amountAgorot: number;            // integer agorot (₪ × 100), 0 for free
+  amountAgorot: number;            // integer minor units (× 100), 0 for free
+  currency?: CurrencyCode;         // ISO currency code, defaults to global setting
   isFree: boolean;                 // true → amountAgorot = 0, excluded from monthly total
   // Monthly-specific
   billingDayOfMonth?: number;      // 1–31, only for MONTHLY

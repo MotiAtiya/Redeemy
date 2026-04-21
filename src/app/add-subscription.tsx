@@ -22,15 +22,17 @@ import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import DateTimePicker, { type DateTimePickerEvent } from '@react-native-community/datetimepicker';
 import { ServiceAutocomplete } from '@/components/redeemy/ServiceAutocomplete';
+import { CurrencyPicker } from '@/components/redeemy/CurrencyPicker';
 import { IntentSelector } from '@/components/redeemy/IntentSelector';
 import { StepProgressBar } from '@/components/redeemy/StepProgressBar';
 import { createSubscription, updateSubscription } from '@/lib/firestoreSubscriptions';
-import { parseAmountToAgot, formatCurrency } from '@/constants/currencies';
+import { parseAmountToAgot } from '@/constants/currencies';
+import { formatCurrency } from '@/lib/formatCurrency';
 import { useAuthStore } from '@/stores/authStore';
 import { useSubscriptionsStore } from '@/stores/subscriptionsStore';
 import { useUIStore } from '@/stores/uiStore';
 import { useAppTheme } from '@/hooks/useAppTheme';
-import { useSettingsStore } from '@/stores/settingsStore';
+import { useSettingsStore, CURRENCY_SYMBOLS, type CurrencyCode } from '@/stores/settingsStore';
 import {
   SubscriptionBillingCycle,
   SubscriptionIntent,
@@ -504,10 +506,12 @@ export default function AddSubscriptionScreen() {
   const [billingCycle, setBillingCycle] = useState<SubscriptionBillingCycle | null>(null);
   const [serviceName, setServiceName] = useState('');
   const [amountInput, setAmountInput] = useState('');
+  const [currency, setCurrency] = useState<CurrencyCode>(
+    () => useSettingsStore.getState().currency
+  );
   const [isFree, setIsFree] = useState(false);
   const [isFreeTrial, setIsFreeTrial] = useState(false);
   const [freeTrialMonths, setFreeTrialMonths] = useState('');
-  const [priceAfterTrialInput, setPriceAfterTrialInput] = useState('');
   const [billingDayOfMonth, setBillingDayOfMonth] = useState(() => String(new Date().getDate()));
   const [nextBillingDate, setNextBillingDate] = useState<Date | null>(null);
   const [showDatePicker, setShowDatePicker] = useState(false);
@@ -567,9 +571,6 @@ export default function AddSubscriptionScreen() {
     if (existingSubscription.freeTrialMonths) {
       setFreeTrialMonths(String(existingSubscription.freeTrialMonths));
     }
-    if (existingSubscription.priceAfterTrialAgorot) {
-      setPriceAfterTrialInput((existingSubscription.priceAfterTrialAgorot / 100).toFixed(2));
-    }
     if (existingSubscription.billingDayOfMonth) {
       setBillingDayOfMonth(String(existingSubscription.billingDayOfMonth));
     }
@@ -580,6 +581,7 @@ export default function AddSubscriptionScreen() {
     setIntent(existingSubscription.intent);
     setReminderDays(existingSubscription.reminderDays);
     setWebsiteUrl(existingSubscription.websiteUrl ?? '');
+    if (existingSubscription.currency) setCurrency(existingSubscription.currency);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -646,13 +648,13 @@ export default function AddSubscriptionScreen() {
       case 'serviceName':  return serviceName.trim().length > 0;
       case 'amount': {
         if (isFree) return true;
+        const agot = parseAmountToAgot(amountInput);
+        if (amountInput.trim().length === 0 || isNaN(agot) || agot <= 0) return false;
         if (isFreeTrial && billingCycle === SubscriptionBillingCycle.MONTHLY) {
           const months = parseInt(freeTrialMonths, 10);
-          const price = parseAmountToAgot(priceAfterTrialInput);
-          return months >= 1 && months <= 24 && !isNaN(price) && price > 0;
+          return months >= 1 && months <= 24;
         }
-        const agot = parseAmountToAgot(amountInput);
-        return amountInput.trim().length > 0 && !isNaN(agot) && agot > 0;
+        return true;
       }
       case 'billingDate': {
         if (billingCycle === SubscriptionBillingCycle.MONTHLY) return true; // picker always valid
@@ -667,7 +669,7 @@ export default function AddSubscriptionScreen() {
     }
   }, [
     currentStepId, billingCycle, serviceName, isFree, isFreeTrial, amountInput,
-    freeTrialMonths, priceAfterTrialInput, billingDayOfMonth, nextBillingDate,
+    freeTrialMonths, billingDayOfMonth, nextBillingDate,
     category, intent, reminderDays, websiteUrl,
   ]);
 
@@ -676,8 +678,8 @@ export default function AddSubscriptionScreen() {
     if (billingCycle !== SubscriptionBillingCycle.ANNUAL || isFree) return null;
     const agot = parseAmountToAgot(amountInput);
     if (isNaN(agot) || agot <= 0) return null;
-    return formatCurrency(Math.round(agot / 12));
-  }, [billingCycle, amountInput, isFree]);
+    return formatCurrency(Math.round(agot / 12), CURRENCY_SYMBOLS[currency]);
+  }, [billingCycle, amountInput, isFree, currency]);
 
   // ---------------------------------------------------------------------------
   // Date picker handler (ANNUAL)
@@ -727,7 +729,7 @@ export default function AddSubscriptionScreen() {
     }
 
     const amountAgorot = isFree ? 0 : parseAmountToAgot(amountInput);
-    const priceAfterAgorot = isFreeTrial ? parseAmountToAgot(priceAfterTrialInput) : undefined;
+    const priceAfterAgorot = isFreeTrial ? amountAgorot : undefined;
     const freeMonths = isFreeTrial ? parseInt(freeTrialMonths, 10) : undefined;
 
     const now = new Date();
@@ -741,6 +743,7 @@ export default function AddSubscriptionScreen() {
       serviceName: serviceName.trim(),
       billingCycle: billingCycle!,
       amountAgorot,
+      currency: isFree ? undefined : currency,
       isFree,
       isFreeTrial,
       billingDayOfMonth:
@@ -909,7 +912,7 @@ export default function AddSubscriptionScreen() {
         {!isFree && (
           <>
             <View style={styles.amountInputContainer}>
-              <Text style={styles.amountSymbol}>₪</Text>
+              <Text style={styles.amountSymbol}>{CURRENCY_SYMBOLS[currency]}</Text>
               <TextInput
                 style={styles.amountInput}
                 placeholder="0.00"
@@ -921,6 +924,7 @@ export default function AddSubscriptionScreen() {
               />
             </View>
             {!!amountError && <Text style={styles.amountError}>{amountError}</Text>}
+            <CurrencyPicker value={currency} onChange={setCurrency} />
 
             {/* Monthly breakdown for ANNUAL */}
             {monthlyBreakdown && (
@@ -954,18 +958,6 @@ export default function AddSubscriptionScreen() {
                   value={freeTrialMonths}
                   onChangeText={setFreeTrialMonths}
                 />
-                <Text style={styles.subInputLabel}>{t('addSubscription.amount.priceAfterTrial')}</Text>
-                <View style={styles.amountInputContainer}>
-                  <Text style={styles.amountSymbol}>₪</Text>
-                  <TextInput
-                    style={styles.amountInput}
-                    placeholder="0.00"
-                    placeholderTextColor={colors.textTertiary}
-                    keyboardType="decimal-pad"
-                    value={priceAfterTrialInput}
-                    onChangeText={setPriceAfterTrialInput}
-                  />
-                </View>
               </>
             )}
           </>
@@ -1206,14 +1198,15 @@ export default function AddSubscriptionScreen() {
   function renderSummaryStep() {
     const categoryObj = SUBSCRIPTION_CATEGORIES.find((c) => c.id === category);
     const intentObj = SUBSCRIPTION_INTENTS_MAP[intent ?? SubscriptionIntent.RENEW];
+    const sym = CURRENCY_SYMBOLS[currency];
     const amountDisplay = isFree
       ? t('addSubscription.summary.free')
       : isFreeTrial && billingCycle === SubscriptionBillingCycle.MONTHLY
       ? t('addSubscription.summary.freeTrial', {
           months: freeTrialMonths,
-          price: formatCurrency(parseAmountToAgot(priceAfterTrialInput)),
+          price: formatCurrency(parseAmountToAgot(amountInput), sym),
         })
-      : formatCurrency(parseAmountToAgot(amountInput));
+      : formatCurrency(parseAmountToAgot(amountInput), sym);
 
     const billingDisplay =
       billingCycle === SubscriptionBillingCycle.MONTHLY

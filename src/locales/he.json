@@ -567,7 +567,8 @@
   },
   "subscriptions": {
     "title": "מנויים",
-    "monthlyTotal": "₪{{amount}}/חודש",
+    "monthlyTotal": "{{amount}}/חודש",
+    "allFree": "כל המנויים חינמיים",
     "activeCount_one": "מנוי פעיל אחד",
     "activeCount_other": "{{count}} מנויים פעילים",
     "empty": {

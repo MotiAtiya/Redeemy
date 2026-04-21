@@ -568,7 +568,8 @@
   },
   "subscriptions": {
     "title": "Subscriptions",
-    "monthlyTotal": "₪{{amount}}/month",
+    "monthlyTotal": "{{amount}}/month",
+    "allFree": "All subscriptions are free",
     "activeCount_one": "{{count}} active subscription",
     "activeCount_other": "{{count}} active subscriptions",
     "empty": {

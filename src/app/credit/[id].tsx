@@ -166,7 +166,7 @@ export default function CreditDetailScreen() {
   const styles = useMemo(() => makeStyles(colors), [colors]);
   const { t } = useTranslation();
   const dateFormat = useSettingsStore((s) => s.dateFormat);
-  const currencySymbol = CURRENCY_SYMBOLS[useSettingsStore((s) => s.currency)];
+  const globalCurrency = useSettingsStore((s) => s.currency);
 
   const credit = useCreditsStore((s) => s.credits.find((c) => c.id === id));
   const removeCredit = useCreditsStore((s) => s.removeCredit);
@@ -341,7 +341,7 @@ export default function CreditDetailScreen() {
 
         <View style={styles.card}>
           <Text style={styles.storeName}>{credit.storeName}</Text>
-          <Text style={styles.amount}>{formatCurrency(credit.amount, currencySymbol)}</Text>
+          <Text style={styles.amount}>{formatCurrency(credit.amount, CURRENCY_SYMBOLS[credit.currency ?? globalCurrency])}</Text>
           <ExpirationBadge expirationDate={expirationDate ?? undefined} />
         </View>
 

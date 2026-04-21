@@ -17,12 +17,12 @@ import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import { updateSubscription, deleteSubscription } from '@/lib/firestoreSubscriptions';
 import { cancelNotification } from '@/lib/notifications';
-import { formatCurrency } from '@/constants/currencies';
+import { formatCurrency } from '@/lib/formatCurrency';
 import { formatDate } from '@/lib/formatDate';
 import { useSubscriptionsStore } from '@/stores/subscriptionsStore';
 import { useAuthStore } from '@/stores/authStore';
 import { useFamilyStore } from '@/stores/familyStore';
-import { useSettingsStore } from '@/stores/settingsStore';
+import { useSettingsStore, CURRENCY_SYMBOLS } from '@/stores/settingsStore';
 import { useUIStore } from '@/stores/uiStore';
 import { useAppTheme } from '@/hooks/useAppTheme';
 import { SubscriptionBillingCycle, SubscriptionIntent, SubscriptionStatus } from '@/types/subscriptionTypes';
@@ -262,6 +262,7 @@ export default function SubscriptionDetailScreen() {
   const styles = useMemo(() => makeStyles(colors), [colors]);
   const { t } = useTranslation();
   const dateFormat = useSettingsStore((s) => s.dateFormat);
+  const globalCurrency = useSettingsStore((s) => s.currency);
 
   const sub = useSubscriptionsStore((s) => s.subscriptions.find((item) => item.id === id));
   const updateSubInStore = useSubscriptionsStore((s) => s.updateSubscription);
@@ -384,11 +385,12 @@ export default function SubscriptionDetailScreen() {
   function getBillingText(): string {
     const s = sub!;
     if (s.isFree) return t('subscription.detail.free');
-    const amount = formatCurrency(s.amountAgorot).replace('₪', '').trim();
+    const symbol = CURRENCY_SYMBOLS[s.currency ?? globalCurrency];
+    const amount = formatCurrency(s.amountAgorot, symbol);
     if (s.billingCycle === SubscriptionBillingCycle.MONTHLY) {
       return t('subscription.detail.monthlyAmount', { amount });
     }
-    const monthly = formatCurrency(normalizeToMonthlyAgorot(s)).replace('₪', '').trim();
+    const monthly = formatCurrency(normalizeToMonthlyAgorot(s), symbol);
     return t('subscription.detail.annualAmount', { amount, monthly });
   }
 
@@ -480,7 +482,7 @@ export default function SubscriptionDetailScreen() {
                           : new Date(sub.trialEndsDate as unknown as string),
                         dateFormat
                       ),
-                      price: formatCurrency(sub.priceAfterTrialAgorot ?? 0).replace('₪', '').trim(),
+                      price: formatCurrency(sub.priceAfterTrialAgorot ?? 0, CURRENCY_SYMBOLS[sub.currency ?? globalCurrency]),
                     })}
                   </Text>
                 </View>

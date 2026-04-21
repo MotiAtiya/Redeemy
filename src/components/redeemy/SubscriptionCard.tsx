@@ -4,8 +4,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import { useAppTheme } from '@/hooks/useAppTheme';
 import { useAuthStore } from '@/stores/authStore';
-import { useSettingsStore } from '@/stores/settingsStore';
-import { formatCurrency } from '@/constants/currencies';
+import { useSettingsStore, CURRENCY_SYMBOLS } from '@/stores/settingsStore';
+import { formatCurrency } from '@/lib/formatCurrency';
 import { formatDate } from '@/lib/formatDate';
 import { SUBSCRIPTION_CATEGORIES } from '@/constants/subscriptionCategories';
 import {
@@ -169,6 +169,8 @@ export function SubscriptionCard({ subscription: sub, onPress }: Props) {
   const styles = useMemo(() => makeStyles(colors), [colors]);
   const { t } = useTranslation();
   const dateFormat = useSettingsStore((s) => s.dateFormat);
+  const globalCurrency = useSettingsStore((s) => s.currency);
+  const currencySymbol = CURRENCY_SYMBOLS[sub.currency ?? globalCurrency];
   const currentUid = useAuthStore((s) => s.currentUser?.uid);
 
   const categoryMeta = SUBSCRIPTION_CATEGORIES.find((c) => c.id === sub.category);
@@ -216,12 +218,12 @@ export function SubscriptionCard({ subscription: sub, onPress }: Props) {
     if (sub.billingCycle === SubscriptionBillingCycle.ANNUAL) {
       const monthly = normalizeToMonthlyAgorot(sub);
       return t('subscriptionCard.annualAmount', {
-        amount: formatCurrency(sub.amountAgorot).replace('₪', '').trim(),
-        monthly: formatCurrency(monthly).replace('₪', '').trim(),
+        amount: formatCurrency(sub.amountAgorot, currencySymbol),
+        monthly: formatCurrency(monthly, currencySymbol),
       });
     }
     return t('subscriptionCard.monthlyAmount', {
-      amount: formatCurrency(sub.amountAgorot).replace('₪', '').trim(),
+      amount: formatCurrency(sub.amountAgorot, currencySymbol),
     });
   }, [sub, t]);
 

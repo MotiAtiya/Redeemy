@@ -13,12 +13,12 @@ import { useTranslation } from 'react-i18next';
 import { SubscriptionCard } from '@/components/redeemy/SubscriptionCard';
 import { useSubscriptionsStore } from '@/stores/subscriptionsStore';
 import { useAuthStore } from '@/stores/authStore';
-import { useSettingsStore } from '@/stores/settingsStore';
+import { useSettingsStore, CURRENCY_SYMBOLS } from '@/stores/settingsStore';
 import { useSubscriptionsListener } from '@/hooks/useSubscriptionsListener';
 import { useAppTheme } from '@/hooks/useAppTheme';
-import { formatCurrency } from '@/constants/currencies';
+import { formatMultiCurrencyTotal } from '@/lib/formatCurrency';
 import { SubscriptionStatus, type Subscription } from '@/types/subscriptionTypes';
-import { daysUntilBilling, computeMonthlyTotal } from '@/lib/subscriptionUtils';
+import { daysUntilBilling, computeMonthlyTotalByCurrency } from '@/lib/subscriptionUtils';
 import type { AppColors } from '@/constants/colors';
 
 function makeStyles(colors: AppColors) {
@@ -83,6 +83,7 @@ export default function SubscriptionsScreen() {
 
   const currentUser = useAuthStore((s) => s.currentUser);
   const familyId = useSettingsStore((s) => s.familyId);
+  const currencySymbols = CURRENCY_SYMBOLS;
 
   // Wire real-time listener
   useSubscriptionsListener(currentUser?.uid ?? null, familyId);
@@ -100,7 +101,10 @@ export default function SubscriptionsScreen() {
     [activeSubscriptions]
   );
 
-  const monthlyTotal = useMemo(() => computeMonthlyTotal(activeSubscriptions), [activeSubscriptions]);
+  const monthlyTotalByCurrency = useMemo(
+    () => computeMonthlyTotalByCurrency(activeSubscriptions),
+    [activeSubscriptions]
+  );
 
   function renderEmpty() {
     if (isLoading) return null;
@@ -121,13 +125,15 @@ export default function SubscriptionsScreen() {
 
   function renderHeader() {
     if (activeSubscriptions.length === 0) return null;
-    const totalFormatted = formatCurrency(monthlyTotal).replace('₪', '').trim();
+    const totalFormatted = formatMultiCurrencyTotal(monthlyTotalByCurrency, currencySymbols);
     return (
       <View style={styles.header}>
         <Text style={styles.title}>{t('subscriptions.title')}</Text>
         <View style={styles.totalRow}>
           <Text style={styles.totalAmount}>
-            {t('subscriptions.monthlyTotal', { amount: totalFormatted })}
+            {totalFormatted
+              ? t('subscriptions.monthlyTotal', { amount: totalFormatted })
+              : t('subscriptions.allFree')}
           </Text>
           <Text style={styles.activeCount}>
             {t('subscriptions.activeCount', { count: activeSubscriptions.length })}

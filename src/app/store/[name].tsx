@@ -14,7 +14,7 @@ import { useTranslation } from 'react-i18next';
 import { CreditCard } from '@/components/redeemy/CreditCard';
 import { useCreditsStore } from '@/stores/creditsStore';
 import { useSettingsStore, CURRENCY_SYMBOLS } from '@/stores/settingsStore';
-import { formatCurrency } from '@/lib/formatCurrency';
+import { formatMultiCurrencyTotal } from '@/lib/formatCurrency';
 import { CreditStatus, type Credit } from '@/types/creditTypes';
 import { useAppTheme } from '@/hooks/useAppTheme';
 import type { AppColors } from '@/constants/colors';
@@ -65,9 +65,9 @@ export default function StoreDetailScreen() {
   const { t } = useTranslation();
   const isRTL = I18nManager.isRTL;
   const credits = useCreditsStore((s) => s.credits);
-  const currencySymbol = CURRENCY_SYMBOLS[useSettingsStore((s) => s.currency)];
+  const globalCurrency = useSettingsStore((s) => s.currency);
 
-  const { active, redeemed, totalAgot } = useMemo(() => {
+  const { active, redeemed, totalByCurrency } = useMemo(() => {
     const storeCredits = credits.filter((c) => c.storeName === name);
     const active = storeCredits.filter((c) => c.status === CreditStatus.ACTIVE);
     const redeemed = storeCredits
@@ -77,9 +77,13 @@ export default function StoreDetailScreen() {
         const bDate = b.redeemedAt ? new Date(b.redeemedAt as Date).getTime() : 0;
         return bDate - aDate;
       });
-    const totalAgot = active.reduce((sum, c) => sum + c.amount, 0);
-    return { active, redeemed, totalAgot };
-  }, [credits, name]);
+    const totalByCurrency: Partial<Record<string, number>> = {};
+    for (const c of active) {
+      const code = c.currency ?? globalCurrency;
+      totalByCurrency[code] = (totalByCurrency[code] ?? 0) + c.amount;
+    }
+    return { active, redeemed, totalByCurrency };
+  }, [credits, name, globalCurrency]);
 
   const sections = useMemo(() => {
     const result: { title: string; key: string; data: Credit[] }[] = [];
@@ -97,8 +101,10 @@ export default function StoreDetailScreen() {
         </TouchableOpacity>
         <View style={styles.headerText}>
           <Text style={styles.storeName} numberOfLines={1}>{name}</Text>
-          {totalAgot > 0 && (
-            <Text style={styles.totalValue}>{formatCurrency(totalAgot, currencySymbol)} {t('store.active').toLowerCase()}</Text>
+          {Object.keys(totalByCurrency).length > 0 && (
+            <Text style={styles.totalValue}>
+              {formatMultiCurrencyTotal(totalByCurrency, CURRENCY_SYMBOLS)} {t('store.active').toLowerCase()}
+            </Text>
           )}
         </View>
       </View>

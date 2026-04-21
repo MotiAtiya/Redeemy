@@ -1,4 +1,5 @@
 import type { Timestamp } from 'firebase/firestore';
+import type { CurrencyCode } from '@/stores/settingsStore';
 
 export enum CreditStatus {
   ACTIVE = 'active',
@@ -18,8 +19,10 @@ export interface Credit {
   /** Owner's Firebase Auth UID */
   userId: string;
   storeName: string;
-  /** Amount in agot (₪ × 100). e.g. ₪50.00 → 5000 */
+  /** Amount in minor units (× 100). e.g. ₪50.00 → 5000, $20.00 → 2000 */
   amount: number;
+  /** ISO currency code — defaults to global setting (ILS) if omitted */
+  currency?: CurrencyCode;
   category: string;
   expirationDate?: Date;
   /** Days before expiration the reminder fires (e.g. 7 = 1 week before) */

@@ -23,13 +23,15 @@ import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import DateTimePicker, { type DateTimePickerEvent } from '@react-native-community/datetimepicker';
 import { StoreAutocomplete } from '@/components/redeemy/StoreAutocomplete';
+import { CurrencyPicker } from '@/components/redeemy/CurrencyPicker';
 import { StepProgressBar } from '@/components/redeemy/StepProgressBar';
 import { openCamera, openGallery } from '@/lib/imageUpload';
 import { uploadCreditImage } from '@/lib/imageUpload';
 import { CropModal } from '@/components/redeemy/CropModal';
 import { createCredit, updateCredit } from '@/lib/firestoreCredits';
 import { scheduleReminderNotification } from '@/lib/notifications';
-import { parseAmountToAgot, formatCurrency } from '@/constants/currencies';
+import { parseAmountToAgot } from '@/constants/currencies';
+import { formatCurrency } from '@/lib/formatCurrency';
 import { useAuthStore } from '@/stores/authStore';
 import { useCreditsStore } from '@/stores/creditsStore';
 import { useUIStore } from '@/stores/uiStore';
@@ -38,7 +40,7 @@ import { CreditStatus, type Credit } from '@/types/creditTypes';
 import { DEFAULT_CATEGORY_ID, CATEGORIES } from '@/constants/categories';
 import { getCategoryForStore } from '@/data/israeliStores';
 import { REMINDER_PRESETS } from '@/constants/reminders';
-import { useSettingsStore } from '@/stores/settingsStore';
+import { useSettingsStore, CURRENCY_SYMBOLS, type CurrencyCode } from '@/stores/settingsStore';
 import { formatDate } from '@/lib/formatDate';
 import type { AppColors } from '@/constants/colors';
 
@@ -426,6 +428,9 @@ export default function AddCreditScreen() {
   const [storeName, setStoreName] = useState('');
   const [category, setCategory] = useState(DEFAULT_CATEGORY_ID);
   const [amountInput, setAmountInput] = useState('');
+  const [currency, setCurrency] = useState<CurrencyCode>(
+    () => useSettingsStore.getState().currency
+  );
   const [noExpiry, setNoExpiry] = useState(false);
   const [expirationDate, setExpirationDate] = useState<Date | null>(null);
   const [showDatePicker, setShowDatePicker] = useState(false);
@@ -478,6 +483,7 @@ export default function AddCreditScreen() {
     if (!isEditing || !existingCredit) return;
     setStoreName(existingCredit.storeName);
     setAmountInput((existingCredit.amount / 100).toFixed(2));
+    if (existingCredit.currency) setCurrency(existingCredit.currency);
     setCategory(existingCredit.category);
     if (existingCredit.expirationDate) {
       const d =
@@ -675,6 +681,7 @@ export default function AddCreditScreen() {
         const changes: Partial<Credit> = {
           storeName: storeName.trim(),
           amount: agot,
+          currency,
           category,
           expirationDate: finalExpiry ?? undefined,
           reminderDays,
@@ -724,6 +731,7 @@ export default function AddCreditScreen() {
       userId: currentUser.uid,
       storeName: storeName.trim(),
       amount: agot,
+      currency,
       category,
       expirationDate: noExpiry ? undefined : expirationDate ?? undefined,
       reminderDays,
@@ -742,6 +750,7 @@ export default function AddCreditScreen() {
         userId: currentUser.uid,
         storeName: storeName.trim(),
         amount: agot,
+        currency,
         category,
         expirationDate: finalExpiry,
         reminderDays,
@@ -863,7 +872,7 @@ export default function AddCreditScreen() {
       >
         <Text style={styles.stepTitle}>{t('addCredit.step.amount')}</Text>
         <View style={styles.amountInputContainer}>
-          <Text style={styles.amountSymbol}>₪</Text>
+          <Text style={styles.amountSymbol}>{CURRENCY_SYMBOLS[currency]}</Text>
           <TextInput
             style={styles.amountInput}
             placeholder="0.00"
@@ -878,6 +887,7 @@ export default function AddCreditScreen() {
           />
         </View>
         {!!amountError && <Text style={styles.amountError}>{amountError}</Text>}
+        <CurrencyPicker value={currency} onChange={setCurrency} />
       </ScrollView>
     );
   }
@@ -1127,7 +1137,7 @@ export default function AddCreditScreen() {
           <View style={styles.summaryRow}>
             <Text style={styles.summaryLabel}>{t('addCredit.summary.amount')}</Text>
             <Text style={[styles.summaryValue, styles.summaryAmountValue]}>
-              {!isNaN(agot) ? formatCurrency(agot) : amountInput}
+              {!isNaN(agot) ? formatCurrency(agot, CURRENCY_SYMBOLS[currency]) : amountInput}
             </Text>
           </View>
 
