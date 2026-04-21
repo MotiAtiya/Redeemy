@@ -122,6 +122,71 @@ function DayWheelPicker({ value, onChange, colors }: DayWheelPickerProps) {
 }
 
 // ---------------------------------------------------------------------------
+// Month wheel picker (commitment period)
+// ---------------------------------------------------------------------------
+
+const MONTH_MAX = 36;
+
+interface MonthWheelPickerProps {
+  value: number;
+  onChange: (month: number) => void;
+  colors: AppColors;
+  labelFn: (n: number) => string;
+}
+
+function MonthWheelPicker({ value, onChange, colors, labelFn }: MonthWheelPickerProps) {
+  const months = Array.from({ length: MONTH_MAX }, (_, i) => i + 1);
+  const center = Math.floor(DAY_VISIBLE / 2);
+
+  function handleScrollEnd(e: { nativeEvent: { contentOffset: { y: number } } }) {
+    const index = Math.round(e.nativeEvent.contentOffset.y / DAY_ITEM_H);
+    const clamped = Math.max(0, Math.min(MONTH_MAX - 1, index));
+    onChange(clamped + 1);
+  }
+
+  return (
+    <View style={{ height: DAY_ITEM_H * DAY_VISIBLE, overflow: 'hidden', borderRadius: 14, backgroundColor: colors.surface }}>
+      <View
+        style={{
+          position: 'absolute',
+          left: 32,
+          right: 32,
+          top: DAY_ITEM_H * center,
+          height: DAY_ITEM_H,
+          backgroundColor: colors.primarySurface,
+          borderRadius: 10,
+        }}
+        pointerEvents="none"
+      />
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        snapToInterval={DAY_ITEM_H}
+        decelerationRate="fast"
+        contentOffset={{ x: 0, y: (value - 1) * DAY_ITEM_H }}
+        onMomentumScrollEnd={handleScrollEnd}
+        onScrollEndDrag={handleScrollEnd}
+        contentContainerStyle={{ paddingVertical: DAY_ITEM_H * center }}
+      >
+        {months.map((m) => {
+          const sel = m === value;
+          return (
+            <View key={m} style={{ height: DAY_ITEM_H, justifyContent: 'center', alignItems: 'center' }}>
+              <Text style={{
+                fontSize: sel ? 24 : 17,
+                fontWeight: sel ? '700' : '400',
+                color: sel ? colors.primary : colors.textTertiary,
+              }}>
+                {labelFn(m)}
+              </Text>
+            </View>
+          );
+        })}
+      </ScrollView>
+    </View>
+  );
+}
+
+// ---------------------------------------------------------------------------
 // Step types
 // ---------------------------------------------------------------------------
 
@@ -379,21 +444,6 @@ function makeStyles(colors: AppColors, isRTL: boolean) {
     },
     reminderChipText: { fontSize: 15, fontWeight: '500', color: colors.textSecondary },
     reminderChipTextSelected: { color: '#FFFFFF', fontWeight: '700' },
-    customReminderBtn: {
-      paddingVertical: 14,
-      paddingHorizontal: 20,
-      borderRadius: 14,
-      borderWidth: 1.5,
-      borderColor: colors.separator,
-      backgroundColor: colors.background,
-      minWidth: '45%',
-      alignItems: 'center',
-    },
-    customReminderBtnActive: {
-      borderColor: colors.primary,
-    },
-    customReminderText: { fontSize: 15, fontWeight: '500', color: colors.textSecondary },
-    customReminderTextActive: { color: colors.primary },
     cancelModifyNote: {
       marginTop: 16,
       padding: 12,
@@ -523,8 +573,6 @@ export default function AddSubscriptionScreen() {
   const [category, setCategory] = useState('other');
   const [intent, setIntent] = useState<SubscriptionIntent | null>(null);
   const [reminderDays, setReminderDays] = useState(7);
-  const [customReminderInput, setCustomReminderInput] = useState('');
-  const [showCustomReminder, setShowCustomReminder] = useState(false);
   const [websiteUrl, setWebsiteUrl] = useState('');
   const [saving, setSaving] = useState(false);
   const [dateError, setDateError] = useState('');
@@ -1091,8 +1139,6 @@ export default function AddSubscriptionScreen() {
     );
   }
 
-  const COMMITMENT_PRESETS = [1, 3, 6, 12, 24];
-
   function renderCommitmentMonthsStep() {
     return (
       <ScrollView
@@ -1101,22 +1147,12 @@ export default function AddSubscriptionScreen() {
         keyboardShouldPersistTaps="handled"
       >
         <Text style={styles.stepTitle}>{t('addSubscription.step.commitmentMonths')}</Text>
-        <View style={styles.reminderGrid}>
-          {COMMITMENT_PRESETS.map((months) => {
-            const isSelected = commitmentMonths === months;
-            return (
-              <TouchableOpacity
-                key={months}
-                style={[styles.reminderChip, isSelected && styles.reminderChipSelected]}
-                onPress={() => setCommitmentMonths(months)}
-              >
-                <Text style={[styles.reminderChipText, isSelected && styles.reminderChipTextSelected]}>
-                  {t('addSubscription.commitmentMonths.option', { count: months })}
-                </Text>
-              </TouchableOpacity>
-            );
-          })}
-        </View>
+        <MonthWheelPicker
+          value={commitmentMonths}
+          onChange={setCommitmentMonths}
+          colors={colors}
+          labelFn={(n) => t('addSubscription.commitmentMonths.option', { count: n })}
+        />
       </ScrollView>
     );
   }
@@ -1186,15 +1222,12 @@ export default function AddSubscriptionScreen() {
         <Text style={styles.stepTitle}>{t('addSubscription.step.reminder')}</Text>
         <View style={styles.reminderGrid}>
           {SUBSCRIPTION_REMINDER_PRESETS.map((preset) => {
-            const isSelected = !showCustomReminder && reminderDays === preset.days;
+            const isSelected = reminderDays === preset.days;
             return (
               <TouchableOpacity
                 key={preset.days}
                 style={[styles.reminderChip, isSelected && styles.reminderChipSelected]}
-                onPress={() => {
-                  setReminderDays(preset.days);
-                  setShowCustomReminder(false);
-                }}
+                onPress={() => setReminderDays(preset.days)}
               >
                 <Text
                   style={[
@@ -1207,39 +1240,7 @@ export default function AddSubscriptionScreen() {
               </TouchableOpacity>
             );
           })}
-
-          {/* Custom option */}
-          <TouchableOpacity
-            style={[styles.customReminderBtn, showCustomReminder && styles.customReminderBtnActive]}
-            onPress={() => setShowCustomReminder(true)}
-          >
-            <Text
-              style={[
-                styles.customReminderText,
-                showCustomReminder && styles.customReminderTextActive,
-              ]}
-            >
-              {t('addSubscription.reminder.custom')}
-            </Text>
-          </TouchableOpacity>
         </View>
-
-        {showCustomReminder && (
-          <>
-            <Text style={styles.subInputLabel}>{t('addSubscription.reminder.customPlaceholder')}</Text>
-            <TextInput
-              style={styles.numberInput}
-              keyboardType="number-pad"
-              value={customReminderInput}
-              onChangeText={(v) => {
-                setCustomReminderInput(v);
-                const parsed = parseInt(v, 10);
-                if (!isNaN(parsed) && parsed > 0) setReminderDays(parsed);
-              }}
-              autoFocus
-            />
-          </>
-        )}
 
         {showCancelNote && (
           <View style={styles.cancelModifyNote}>
