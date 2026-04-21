@@ -191,22 +191,31 @@ export default function HistoryScreen() {
   const [filters, setFilters] = useState<FilterState>({ categories: [], dateRange: 'allTime', type: 'all' });
   const [showFilterSheet, setShowFilterSheet] = useState(false);
 
-  // Redeemed + expired credits
-  const filteredCredits = useMemo(
+  // Redeemed credits
+  const redeemedCredits = useMemo(
     () => sortCreditsHistory(
-      filterHistoryCredits(credits, search, filters.dateRange, filters.categories),
+      filterHistoryCredits(credits, search, filters.dateRange, filters.categories)
+        .filter((c) => c.status === CreditStatus.REDEEMED),
       sortKey
     ),
     [credits, search, filters, sortKey]
   );
 
-  // Closed + auto-expired warranties
-  const historyWarranties = useMemo(() => {
-    const now = new Date();
+  // Expired credits
+  const expiredCredits = useMemo(
+    () => sortCreditsHistory(
+      filterHistoryCredits(credits, search, filters.dateRange, filters.categories)
+        .filter((c) => c.status === CreditStatus.EXPIRED),
+      sortKey
+    ),
+    [credits, search, filters, sortKey]
+  );
+
+  // Closed (redeemed) warranties
+  const closedWarranties = useMemo(() => {
     return warranties
       .filter((w) =>
-        (w.status === WarrantyStatus.CLOSED ||
-          (w.status === WarrantyStatus.ACTIVE && w.expirationDate && w.expirationDate < now))
+        w.status === WarrantyStatus.CLOSED
         && (!search.trim() ||
           w.storeName.toLowerCase().includes(search.toLowerCase()) ||
           w.productName.toLowerCase().includes(search.toLowerCase()))
@@ -214,6 +223,23 @@ export default function HistoryScreen() {
       .sort((a, b) => {
         const aDate = (a.closedAt ?? a.updatedAt ?? a.createdAt).getTime();
         const bDate = (b.closedAt ?? b.updatedAt ?? b.createdAt).getTime();
+        return bDate - aDate;
+      });
+  }, [warranties, search]);
+
+  // Auto-expired warranties (active but past expiration date)
+  const expiredWarranties = useMemo(() => {
+    const now = new Date();
+    return warranties
+      .filter((w) =>
+        w.status === WarrantyStatus.ACTIVE && w.expirationDate && w.expirationDate < now
+        && (!search.trim() ||
+          w.storeName.toLowerCase().includes(search.toLowerCase()) ||
+          w.productName.toLowerCase().includes(search.toLowerCase()))
+      )
+      .sort((a, b) => {
+        const aDate = (a.expirationDate ?? a.updatedAt ?? a.createdAt).getTime();
+        const bDate = (b.expirationDate ?? b.updatedAt ?? b.createdAt).getTime();
         return bDate - aDate;
       });
   }, [warranties, search]);
@@ -250,7 +276,9 @@ export default function HistoryScreen() {
 
   const showCredits    = filters.type !== 'warranties';
   const showWarranties = filters.type !== 'credits';
-  const isEmpty = (showCredits ? filteredCredits.length : 0) === 0 && (showWarranties ? historyWarranties.length : 0) === 0;
+  const isEmpty =
+    (showCredits ? redeemedCredits.length + expiredCredits.length : 0) === 0 &&
+    (showWarranties ? closedWarranties.length + expiredWarranties.length : 0) === 0;
 
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
@@ -306,34 +334,68 @@ export default function HistoryScreen() {
         </View>
       ) : (
         <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
-          {showCredits && filteredCredits.length > 0 && (
+          {showCredits && redeemedCredits.length > 0 && (
             <>
-              <Text style={styles.sectionHeader}>{t('history.sectionCredits').toUpperCase()}</Text>
+              <Text style={styles.sectionHeader}>{t('history.sectionCreditsRedeemed').toUpperCase()}</Text>
               <FlatList
-                data={filteredCredits}
+                data={redeemedCredits}
                 keyExtractor={(item) => item.id}
                 scrollEnabled={false}
                 renderItem={({ item }) => (
                   <CreditCard
                     credit={item}
-                    variant={item.status === CreditStatus.EXPIRED ? 'expired' : 'redeemed'}
+                    variant="redeemed"
                     onPress={() => router.push(`/credit/${item.id}`)}
                   />
                 )}
               />
             </>
           )}
-          {showWarranties && historyWarranties.length > 0 && (
+          {showCredits && expiredCredits.length > 0 && (
             <>
-              <Text style={styles.sectionHeader}>{t('history.sectionWarranties').toUpperCase()}</Text>
+              <Text style={styles.sectionHeader}>{t('history.sectionCreditsExpired').toUpperCase()}</Text>
               <FlatList
-                data={historyWarranties}
+                data={expiredCredits}
+                keyExtractor={(item) => item.id}
+                scrollEnabled={false}
+                renderItem={({ item }) => (
+                  <CreditCard
+                    credit={item}
+                    variant="expired"
+                    onPress={() => router.push(`/credit/${item.id}`)}
+                  />
+                )}
+              />
+            </>
+          )}
+          {showWarranties && closedWarranties.length > 0 && (
+            <>
+              <Text style={styles.sectionHeader}>{t('history.sectionWarrantiesClosed').toUpperCase()}</Text>
+              <FlatList
+                data={closedWarranties}
                 keyExtractor={(item) => item.id}
                 scrollEnabled={false}
                 renderItem={({ item }) => (
                   <WarrantyCard
                     warranty={item}
-                    variant={item.status === WarrantyStatus.CLOSED ? 'closed' : 'expired'}
+                    variant="closed"
+                    onPress={() => router.push({ pathname: '/warranty/[id]', params: { id: item.id } })}
+                  />
+                )}
+              />
+            </>
+          )}
+          {showWarranties && expiredWarranties.length > 0 && (
+            <>
+              <Text style={styles.sectionHeader}>{t('history.sectionWarrantiesExpired').toUpperCase()}</Text>
+              <FlatList
+                data={expiredWarranties}
+                keyExtractor={(item) => item.id}
+                scrollEnabled={false}
+                renderItem={({ item }) => (
+                  <WarrantyCard
+                    warranty={item}
+                    variant="expired"
                     onPress={() => router.push({ pathname: '/warranty/[id]', params: { id: item.id } })}
                   />
                 )}

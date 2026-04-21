@@ -35,8 +35,10 @@
   },
   "history": {
     "title": "History",
-    "sectionCredits": "Redeemed Credits",
-    "sectionWarranties": "Expired & Closed Warranties",
+    "sectionCreditsRedeemed": "Redeemed Credits",
+    "sectionCreditsExpired": "Expired Credits",
+    "sectionWarrantiesClosed": "Redeemed Warranties",
+    "sectionWarrantiesExpired": "Expired Warranties",
     "dateRange": {
       "thisMonth": "This Month",
       "last3Months": "Last 3 Months",
@@ -356,21 +358,21 @@
       "storeName": "Store Name",
       "recent": "Recently Added"
     },
-    "markClosed": "Mark as Closed",
-    "closedToast": "Warranty closed",
+    "markClosed": "Mark as Redeemed",
+    "closedToast": "Warranty redeemed",
     "deletedToast": "Warranty deleted",
     "closedConfirm": {
-      "title": "Close warranty?",
+      "title": "Mark as Redeemed?",
       "message": "It will move to your history.",
-      "confirm": "Close",
+      "confirm": "Redeemed",
       "cancel": "Cancel"
     }
   },
   "warranty": {
     "notFound": "Warranty not found",
     "markClosed": {
-      "offlineMessage": "Marking warranties as closed requires an internet connection.",
-      "error": "Could not close warranty. Try again."
+      "offlineMessage": "Marking warranties as redeemed requires an internet connection.",
+      "error": "Could not redeem warranty. Try again."
     },
     "delete": {
       "offlineMessage": "Deleting warranties requires an internet connection.",
@@ -391,7 +393,7 @@
       "notes": "Notes",
       "added": "Added"
     },
-    "closedOn": "Closed on {{date}}"
+    "closedOn": "Redeemed on {{date}}"
   },
   "credit": {
     "notFound": "Credit not found",

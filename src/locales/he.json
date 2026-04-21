@@ -35,8 +35,10 @@
   },
   "history": {
     "title": "היסטוריה",
-    "sectionCredits": "זיכויים שנוצלו",
-    "sectionWarranties": "אחריות שפגה / נסגרה",
+    "sectionCreditsRedeemed": "זיכויים שמומשו",
+    "sectionCreditsExpired": "זיכויים שפג תוקפם",
+    "sectionWarrantiesClosed": "אחריות שמומשו",
+    "sectionWarrantiesExpired": "אחריות שפג תוקפן",
     "dateRange": {
       "thisMonth": "החודש",
       "last3Months": "3 חודשים אחרונים",
@@ -355,21 +357,21 @@
       "storeName": "שם חנות",
       "recent": "נוסף לאחרונה"
     },
-    "markClosed": "סמן כנסגר",
-    "closedToast": "האחריות נסגרה",
+    "markClosed": "סמן כמומש",
+    "closedToast": "האחריות מומשה",
     "deletedToast": "האחריות נמחקה",
     "closedConfirm": {
-      "title": "לסגור את האחריות?",
-      "message": "היא תועבר להיסטוריה.",
-      "confirm": "סגור",
+      "title": "לסמן כמומש?",
+      "message": "האחריות תועבר להיסטוריה.",
+      "confirm": "מומש",
       "cancel": "ביטול"
     }
   },
   "warranty": {
     "notFound": "האחריות לא נמצאה",
     "markClosed": {
-      "offlineMessage": "סימון אחריות כנסגרת דורש חיבור לאינטרנט.",
-      "error": "לא ניתן לסגור את האחריות. נסה שנית."
+      "offlineMessage": "סימון אחריות כמומשת דורש חיבור לאינטרנט.",
+      "error": "לא ניתן לסמן את האחריות כמומשת. נסה שנית."
     },
     "delete": {
       "offlineMessage": "מחיקת אחריות דורשת חיבור לאינטרנט.",
@@ -390,7 +392,7 @@
       "notes": "הערות",
       "added": "נוסף"
     },
-    "closedOn": "נסגר ב-{{date}}"
+    "closedOn": "מומש ב-{{date}}"
   },
   "credit": {
     "notFound": "הזיכוי לא נמצא",
