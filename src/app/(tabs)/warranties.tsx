@@ -2,7 +2,9 @@ import { useMemo, useState } from 'react';
 import {
   View,
   Text,
+  TextInput,
   FlatList,
+  ScrollView,
   TouchableOpacity,
   StyleSheet,
   I18nManager,
@@ -15,11 +17,12 @@ import { WarrantyCard } from '@/components/redeemy/WarrantyCard';
 import { useWarrantiesStore } from '@/stores/warrantiesStore';
 import { useAppTheme } from '@/hooks/useAppTheme';
 import { WarrantyStatus, type Warranty } from '@/types/warrantyTypes';
+import { CATEGORIES } from '@/constants/categories';
 import type { AppColors } from '@/constants/colors';
 
 type SortOption = 'expiry' | 'productName' | 'storeName' | 'recent';
 
-function makeStyles(colors: AppColors) {
+function makeStyles(colors: AppColors, isRTL: boolean) {
   return StyleSheet.create({
     safe: { flex: 1, backgroundColor: colors.background },
     header: {
@@ -56,6 +59,36 @@ function makeStyles(colors: AppColors) {
     sortOptionActive: { backgroundColor: colors.background },
     sortOptionText: { fontSize: 14, color: colors.textPrimary },
     sortOptionTextActive: { color: colors.primary, fontWeight: '600' },
+    searchContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor: colors.surface,
+      borderRadius: 12,
+      marginHorizontal: 16,
+      marginBottom: 10,
+      paddingHorizontal: 12,
+      height: 44,
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 1 },
+      shadowOpacity: 0.04,
+      shadowRadius: 2,
+      elevation: 1,
+    },
+    searchIcon: { marginEnd: 8 },
+    searchInput: { flex: 1, fontSize: 15, color: colors.textPrimary, textAlign: isRTL ? 'right' : 'left', letterSpacing: 0 },
+    filterChips: { paddingHorizontal: 16, paddingBottom: 10, gap: 8 },
+    filterChip: {
+      paddingVertical: 6,
+      paddingHorizontal: 14,
+      borderRadius: 16,
+      borderWidth: 1,
+      borderColor: colors.separator,
+      backgroundColor: colors.surface,
+      alignSelf: 'flex-start',
+    },
+    filterChipActive: { backgroundColor: colors.primary, borderColor: colors.primary },
+    filterChipText: { fontSize: 13, color: colors.textSecondary },
+    filterChipTextActive: { color: '#FFFFFF', fontWeight: '600' },
     listContent: { paddingTop: 4, paddingBottom: 100 },
     listContentEmpty: { flex: 1 },
     emptyState: {
@@ -116,12 +149,15 @@ export default function WarrantiesScreen() {
   const router = useRouter();
   const colors = useAppTheme();
   const isRTL = I18nManager.isRTL;
-  const styles = useMemo(() => makeStyles(colors), [colors]);
+  const styles = useMemo(() => makeStyles(colors, isRTL), [colors, isRTL]);
   const { t } = useTranslation();
   const warranties = useWarrantiesStore((s) => s.warranties);
 
   const [sortOption, setSortOption] = useState<SortOption>('expiry');
   const [showSortMenu, setShowSortMenu] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
 
   const SORT_OPTIONS: { key: SortOption; label: string }[] = [
     { key: 'expiry',       label: t('warranties.sort.expiry')       },
@@ -137,7 +173,26 @@ export default function WarrantiesScreen() {
     ),
   [warranties]);
 
-  const sorted = useMemo(() => sortWarranties(activeWarranties, sortOption), [activeWarranties, sortOption]);
+  const availableCategories = useMemo(
+    () => [...new Set(activeWarranties.map((w) => w.category))],
+    [activeWarranties]
+  );
+
+  const filtered = useMemo(() => {
+    const q = searchQuery.trim().toLowerCase();
+    return sortWarranties(
+      activeWarranties.filter((w) => {
+        if (selectedCategory && w.category !== selectedCategory) return false;
+        if (!q) return true;
+        return (
+          w.storeName.toLowerCase().includes(q) ||
+          w.productName.toLowerCase().includes(q) ||
+          (w.notes ?? '').toLowerCase().includes(q)
+        );
+      }),
+      sortOption
+    );
+  }, [activeWarranties, searchQuery, selectedCategory, sortOption]);
 
   function renderEmpty() {
     return (
@@ -180,10 +235,47 @@ export default function WarrantiesScreen() {
             ))}
           </View>
         )}
+
+        <View style={styles.searchContainer}>
+          <Ionicons name="search-outline" size={18} color={colors.textTertiary} style={styles.searchIcon} />
+          <TextInput
+            style={styles.searchInput}
+            placeholder={t('warranties.search')}
+            placeholderTextColor={colors.textTertiary}
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+            returnKeyType="search"
+            clearButtonMode="while-editing"
+          />
+        </View>
+
+        {availableCategories.length > 1 && (
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.filterChips}
+          >
+            {[null, ...availableCategories].map((item) => {
+              const isActive = item === selectedCategory;
+              const catMeta = item ? CATEGORIES.find((c) => c.id === item) : null;
+              return (
+                <TouchableOpacity
+                  key={item ?? 'all'}
+                  style={[styles.filterChip, isActive && styles.filterChipActive]}
+                  onPress={() => setSelectedCategory(isActive ? null : item)}
+                >
+                  <Text style={[styles.filterChipText, isActive && styles.filterChipTextActive]}>
+                    {catMeta ? t('category.' + catMeta.id) : t('warranties.filter.all')}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+          </ScrollView>
+        )}
       </View>
 
       <FlatList
-        data={sorted}
+        data={filtered}
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => (
           <WarrantyCard
@@ -192,7 +284,7 @@ export default function WarrantiesScreen() {
           />
         )}
         ListEmptyComponent={renderEmpty}
-        contentContainerStyle={[styles.listContent, sorted.length === 0 && styles.listContentEmpty]}
+        contentContainerStyle={[styles.listContent, filtered.length === 0 && styles.listContentEmpty]}
         showsVerticalScrollIndicator={false}
       />
 

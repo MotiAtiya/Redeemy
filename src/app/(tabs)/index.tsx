@@ -161,6 +161,7 @@ export default function CreditsScreen() {
   const [showSortMenu, setShowSortMenu] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
 
+
   useEffect(() => {
     if (!currentUser?.uid) return;
     setLoading(true);

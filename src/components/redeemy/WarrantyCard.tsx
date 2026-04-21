@@ -43,9 +43,17 @@ function makeStyles(colors: AppColors) {
     productName: { fontSize: 22, fontWeight: '800', color: colors.textPrimary, letterSpacing: -0.5 },
     productNameDimmed: { color: colors.textTertiary },
     textDimmed: { color: colors.textTertiary },
-    meta: { flexDirection: 'row', alignItems: 'center', gap: 8, flexWrap: 'wrap' },
-    categoryBadge: { flexDirection: 'row', alignItems: 'center', gap: 4 },
-    categoryText: { fontSize: 11, color: colors.textSecondary },
+    categoryIconCircle: {
+      width: 40,
+      height: 40,
+      borderRadius: 20,
+      backgroundColor: colors.primarySurface,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    categoryIconCircleDimmed: {
+      backgroundColor: colors.background,
+    },
     closedBadge: {
       paddingHorizontal: 8,
       paddingVertical: 3,
@@ -171,34 +179,30 @@ export function WarrantyCard({ warranty, onPress, variant = 'active' }: Props) {
             {warranty.productName}
           </Text>
 
-          <View style={styles.meta}>
-            {categoryMeta && (
-              <View style={styles.categoryBadge}>
-                <Ionicons
-                  name={categoryMeta.icon}
-                  size={12}
-                  color={dimmed ? colors.textTertiary : colors.textSecondary}
-                />
-                <Text style={[styles.categoryText, dimmed && styles.textDimmed]}>
-                  {t('category.' + categoryMeta.id)}
+          {dimmed ? (
+            badgeDate ? (
+              <View style={styles.closedBadge}>
+                <Text style={styles.closedBadgeText}>
+                  {variant === 'expired'
+                    ? t('warrantyCard.expired', { date: badgeDate })
+                    : t('warrantyCard.redeemed', { date: badgeDate })}
                 </Text>
               </View>
-            )}
-            {dimmed ? (
-              badgeDate ? (
-                <View style={styles.closedBadge}>
-                  <Text style={styles.closedBadgeText}>
-                    {variant === 'expired'
-                      ? t('warrantyCard.expired', { date: badgeDate })
-                      : t('warrantyCard.redeemed', { date: badgeDate })}
-                  </Text>
-                </View>
-              ) : null
-            ) : (
-              <ExpirationBadge expirationDate={warranty.noExpiry ? undefined : expirationDate} />
-            )}
-          </View>
+            ) : null
+          ) : (
+            <ExpirationBadge expirationDate={warranty.noExpiry ? undefined : expirationDate} />
+          )}
         </View>
+
+        {categoryMeta && (
+          <View style={[styles.categoryIconCircle, dimmed && styles.categoryIconCircleDimmed]}>
+            <Ionicons
+              name={categoryMeta.icon}
+              size={20}
+              color={dimmed ? colors.textTertiary : colors.primary}
+            />
+          </View>
+        )}
       </View>
     </TouchableOpacity>
   );

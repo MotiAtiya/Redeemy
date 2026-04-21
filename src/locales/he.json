@@ -348,16 +348,18 @@
   },
   "warranties": {
     "title": "אחריויות",
+    "search": "חפש לפי חנות, מוצר או הערות…",
+    "filter": { "all": "הכל" },
     "empty": {
       "title": "אין אחריויות עדיין",
       "subtitle": "הוסף את האחריות הראשונה שלך ואל תפספס שום תוקף",
       "action": "הוסף אחריות"
     },
     "sort": {
-      "expiry": "תאריך תפוגה",
+      "expiry": "תפוגה",
       "productName": "שם מוצר",
-      "storeName": "שם חנות",
-      "recent": "נוסף לאחרונה"
+      "storeName": "חנות א-ת",
+      "recent": "אחרונים"
     },
     "markClosed": "סמן כמומש",
     "closedToast": "האחריות מומשה",
@@ -575,6 +577,14 @@
     "allFree": "כל המנויים חינמיים",
     "activeCount_one": "מנוי פעיל אחד",
     "activeCount_other": "{{count}} מנויים פעילים",
+    "search": "חפש לפי שירות או הערות…",
+    "filter": { "all": "הכל" },
+    "sort": {
+      "billingDate": "תאריך חיוב",
+      "serviceAZ": "שירות א-ת",
+      "amount": "סכום",
+      "recent": "אחרונים"
+    },
     "empty": {
       "title": "אין מנויים עדיין",
       "subtitle": "הוסף את המנוי הראשון שלך ועקוב אחרי תשלומים חוזרים",
@@ -624,6 +634,8 @@
   },
   "subscriptionCard": {
     "free": "חינמי",
+    "perMonth": "לחודש",
+    "trial": "ניסיון",
     "freeTrial": "ניסיון חינמי — מסתיים בעוד {{days}} ימים",
     "freeTrialEndsToday": "ניסיון חינמי — מסתיים היום",
     "monthlyAmount": "₪{{amount}}/חודש",
@@ -654,8 +666,8 @@
       "reminderDays_one": "{{count}} יום לפני",
       "reminderDays_other": "{{count}} ימים לפני",
       "free": "חינמי",
-      "monthlyAmount": "₪{{amount}}/חודש",
-      "annualAmount": "₪{{amount}}/שנה (₪{{monthly}}/חודש)",
+      "monthlyAmount": "{{amount}}/חודש",
+      "annualAmount": "{{amount}}/שנה ({{monthly}}/חודש)",
       "commitment": "{{months}} חודשים · מסתיים {{date}}"
     },
     "action": {

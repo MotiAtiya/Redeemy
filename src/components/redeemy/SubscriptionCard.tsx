@@ -72,19 +72,78 @@ function makeStyles(colors: AppColors) {
     },
     content: {
       flexDirection: 'row',
-      alignItems: 'flex-start',
+      alignItems: 'center',
       padding: 14,
       gap: 12,
     },
-    // Left icon column
-    iconColumn: { alignItems: 'center', width: 48, position: 'relative' },
-    iconCircle: {
-      width: 48,
-      height: 48,
-      borderRadius: 24,
+    // Amount block (start side — right in RTL, left in LTR)
+    amountBlock: {
+      alignItems: 'center',
+      justifyContent: 'center',
+      width: 84,
+      position: 'relative',
+    },
+    amountNumber: {
+      fontSize: 22,
+      fontWeight: '800',
+      color: colors.primary,
+      letterSpacing: -0.5,
+      textAlign: 'center',
+    },
+    amountNumberFree: {
+      fontSize: 16,
+      fontWeight: '700',
+      color: colors.textTertiary,
+    },
+    amountNumberTrial: {
+      fontSize: 16,
+      fontWeight: '700',
+      color: colors.urgencyAmber,
+    },
+    amountCents: {
+      fontSize: 13,
+      fontWeight: '600',
+      letterSpacing: 0,
+    },
+    amountPeriod: {
+      fontSize: 11,
+      color: colors.textSecondary,
+      marginTop: 1,
+    },
+    // Content column — alignItems: 'flex-start' flips to right in RTL, same as CreditCard
+    contentColumn: { flex: 1, gap: 5, alignItems: 'flex-start' },
+    serviceName: {
+      fontSize: 16,
+      fontWeight: '700',
+      color: colors.textPrimary,
+    },
+    // Intent badge
+    intentBadge: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 3,
+      paddingHorizontal: 7,
+      paddingVertical: 3,
+      borderRadius: 10,
+    },
+    intentBadgeText: { fontSize: 11, fontWeight: '600' },
+    // Urgency badge
+    urgencyBadge: {
+      paddingHorizontal: 7,
+      paddingVertical: 2,
+      borderRadius: 8,
+      borderWidth: 1,
+    },
+    urgencyBadgeText: { fontSize: 11, fontWeight: '600' },
+    // Category icon circle (end side — left in RTL, right in LTR)
+    categoryIconCircle: {
+      width: 40,
+      height: 40,
+      borderRadius: 20,
       backgroundColor: colors.primarySurface,
       justifyContent: 'center',
       alignItems: 'center',
+      position: 'relative',
     },
     memberAvatar: {
       position: 'absolute',
@@ -100,41 +159,6 @@ function makeStyles(colors: AppColors) {
       borderColor: colors.surface,
     },
     memberAvatarText: { fontSize: 8, fontWeight: '700', color: '#FFFFFF' },
-    // Right content column
-    contentColumn: { flex: 1, gap: 4 },
-    topRow: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-      gap: 8,
-    },
-    serviceName: {
-      flex: 1,
-      fontSize: 17,
-      fontWeight: '700',
-      color: colors.textPrimary,
-    },
-    // Intent badge
-    intentBadge: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: 3,
-      paddingHorizontal: 7,
-      paddingVertical: 3,
-      borderRadius: 10,
-    },
-    intentBadgeText: { fontSize: 11, fontWeight: '600' },
-    // Amount line
-    amountText: { fontSize: 15, color: colors.textSecondary },
-    amountFree: { fontSize: 15, color: colors.textTertiary },
-    amountTrial: { fontSize: 15, color: colors.urgencyAmber },
-    urgencyBadge: {
-      paddingHorizontal: 7,
-      paddingVertical: 2,
-      borderRadius: 8,
-      borderWidth: 1,
-    },
-    urgencyBadgeText: { fontSize: 11, fontWeight: '600' },
   });
 }
 
@@ -172,7 +196,7 @@ export function SubscriptionCard({ subscription: sub, onPress }: Props) {
         .toUpperCase()
     : null;
 
-  // Urgency: days until billing (or days until trial ends for free trial)
+  // Days for urgency
   const daysForUrgency = useMemo(() => {
     if (sub.isFreeTrial && sub.trialEndsDate) {
       const msPerDay = 1000 * 60 * 60 * 24;
@@ -192,30 +216,7 @@ export function SubscriptionCard({ subscription: sub, onPress }: Props) {
     return { urgencyText: colors.urgencyGreen, urgencyBg: colors.urgencyGreenSurface };
   }, [daysForUrgency, colors]);
 
-  // Amount display
-  const amountText = useMemo(() => {
-    if (sub.isFree) return null; // handled separately
-    if (sub.isFreeTrial && sub.trialEndsDate) return null; // handled separately
-    if (sub.billingCycle === SubscriptionBillingCycle.ANNUAL) {
-      const monthly = normalizeToMonthlyAgorot(sub);
-      return t('subscriptionCard.annualAmount', {
-        amount: formatCurrency(sub.amountAgorot, currencySymbol),
-        monthly: formatCurrency(monthly, currencySymbol),
-      });
-    }
-    return t('subscriptionCard.monthlyAmount', {
-      amount: formatCurrency(sub.amountAgorot, currencySymbol),
-    });
-  }, [sub, t]);
-
-  // Free trial text
-  const trialText = useMemo(() => {
-    if (!sub.isFreeTrial || !sub.trialEndsDate) return null;
-    if (daysForUrgency === 0) return t('subscriptionCard.freeTrialEndsToday');
-    return t('subscriptionCard.freeTrial', { days: daysForUrgency });
-  }, [sub, daysForUrgency, t]);
-
-  // Urgency badge label
+  // Urgency label
   const urgencyLabel = useMemo(() => {
     if (daysForUrgency === 0) return t('badge.today');
     if (daysForUrgency === 1) return t('badge.oneDay');
@@ -228,6 +229,24 @@ export function SubscriptionCard({ subscription: sub, onPress }: Props) {
     return months === 1 ? t('badge.oneMonth') : t('badge.months', { months });
   }, [daysForUrgency, t]);
 
+  // Amount block content
+  const { amountLabel, periodLabel, amountStyle } = useMemo(() => {
+    if (sub.isFree) {
+      return { amountLabel: t('subscriptionCard.free'), periodLabel: null, amountStyle: styles.amountNumberFree };
+    }
+    if (sub.isFreeTrial) {
+      return { amountLabel: t('subscriptionCard.trial'), periodLabel: null, amountStyle: styles.amountNumberTrial };
+    }
+    const monthly = sub.billingCycle === SubscriptionBillingCycle.ANNUAL
+      ? normalizeToMonthlyAgorot(sub)
+      : sub.amountAgorot;
+    return {
+      amountLabel: formatCurrency(monthly, currencySymbol),
+      periodLabel: t('subscriptionCard.perMonth'),
+      amountStyle: styles.amountNumber,
+    };
+  }, [sub, t, currencySymbol, styles]);
+
   return (
     <TouchableOpacity
       style={styles.card}
@@ -237,66 +256,73 @@ export function SubscriptionCard({ subscription: sub, onPress }: Props) {
       accessibilityLabel={sub.serviceName}
     >
       <View style={styles.content}>
-        {/* Left: category icon + optional member avatar */}
-        <View style={styles.iconColumn}>
-          <View style={styles.iconCircle}>
+        {/* Amount block (start side) */}
+        <View style={styles.amountBlock}>
+          {(() => {
+            const dotIndex = amountLabel.indexOf('.');
+            if (dotIndex === -1) {
+              return <Text style={amountStyle} numberOfLines={1}>{amountLabel}</Text>;
+            }
+            const whole = amountLabel.slice(0, dotIndex);
+            const cents = amountLabel.slice(dotIndex + 1);
+            return (
+              <Text style={amountStyle} numberOfLines={1}>
+                {whole}
+                <Text style={[amountStyle, styles.amountCents]}>.{cents}</Text>
+              </Text>
+            );
+          })()}
+          {periodLabel && (
+            <Text style={styles.amountPeriod}>{periodLabel}</Text>
+          )}
+        </View>
+
+        {/* Content column */}
+        <View style={styles.contentColumn}>
+          <Text style={styles.serviceName} numberOfLines={1}>
+            {sub.serviceName}
+          </Text>
+
+          <View
+            style={[
+              styles.intentBadge,
+              { backgroundColor: colors[intentConfig.bgColor] as string },
+            ]}
+          >
             <Ionicons
-              name={categoryMeta?.icon ?? 'repeat-outline'}
-              size={24}
-              color={colors.primary}
+              name={intentConfig.icon}
+              size={11}
+              color={colors[intentConfig.textColor] as string}
             />
+            <Text
+              style={[
+                styles.intentBadgeText,
+                { color: colors[intentConfig.textColor] as string },
+              ]}
+            >
+              {t(intentConfig.labelKey)}
+            </Text>
           </View>
+
+          <View style={[styles.urgencyBadge, { backgroundColor: urgencyBg, borderColor: urgencyText }]}>
+            <Text style={[styles.urgencyBadgeText, { color: urgencyText }]}>
+              {urgencyLabel}
+            </Text>
+          </View>
+        </View>
+
+        {/* Category icon circle (end side) */}
+        <View style={styles.categoryIconCircle}>
+          <Ionicons
+            name={categoryMeta?.icon ?? 'repeat-outline'}
+            size={20}
+            color={colors.primary}
+          />
           {showMemberAvatar && (
             <View style={styles.memberAvatar}>
               <Text style={styles.memberAvatarText}>{memberInitials}</Text>
             </View>
           )}
-        </View>
-
-        {/* Right: content */}
-        <View style={styles.contentColumn}>
-          {/* Row 1: service name + intent badge */}
-          <View style={styles.topRow}>
-            <Text style={styles.serviceName} numberOfLines={1}>
-              {sub.serviceName}
-            </Text>
-            <View
-              style={[
-                styles.intentBadge,
-                { backgroundColor: colors[intentConfig.bgColor] as string },
-              ]}
-            >
-              <Ionicons
-                name={intentConfig.icon}
-                size={11}
-                color={colors[intentConfig.textColor] as string}
-              />
-              <Text
-                style={[
-                  styles.intentBadgeText,
-                  { color: colors[intentConfig.textColor] as string },
-                ]}
-              >
-                {t(intentConfig.labelKey)}
-              </Text>
-            </View>
-          </View>
-
-          {/* Row 2: amount / free / trial */}
-          {sub.isFree ? (
-            <Text style={styles.amountFree}>{t('subscriptionCard.free')}</Text>
-          ) : trialText ? (
-            <Text style={styles.amountTrial}>{trialText}</Text>
-          ) : (
-            <Text style={styles.amountText}>{amountText}</Text>
-          )}
-
-          {/* Row 3: urgency badge */}
-          <View style={[styles.urgencyBadge, { backgroundColor: urgencyBg, borderColor: urgencyText, alignSelf: 'flex-start' }]}>
-            <Text style={[styles.urgencyBadgeText, { color: urgencyText }]}>
-              {urgencyLabel}
-            </Text>
-          </View>
         </View>
       </View>
     </TouchableOpacity>

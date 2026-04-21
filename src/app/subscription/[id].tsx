@@ -99,7 +99,7 @@ function makeStyles(colors: AppColors) {
       gap: 12,
       backgroundColor: colors.background,
     },
-    headerTitle: { fontSize: 17, fontWeight: '600', color: colors.textPrimary, flex: 1 },
+    headerTitle: { fontSize: 17, fontWeight: '600', color: colors.textPrimary, alignSelf: 'flex-start' },
     scroll: { flex: 1 },
     scrollContent: { padding: 16, gap: 12, paddingBottom: 32 },
     // Hero card
@@ -137,9 +137,10 @@ function makeStyles(colors: AppColors) {
     detailsCard: { backgroundColor: colors.surface, borderRadius: 14, overflow: 'hidden' },
     detailRow: { flexDirection: 'row', alignItems: 'flex-start', padding: 14, gap: 12 },
     detailRowContent: { flex: 1, gap: 2 },
-    detailLabel: { fontSize: 12, color: colors.textTertiary, fontWeight: '500' },
-    detailValue: { fontSize: 15, color: colors.textPrimary },
-    detailValueLink: { fontSize: 15, color: colors.primary },
+    detailLabel: { fontSize: 12, color: colors.textTertiary, fontWeight: '500', alignSelf: 'flex-start' },
+    detailValue: { fontSize: 15, color: colors.textPrimary, alignSelf: 'flex-start' },
+    notesValue: { fontSize: 15, color: colors.textPrimary, alignSelf: 'flex-start', textAlign: 'left' },
+    detailValueLink: { fontSize: 15, color: colors.primary, alignSelf: 'flex-start' },
     separator: { height: 1, backgroundColor: colors.separator, marginStart: 44 },
     // Footer
     footer: {
@@ -421,7 +422,9 @@ export default function SubscriptionDetailScreen() {
         <TouchableOpacity onPress={() => router.back()} hitSlop={8}>
           <Ionicons name={isRTL ? 'arrow-forward' : 'arrow-back'} size={24} color={colors.textPrimary} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle} numberOfLines={1}>{sub.serviceName}</Text>
+        <View style={{ flex: 1 }}>
+          <Text style={styles.headerTitle} numberOfLines={1}>{sub.serviceName}</Text>
+        </View>
         <TouchableOpacity onPress={() => setShowActionSheet(true)} hitSlop={8}>
           <Ionicons name="ellipsis-horizontal" size={22} color={colors.textPrimary} />
         </TouchableOpacity>
@@ -557,7 +560,7 @@ export default function SubscriptionDetailScreen() {
                 <Ionicons name="document-text-outline" size={18} color={colors.textTertiary} />
                 <View style={styles.detailRowContent}>
                   <Text style={styles.detailLabel}>{t('subscription.detail.notes')}</Text>
-                  <Text style={styles.detailValue}>{sub.notes}</Text>
+                  <Text style={styles.notesValue}>{sub.notes}</Text>
                 </View>
               </View>
             </>

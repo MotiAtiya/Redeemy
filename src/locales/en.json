@@ -349,16 +349,18 @@
   },
   "warranties": {
     "title": "Warranties",
+    "search": "Search by store, product or notes…",
+    "filter": { "all": "All" },
     "empty": {
       "title": "No warranties yet",
       "subtitle": "Add your first warranty to keep track of product guarantees",
       "action": "Add Warranty"
     },
     "sort": {
-      "expiry": "Expiry Date",
+      "expiry": "Expiry",
       "productName": "Product Name",
-      "storeName": "Store Name",
-      "recent": "Recently Added"
+      "storeName": "Store A–Z",
+      "recent": "Recent"
     },
     "markClosed": "Mark as Redeemed",
     "closedToast": "Warranty redeemed",
@@ -576,6 +578,14 @@
     "allFree": "All subscriptions are free",
     "activeCount_one": "{{count}} active subscription",
     "activeCount_other": "{{count}} active subscriptions",
+    "search": "Search by service or notes…",
+    "filter": { "all": "All" },
+    "sort": {
+      "billingDate": "Billing Date",
+      "serviceAZ": "Service A–Z",
+      "amount": "Amount",
+      "recent": "Recent"
+    },
     "empty": {
       "title": "No subscriptions yet",
       "subtitle": "Add your first subscription to track recurring payments",
@@ -625,6 +635,8 @@
   },
   "subscriptionCard": {
     "free": "Free",
+    "perMonth": "/month",
+    "trial": "Trial",
     "freeTrial": "Free trial — ends in {{days}} days",
     "freeTrialEndsToday": "Free trial — ends today",
     "monthlyAmount": "₪{{amount}}/month",
@@ -655,8 +667,8 @@
       "reminderDays_one": "{{count}} day before",
       "reminderDays_other": "{{count}} days before",
       "free": "Free",
-      "monthlyAmount": "₪{{amount}}/month",
-      "annualAmount": "₪{{amount}}/year (₪{{monthly}}/month)",
+      "monthlyAmount": "{{amount}}/month",
+      "annualAmount": "{{amount}}/year ({{monthly}}/month)",
       "commitment": "{{months}} months · ends {{date}}"
     },
     "action": {

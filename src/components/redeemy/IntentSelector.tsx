@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, I18nManager } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import { useAppTheme } from '@/hooks/useAppTheme';
@@ -12,7 +12,7 @@ interface Props {
   onSelect: (intent: SubscriptionIntent) => void;
 }
 
-function makeStyles(colors: AppColors, isRTL: boolean) {
+function makeStyles(colors: AppColors) {
   return StyleSheet.create({
     container: { gap: 12 },
     card: {
@@ -36,19 +36,17 @@ function makeStyles(colors: AppColors, isRTL: boolean) {
       justifyContent: 'center',
       alignItems: 'center',
     },
-    textContainer: { flex: 1, gap: 3 },
+    textContainer: { flex: 1, gap: 3, alignItems: 'flex-start' },
     label: {
       fontSize: 17,
       fontWeight: '700',
       color: colors.textPrimary,
-      textAlign: isRTL ? 'right' : 'left',
     },
     labelSelected: { color: colors.primary },
     description: {
       fontSize: 13,
       color: colors.textSecondary,
       lineHeight: 18,
-      textAlign: isRTL ? 'right' : 'left',
     },
   });
 }
@@ -56,8 +54,7 @@ function makeStyles(colors: AppColors, isRTL: boolean) {
 export function IntentSelector({ selected, onSelect }: Props) {
   const { t } = useTranslation();
   const colors = useAppTheme();
-  const isRTL = I18nManager.isRTL;
-  const styles = useMemo(() => makeStyles(colors, isRTL), [colors, isRTL]);
+  const styles = useMemo(() => makeStyles(colors), [colors]);
 
   return (
     <View style={styles.container}>
