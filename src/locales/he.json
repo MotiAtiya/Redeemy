@@ -483,6 +483,10 @@
     "expiry": {
       "title": "היום הוא היום האחרון!",
       "body": "היום הוא היום האחרון למימוש זיכוי {{storeName}} — {{amount}}"
+    },
+    "subscription": {
+      "title": "מנוי מסתיים בקרוב",
+      "body": "המנוי {{serviceName}} מסתיים בעוד {{days}} ימים"
     }
   },
   "common": {
@@ -581,8 +585,6 @@
       "renewDesc": "אני מתכוון להמשיך את המנוי",
       "cancel": "לבטל",
       "cancelDesc": "אני רוצה לבטל לפני החידוש",
-      "modify": "לשנות",
-      "modifyDesc": "אני רוצה לשנות מסלול",
       "check": "לבדוק",
       "checkDesc": "הזכר לי לבדוק אם זה משתלם"
     },
@@ -653,7 +655,8 @@
       "reminderDays_other": "{{count}} ימים לפני",
       "free": "חינמי",
       "monthlyAmount": "₪{{amount}}/חודש",
-      "annualAmount": "₪{{amount}}/שנה (₪{{monthly}}/חודש)"
+      "annualAmount": "₪{{amount}}/שנה (₪{{monthly}}/חודש)",
+      "commitment": "{{months}} חודשים · מסתיים {{date}}"
     },
     "action": {
       "edit": "ערוך",
@@ -687,11 +690,16 @@
       "amount": "סכום המנוי",
       "billingDateMonthly": "יום חיוב",
       "billingDateAnnual": "תאריך החידוש הבא",
+      "commitmentMonths": "לכמה חודשים?",
       "category": "קטגוריה",
       "intent": "כוונה",
       "reminder": "תזכורת",
       "website": "אתר או אפליקציה",
       "summary": "הכל נראה טוב?"
+    },
+    "commitmentMonths": {
+      "option_one": "חודש אחד",
+      "option_other": "{{count}} חודשים"
     },
     "billingType": {
       "monthly": "חודשי",

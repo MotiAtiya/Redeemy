@@ -6,7 +6,6 @@ import { useAppTheme } from '@/hooks/useAppTheme';
 import { useAuthStore } from '@/stores/authStore';
 import { useSettingsStore, CURRENCY_SYMBOLS } from '@/stores/settingsStore';
 import { formatCurrency } from '@/lib/formatCurrency';
-import { formatDate } from '@/lib/formatDate';
 import { SUBSCRIPTION_CATEGORIES } from '@/constants/subscriptionCategories';
 import {
   SubscriptionBillingCycle,
@@ -14,7 +13,6 @@ import {
   type Subscription,
 } from '@/types/subscriptionTypes';
 import {
-  getNextBillingDate,
   daysUntilBilling,
   normalizeToMonthlyAgorot,
 } from '@/lib/subscriptionUtils';
@@ -46,12 +44,6 @@ const INTENT_CONFIG: Record<SubscriptionIntent, IntentConfig> = {
     labelKey: 'subscriptions.intent.cancel',
     textColor: 'urgencyRed',
     bgColor: 'urgencyRedSurface',
-  },
-  [SubscriptionIntent.MODIFY]: {
-    icon: 'create-outline',
-    labelKey: 'subscriptions.intent.modify',
-    textColor: 'urgencyAmber',
-    bgColor: 'urgencyAmberSurface',
   },
   [SubscriptionIntent.CHECK]: {
     icon: 'eye-outline',
@@ -136,15 +128,6 @@ function makeStyles(colors: AppColors) {
     amountText: { fontSize: 15, color: colors.textSecondary },
     amountFree: { fontSize: 15, color: colors.textTertiary },
     amountTrial: { fontSize: 15, color: colors.urgencyAmber },
-    // Renewal row
-    renewalRow: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-      gap: 8,
-      marginTop: 2,
-    },
-    renewalText: { fontSize: 13, color: colors.textTertiary, flex: 1 },
     urgencyBadge: {
       paddingHorizontal: 7,
       paddingVertical: 2,
@@ -168,7 +151,6 @@ export function SubscriptionCard({ subscription: sub, onPress }: Props) {
   const colors = useAppTheme();
   const styles = useMemo(() => makeStyles(colors), [colors]);
   const { t } = useTranslation();
-  const dateFormat = useSettingsStore((s) => s.dateFormat);
   const currencySymbol = CURRENCY_SYMBOLS[sub.currency ?? 'ILS'];
   const currentUid = useAuthStore((s) => s.currentUser?.uid);
 
@@ -232,25 +214,6 @@ export function SubscriptionCard({ subscription: sub, onPress }: Props) {
     if (daysForUrgency === 0) return t('subscriptionCard.freeTrialEndsToday');
     return t('subscriptionCard.freeTrial', { days: daysForUrgency });
   }, [sub, daysForUrgency, t]);
-
-  // Renewal line
-  const renewalText = useMemo(() => {
-    const days = daysUntilBilling(sub);
-    if (sub.billingCycle === SubscriptionBillingCycle.MONTHLY) {
-      const day = sub.billingDayOfMonth ?? 1;
-      if (days === 0) return t('subscriptionCard.renewsToday');
-      if (days === 1) return t('subscriptionCard.renewsTomorrow');
-      return t('subscriptionCard.renewsOnDayInDays', { day, days });
-    }
-    // ANNUAL
-    if (days === 0) return t('subscriptionCard.renewsToday');
-    if (days === 1) return t('subscriptionCard.renewsTomorrow');
-    const nextDate = getNextBillingDate(sub);
-    return t('subscriptionCard.renewsOnDate', {
-      days,
-      date: formatDate(nextDate, dateFormat),
-    });
-  }, [sub, t, dateFormat]);
 
   // Urgency badge label
   const urgencyLabel = useMemo(() => {
@@ -328,21 +291,11 @@ export function SubscriptionCard({ subscription: sub, onPress }: Props) {
             <Text style={styles.amountText}>{amountText}</Text>
           )}
 
-          {/* Row 3: renewal line + urgency badge */}
-          <View style={styles.renewalRow}>
-            <Text style={styles.renewalText} numberOfLines={1}>
-              {renewalText}
+          {/* Row 3: urgency badge */}
+          <View style={[styles.urgencyBadge, { backgroundColor: urgencyBg, borderColor: urgencyText, alignSelf: 'flex-start' }]}>
+            <Text style={[styles.urgencyBadgeText, { color: urgencyText }]}>
+              {urgencyLabel}
             </Text>
-            <View
-              style={[
-                styles.urgencyBadge,
-                { backgroundColor: urgencyBg, borderColor: urgencyText },
-              ]}
-            >
-              <Text style={[styles.urgencyBadgeText, { color: urgencyText }]}>
-                {urgencyLabel}
-              </Text>
-            </View>
           </View>
         </View>
       </View>

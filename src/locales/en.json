@@ -484,6 +484,10 @@
     "expiry": {
       "title": "Last Day to Redeem!",
       "body": "Today is the last day to redeem your {{storeName}} credit — {{amount}}"
+    },
+    "subscription": {
+      "title": "Subscription ending soon",
+      "body": "{{serviceName}} ends in {{days}} days"
     }
   },
   "common": {
@@ -582,8 +586,6 @@
       "renewDesc": "I plan to keep this subscription",
       "cancel": "Cancel",
       "cancelDesc": "I want to cancel before renewal",
-      "modify": "Modify",
-      "modifyDesc": "I want to change the plan",
       "check": "Check",
       "checkDesc": "Remind me to evaluate this"
     },
@@ -654,7 +656,8 @@
       "reminderDays_other": "{{count}} days before",
       "free": "Free",
       "monthlyAmount": "₪{{amount}}/month",
-      "annualAmount": "₪{{amount}}/year (₪{{monthly}}/month)"
+      "annualAmount": "₪{{amount}}/year (₪{{monthly}}/month)",
+      "commitment": "{{months}} months · ends {{date}}"
     },
     "action": {
       "edit": "Edit",
@@ -688,11 +691,16 @@
       "amount": "Subscription amount",
       "billingDateMonthly": "Billing day",
       "billingDateAnnual": "Renewal date",
+      "commitmentMonths": "Commitment period",
       "category": "Category",
       "intent": "Intention",
       "reminder": "Reminder",
       "website": "Website or app",
       "summary": "Looking good?"
+    },
+    "commitmentMonths": {
+      "option_one": "1 month",
+      "option_other": "{{count}} months"
     },
     "billingType": {
       "monthly": "Monthly",

@@ -26,6 +26,8 @@ import { CurrencyPicker } from '@/components/redeemy/CurrencyPicker';
 import { IntentSelector } from '@/components/redeemy/IntentSelector';
 import { StepProgressBar } from '@/components/redeemy/StepProgressBar';
 import { createSubscription, updateSubscription } from '@/lib/firestoreSubscriptions';
+import { computeCommitmentEndDate } from '@/lib/subscriptionUtils';
+import { scheduleSubscriptionCommitmentNotification } from '@/lib/notifications';
 import { parseAmountToAgot } from '@/constants/currencies';
 import { formatCurrency } from '@/lib/formatCurrency';
 import { useAuthStore } from '@/stores/authStore';
@@ -128,24 +130,26 @@ type StepId =
   | 'serviceName'
   | 'amount'
   | 'billingDate'
+  | 'commitmentMonths'
   | 'category'
   | 'intent'
   | 'reminder'
   | 'website'
   | 'summary';
 
-function getSteps(): StepId[] {
-  return [
+function getSteps(billingCycle: SubscriptionBillingCycle | null): StepId[] {
+  const steps: StepId[] = [
     'serviceName',
     'category',
     'billingType',
     'amount',
     'billingDate',
-    'intent',
-    'reminder',
-    'website',
-    'summary',
   ];
+  if (billingCycle === SubscriptionBillingCycle.MONTHLY) {
+    steps.push('commitmentMonths');
+  }
+  steps.push('intent', 'reminder', 'website', 'summary');
+  return steps;
 }
 
 // ---------------------------------------------------------------------------
@@ -514,6 +518,7 @@ export default function AddSubscriptionScreen() {
   const [freeTrialMonths, setFreeTrialMonths] = useState('');
   const [billingDayOfMonth, setBillingDayOfMonth] = useState(() => String(new Date().getDate()));
   const [nextBillingDate, setNextBillingDate] = useState<Date | null>(null);
+  const [commitmentMonths, setCommitmentMonths] = useState(12);
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [category, setCategory] = useState('other');
   const [intent, setIntent] = useState<SubscriptionIntent | null>(null);
@@ -531,7 +536,7 @@ export default function AddSubscriptionScreen() {
   const slideAnim = useRef(new Animated.Value(0)).current;
   const keyboardPadding = useRef(new Animated.Value(0)).current;
 
-  const steps = useMemo(() => getSteps(), []);
+  const steps = useMemo(() => getSteps(billingCycle), [billingCycle]);
   const currentStepIndex = steps.indexOf(currentStepId);
 
   // Keyboard tracking
@@ -582,6 +587,7 @@ export default function AddSubscriptionScreen() {
     setReminderDays(existingSubscription.reminderDays);
     setWebsiteUrl(existingSubscription.websiteUrl ?? '');
     if (existingSubscription.currency) setCurrency(existingSubscription.currency);
+    if (existingSubscription.commitmentMonths) setCommitmentMonths(existingSubscription.commitmentMonths);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -660,6 +666,7 @@ export default function AddSubscriptionScreen() {
         if (billingCycle === SubscriptionBillingCycle.MONTHLY) return true; // picker always valid
         return nextBillingDate !== null;
       }
+      case 'commitmentMonths': return true;
       case 'category':  return true;
       case 'intent':    return intent !== null;
       case 'reminder':  return true;
@@ -738,6 +745,23 @@ export default function AddSubscriptionScreen() {
         ? new Date(now.getFullYear(), now.getMonth() + freeMonths, now.getDate())
         : undefined;
 
+    // Compute commitmentEndDate for monthly subscriptions
+    let commitmentEndDate: Date | undefined;
+    if (billingCycle === SubscriptionBillingCycle.MONTHLY) {
+      const day = parseInt(billingDayOfMonth, 10) || 1;
+      const lastDay = (y: number, m: number) => new Date(y, m + 1, 0).getDate();
+      const yr = now.getFullYear(), mo = now.getMonth();
+      const thisMonth = new Date(yr, mo, Math.min(day, lastDay(yr, mo)));
+      const firstBilling = thisMonth > now
+        ? thisMonth
+        : (() => {
+            const nm = mo + 1 > 11 ? 0 : mo + 1;
+            const ny = mo + 1 > 11 ? yr + 1 : yr;
+            return new Date(ny, nm, Math.min(day, lastDay(ny, nm)));
+          })();
+      commitmentEndDate = computeCommitmentEndDate(firstBilling, commitmentMonths);
+    }
+
     const subscriptionData: Omit<Subscription, 'id' | 'createdAt' | 'updatedAt'> = {
       userId: currentUser.uid,
       serviceName: serviceName.trim(),
@@ -755,6 +779,8 @@ export default function AddSubscriptionScreen() {
       freeTrialMonths: freeMonths,
       priceAfterTrialAgorot: priceAfterAgorot,
       trialEndsDate,
+      commitmentMonths: billingCycle === SubscriptionBillingCycle.MONTHLY ? commitmentMonths : undefined,
+      commitmentEndDate,
       category,
       intent: intent!,
       status: SubscriptionStatus.ACTIVE,
@@ -777,6 +803,22 @@ export default function AddSubscriptionScreen() {
       try {
         subscriptionsStore.getState().updateSubscription(existingSubscription.id, subscriptionData);
         await updateSubscription(existingSubscription.id, subscriptionData);
+        // Reschedule commitment notification for edited subscription
+        if (commitmentEndDate) {
+          const oldNotifId = existingSubscription.notificationIds?.[0];
+          const notifId = await scheduleSubscriptionCommitmentNotification(
+            {
+              id: existingSubscription.id,
+              serviceName: serviceName.trim(),
+              reminderDays,
+              commitmentEndDate,
+            },
+            oldNotifId,
+          );
+          if (notifId) {
+            await updateSubscription(existingSubscription.id, { notificationIds: [notifId] });
+          }
+        }
         showToast(t('addSubscription.savedToast'));
         setTimeout(() => router.back(), 300);
       } catch (err) {
@@ -801,8 +843,20 @@ export default function AddSubscriptionScreen() {
     subscriptionsStore.getState().addSubscription(optimistic);
 
     try {
-      await createSubscription(subscriptionData);
+      const newId = await createSubscription(subscriptionData);
       subscriptionsStore.getState().removeSubscription(tempId);
+      // Schedule commitment notification for new subscription
+      if (commitmentEndDate && newId) {
+        const notifId = await scheduleSubscriptionCommitmentNotification({
+          id: newId,
+          serviceName: serviceName.trim(),
+          reminderDays,
+          commitmentEndDate,
+        });
+        if (notifId) {
+          await updateSubscription(newId, { notificationIds: [notifId] });
+        }
+      }
       // onSnapshot listener will re-add the real document
       showToast(t('addSubscription.savedToast'));
       setTimeout(() => router.back(), 300);
@@ -1037,6 +1091,36 @@ export default function AddSubscriptionScreen() {
     );
   }
 
+  const COMMITMENT_PRESETS = [1, 3, 6, 12, 24];
+
+  function renderCommitmentMonthsStep() {
+    return (
+      <ScrollView
+        style={styles.stepScroll}
+        contentContainerStyle={styles.stepContent}
+        keyboardShouldPersistTaps="handled"
+      >
+        <Text style={styles.stepTitle}>{t('addSubscription.step.commitmentMonths')}</Text>
+        <View style={styles.reminderGrid}>
+          {COMMITMENT_PRESETS.map((months) => {
+            const isSelected = commitmentMonths === months;
+            return (
+              <TouchableOpacity
+                key={months}
+                style={[styles.reminderChip, isSelected && styles.reminderChipSelected]}
+                onPress={() => setCommitmentMonths(months)}
+              >
+                <Text style={[styles.reminderChipText, isSelected && styles.reminderChipTextSelected]}>
+                  {t('addSubscription.commitmentMonths.option', { count: months })}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
+        </View>
+      </ScrollView>
+    );
+  }
+
   function renderCategoryStep() {
     return (
       <ScrollView
@@ -1091,8 +1175,7 @@ export default function AddSubscriptionScreen() {
   }
 
   function renderReminderStep() {
-    const showCancelModifyNote =
-      intent === SubscriptionIntent.CANCEL || intent === SubscriptionIntent.MODIFY;
+    const showCancelNote = intent === SubscriptionIntent.CANCEL;
 
     return (
       <ScrollView
@@ -1158,7 +1241,7 @@ export default function AddSubscriptionScreen() {
           </>
         )}
 
-        {showCancelModifyNote && (
+        {showCancelNote && (
           <View style={styles.cancelModifyNote}>
             <Text style={styles.cancelModifyNoteText}>
               {t('addSubscription.reminder.cancelModifyNote')}
@@ -1255,6 +1338,15 @@ export default function AddSubscriptionScreen() {
             <Text style={styles.summaryValue}>{billingDateDisplay}</Text>
           </View>
 
+          {billingCycle === SubscriptionBillingCycle.MONTHLY && (
+            <View style={styles.summaryRow}>
+              <Text style={styles.summaryLabel}>{t('addSubscription.step.commitmentMonths')}</Text>
+              <Text style={styles.summaryValue}>
+                {t('addSubscription.commitmentMonths.option', { count: commitmentMonths })}
+              </Text>
+            </View>
+          )}
+
           <View style={styles.summaryRow}>
             <Text style={styles.summaryLabel}>{t('addSubscription.summary.category')}</Text>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, flex: 1 }}>
@@ -1299,15 +1391,16 @@ export default function AddSubscriptionScreen() {
 
   function renderCurrentStep() {
     switch (currentStepId) {
-      case 'billingType': return renderBillingTypeStep();
-      case 'serviceName': return renderServiceNameStep();
-      case 'amount':      return renderAmountStep();
-      case 'billingDate': return renderBillingDateStep();
-      case 'category':    return renderCategoryStep();
-      case 'intent':      return renderIntentStep();
-      case 'reminder':    return renderReminderStep();
-      case 'website':     return renderWebsiteStep();
-      case 'summary':     return renderSummaryStep();
+      case 'billingType':      return renderBillingTypeStep();
+      case 'serviceName':      return renderServiceNameStep();
+      case 'amount':           return renderAmountStep();
+      case 'billingDate':      return renderBillingDateStep();
+      case 'commitmentMonths': return renderCommitmentMonthsStep();
+      case 'category':         return renderCategoryStep();
+      case 'intent':           return renderIntentStep();
+      case 'reminder':         return renderReminderStep();
+      case 'website':          return renderWebsiteStep();
+      case 'summary':          return renderSummaryStep();
     }
   }
 

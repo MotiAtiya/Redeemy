@@ -73,12 +73,6 @@ const INTENT_CONFIG: Record<SubscriptionIntent, IntentConfig> = {
     textColor: 'urgencyRed',
     bgColor: 'urgencyRedSurface',
   },
-  [SubscriptionIntent.MODIFY]: {
-    icon: 'create-outline',
-    labelKey: 'subscriptions.intent.modify',
-    textColor: 'urgencyAmber',
-    bgColor: 'urgencyAmberSurface',
-  },
   [SubscriptionIntent.CHECK]: {
     icon: 'eye-outline',
     labelKey: 'subscriptions.intent.check',
@@ -387,7 +381,17 @@ export default function SubscriptionDetailScreen() {
     const symbol = CURRENCY_SYMBOLS[s.currency ?? 'ILS'];
     const amount = formatCurrency(s.amountAgorot, symbol);
     if (s.billingCycle === SubscriptionBillingCycle.MONTHLY) {
-      return t('subscription.detail.monthlyAmount', { amount });
+      const base = t('subscription.detail.monthlyAmount', { amount });
+      if (s.commitmentMonths && s.commitmentEndDate) {
+        const endDate = s.commitmentEndDate instanceof Date
+          ? s.commitmentEndDate
+          : new Date(s.commitmentEndDate as unknown as string);
+        return `${base} · ${t('subscription.detail.commitment', {
+          months: s.commitmentMonths,
+          date: formatDate(endDate, dateFormat),
+        })}`;
+      }
+      return base;
     }
     const monthly = formatCurrency(normalizeToMonthlyAgorot(s), symbol);
     return t('subscription.detail.annualAmount', { amount, monthly });

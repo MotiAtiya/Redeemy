@@ -37,10 +37,12 @@ export function getNextBillingDate(sub: Subscription): Date {
  * Returns 0 if billing is today or in the past.
  */
 export function daysUntilBilling(sub: Subscription): number {
-  const next = getNextBillingDate(sub);
-  const now = new Date();
   const msPerDay = 1000 * 60 * 60 * 24;
-  return Math.max(0, Math.ceil((next.getTime() - now.getTime()) / msPerDay));
+  if (sub.billingCycle === SubscriptionBillingCycle.MONTHLY && sub.commitmentEndDate) {
+    return Math.max(0, Math.ceil((sub.commitmentEndDate.getTime() - Date.now()) / msPerDay));
+  }
+  const next = getNextBillingDate(sub);
+  return Math.max(0, Math.ceil((next.getTime() - Date.now()) / msPerDay));
 }
 
 /**
@@ -78,4 +80,14 @@ export function computeMonthlyTotalByCurrency(
     result[code] = (result[code] ?? 0) + normalizeToMonthlyAgorot(s);
   }
   return result;
+}
+
+/**
+ * Computes the commitment end date for a monthly subscription.
+ * firstBillingDate + commitmentMonths months (with day clamping).
+ */
+export function computeCommitmentEndDate(firstBillingDate: Date, commitmentMonths: number): Date {
+  const end = new Date(firstBillingDate);
+  end.setMonth(end.getMonth() + commitmentMonths);
+  return end;
 }

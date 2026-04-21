@@ -1,6 +1,7 @@
 import * as Notifications from 'expo-notifications';
 import { Platform } from 'react-native';
 import { CreditStatus, type Credit } from '@/types/creditTypes';
+import type { Subscription } from '@/types/subscriptionTypes';
 import { formatCurrency } from './formatCurrency';
 import { useSettingsStore, CURRENCY_SYMBOLS } from '@/stores/settingsStore';
 import i18n from './i18n';
@@ -205,4 +206,44 @@ export function getCreditIdFromNotification(
   response: Notifications.NotificationResponse
 ): string | null {
   return (response.notification.request.content.data?.creditId as string) ?? null;
+}
+
+/**
+ * Schedules a single notification for a monthly subscription commitment end.
+ * Fires reminderDays before commitmentEndDate. Returns the notification ID or null.
+ */
+export async function scheduleSubscriptionCommitmentNotification(
+  sub: Pick<Subscription, 'id' | 'serviceName' | 'reminderDays' | 'commitmentEndDate'>,
+  existingNotificationId?: string,
+): Promise<string | null> {
+  if (!sub.commitmentEndDate) return null;
+  if (!useSettingsStore.getState().notificationsEnabled) return null;
+
+  const granted = await requestNotificationPermission();
+  if (!granted) return null;
+
+  await cancelNotification(existingNotificationId);
+
+  const t = i18n.t.bind(i18n);
+  const { notificationHour, notificationMinute } = useSettingsStore.getState();
+  const triggerDate = new Date(sub.commitmentEndDate);
+  triggerDate.setDate(triggerDate.getDate() - sub.reminderDays);
+  triggerDate.setHours(notificationHour, notificationMinute, 0, 0);
+
+  if (triggerDate <= new Date()) return null;
+
+  return Notifications.scheduleNotificationAsync({
+    content: {
+      title: t('notifications.subscription.title'),
+      body: t('notifications.subscription.body', {
+        serviceName: sub.serviceName,
+        days: sub.reminderDays,
+      }),
+      data: { subscriptionId: sub.id },
+    },
+    trigger: {
+      type: Notifications.SchedulableTriggerInputTypes.DATE,
+      date: triggerDate,
+    },
+  });
 }

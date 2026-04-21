@@ -25,12 +25,6 @@ export const SUBSCRIPTION_INTENTS: IntentOption[] = [
     icon: 'close-circle-outline',
   },
   {
-    intent: SubscriptionIntent.MODIFY,
-    labelKey: 'subscriptions.intent.modify',
-    descriptionKey: 'subscriptions.intent.modifyDesc',
-    icon: 'create-outline',
-  },
-  {
     intent: SubscriptionIntent.CHECK,
     labelKey: 'subscriptions.intent.check',
     descriptionKey: 'subscriptions.intent.checkDesc',
