@@ -33,6 +33,7 @@ jobs:
         run: |
           eas update \
             --branch production \
+            --environment production \
             --message "${{ github.event.head_commit.message }}" \
             --platform ios \
             --non-interactive
