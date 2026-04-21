@@ -681,15 +681,15 @@
     "savedToast": "המנוי נשמר ✓",
     "serviceNamePlaceholder": "לדוגמה: Spotify, Netflix",
     "step": {
-      "billingType": "איך מחויב המנוי?",
+      "billingType": "סוג המנוי",
       "serviceName": "שם השירות",
-      "amount": "כמה אתה משלם?",
-      "billingDateMonthly": "באיזה יום בחודש?",
-      "billingDateAnnual": "מתי תאריך החידוש הבא?",
-      "category": "באיזה קטגוריה?",
-      "intent": "מה הכוונה שלך?",
-      "reminder": "מתי להזכיר לך?",
-      "website": "יש אתר או אפליקציה?",
+      "amount": "סכום המנוי",
+      "billingDateMonthly": "יום חיוב",
+      "billingDateAnnual": "תאריך החידוש הבא",
+      "category": "קטגוריה",
+      "intent": "כוונה",
+      "reminder": "תזכורת",
+      "website": "אתר או אפליקציה",
       "summary": "הכל נראה טוב?"
     },
     "billingType": {
