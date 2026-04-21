@@ -132,6 +132,7 @@ export default function RootLayout() {
         <Stack.Screen name="store/[name]" options={{ headerShown: false }} />
         <Stack.Screen name="subscription/[id]" options={{ headerShown: false }} />
         <Stack.Screen name="add-subscription" options={{ headerShown: false, presentation: 'modal' }} />
+        <Stack.Screen name="stores" options={{ headerShown: false }} />
         <Stack.Screen name="account" options={{ headerShown: false }} />
         <Stack.Screen name="notification-settings" options={{ headerShown: false }} />
         <Stack.Screen name="family/create" options={{ headerShown: false }} />

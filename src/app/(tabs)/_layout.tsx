@@ -32,10 +32,6 @@ export default function TabLayout() {
       }}
     >
       <Tabs.Screen
-        name="stores"
-        options={{ href: null }}
-      />
-      <Tabs.Screen
         name="index"
         options={{
           title: t('tabs.credits'),

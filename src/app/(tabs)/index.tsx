@@ -203,7 +203,7 @@ export default function CreditsScreen() {
             <SyncIndicator />
           </View>
           <View style={{ flexDirection: 'row', gap: 16, alignItems: 'center' }}>
-            <TouchableOpacity onPress={() => router.navigate('/(tabs)/stores')}>
+            <TouchableOpacity onPress={() => router.push('/stores')}>
               <Ionicons name="storefront-outline" size={22} color={colors.textSecondary} />
             </TouchableOpacity>
             <TouchableOpacity onPress={() => setShowSortMenu((s) => !s)}>
