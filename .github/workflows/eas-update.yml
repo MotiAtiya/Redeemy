@@ -32,7 +32,7 @@ jobs:
       - name: Push OTA update
         run: |
           eas update \
-            --branch production \
+            --branch development \
             --environment production \
             --message "${{ github.event.head_commit.message }}" \
             --platform ios \
