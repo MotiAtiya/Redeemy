@@ -2,7 +2,7 @@
   "tabs": {
     "credits": "זיכויים",
     "stores": "חנויות",
-    "warranties": "אחריות",
+    "warranties": "אחריויות",
     "history": "היסטוריה",
     "more": "עוד"
   },
@@ -37,8 +37,8 @@
     "title": "היסטוריה",
     "sectionCreditsRedeemed": "זיכויים שמומשו",
     "sectionCreditsExpired": "זיכויים שפג תוקפם",
-    "sectionWarrantiesClosed": "אחריות שמומשו",
-    "sectionWarrantiesExpired": "אחריות שפג תוקפן",
+    "sectionWarrantiesClosed": "אחריויות שמומשו",
+    "sectionWarrantiesExpired": "אחריויות שפג תוקפן",
     "dateRange": {
       "thisMonth": "החודש",
       "last3Months": "3 חודשים אחרונים",
@@ -57,7 +57,7 @@
       "type": "סוג",
       "typeAll": "הכל",
       "typeCredits": "זיכויים",
-      "typeWarranties": "אחריות",
+      "typeWarranties": "אחריויות",
       "category": "קטגוריה",
       "apply": "החל סינון"
     },
@@ -160,7 +160,7 @@
     "deleteAccount": {
       "button": "מחיקת חשבון",
       "title": "מחיקת חשבון",
-      "message": "פעולה זו תמחק לצמיתות את חשבונך וכל הנתונים (זיכויים, אחריות). לא ניתן לבטל פעולה זו.",
+      "message": "פעולה זו תמחק לצמיתות את חשבונך וכל הנתונים (זיכויים, אחריויות). לא ניתן לבטל פעולה זו.",
       "confirm": "מחק את חשבוני",
       "passwordTitle": "אימות זהות",
       "passwordMessage": "הזן את הסיסמה הנוכחית שלך לאישור מחיקת החשבון.",
@@ -345,9 +345,9 @@
     }
   },
   "warranties": {
-    "title": "אחריות",
+    "title": "אחריויות",
     "empty": {
-      "title": "אין אחריות עדיין",
+      "title": "אין אחריויות עדיין",
       "subtitle": "הוסף את האחריות הראשונה שלך ואל תפספס שום תוקף",
       "action": "הוסף אחריות"
     },
