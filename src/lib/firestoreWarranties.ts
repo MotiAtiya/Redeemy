@@ -5,6 +5,7 @@ import {
   deleteDoc,
   deleteField,
   doc,
+  getDocs,
   serverTimestamp,
   query,
   where,
@@ -106,6 +107,15 @@ export async function updateWarranty(
  */
 export async function deleteWarranty(warrantyId: string): Promise<void> {
   await deleteDoc(doc(db, WARRANTIES_COLLECTION, warrantyId));
+}
+
+/**
+ * Deletes all warranties belonging to a given user.
+ */
+export async function deleteAllUserWarranties(userId: string): Promise<void> {
+  const q = query(collection(db, WARRANTIES_COLLECTION), where('userId', '==', userId));
+  const snapshot = await getDocs(q);
+  await Promise.all(snapshot.docs.map((d) => deleteDoc(d.ref)));
 }
 
 // Re-export WarrantyStatus so callers don't need a separate import
