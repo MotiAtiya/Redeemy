@@ -1047,9 +1047,348 @@ So that the data always reflects the real household situation.
 
 ---
 
+---
+
+## Epic 12: Subscription Management
+
+**Goal:** Users can track all their recurring subscriptions (monthly, annual, free trials, loyalty clubs) in a dedicated tab — with intent-based reminders that fire before auto-renewal so no unwanted charge ever slips through.
+
+**User value:** Never get surprised by a subscription charge you forgot about. Know exactly what you're paying monthly, and get the right nudge at the right time to renew, cancel, or modify each subscription.
+
+---
+
+### Story 12.1: Navigation Refactor & Subscription Data Model
+
+As a developer,
+I want the navigation restructured to accommodate subscriptions and the full data model scaffolded,
+So that all subsequent subscription stories have a consistent foundation.
+
+**Acceptance Criteria:**
+
+**Given** the app launches after this story
+**When** the tab bar is visible
+**Then**:
+- Tab order is: **זיכויים** (wallet-outline) | **אחריויות** (shield-checkmark-outline) | **מנויים** (repeat-outline) | **היסטוריה** (time-outline) | **עוד** (ellipsis-horizontal-outline)
+- `src/app/(tabs)/subscriptions.tsx` exists (placeholder screen for now)
+- `stores` tab is **removed** from the tab bar — `src/app/(tabs)/stores.tsx` is kept as a navigable screen but no longer a tab
+- Credits tab header (`index.tsx`) gains a [🏪] icon button (storefront-outline) in the top-right area alongside the existing sort button — tapping it navigates to `(tabs)/stores`
+- History tab filter gains `'subscriptions'` as a third `ItemType` option alongside `'credits'` and `'warranties'` (UI placeholder — wired in Story 12.6)
+
+**Given** the data model is scaffolded
+**Then**:
+- `src/types/subscriptionTypes.ts` defines:
+  - `SubscriptionBillingCycle` enum: `MONTHLY = 'monthly'`, `ANNUAL = 'annual'`
+  - `SubscriptionIntent` enum: `RENEW = 'renew'`, `CANCEL = 'cancel'`, `MODIFY = 'modify'`, `CHECK = 'check'`
+  - `SubscriptionStatus` enum: `ACTIVE = 'active'`, `CANCELLED = 'cancelled'`
+  - `Subscription` interface with all fields (see Technical Notes)
+- `src/stores/subscriptionsStore.ts` — shape: `{ subscriptions[], isLoading, error, setSubscriptions, setLoading, setError, addSubscription, updateSubscription, removeSubscription }`
+- `src/constants/subscriptionCategories.ts` — 10 categories with names and Ionicons icon names
+- `src/constants/subscriptionIntents.ts` — 4 intent options with labels and icons
+- `firebase/firestore.rules` updated with `/subscriptions/{subscriptionId}` rules (user or family member read/write)
+- `firebase/firestore.indexes.json` updated with composite index: `userId ASC + nextBillingDate ASC` and `familyId ASC + nextBillingDate ASC`
+- Zod schema `SubscriptionSchema` in `src/lib/validation.ts`
+- i18n strings added to `he.json` and `en.json`: all subscription-related keys (`tabs.subscriptions`, `subscriptions.*`)
+
+**And** TypeScript compiles with zero errors
+
+**Prerequisites:** Story 1.4, Story 10.1 (for family pattern reference)
+
+**Technical Notes:**
+
+`Subscription` interface fields:
+```typescript
+{
+  id: string
+  userId: string
+  serviceName: string                    // e.g. "Spotify Premium"
+  billingCycle: SubscriptionBillingCycle // MONTHLY | ANNUAL
+  amountAgorot: number                   // integer agorot (×100), 0 for free
+  isFree: boolean                        // true → amountAgorot = 0, excluded from total
+  // Monthly-specific
+  billingDayOfMonth?: number             // 1–31, only for MONTHLY
+  // Annual-specific
+  nextBillingDate?: Date                 // full date, only for ANNUAL
+  // Free trial (MONTHLY only)
+  isFreeTrial: boolean
+  freeTrialMonths?: number               // how many months free
+  priceAfterTrialAgorot?: number         // price once trial ends (required if isFreeTrial)
+  trialEndsDate?: Date                   // calculated: createdAt + freeTrialMonths
+  // Classification
+  category: string
+  intent: SubscriptionIntent
+  status: SubscriptionStatus
+  // Reminders
+  reminderDays: number                   // days before next billing to fire reminder
+  notificationIds: string[]              // array: can have up to 2 (week + day before)
+  renewalNotificationId?: string         // for "did it renew?" on-day notification
+  // Optional
+  websiteUrl?: string
+  notes?: string
+  // Family sharing
+  familyId?: string
+  createdBy?: string
+  createdByName?: string
+  // Lifecycle
+  cancelledAt?: Date
+  createdAt: Date
+  updatedAt: Date
+}
+```
+- Amounts in agorot (×100) — same pattern as credits
+- `nextBillingDate` for MONTHLY is computed from `billingDayOfMonth` each cycle
+- All Firestore writes via `src/lib/firestoreSubscriptions.ts` (new file)
+
+---
+
+### Story 12.2: Add Subscription Flow
+
+As a user,
+I want to add a new subscription through a guided step-by-step flow,
+So that all details are captured correctly without being overwhelmed.
+
+**Acceptance Criteria:**
+
+**Given** the user is on the Subscriptions tab
+**When** they tap the FAB (+) button
+**Then** `src/app/add-subscription.tsx` opens as a full-screen modal with a step progress bar
+
+**Given** the flow opens
+**When** each step renders
+**Then** the steps in order are:
+
+1. **billingType** — "איך מחויב המנוי?" — two large cards: `חודשי` / `שנתי`
+2. **serviceName** — "שם השירות?" — text input with autocomplete chips from existing subscriptions (same pattern as `StoreAutocomplete`) — autocomplete sourced from `subscriptionsStore.subscriptions`
+3. **amount** — "כמה אתה משלם?" — numeric input `₪` + toggle "מנוי חינמי" (hides amount input when ON); if MONTHLY: secondary toggle "תקופת ניסיון חינמי" → when ON shows: "כמה חודשים חינם?" (number picker 1–24) + "מחיר חודשי לאחר הניסיון" (required numeric field); if ANNUAL: shows `(₪X/חודש)` in gray below the amount input (amountAgorot ÷ 12, formatted)
+4. **billingDate** — MONTHLY: "באיזה יום בחודש?" — number picker 1–31; ANNUAL: "מתי תאריך החידוש הבא?" — date picker DD/MM/YYYY
+5. **category** — "באיזה קטגוריה?" — horizontal chip selector (same pattern as `CategoryChipSelector`): 📱 תקשורת | 🎬 בידור | 💪 כושר | 💻 תוכנה | 🎓 חינוך | 💝 תרומות | 🏠 בית | 🚗 רכב | 🏷️ חבר מועדון | 📦 אחר
+6. **intent** — "מה הכוונה שלך?" — four large option cards: 🔄 לחדש / ❌ לבטל / ✏️ לשנות / 👀 לבדוק — each with a one-line description
+7. **reminder** — "מתי להזכיר לך?" — preset chips: 3 ימים / שבוע / שבועיים / חודש לפני + "מותאם אישית" (free number entry); note shown: for CANCEL/MODIFY intent, two reminders fire (week before + day before minimum)
+8. **website** (optional) — "יש אתר או אפליקציה?" — URL text input with "דלג" skip button; validates URL format
+9. **summary** — shows all entered data; "שמור מנוי" primary button
+
+**Given** the user taps "שמור מנוי" on summary
+**When** all mandatory fields are valid
+**Then**:
+- `subscriptionsStore.addSubscription(newSubscription)` fires immediately (optimistic)
+- `addDoc(subscriptionsCollection, subscriptionData)` writes to Firestore `/subscriptions/{auto-id}`
+- Reminder notifications scheduled (see Story 12.5 for full logic)
+- Toast: "המנוי נשמר ✓" (auto-dismisses 2 seconds)
+- Modal closes, user lands on Subscriptions tab with new card visible
+
+**And** each step validates before Continue is enabled — mandatory fields listed:
+- billingType: always required
+- serviceName: min 1 char
+- amount: > 0 OR isFree toggle ON; if isFreeTrial: priceAfterTrialAgorot required and > 0
+- billingDate: valid day (1–31) for monthly; valid future date for annual
+- category: required
+- intent: required
+- reminder: required
+
+**And** back navigation between steps preserves all previously entered values
+
+**Prerequisites:** Story 12.1
+
+**Technical Notes:**
+- Step engine follows exact same pattern as `add-credit.tsx` — `StepId` union type, `getSteps()` function, `Animated` slide transitions, `StepProgressBar` component reused
+- New screen: `src/app/add-subscription.tsx`
+- New component: `src/components/redeemy/ServiceAutocomplete.tsx` (mirrors `StoreAutocomplete`)
+- New component: `src/components/redeemy/IntentSelector.tsx` — four large option cards
+- Free trial: `trialEndsDate` computed as `addMonths(createdAt, freeTrialMonths)` and stored — used as `nextBillingDate` for first cycle
+- Edit mode: same screen launched with `?subscriptionId=X` param — pre-fills all steps, skips to summary or step-by-step
+- All Firestore logic in `src/lib/firestoreSubscriptions.ts`
+
+---
+
+### Story 12.3: Subscriptions List & Card
+
+As a user,
+I want to see all my active subscriptions in a clean list with a monthly total at the top,
+So that I instantly understand my recurring financial commitments.
+
+**Acceptance Criteria:**
+
+**Given** the user taps the Subscriptions tab
+**When** `(tabs)/subscriptions.tsx` renders
+**Then**:
+- A summary header shows: `₪X/חודש` — sum of all active paid subscriptions, normalized: MONTHLY `amountAgorot`, ANNUAL `amountAgorot ÷ 12` — free subscriptions excluded
+- Below the total: `X מנויים פעילים` (count of ACTIVE, including free)
+- Subscriptions displayed as `SubscriptionCard` components in a `FlatList`, sorted by nearest `nextBillingDate` / nearest billing day
+- A FAB (+) button always visible bottom-right: "הוסף מנוי"
+
+**Given** a subscription card renders
+**Then** it shows:
+- Category icon (left) + service name (bold, large) + intent badge (right): 🔄 / ❌ / ✏️ / 👀 with label
+- Amount + cycle: `₪19.90/חודש` or `₪1,200/שנה (₪100/חודש)` or `חינמי`
+- Renewal line: `מתחדש בעוד 12 יום — 3 במאי` (or `מתחדש ב-15 לכל חודש — בעוד 12 יום`)
+- For free trial: `ניסיון חינמי — מסתיים בעוד 18 יום` in amber
+- Urgency color stripe or badge (same thresholds as credits): green >30 days | amber 7–30 | red <7
+
+**Given** no subscriptions exist
+**Then** empty state: "עדיין אין מנויים — הוסף מנוי ראשון ואל תפספס שוב חיוב" with FAB CTA
+
+**And** tapping a card navigates to the subscription detail screen (Story 12.4)
+
+**Prerequisites:** Story 12.2
+
+**Technical Notes:**
+- New screen: `src/app/(tabs)/subscriptions.tsx`
+- New component: `src/components/redeemy/SubscriptionCard.tsx`
+- New hook: `src/hooks/useSubscriptions.ts` — `onSnapshot` on `/subscriptions` query (userId or familyId) → `subscriptionsStore`
+- `nextBillingDate` computation for MONTHLY: find next occurrence of `billingDayOfMonth` from today using `src/lib/subscriptionUtils.ts`
+- `src/lib/subscriptionUtils.ts`: `getNextBillingDate(sub)`, `daysUntilBilling(sub)`, `normalizeToMonthlyAgorot(sub)`, `computeMonthlyTotal(subscriptions[])`
+- Filter: only `status === SubscriptionStatus.ACTIVE` shown on main list
+- `FlatList` with `keyExtractor` and `getItemLayout` for performance
+
+---
+
+### Story 12.4: Subscription Detail, Edit & Cancel
+
+As a user,
+I want to tap a subscription and see its full details, edit any field, or cancel it,
+So that I can keep my subscriptions accurate and act when needed.
+
+**Acceptance Criteria:**
+
+**Given** the user taps a subscription card
+**When** `src/app/subscription/[id].tsx` opens
+**Then** the detail screen shows:
+- Service name (large, bold) + category icon
+- Billing: amount + cycle + (monthly breakdown if annual)
+- Next billing date (computed)
+- Intent badge (full label + icon)
+- Reminder: X days before
+- Free trial indicator (if applicable): "ניסיון חינמי — מסתיים ב-[date], לאחר מכן ₪X/חודש"
+- Website link (if set) — tapping opens in system browser via `Linking.openURL()`
+- Notes (if set)
+- Date added
+
+**Given** the user taps "ערוך"
+**When** the edit flow opens
+**Then** `add-subscription.tsx` launches in edit mode (pre-filled), same step flow — Save updates Firestore with `updatedAt: serverTimestamp()`, cancels old notifications, schedules new ones
+
+**Given** the user taps "בטל מנוי"
+**When** the confirmation bottom sheet appears
+**Then** sheet text: "לבטל את [שם השירות]? המנוי יועבר לארכיון."
+**And** on confirm:
+- `updateDoc(subscriptionRef, { status: SubscriptionStatus.CANCELLED, cancelledAt: serverTimestamp() })`
+- All scheduled `notificationIds` cancelled
+- `subscriptionsStore.updateSubscription(...)` reflects new status
+- User navigated back to Subscriptions tab
+- Toast: "[שם השירות] בוטל ועבר לארכיון"
+
+**And** cancelled subscription appears in History → מנויים sub-tab (Story 12.6)
+
+**Prerequisites:** Story 12.3
+
+**Technical Notes:**
+- New screen: `src/app/subscription/[id].tsx`
+- Cancel flow: iterate `subscription.notificationIds` → `cancelScheduledNotificationAsync` for each
+- Bottom sheet for destructive action — same pattern as credit/warranty delete
+- Website: `Linking.openURL(websiteUrl)` with `canOpenURL` check
+
+---
+
+### Story 12.5: Reminder Notifications & Auto-Renewal
+
+As a user,
+I want smart reminders based on my intent, and my subscription dates to advance automatically after renewal,
+So that I never miss a window to act and never need to update dates manually.
+
+**Acceptance Criteria:**
+
+**Given** a subscription is saved with intent and reminder settings
+**When** `firestoreSubscriptions.ts` schedules notifications
+**Then** the correct notifications fire based on intent:
+
+| Intent | Notifications scheduled | Text |
+|--------|------------------------|------|
+| 🔄 לחדש | 1 — on billing day | "המנוי שלך ל-[X] התחדש ✓ — האם הסכום השתנה?" |
+| ❌ לבטל | 2 — reminderDays before + 1 day before | "המנוי שלך ל-[X] מתחדש בעוד [N] ימים — זכרת לבטל?" |
+| ✏️ לשנות | 2 — reminderDays before + 1 day before | "המנוי שלך ל-[X] מתחדש בעוד [N] ימים — האם תרצה לשנות מסלול?" |
+| 👀 לבדוק | 1 — reminderDays before | "המנוי שלך ל-[X] מתחדש בעוד [N] ימים — כדאי לבדוק אם עדיין משתלם" |
+
+**And** notification payload includes `data: { subscriptionId, type: 'subscription' }` for deep-link to `subscription/[id].tsx`
+
+**Given** a "לחדש" intent notification fires on billing day and user taps "הסכום השתנה"
+**When** the app opens from the notification
+**Then** `subscription/[id].tsx` opens directly with an inline "עדכן סכום" prompt visible at the top
+
+**Given** a "לחדש" intent notification fires and user does NOT respond within 24 hours
+**When** background processing runs (next app open)
+**Then** `nextBillingDate` advances one cycle (month or year) automatically, new notifications scheduled, old `notificationIds` cancelled
+
+**Given** any intent: user does not act before billing date
+**When** billing date passes (detected on next app open)
+**Then** `nextBillingDate` advances one cycle automatically — subscription remains ACTIVE with same intent
+
+**Given** a free trial subscription reaches its `trialEndsDate`
+**When** detected on next app open (compare today ≥ trialEndsDate)
+**Then**:
+- `isFree` and `isFreeTrial` set to false; `amountAgorot` set to `priceAfterTrialAgorot`
+- `nextBillingDate` advances one month from `trialEndsDate`
+- New notifications scheduled based on intent
+- Toast on next app open: "הניסיון החינמי של [X] הסתיים — החיוב החודשי ₪[price] החל"
+
+**Prerequisites:** Story 12.2
+
+**Technical Notes:**
+- All notification logic in `src/lib/subscriptionNotifications.ts` (new file, mirrors `notifications.ts` pattern)
+- `scheduleSubscriptionNotifications(subscription)` → returns `{ notificationIds: string[], renewalNotificationId?: string }`
+- Auto-advance logic in `src/lib/subscriptionUtils.ts`: `advanceBillingCycle(sub): Partial<Subscription>`
+- Cycle check runs in `useSubscriptions` hook on each `onSnapshot` event — compare `nextBillingDate < today`
+- Edit flow: always cancel all existing `notificationIds` + `renewalNotificationId`, then reschedule
+- For MONTHLY with `billingDayOfMonth`: `nextBillingDate` = next occurrence of that day-of-month from today
+- All `expo-notifications` calls exclusively in `subscriptionNotifications.ts` — no screen imports the package
+
+---
+
+### Story 12.6: History Sub-Tabs, Cancelled Archive & Family Sharing
+
+As a user,
+I want to see my cancelled subscriptions in the History tab, view all three types of history together, and have subscriptions shared with my family,
+So that my full history is in one place and my household sees the same subscriptions.
+
+**Acceptance Criteria:**
+
+**Given** the user taps the History tab
+**When** it renders
+**Then** three filter chips/segments appear at the top: `זיכויים` | `אחריויות` | `מנויים`
+
+**Given** the user selects "מנויים"
+**When** the subscriptions history renders
+**Then**:
+- All subscriptions where `status === SubscriptionStatus.CANCELLED` are shown
+- Each card shows: service name, amount + cycle, cancellation date (`cancelledAt`), category icon — muted/dimmed style
+- Default sort: most recently cancelled first
+- Tapping a card opens `subscription/[id].tsx` in read-only mode: "בוטל ב-[date]" instead of action buttons
+
+**Given** no subscriptions have been cancelled
+**Then** empty state: "אין מנויים בארכיון — מנויים שבוטלו יופיעו כאן"
+
+**Given** the user is part of a family
+**When** subscriptions are loaded
+**Then**:
+- `subscribeToSubscriptions` in `firestoreSubscriptions.ts` queries `where('familyId', '==', familyId)` when family exists, otherwise `where('userId', '==', userId)`
+- New subscription documents always include `familyId`, `createdBy`, `createdByName` when user is in family
+- `SubscriptionCard` shows initials circle (Sage teal background) on subscriptions created by other family members — same pattern as `CreditCard`
+
+**And** existing family join/leave logic (Story 10.2, 10.3) batch-updates `familyId` on subscriptions — `firestoreSubscriptions.ts` exports `migrateSubscriptionsToFamily(userId, familyId)` and `migrateSubscriptionsFromFamily(userId)` called from the existing join/leave flows
+
+**Prerequisites:** Stories 12.4, 12.5
+
+**Technical Notes:**
+- History tab `ItemType` extended: `'all' | 'credits' | 'warranties' | 'subscriptions'`
+- `useSubscriptions` hook already loaded in root — cancelled subscriptions already in `subscriptionsStore`
+- Read-only detail: `subscription/[id].tsx` detects `status === CANCELLED` → hides Edit/Cancel buttons, shows cancellation date banner
+- `SubscriptionCard` accepts `variant="cancelled"` prop for muted style (no urgency badge color, gray intent badge)
+- Story 10.2 join flow: add `await migrateSubscriptionsToFamily(userId, familyId)` to the batch
+- Story 10.3 leave flow: add `await migrateSubscriptionsFromFamily(userId)` to the batch
+
+---
+
 ## Summary
 
-**Total: 10 Epics · 27 Stories**
+**Total: 11 Epics · 34 Stories**
 
 | Epic | Stories | Delivers |
 |------|---------|---------|
@@ -1062,11 +1401,13 @@ So that the data always reflects the real household situation.
 | Epic 7: Offline Support | 2 | App works anywhere — no signal, no problem |
 | Epic 9: Theme & Appearance | 2 | Dark mode + settings improvements |
 | Epic 10: Family Sharing | 3 | Shared credit pool — household management |
+| Epic 12: Subscription Management | 6 | Track recurring subscriptions with intent-based reminders |
 
 **Context incorporated:**
 - ✅ Product Brief requirements (all 14 FRs)
 - ✅ UX Design Specification (photo-first flow, Sage teal, card metaphor, swipe interactions, empty states, toast patterns, bottom sheets)
 - ✅ Architecture decisions (Firebase v12, Zustand v5, Expo SDK 55, Zod v3.25, integer agot amounts, camelCase Firestore fields, single Firebase import boundary, notification deduplication, image compression pipeline)
+- ✅ Epic 12: Subscriptions (step-based add flow, intent-based reminders, auto-renewal, family sharing, history archive)
 
 ---
 

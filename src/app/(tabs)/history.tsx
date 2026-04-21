@@ -28,7 +28,7 @@ import type { AppColors } from '@/constants/colors';
 type SortKey = HistorySortKey;
 type DateRange = HistoryDateRange;
 
-type ItemType = 'all' | 'credits' | 'warranties';
+type ItemType = 'all' | 'credits' | 'warranties' | 'subscriptions';
 
 interface FilterState {
   categories: string[];
@@ -181,9 +181,10 @@ export default function HistoryScreen() {
   ];
 
   const TYPE_OPTIONS: { key: ItemType; label: string }[] = [
-    { key: 'all',        label: t('history.filter.typeAll')        },
-    { key: 'credits',    label: t('history.filter.typeCredits')    },
-    { key: 'warranties', label: t('history.filter.typeWarranties') },
+    { key: 'all',           label: t('history.filter.typeAll')           },
+    { key: 'credits',       label: t('history.filter.typeCredits')       },
+    { key: 'warranties',    label: t('history.filter.typeWarranties')    },
+    { key: 'subscriptions', label: t('history.filter.typeSubscriptions') },
   ];
 
   const [search, setSearch] = useState('');
@@ -274,8 +275,8 @@ export default function HistoryScreen() {
     }));
   }
 
-  const showCredits    = filters.type !== 'warranties';
-  const showWarranties = filters.type !== 'credits';
+  const showCredits    = filters.type !== 'warranties' && filters.type !== 'subscriptions';
+  const showWarranties = filters.type !== 'credits' && filters.type !== 'subscriptions';
   const isEmpty =
     (showCredits ? redeemedCredits.length + expiredCredits.length : 0) === 0 &&
     (showWarranties ? closedWarranties.length + expiredWarranties.length : 0) === 0;

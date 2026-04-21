@@ -3,6 +3,7 @@
     "credits": "Credits",
     "stores": "Stores",
     "warranties": "Warranties",
+    "subscriptions": "Subscriptions",
     "history": "History",
     "more": "More"
   },
@@ -58,6 +59,7 @@
       "typeAll": "All",
       "typeCredits": "Credits",
       "typeWarranties": "Warranties",
+      "typeSubscriptions": "Subscriptions",
       "category": "CATEGORY",
       "apply": "Apply Filters"
     },
@@ -564,6 +566,43 @@
       "transferAdminFailed": "Couldn't transfer admin. Try again."
     }
   },
+  "subscriptions": {
+    "title": "Subscriptions",
+    "monthlyTotal": "₪{{amount}}/month",
+    "activeCount_one": "{{count}} active subscription",
+    "activeCount_other": "{{count}} active subscriptions",
+    "empty": {
+      "title": "No subscriptions yet",
+      "subtitle": "Add your first subscription to track recurring payments",
+      "action": "Add Subscription"
+    },
+    "intent": {
+      "renew": "Renew",
+      "renewDesc": "I plan to keep this subscription",
+      "cancel": "Cancel",
+      "cancelDesc": "I want to cancel before renewal",
+      "modify": "Modify",
+      "modifyDesc": "I want to change the plan",
+      "check": "Check",
+      "checkDesc": "Remind me to evaluate this"
+    },
+    "billingCycle": {
+      "monthly": "Monthly",
+      "annual": "Annual"
+    },
+    "category": {
+      "communication": "Communication",
+      "entertainment": "Entertainment",
+      "fitness": "Fitness",
+      "software": "Software",
+      "education": "Education",
+      "charity": "Charity",
+      "home": "Home",
+      "automotive": "Automotive",
+      "loyalty": "Loyalty Club",
+      "other": "Other"
+    }
+  },
   "category": {
     "food": "Supermarket",
     "dining": "Dining & Cafes",
@@ -580,5 +619,138 @@
     "jewelry": "Jewelry & Watches",
     "health": "Health & Wellness",
     "other": "Other"
+  },
+  "subscriptionCard": {
+    "free": "Free",
+    "freeTrial": "Free trial — ends in {{days}} days",
+    "freeTrialEndsToday": "Free trial — ends today",
+    "monthlyAmount": "₪{{amount}}/month",
+    "annualAmount": "₪{{amount}}/year (₪{{monthly}}/month)",
+    "renewsToday": "Renews today",
+    "renewsTomorrow": "Renews tomorrow",
+    "renewsInDays": "Renews in {{days}} days",
+    "renewsOnDay": "Renews on the {{day}}th each month",
+    "renewsOnDayInDays": "Renews on the {{day}}th — in {{days}} days",
+    "renewsOnDate": "Renews in {{days}} days — {{date}}"
+  },
+  "subscription": {
+    "notFound": "Subscription not found",
+    "detail": {
+      "billing": "Billing",
+      "nextBilling": "Next Billing",
+      "category": "Category",
+      "intent": "Intent",
+      "reminder": "Reminder",
+      "website": "Website",
+      "notes": "Notes",
+      "added": "Added",
+      "freeTrial": "Free Trial",
+      "monthlyBillingDay": "{{day}}th of each month — in {{days}} days",
+      "annualRenewal": "{{date}} — in {{days}} days",
+      "renewsToday": "Renews today",
+      "freeTrialDetail": "Free trial — ends {{date}}, then ₪{{price}}/month",
+      "reminderDays_one": "{{count}} day before",
+      "reminderDays_other": "{{count}} days before",
+      "free": "Free",
+      "monthlyAmount": "₪{{amount}}/month",
+      "annualAmount": "₪{{amount}}/year (₪{{monthly}}/month)"
+    },
+    "action": {
+      "edit": "Edit",
+      "delete": "Delete permanently"
+    },
+    "cancel": {
+      "title": "Cancel Subscription",
+      "message": "Cancel {{name}}? It will be archived.",
+      "confirm": "Cancel Subscription",
+      "toast": "{{name}} was cancelled and archived",
+      "error": "Could not cancel. Check your connection and try again.",
+      "offlineMessage": "Cancelling subscriptions requires an internet connection."
+    },
+    "delete": {
+      "title": "Delete permanently?",
+      "message": "This will permanently delete {{name}} and cannot be undone.",
+      "button": "Delete",
+      "error": "Could not delete. Check your connection and try again."
+    },
+    "cancelledBanner": "Cancelled on {{date}}"
+  },
+  "addSubscription": {
+    "title": "Add Subscription",
+    "titleEdit": "Edit Subscription",
+    "save": "Save Subscription",
+    "savedToast": "Subscription saved ✓",
+    "serviceNamePlaceholder": "e.g. Spotify, Netflix",
+    "step": {
+      "billingType": "How is this subscription billed?",
+      "serviceName": "What's the service name",
+      "amount": "How much do you pay?",
+      "billingDateMonthly": "Which day of the month?",
+      "billingDateAnnual": "When is the next renewal date?",
+      "category": "Which category?",
+      "intent": "What's your intention?",
+      "reminder": "When should we remind you?",
+      "website": "Any website or app?",
+      "summary": "Looking good?"
+    },
+    "billingType": {
+      "monthly": "Monthly",
+      "annual": "Annual"
+    },
+    "amount": {
+      "freeToggle": "Free subscription",
+      "freeTrialToggle": "Free trial period",
+      "freeTrialMonths": "How many months free?",
+      "priceAfterTrial": "Monthly price after trial:",
+      "monthlyBreakdown": "({{amount}}/month)"
+    },
+    "reminder": {
+      "3days": "3 Days",
+      "1week": "1 Week",
+      "2weeks": "2 Weeks",
+      "1month": "1 Month",
+      "custom": "Custom",
+      "customPlaceholder": "Days before",
+      "cancelModifyNote": "You'll get two reminders — a week before and a day before."
+    },
+    "website": {
+      "placeholder": "https://...",
+      "skip": "Skip"
+    },
+    "summary": {
+      "service": "Service",
+      "billing": "Billing",
+      "amount": "Amount",
+      "billingDay": "Billing Day",
+      "renewalDate": "Renewal Date",
+      "category": "Category",
+      "intent": "Intent",
+      "reminder": "Reminder",
+      "website": "Website",
+      "free": "Free",
+      "freeTrial": "Free trial ({{months}} months, then {{price}}/month)",
+      "monthly": "Monthly",
+      "annual": "Annual",
+      "dayOfMonth": "{{day}}th of each month",
+      "reminderDays_one": "{{count}} day before",
+      "reminderDays_other": "{{count}} days before"
+    },
+    "offline": {
+      "adding": "Adding subscriptions requires an internet connection.",
+      "editing": "Editing subscriptions requires an internet connection."
+    },
+    "error": {
+      "save": "Couldn't save",
+      "saveMessage": "Check your connection and try again."
+    },
+    "validation": {
+      "amountRequired": "Amount is required",
+      "amountInvalid": "Enter a valid positive amount",
+      "invalidDay": "Enter a valid day (1–31)",
+      "invalidDate": "Select a valid future date",
+      "invalidUrl": "Enter a valid URL starting with http:// or https://",
+      "priceAfterTrialRequired": "Enter the price after the trial period",
+      "freeTrialMonthsRequired": "Enter the number of free months"
+    }
   }
 }

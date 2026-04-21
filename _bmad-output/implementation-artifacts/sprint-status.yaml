@@ -1,5 +1,5 @@
-# generated: 2026-04-20
-# last_updated: 2026-04-20
+# generated: 2026-04-21
+# last_updated: 2026-04-21
 # project: Redeemy
 # project_key: NOKEY
 # tracking_system: file-system
@@ -34,12 +34,12 @@
 # - Developer typically creates next story after previous one is 'done' to incorporate learnings
 # - Dev moves story to 'review', then runs code-review (fresh context, different LLM recommended)
 #
-# NOTE: Status inferred from git commit history — no story files were tracked during implementation.
-# Epic 9 (Theme & Appearance) exists in planning-artifacts but is not in epics.md.
-# Stories 9.1 (dark-mode) and 9.2 (settings-improvements) are ready-for-dev there.
+# EPICS SOURCE: _bmad-output/epics.md (Epics 1-7, 10)
+# NOTE: Epic 9 (Theme & Appearance) has story files in planning-artifacts but is not in epics.md body.
+# NOTE: Epic 11 (Warranty Management) was implemented and tracked here but is not in epics.md.
 
-generated: 2026-04-20
-last_updated: 2026-04-20  # updated: stories 10-1, 10-2, 10-3, 11-1 marked done
+generated: 2026-04-21
+last_updated: 2026-04-21  # Story 12.4 review
 project: Redeemy
 project_key: NOKEY
 tracking_system: file-system
@@ -98,7 +98,7 @@ development_status:
   7-2-sync-recovery-on-reconnect: done
   epic-7-retrospective: optional
 
-  # Epic 9: Theme & Appearance
+  # Epic 9: Theme & Appearance (story files in planning-artifacts, not in epics.md body)
   epic-9: done
   9-1-dark-mode-support: done
   9-2-settings-improvements: done
@@ -111,7 +111,17 @@ development_status:
   10-3-leave-family-and-management: done
   epic-10-retrospective: optional
 
-  # Epic 11: Warranty Management
+  # Epic 11: Warranty Management (implemented outside epics.md)
   epic-11: done
   11-1-warranty-management: done
   epic-11-retrospective: optional
+
+  # Epic 12: Subscription Management
+  epic-12: in-progress
+  12-1-navigation-refactor-and-subscription-data-model: review
+  12-2-add-subscription-flow: review
+  12-3-subscriptions-list-and-card: review
+  12-4-subscription-detail-edit-and-cancel: review
+  12-5-reminder-notifications-and-auto-renewal: backlog
+  12-6-history-sub-tabs-cancelled-archive-and-family-sharing: backlog
+  epic-12-retrospective: optional

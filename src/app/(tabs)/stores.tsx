@@ -38,14 +38,19 @@ function getIconForCategory(categoryId: string): IoniconsName {
 function makeStyles(colors: AppColors, isRTL: boolean) {
   return StyleSheet.create({
     safe: { flex: 1, backgroundColor: colors.background },
-    title: {
-      fontSize: 28,
-      fontWeight: '700',
-      color: colors.textPrimary,
+    header: {
+      flexDirection: 'row',
+      alignItems: 'center',
       paddingHorizontal: 16,
-      paddingTop: 8,
-      paddingBottom: 12,
-      alignSelf: 'flex-start',
+      paddingVertical: 12,
+      gap: 8,
+      backgroundColor: colors.background,
+    },
+    headerTitle: {
+      flexShrink: 1,
+      fontSize: 17,
+      fontWeight: '600',
+      color: colors.textPrimary,
     },
     searchContainer: {
       flexDirection: 'row',
@@ -162,7 +167,12 @@ export default function StoresScreen() {
 
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
-      <Text style={styles.title}>{t('stores.title')}</Text>
+      <View style={styles.header}>
+        <TouchableOpacity onPress={() => router.back()} hitSlop={8}>
+          <Ionicons name={isRTL ? 'arrow-forward' : 'arrow-back'} size={24} color={colors.textPrimary} />
+        </TouchableOpacity>
+        <Text style={styles.headerTitle}>{t('stores.title')}</Text>
+      </View>
 
       <View style={styles.searchContainer}>
         <Ionicons name="search-outline" size={18} color={colors.textTertiary} style={styles.searchIcon} />

@@ -52,6 +52,50 @@ export const UserSchema = z.object({
 export type UserSchemaInput = z.input<typeof UserSchema>;
 
 // ---------------------------------------------------------------------------
+// Subscription schema
+// ---------------------------------------------------------------------------
+
+import { SubscriptionBillingCycle, SubscriptionIntent, SubscriptionStatus } from '@/types/subscriptionTypes';
+
+export const SubscriptionSchema = z.object({
+  serviceName: z.string().min(1, 'Service name is required'),
+
+  billingCycle: z.nativeEnum(SubscriptionBillingCycle),
+
+  amountAgorot: z.number().int().min(0),
+
+  isFree: z.boolean(),
+
+  billingDayOfMonth: z.number().int().min(1).max(31).optional(),
+
+  nextBillingDate: z.date().optional(),
+
+  isFreeTrial: z.boolean(),
+
+  freeTrialMonths: z.number().int().positive().optional(),
+
+  priceAfterTrialAgorot: z.number().int().min(0).optional(),
+
+  category: z.string().min(1, 'Category is required'),
+
+  intent: z.nativeEnum(SubscriptionIntent),
+
+  status: z.nativeEnum(SubscriptionStatus).default(SubscriptionStatus.ACTIVE),
+
+  reminderDays: z.number().int().positive(),
+
+  websiteUrl: z.string().url().optional().or(z.literal('')),
+
+  notes: z.string().optional().default(''),
+}).refine(
+  (data) => !data.isFreeTrial || (data.priceAfterTrialAgorot !== undefined && data.priceAfterTrialAgorot > 0),
+  { message: 'Price after trial is required when free trial is enabled' }
+);
+
+export type SubscriptionSchemaInput = z.input<typeof SubscriptionSchema>;
+export type SubscriptionSchemaOutput = z.output<typeof SubscriptionSchema>;
+
+// ---------------------------------------------------------------------------
 // Shared enums re-exported for convenience
 // ---------------------------------------------------------------------------
-export { CreditStatus };
+export { CreditStatus, SubscriptionBillingCycle, SubscriptionIntent, SubscriptionStatus };

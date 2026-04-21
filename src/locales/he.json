@@ -3,6 +3,7 @@
     "credits": "זיכויים",
     "stores": "חנויות",
     "warranties": "אחריויות",
+    "subscriptions": "מנויים",
     "history": "היסטוריה",
     "more": "עוד"
   },
@@ -58,6 +59,7 @@
       "typeAll": "הכל",
       "typeCredits": "זיכויים",
       "typeWarranties": "אחריויות",
+      "typeSubscriptions": "מנויים",
       "category": "קטגוריה",
       "apply": "החל סינון"
     },
@@ -563,6 +565,43 @@
       "transferAdminFailed": "לא ניתן להעביר ניהול. נסה שוב."
     }
   },
+  "subscriptions": {
+    "title": "מנויים",
+    "monthlyTotal": "₪{{amount}}/חודש",
+    "activeCount_one": "מנוי פעיל אחד",
+    "activeCount_other": "{{count}} מנויים פעילים",
+    "empty": {
+      "title": "אין מנויים עדיין",
+      "subtitle": "הוסף את המנוי הראשון שלך ועקוב אחרי תשלומים חוזרים",
+      "action": "הוסף מנוי"
+    },
+    "intent": {
+      "renew": "לחדש",
+      "renewDesc": "אני מתכוון להמשיך את המנוי",
+      "cancel": "לבטל",
+      "cancelDesc": "אני רוצה לבטל לפני החידוש",
+      "modify": "לשנות",
+      "modifyDesc": "אני רוצה לשנות מסלול",
+      "check": "לבדוק",
+      "checkDesc": "הזכר לי לבדוק אם זה משתלם"
+    },
+    "billingCycle": {
+      "monthly": "חודשי",
+      "annual": "שנתי"
+    },
+    "category": {
+      "communication": "תקשורת",
+      "entertainment": "בידור",
+      "fitness": "כושר",
+      "software": "תוכנה",
+      "education": "חינוך",
+      "charity": "תרומות",
+      "home": "בית",
+      "automotive": "רכב",
+      "loyalty": "חבר מועדון",
+      "other": "אחר"
+    }
+  },
   "category": {
     "food": "סופרמרקט",
     "dining": "מסעדות וקפה",
@@ -579,5 +618,138 @@
     "jewelry": "תכשיטים ושעונים",
     "health": "בריאות וספא",
     "other": "אחר"
+  },
+  "subscriptionCard": {
+    "free": "חינמי",
+    "freeTrial": "ניסיון חינמי — מסתיים בעוד {{days}} ימים",
+    "freeTrialEndsToday": "ניסיון חינמי — מסתיים היום",
+    "monthlyAmount": "₪{{amount}}/חודש",
+    "annualAmount": "₪{{amount}}/שנה (₪{{monthly}}/חודש)",
+    "renewsToday": "מתחדש היום",
+    "renewsTomorrow": "מתחדש מחר",
+    "renewsInDays": "מתחדש בעוד {{days}} ימים",
+    "renewsOnDay": "מתחדש ב-{{day}} לכל חודש",
+    "renewsOnDayInDays": "מתחדש ב-{{day}} לכל חודש — בעוד {{days}} ימים",
+    "renewsOnDate": "מתחדש בעוד {{days}} ימים — {{date}}"
+  },
+  "subscription": {
+    "notFound": "המנוי לא נמצא",
+    "detail": {
+      "billing": "חיוב",
+      "nextBilling": "חיוב הבא",
+      "category": "קטגוריה",
+      "intent": "כוונה",
+      "reminder": "תזכורת",
+      "website": "אתר",
+      "notes": "הערות",
+      "added": "נוסף",
+      "freeTrial": "ניסיון חינמי",
+      "monthlyBillingDay": "ב-{{day}} לכל חודש — בעוד {{days}} ימים",
+      "annualRenewal": "{{date}} — בעוד {{days}} ימים",
+      "renewsToday": "מתחדש היום",
+      "freeTrialDetail": "ניסיון חינמי — מסתיים ב-{{date}}, לאחר מכן ₪{{price}}/חודש",
+      "reminderDays_one": "{{count}} יום לפני",
+      "reminderDays_other": "{{count}} ימים לפני",
+      "free": "חינמי",
+      "monthlyAmount": "₪{{amount}}/חודש",
+      "annualAmount": "₪{{amount}}/שנה (₪{{monthly}}/חודש)"
+    },
+    "action": {
+      "edit": "ערוך",
+      "delete": "מחק לצמיתות"
+    },
+    "cancel": {
+      "title": "בטל מנוי",
+      "message": "לבטל את {{name}}? המנוי יועבר לארכיון.",
+      "confirm": "בטל מנוי",
+      "toast": "{{name}} בוטל ועבר לארכיון",
+      "error": "לא ניתן לבטל. בדוק את החיבור ונסה שנית.",
+      "offlineMessage": "ביטול מנויים דורש חיבור לאינטרנט."
+    },
+    "delete": {
+      "title": "למחוק לצמיתות?",
+      "message": "הפעולה תמחק את {{name}} לצמיתות ולא ניתן לשחזר.",
+      "button": "מחק",
+      "error": "לא ניתן למחוק. בדוק את החיבור ונסה שנית."
+    },
+    "cancelledBanner": "בוטל ב-{{date}}"
+  },
+  "addSubscription": {
+    "title": "הוספת מנוי",
+    "titleEdit": "עריכת מנוי",
+    "save": "שמור מנוי",
+    "savedToast": "המנוי נשמר ✓",
+    "serviceNamePlaceholder": "לדוגמה: Spotify, Netflix",
+    "step": {
+      "billingType": "איך מחויב המנוי?",
+      "serviceName": "שם השירות",
+      "amount": "כמה אתה משלם?",
+      "billingDateMonthly": "באיזה יום בחודש?",
+      "billingDateAnnual": "מתי תאריך החידוש הבא?",
+      "category": "באיזה קטגוריה?",
+      "intent": "מה הכוונה שלך?",
+      "reminder": "מתי להזכיר לך?",
+      "website": "יש אתר או אפליקציה?",
+      "summary": "הכל נראה טוב?"
+    },
+    "billingType": {
+      "monthly": "חודשי",
+      "annual": "שנתי"
+    },
+    "amount": {
+      "freeToggle": "מנוי חינמי",
+      "freeTrialToggle": "תקופת ניסיון חינמי",
+      "freeTrialMonths": "כמה חודשים חינם?",
+      "priceAfterTrial": "מחיר חודשי לאחר הניסיון:",
+      "monthlyBreakdown": "({{amount}}/חודש)"
+    },
+    "reminder": {
+      "3days": "3 ימים",
+      "1week": "שבוע",
+      "2weeks": "שבועיים",
+      "1month": "חודש",
+      "custom": "מותאם אישית",
+      "customPlaceholder": "ימים לפני",
+      "cancelModifyNote": "תקבל שני תזכורות — שבוע לפני ויום לפני."
+    },
+    "website": {
+      "placeholder": "https://...",
+      "skip": "דלג"
+    },
+    "summary": {
+      "service": "שירות",
+      "billing": "חיוב",
+      "amount": "סכום",
+      "billingDay": "יום חיוב",
+      "renewalDate": "תאריך חידוש",
+      "category": "קטגוריה",
+      "intent": "כוונה",
+      "reminder": "תזכורת",
+      "website": "אתר",
+      "free": "חינמי",
+      "freeTrial": "ניסיון חינמי ({{months}} חודשים, לאחר מכן {{price}}/חודש)",
+      "monthly": "חודשי",
+      "annual": "שנתי",
+      "dayOfMonth": "{{day}} לכל חודש",
+      "reminderDays_one": "יום {{count}} לפני",
+      "reminderDays_other": "{{count}} ימים לפני"
+    },
+    "offline": {
+      "adding": "הוספת מנויים דורשת חיבור לאינטרנט.",
+      "editing": "עריכת מנויים דורשת חיבור לאינטרנט."
+    },
+    "error": {
+      "save": "לא ניתן לשמור",
+      "saveMessage": "בדוק את החיבור ונסה שנית."
+    },
+    "validation": {
+      "amountRequired": "נדרש סכום",
+      "amountInvalid": "הכנס סכום חיובי תקין",
+      "invalidDay": "הכנס יום תקין (1–31)",
+      "invalidDate": "בחר תאריך עתידי תקין",
+      "invalidUrl": "הכנס כתובת URL תקינה שמתחילה ב-http:// או https://",
+      "priceAfterTrialRequired": "הכנס את המחיר לאחר תקופת הניסיון",
+      "freeTrialMonthsRequired": "הכנס את מספר חודשי הניסיון החינמיים"
+    }
   }
 }

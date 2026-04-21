@@ -202,9 +202,14 @@ export default function CreditsScreen() {
             <Text style={styles.title}>{t('credits.title')}</Text>
             <SyncIndicator />
           </View>
-          <TouchableOpacity onPress={() => setShowSortMenu((s) => !s)}>
-            <Ionicons name="swap-vertical-outline" size={22} color={colors.textSecondary} />
-          </TouchableOpacity>
+          <View style={{ flexDirection: 'row', gap: 16, alignItems: 'center' }}>
+            <TouchableOpacity onPress={() => router.navigate('/(tabs)/stores')}>
+              <Ionicons name="storefront-outline" size={22} color={colors.textSecondary} />
+            </TouchableOpacity>
+            <TouchableOpacity onPress={() => setShowSortMenu((s) => !s)}>
+              <Ionicons name="swap-vertical-outline" size={22} color={colors.textSecondary} />
+            </TouchableOpacity>
+          </View>
         </View>
 
         {showSortMenu && (

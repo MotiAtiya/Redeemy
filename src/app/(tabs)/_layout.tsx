@@ -32,6 +32,10 @@ export default function TabLayout() {
       }}
     >
       <Tabs.Screen
+        name="stores"
+        options={{ href: null }}
+      />
+      <Tabs.Screen
         name="index"
         options={{
           title: t('tabs.credits'),
@@ -39,17 +43,17 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="stores"
-        options={{
-          title: t('tabs.stores'),
-          tabBarIcon: tabIcon('storefront-outline'),
-        }}
-      />
-      <Tabs.Screen
         name="warranties"
         options={{
           title: t('tabs.warranties'),
           tabBarIcon: tabIcon('shield-checkmark-outline'),
+        }}
+      />
+      <Tabs.Screen
+        name="subscriptions"
+        options={{
+          title: t('tabs.subscriptions'),
+          tabBarIcon: tabIcon('repeat-outline'),
         }}
       />
       <Tabs.Screen
