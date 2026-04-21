@@ -262,7 +262,6 @@ export default function SubscriptionDetailScreen() {
   const styles = useMemo(() => makeStyles(colors), [colors]);
   const { t } = useTranslation();
   const dateFormat = useSettingsStore((s) => s.dateFormat);
-  const globalCurrency = useSettingsStore((s) => s.currency);
 
   const sub = useSubscriptionsStore((s) => s.subscriptions.find((item) => item.id === id));
   const updateSubInStore = useSubscriptionsStore((s) => s.updateSubscription);
@@ -385,7 +384,7 @@ export default function SubscriptionDetailScreen() {
   function getBillingText(): string {
     const s = sub!;
     if (s.isFree) return t('subscription.detail.free');
-    const symbol = CURRENCY_SYMBOLS[s.currency ?? globalCurrency];
+    const symbol = CURRENCY_SYMBOLS[s.currency ?? 'ILS'];
     const amount = formatCurrency(s.amountAgorot, symbol);
     if (s.billingCycle === SubscriptionBillingCycle.MONTHLY) {
       return t('subscription.detail.monthlyAmount', { amount });
@@ -482,7 +481,7 @@ export default function SubscriptionDetailScreen() {
                           : new Date(sub.trialEndsDate as unknown as string),
                         dateFormat
                       ),
-                      price: formatCurrency(sub.priceAfterTrialAgorot ?? 0, CURRENCY_SYMBOLS[sub.currency ?? globalCurrency]),
+                      price: formatCurrency(sub.priceAfterTrialAgorot ?? 0, CURRENCY_SYMBOLS[sub.currency ?? 'ILS']),
                     })}
                   </Text>
                 </View>

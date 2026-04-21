@@ -99,8 +99,7 @@ export function CreditCard({ credit, onPress, variant = 'active' }: Props) {
   const styles = useMemo(() => makeStyles(colors), [colors]);
   const { t } = useTranslation();
   const dateFormat = useSettingsStore((s) => s.dateFormat);
-  const globalCurrency = useSettingsStore((s) => s.currency);
-  const currencySymbol = CURRENCY_SYMBOLS[credit.currency ?? globalCurrency];
+  const currencySymbol = CURRENCY_SYMBOLS[credit.currency ?? 'ILS'];
   const currentUid = useAuthStore((s) => s.currentUser?.uid);
 
   const categoryMeta = CATEGORIES.find((c) => c.id === credit.category);

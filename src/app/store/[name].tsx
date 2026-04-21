@@ -13,7 +13,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import { CreditCard } from '@/components/redeemy/CreditCard';
 import { useCreditsStore } from '@/stores/creditsStore';
-import { useSettingsStore, CURRENCY_SYMBOLS } from '@/stores/settingsStore';
+import { CURRENCY_SYMBOLS } from '@/stores/settingsStore';
 import { formatMultiCurrencyTotal } from '@/lib/formatCurrency';
 import { CreditStatus, type Credit } from '@/types/creditTypes';
 import { useAppTheme } from '@/hooks/useAppTheme';
@@ -65,7 +65,6 @@ export default function StoreDetailScreen() {
   const { t } = useTranslation();
   const isRTL = I18nManager.isRTL;
   const credits = useCreditsStore((s) => s.credits);
-  const globalCurrency = useSettingsStore((s) => s.currency);
 
   const { active, redeemed, totalByCurrency } = useMemo(() => {
     const storeCredits = credits.filter((c) => c.storeName === name);
@@ -79,11 +78,11 @@ export default function StoreDetailScreen() {
       });
     const totalByCurrency: Partial<Record<string, number>> = {};
     for (const c of active) {
-      const code = c.currency ?? globalCurrency;
+      const code = c.currency ?? 'ILS';
       totalByCurrency[code] = (totalByCurrency[code] ?? 0) + c.amount;
     }
     return { active, redeemed, totalByCurrency };
-  }, [credits, name, globalCurrency]);
+  }, [credits, name]);
 
   const sections = useMemo(() => {
     const result: { title: string; key: string; data: Credit[] }[] = [];

@@ -113,8 +113,8 @@
       "label": "Notify on Expiry Day"
     },
     "currency": {
-      "label": "Currency",
-      "title": "Currency",
+      "label": "Default Currency",
+      "title": "Default Currency",
       "ILS": "Israeli Shekel",
       "USD": "US Dollar",
       "EUR": "Euro",

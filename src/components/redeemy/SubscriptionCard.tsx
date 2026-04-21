@@ -169,8 +169,7 @@ export function SubscriptionCard({ subscription: sub, onPress }: Props) {
   const styles = useMemo(() => makeStyles(colors), [colors]);
   const { t } = useTranslation();
   const dateFormat = useSettingsStore((s) => s.dateFormat);
-  const globalCurrency = useSettingsStore((s) => s.currency);
-  const currencySymbol = CURRENCY_SYMBOLS[sub.currency ?? globalCurrency];
+  const currencySymbol = CURRENCY_SYMBOLS[sub.currency ?? 'ILS'];
   const currentUid = useAuthStore((s) => s.currentUser?.uid);
 
   const categoryMeta = SUBSCRIPTION_CATEGORIES.find((c) => c.id === sub.category);
