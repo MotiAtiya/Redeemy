@@ -885,7 +885,14 @@ export default function AddSubscriptionScreen() {
         keyboardShouldPersistTaps="handled"
       >
         <Text style={styles.stepTitle}>{t('addSubscription.step.serviceName')}</Text>
-        <ServiceAutocomplete value={serviceName} onChange={setServiceName} autoFocus />
+        <ServiceAutocomplete
+          value={serviceName}
+          onChange={setServiceName}
+          onSelectSuggestion={(_name, categoryId) => {
+            if (categoryId) setCategory(categoryId);
+          }}
+          autoFocus
+        />
       </ScrollView>
     );
   }

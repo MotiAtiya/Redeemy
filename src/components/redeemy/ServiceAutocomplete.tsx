@@ -11,14 +11,26 @@ import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import { useSubscriptionsStore } from '@/stores/subscriptionsStore';
 import { useAppTheme } from '@/hooks/useAppTheme';
+import { SUBSCRIPTION_SERVICE_NAMES, getCategoryForService } from '@/data/subscriptionServices';
+import { SUBSCRIPTION_CATEGORIES } from '@/constants/subscriptionCategories';
 import type { AppColors } from '@/constants/colors';
+import type { ComponentProps } from 'react';
+
+type IoniconsName = ComponentProps<typeof Ionicons>['name'];
 
 const MAX_SUGGESTIONS = 50;
 
 interface Props {
   value: string;
   onChange: (value: string) => void;
+  /** Called when user picks a suggestion — passes (serviceName, categoryId | null) */
+  onSelectSuggestion?: (name: string, categoryId: string | null) => void;
   autoFocus?: boolean;
+}
+
+function getCategoryIcon(categoryId: string | null): IoniconsName {
+  if (!categoryId) return 'repeat-outline';
+  return SUBSCRIPTION_CATEGORIES.find((c) => c.id === categoryId)?.icon ?? 'repeat-outline';
 }
 
 function makeStyles(colors: AppColors, isRTL: boolean) {
@@ -86,7 +98,7 @@ function highlightMatch(name: string, query: string) {
   };
 }
 
-export function ServiceAutocomplete({ value, onChange, autoFocus }: Props) {
+export function ServiceAutocomplete({ value, onChange, onSelectSuggestion, autoFocus }: Props) {
   const colors = useAppTheme();
   const { t } = useTranslation();
   const isRTL = I18nManager.isRTL;
@@ -101,10 +113,11 @@ export function ServiceAutocomplete({ value, onChange, autoFocus }: Props) {
     if (!trimmed) return [];
     const lower = trimmed.toLowerCase();
 
-    // Deduplicated service names from user's existing subscriptions
-    const serviceNames = [...new Set(subscriptions.map((s) => s.serviceName))];
+    // User's existing service names take priority, then the static list
+    const userNames = [...new Set(subscriptions.map((s) => s.serviceName))];
+    const combined = [...new Set([...userNames, ...SUBSCRIPTION_SERVICE_NAMES])];
 
-    return serviceNames
+    return combined
       .filter(
         (name) =>
           name.toLowerCase().includes(lower) &&
@@ -124,6 +137,8 @@ export function ServiceAutocomplete({ value, onChange, autoFocus }: Props) {
 
   function handleSelect(name: string) {
     onChange(name);
+    const categoryId = getCategoryForService(name);
+    onSelectSuggestion?.(name, categoryId);
     setDropdownOpen(false);
     inputRef.current?.blur();
   }
@@ -170,6 +185,7 @@ export function ServiceAutocomplete({ value, onChange, autoFocus }: Props) {
           {suggestions.map((item, index) => {
             const parts = highlightMatch(item, value);
             const isLast = index === suggestions.length - 1;
+            const catId = getCategoryForService(item);
             return (
               <TouchableOpacity
                 key={item}
@@ -177,7 +193,7 @@ export function ServiceAutocomplete({ value, onChange, autoFocus }: Props) {
                 onPress={() => handleSelect(item)}
                 activeOpacity={0.7}
               >
-                <Ionicons name="repeat-outline" size={16} color={colors.textTertiary} />
+                <Ionicons name={getCategoryIcon(catId)} size={16} color={colors.textTertiary} />
                 {typeof parts === 'string' ? (
                   <Text style={styles.itemText}>{parts}</Text>
                 ) : (
