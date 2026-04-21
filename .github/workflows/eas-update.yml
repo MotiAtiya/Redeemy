@@ -34,4 +34,5 @@ jobs:
           eas update \
             --branch production \
             --message "${{ github.event.head_commit.message }}" \
+            --platform ios \
             --non-interactive

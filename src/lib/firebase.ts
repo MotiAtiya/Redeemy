@@ -1,9 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { initializeApp, getApps, getApp } from 'firebase/app';
-import { initializeAuth, getAuth } from 'firebase/auth';
-// getReactNativePersistence is only exported from the react-native entry point
-// of @firebase/auth, not from the firebase/auth wrapper package
-import { getReactNativePersistence } from '@firebase/auth';
+import { initializeAuth, getAuth, getReactNativePersistence } from 'firebase/auth/react-native';
 import {
   initializeFirestore,
   getFirestore,
