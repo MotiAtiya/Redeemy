@@ -8,6 +8,9 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   orientation: 'portrait',
   updates: {
     url: 'https://u.expo.dev/1bba5598-7e1b-4a4c-b956-912de45854b6',
+    requestHeaders: {
+      'expo-channel-name': 'development',
+    },
   },
   runtimeVersion: {
     policy: 'appVersion',
