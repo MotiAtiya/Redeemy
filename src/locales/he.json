@@ -460,6 +460,10 @@
     "redeemed": "מומש {{date}}",
     "expired": "פג תוקפו {{date}}"
   },
+  "warrantyCard": {
+    "redeemed": "מומשה {{date}}",
+    "expired": "פגה {{date}}"
+  },
   "crop": {
     "cancel": "ביטול",
     "hint": "גרור פינות לחיתוך",

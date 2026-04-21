@@ -118,6 +118,8 @@ export function WarrantyCard({ warranty, onPress, variant = 'active' }: Props) {
   const badgeDate = (() => {
     if (variant === 'closed' && warranty.closedAt)
       return formatDate(new Date(warranty.closedAt as Date), dateFormat);
+    if (variant === 'expired' && warranty.expirationDate)
+      return formatDate(new Date(warranty.expirationDate as Date), dateFormat);
     return null;
   })();
 
@@ -186,7 +188,9 @@ export function WarrantyCard({ warranty, onPress, variant = 'active' }: Props) {
               badgeDate ? (
                 <View style={styles.closedBadge}>
                   <Text style={styles.closedBadgeText}>
-                    {t('warranties.closedToast')} {badgeDate}
+                    {variant === 'expired'
+                      ? t('warrantyCard.expired', { date: badgeDate })
+                      : t('warrantyCard.redeemed', { date: badgeDate })}
                   </Text>
                 </View>
               ) : null

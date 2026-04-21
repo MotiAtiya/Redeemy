@@ -461,6 +461,10 @@
     "redeemed": "Redeemed {{date}}",
     "expired": "Expired {{date}}"
   },
+  "warrantyCard": {
+    "redeemed": "Redeemed {{date}}",
+    "expired": "Expired {{date}}"
+  },
   "crop": {
     "cancel": "Cancel",
     "hint": "Drag corners to crop",
