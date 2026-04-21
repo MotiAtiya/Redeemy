@@ -191,7 +191,7 @@ export function WarrantyCard({ warranty, onPress, variant = 'active' }: Props) {
                 </View>
               ) : null
             ) : (
-              !warranty.noExpiry && <ExpirationBadge expirationDate={expirationDate} />
+              <ExpirationBadge expirationDate={warranty.noExpiry ? undefined : expirationDate} />
             )}
           </View>
         </View>
