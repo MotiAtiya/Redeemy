@@ -1069,8 +1069,8 @@ So that all subsequent subscription stories have a consistent foundation.
 **When** the tab bar is visible
 **Then**:
 - Tab order is: **זיכויים** (wallet-outline) | **אחריויות** (shield-checkmark-outline) | **מנויים** (repeat-outline) | **היסטוריה** (time-outline) | **עוד** (ellipsis-horizontal-outline)
-- `src/app/(tabs)/subscriptions.tsx` exists (placeholder screen for now)
-- `stores` tab is **removed** from the tab bar — `src/app/(tabs)/stores.tsx` is kept as a navigable screen but no longer a tab
+- `src/app/(tabs)/subscriptions.tsx` exists (fully implemented in Story 12.3)
+- `stores` tab is **removed** from the tab bar via `href: null` — `src/app/(tabs)/stores.tsx` is kept as a navigable route; **stores screen gains its own back-arrow header** (matching `account.tsx` pattern) so users can return to Credits
 - Credits tab header (`index.tsx`) gains a [🏪] icon button (storefront-outline) in the top-right area alongside the existing sort button — tapping it navigates to `(tabs)/stores`
 - History tab filter gains `'subscriptions'` as a third `ItemType` option alongside `'credits'` and `'warranties'` (UI placeholder — wired in Story 12.6)
 
@@ -1156,15 +1156,17 @@ So that all details are captured correctly without being overwhelmed.
 **When** each step renders
 **Then** the steps in order are:
 
-1. **billingType** — "איך מחויב המנוי?" — two large cards: `חודשי` / `שנתי`
-2. **serviceName** — "שם השירות?" — text input with autocomplete chips from existing subscriptions (same pattern as `StoreAutocomplete`) — autocomplete sourced from `subscriptionsStore.subscriptions`
-3. **amount** — "כמה אתה משלם?" — numeric input `₪` + toggle "מנוי חינמי" (hides amount input when ON); if MONTHLY: secondary toggle "תקופת ניסיון חינמי" → when ON shows: "כמה חודשים חינם?" (number picker 1–24) + "מחיר חודשי לאחר הניסיון" (required numeric field); if ANNUAL: shows `(₪X/חודש)` in gray below the amount input (amountAgorot ÷ 12, formatted)
-4. **billingDate** — MONTHLY: "באיזה יום בחודש?" — number picker 1–31; ANNUAL: "מתי תאריך החידוש הבא?" — date picker DD/MM/YYYY
-5. **category** — "באיזה קטגוריה?" — horizontal chip selector (same pattern as `CategoryChipSelector`): 📱 תקשורת | 🎬 בידור | 💪 כושר | 💻 תוכנה | 🎓 חינוך | 💝 תרומות | 🏠 בית | 🚗 רכב | 🏷️ חבר מועדון | 📦 אחר
-6. **intent** — "מה הכוונה שלך?" — four large option cards: 🔄 לחדש / ❌ לבטל / ✏️ לשנות / 👀 לבדוק — each with a one-line description
-7. **reminder** — "מתי להזכיר לך?" — preset chips: 3 ימים / שבוע / שבועיים / חודש לפני + "מותאם אישית" (free number entry); note shown: for CANCEL/MODIFY intent, two reminders fire (week before + day before minimum)
-8. **website** (optional) — "יש אתר או אפליקציה?" — URL text input with "דלג" skip button; validates URL format
-9. **summary** — shows all entered data; "שמור מנוי" primary button
+1. **serviceName** — "שם השירות" — text input with autocomplete chips from existing subscriptions (`ServiceAutocomplete` component, mirrors `StoreAutocomplete`) — autocomplete sourced from `subscriptionsStore.subscriptions`
+2. **billingType** — "סוג המנוי" — two large cards: `חודשי` / `שנתי`; auto-advances on selection (no Continue button)
+3. **amount** — "סכום המנוי" — numeric input `₪` + toggle "מנוי חינמי" (hides amount input when ON); if MONTHLY: secondary toggle "תקופת ניסיון חינמי" → when ON shows: "כמה חודשים חינם?" (number picker 1–24) + "מחיר חודשי לאחר הניסיון" (required numeric field); if ANNUAL: shows `(₪X/חודש)` in gray below the amount input (amountAgorot ÷ 12, formatted)
+4. **billingDate** — MONTHLY: "יום חיוב" — **scroll-wheel spinner** (1–31, snaps to item, defaults to current day of month, clamps to last valid day of month on save); ANNUAL: "תאריך החידוש הבא" — date picker DD/MM/YYYY
+5. **category** — "קטגוריה" — horizontal chip selector: 📱 תקשורת | 🎬 בידור | 💪 כושר | 💻 תוכנה | 🎓 חינוך | 💝 תרומות | 🏠 בית | 🚗 רכב | 🏷️ חבר מועדון | 📦 אחר
+6. **intent** — "כוונה" — four large option cards: 🔄 לחדש / ❌ לבטל / ✏️ לשנות / 👀 לבדוק — each with a one-line description
+7. **reminder** — "תזכורת" — preset chips: 3 ימים / שבוע / שבועיים / חודש לפני + "מותאם אישית" (free number entry); note shown: for CANCEL/MODIFY intent, two reminders fire (week before + day before minimum)
+8. **website** (optional) — "אתר או אפליקציה" — URL text input with "דלג" skip button; validates URL format
+9. **summary** — "הכל נראה טוב?" — shows all entered data; "שמור מנוי" primary button
+
+> **Implementation note:** Step order places **serviceName before billingType** (deviates from original spec which had billingType first). This improves UX flow: name the service before selecting its billing cadence. All step titles use concise noun-form (e.g. "סכום המנוי") rather than question-form, consistent with add-credit and add-warranty screens.
 
 **Given** the user taps "שמור מנוי" on summary
 **When** all mandatory fields are valid
@@ -1193,9 +1195,13 @@ So that all details are captured correctly without being overwhelmed.
 - New screen: `src/app/add-subscription.tsx`
 - New component: `src/components/redeemy/ServiceAutocomplete.tsx` (mirrors `StoreAutocomplete`)
 - New component: `src/components/redeemy/IntentSelector.tsx` — four large option cards
-- Free trial: `trialEndsDate` computed as `addMonths(createdAt, freeTrialMonths)` and stored — used as `nextBillingDate` for first cycle
-- Edit mode: same screen launched with `?subscriptionId=X` param — pre-fills all steps, skips to summary or step-by-step
+- New component (inline in add-subscription): `DayWheelPicker` — `ScrollView` with `snapToInterval` + `decelerationRate="fast"` for haptic-style scroll wheel; no extra dependency
+- `billingDayOfMonth` defaults to current day of month (`new Date().getDate()`)
+- Day overflow clamped via `Math.min(day, new Date(year, month+1, 0).getDate())` in `subscriptionUtils.ts` — e.g. billing day 31 → Feb 28/29
+- Free trial: `trialEndsDate` computed as `createdAt + freeTrialMonths months` and stored
+- Edit mode: same screen launched with `?subscriptionId=X` param — pre-fills all steps
 - All Firestore logic in `src/lib/firestoreSubscriptions.ts`
+- **Firestore security rules** for `/subscriptions/{id}` were deployed via `firebase deploy --only firestore:rules` (required to enable creates/reads)
 
 ---
 

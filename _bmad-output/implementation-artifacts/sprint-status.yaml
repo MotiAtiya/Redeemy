@@ -118,10 +118,10 @@ development_status:
 
   # Epic 12: Subscription Management
   epic-12: in-progress
-  12-1-navigation-refactor-and-subscription-data-model: review
-  12-2-add-subscription-flow: review
-  12-3-subscriptions-list-and-card: review
-  12-4-subscription-detail-edit-and-cancel: review
+  12-1-navigation-refactor-and-subscription-data-model: done
+  12-2-add-subscription-flow: done
+  12-3-subscriptions-list-and-card: done
+  12-4-subscription-detail-edit-and-cancel: done
   12-5-reminder-notifications-and-auto-renewal: backlog
   12-6-history-sub-tabs-cancelled-archive-and-family-sharing: backlog
   epic-12-retrospective: optional

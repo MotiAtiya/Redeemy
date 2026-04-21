@@ -769,7 +769,6 @@ export default function AddSubscriptionScreen() {
     };
 
     setSaving(true);
-    console.log('[AddSubscription] saving subscriptionData:', JSON.stringify(subscriptionData, null, 2));
 
     if (isEditing && existingSubscription) {
       try {
