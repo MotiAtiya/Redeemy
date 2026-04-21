@@ -40,17 +40,6 @@ jobs:
           eas-version: latest
           token: ${{ secrets.EXPO_TOKEN }}
 
-      - name: Write Google Services files
-        env:
-          PLIST_B64: ${{ secrets.GOOGLE_SERVICES_PLIST_B64 }}
-        run: |
-          if [ -z "$PLIST_B64" ]; then
-            echo "ERROR: GOOGLE_SERVICES_PLIST_B64 secret is missing or empty"
-            exit 1
-          fi
-          echo "$PLIST_B64" | base64 --decode > GoogleService-Info.plist
-          echo "Written GoogleService-Info.plist ($(wc -c < GoogleService-Info.plist) bytes)"
-
       - name: Install dependencies
         run: npm ci
 
