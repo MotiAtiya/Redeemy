@@ -14,6 +14,7 @@ import {
 } from '@/types/subscriptionTypes';
 import {
   daysUntilBilling,
+  daysUntilSubscriptionEnd,
   getNextBillingDate,
   normalizeToMonthlyAgorot,
 } from '@/lib/subscriptionUtils';
@@ -175,14 +176,12 @@ export function SubscriptionCard({ subscription: sub, onPress, variant = 'active
         .toUpperCase()
     : null;
 
-  // Days for urgency
-  const daysForUrgency = useMemo(() => {
-    if (sub.isFreeTrial && sub.trialEndsDate) {
-      const msPerDay = 1000 * 60 * 60 * 24;
-      return Math.max(0, Math.ceil((sub.trialEndsDate.getTime() - Date.now()) / msPerDay));
-    }
-    return daysUntilBilling(sub);
-  }, [sub]);
+  // Days until the next billing event — used for the "next billing" line.
+  const daysUntilNextBilling = useMemo(() => daysUntilBilling(sub), [sub]);
+
+  // Days until the subscription itself ends (commitment / trial / annual renewal)
+  // — used for the urgency badge that tells the user how long they have left.
+  const daysForUrgency = useMemo(() => daysUntilSubscriptionEnd(sub), [sub]);
 
   // Urgency badge colors
   const { urgencyText, urgencyBg } = useMemo(() => {
@@ -211,7 +210,7 @@ export function SubscriptionCard({ subscription: sub, onPress, variant = 'active
   // Next billing label (replaces intent badge)
   const nextBillingLabel = useMemo(() => {
     if (sub.isFree || sub.isFreeTrial) return null;
-    const days = daysForUrgency;
+    const days = daysUntilNextBilling;
     if (days === 0) return t('subscriptionCard.renewsToday');
     if (days === 1) return t('subscriptionCard.renewsTomorrow');
     if (sub.billingCycle === SubscriptionBillingCycle.ANNUAL) {
@@ -220,7 +219,7 @@ export function SubscriptionCard({ subscription: sub, onPress, variant = 'active
       return t('subscriptionCard.renewsOnDate', { days, date: dateStr });
     }
     return t('subscriptionCard.renewsInDays', { days });
-  }, [sub, daysForUrgency, t, dateFormat]);
+  }, [sub, daysUntilNextBilling, t, dateFormat]);
 
   // Amount block content
   const { amountLabel, periodLabel, amountStyle } = useMemo(() => {
