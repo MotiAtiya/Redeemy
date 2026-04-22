@@ -191,7 +191,7 @@ export function SubscriptionCard({ subscription: sub, onPress, variant = 'active
 
   const isCancelled = variant === 'cancelled';
   const categoryMeta = SUBSCRIPTION_CATEGORIES.find((c) => c.id === sub.category);
-  const intentConfig = INTENT_CONFIG[sub.intent];
+  const intentConfig = INTENT_CONFIG[sub.intent] ?? INTENT_CONFIG[SubscriptionIntent.CHECK];
   const cancelledDate = isCancelled && sub.cancelledAt
     ? formatDate(
         sub.cancelledAt instanceof Date
