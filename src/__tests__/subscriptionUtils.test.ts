@@ -1,6 +1,7 @@
 import {
   getNextBillingDate,
   daysUntilBilling,
+  daysUntilSubscriptionEnd,
   normalizeToMonthlyAgorot,
   computeMonthlyTotal,
 } from '@/lib/subscriptionUtils';
@@ -174,6 +175,86 @@ describe('daysUntilBilling', () => {
       billingDayOfMonth: undefined,
     });
     expect(daysUntilBilling(sub)).toBe(0);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// daysUntilSubscriptionEnd
+// ---------------------------------------------------------------------------
+
+describe('daysUntilSubscriptionEnd', () => {
+  it('uses commitmentEndDate for MONTHLY subscriptions with a commitment', () => {
+    const endDate = new Date(Date.now() + 90 * 86_400_000); // ~90 days away
+    const sub = makeSub({
+      billingCycle: SubscriptionBillingCycle.MONTHLY,
+      billingDayOfMonth: 15,
+      commitmentMonths: 3,
+      commitmentEndDate: endDate,
+    });
+    const days = daysUntilSubscriptionEnd(sub);
+    expect(days).toBeGreaterThanOrEqual(89);
+    expect(days).toBeLessThanOrEqual(91);
+    // Must differ from next-billing days (which is at most ~31 for monthly)
+    expect(days).toBeGreaterThan(daysUntilBilling(sub));
+  });
+
+  it('uses trialEndsDate for free-trial subscriptions', () => {
+    const trialEnd = new Date(Date.now() + 14 * 86_400_000);
+    const sub = makeSub({
+      isFreeTrial: true,
+      freeTrialMonths: 1,
+      trialEndsDate: trialEnd,
+      commitmentEndDate: new Date(Date.now() + 365 * 86_400_000),
+    });
+    const days = daysUntilSubscriptionEnd(sub);
+    expect(days).toBeGreaterThanOrEqual(13);
+    expect(days).toBeLessThanOrEqual(15);
+  });
+
+  it('uses nextBillingDate for ANNUAL subscriptions', () => {
+    const nextBilling = new Date(Date.now() + 200 * 86_400_000);
+    const sub = makeSub({
+      billingCycle: SubscriptionBillingCycle.ANNUAL,
+      billingDayOfMonth: undefined,
+      nextBillingDate: nextBilling,
+    });
+    const days = daysUntilSubscriptionEnd(sub);
+    expect(days).toBeGreaterThanOrEqual(199);
+    expect(days).toBeLessThanOrEqual(201);
+  });
+
+  it('falls back to daysUntilBilling for MONTHLY subscriptions without a commitment', () => {
+    const sub = makeSub({
+      billingCycle: SubscriptionBillingCycle.MONTHLY,
+      billingDayOfMonth: 15,
+      commitmentEndDate: undefined,
+    });
+    expect(daysUntilSubscriptionEnd(sub)).toBe(daysUntilBilling(sub));
+  });
+
+  it('never returns a negative value', () => {
+    const past = new Date(Date.now() - 30 * 86_400_000);
+    const sub = makeSub({
+      billingCycle: SubscriptionBillingCycle.MONTHLY,
+      billingDayOfMonth: 15,
+      commitmentMonths: 1,
+      commitmentEndDate: past,
+    });
+    expect(daysUntilSubscriptionEnd(sub)).toBe(0);
+  });
+
+  it('accepts commitmentEndDate stored as an ISO string', () => {
+    const endDate = new Date(Date.now() + 60 * 86_400_000);
+    const sub = makeSub({
+      billingCycle: SubscriptionBillingCycle.MONTHLY,
+      billingDayOfMonth: 15,
+      commitmentMonths: 2,
+      // Simulate Firestore serializing to string
+      commitmentEndDate: endDate.toISOString() as unknown as Date,
+    });
+    const days = daysUntilSubscriptionEnd(sub);
+    expect(days).toBeGreaterThanOrEqual(59);
+    expect(days).toBeLessThanOrEqual(61);
   });
 });
 

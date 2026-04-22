@@ -43,6 +43,33 @@ export function daysUntilBilling(sub: Subscription): number {
 }
 
 /**
+ * Returns days until the subscription itself ends, rounded up.
+ * - Free trial → trialEndsDate
+ * - MONTHLY with a commitment → commitmentEndDate
+ * - ANNUAL → nextBillingDate (end of the current annual term)
+ * - Otherwise falls back to the next billing date.
+ */
+export function daysUntilSubscriptionEnd(sub: Subscription): number {
+  const msPerDay = 1000 * 60 * 60 * 24;
+  const endDate: Date | undefined = (() => {
+    if (sub.isFreeTrial && sub.trialEndsDate) return sub.trialEndsDate;
+    if (sub.billingCycle === SubscriptionBillingCycle.MONTHLY && sub.commitmentEndDate) {
+      return sub.commitmentEndDate instanceof Date
+        ? sub.commitmentEndDate
+        : new Date(sub.commitmentEndDate as unknown as string);
+    }
+    if (sub.billingCycle === SubscriptionBillingCycle.ANNUAL && sub.nextBillingDate) {
+      return sub.nextBillingDate instanceof Date
+        ? sub.nextBillingDate
+        : new Date(sub.nextBillingDate as unknown as string);
+    }
+    return undefined;
+  })();
+  if (!endDate) return daysUntilBilling(sub);
+  return Math.max(0, Math.ceil((endDate.getTime() - Date.now()) / msPerDay));
+}
+
+/**
  * Normalizes subscription amount to monthly agorot.
  * Free subscriptions return 0.
  */
