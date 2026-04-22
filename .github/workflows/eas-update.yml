@@ -37,10 +37,12 @@ jobs:
         run: npm ci
 
       - name: Push OTA update
+        env:
+          COMMIT_MSG: ${{ github.event.head_commit.message }}
         run: |
           eas update \
             --branch development \
             --environment production \
-            --message "${{ github.event.head_commit.message }}" \
+            --message "$COMMIT_MSG" \
             --platform ios \
             --non-interactive
