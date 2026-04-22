@@ -318,7 +318,7 @@ export default function SubscriptionDetailScreen() {
     const s = sub!;
     setLoading(true);
     try {
-      for (const nid of s.notificationIds) {
+      for (const nid of (s.notificationIds ?? [])) {
         await cancelNotification(nid);
       }
       await cancelNotification(s.renewalNotificationId);

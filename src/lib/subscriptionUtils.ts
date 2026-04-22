@@ -38,9 +38,6 @@ export function getNextBillingDate(sub: Subscription): Date {
  */
 export function daysUntilBilling(sub: Subscription): number {
   const msPerDay = 1000 * 60 * 60 * 24;
-  if (sub.billingCycle === SubscriptionBillingCycle.MONTHLY && sub.commitmentEndDate) {
-    return Math.max(0, Math.ceil((sub.commitmentEndDate.getTime() - Date.now()) / msPerDay));
-  }
   const next = getNextBillingDate(sub);
   return Math.max(0, Math.ceil((next.getTime() - Date.now()) / msPerDay));
 }

@@ -242,7 +242,7 @@ export default function HistoryScreen() {
         if (s.status !== SubscriptionStatus.CANCELLED) return false;
         const when = s.cancelledAt ?? s.updatedAt ?? s.createdAt;
         if (!when) return false;
-        if (new Date(when as Date) < rangeStart) return false;
+        if (when < rangeStart) return false;
         if (q && !s.serviceName.toLowerCase().includes(q) && !(s.notes ?? '').toLowerCase().includes(q)) {
           return false;
         }
