@@ -10,49 +10,14 @@ import { formatDate } from '@/lib/formatDate';
 import { SUBSCRIPTION_CATEGORIES } from '@/constants/subscriptionCategories';
 import {
   SubscriptionBillingCycle,
-  SubscriptionIntent,
   type Subscription,
 } from '@/types/subscriptionTypes';
 import {
   daysUntilBilling,
+  getNextBillingDate,
   normalizeToMonthlyAgorot,
 } from '@/lib/subscriptionUtils';
 import type { AppColors } from '@/constants/colors';
-import type { ComponentProps } from 'react';
-
-type IoniconsName = ComponentProps<typeof Ionicons>['name'];
-
-// ---------------------------------------------------------------------------
-// Intent configuration
-// ---------------------------------------------------------------------------
-
-interface IntentConfig {
-  icon: IoniconsName;
-  labelKey: string;
-  textColor: keyof AppColors;
-  bgColor: keyof AppColors;
-}
-
-const INTENT_CONFIG: Record<SubscriptionIntent, IntentConfig> = {
-  [SubscriptionIntent.RENEW]: {
-    icon: 'refresh-outline',
-    labelKey: 'subscriptions.intent.renew',
-    textColor: 'urgencyGreen',
-    bgColor: 'urgencyGreenSurface',
-  },
-  [SubscriptionIntent.CANCEL]: {
-    icon: 'close-circle-outline',
-    labelKey: 'subscriptions.intent.cancel',
-    textColor: 'urgencyRed',
-    bgColor: 'urgencyRedSurface',
-  },
-  [SubscriptionIntent.CHECK]: {
-    icon: 'eye-outline',
-    labelKey: 'subscriptions.intent.check',
-    textColor: 'textSecondary',
-    bgColor: 'separator',
-  },
-};
 
 // ---------------------------------------------------------------------------
 // Styles
@@ -126,16 +91,11 @@ function makeStyles(colors: AppColors) {
       fontWeight: '700',
       color: colors.textPrimary,
     },
-    // Intent badge
-    intentBadge: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: 3,
-      paddingHorizontal: 7,
-      paddingVertical: 3,
-      borderRadius: 10,
+    nextBillingText: {
+      fontSize: 12,
+      color: colors.textSecondary,
+      fontWeight: '500',
     },
-    intentBadgeText: { fontSize: 11, fontWeight: '600' },
     // Urgency badge
     urgencyBadge: {
       paddingHorizontal: 7,
@@ -191,7 +151,6 @@ export function SubscriptionCard({ subscription: sub, onPress, variant = 'active
 
   const isCancelled = variant === 'cancelled';
   const categoryMeta = SUBSCRIPTION_CATEGORIES.find((c) => c.id === sub.category);
-  const intentConfig = INTENT_CONFIG[sub.intent] ?? INTENT_CONFIG[SubscriptionIntent.CHECK];
   const cancelledDate = isCancelled && sub.cancelledAt
     ? formatDate(
         sub.cancelledAt instanceof Date
@@ -249,6 +208,20 @@ export function SubscriptionCard({ subscription: sub, onPress, variant = 'active
     return months === 1 ? t('badge.oneMonth') : t('badge.months', { months });
   }, [daysForUrgency, t]);
 
+  // Next billing label (replaces intent badge)
+  const nextBillingLabel = useMemo(() => {
+    if (sub.isFree || sub.isFreeTrial) return null;
+    const days = daysForUrgency;
+    if (days === 0) return t('subscriptionCard.renewsToday');
+    if (days === 1) return t('subscriptionCard.renewsTomorrow');
+    if (sub.billingCycle === SubscriptionBillingCycle.ANNUAL) {
+      const nextDate = getNextBillingDate(sub);
+      const dateStr = formatDate(nextDate, dateFormat);
+      return t('subscriptionCard.renewsOnDate', { days, date: dateStr });
+    }
+    return t('subscriptionCard.renewsInDays', { days });
+  }, [sub, daysForUrgency, t, dateFormat]);
+
   // Amount block content
   const { amountLabel, periodLabel, amountStyle } = useMemo(() => {
     if (sub.isFree) {
@@ -303,26 +276,11 @@ export function SubscriptionCard({ subscription: sub, onPress, variant = 'active
             {sub.serviceName}
           </Text>
 
-          <View
-            style={[
-              styles.intentBadge,
-              { backgroundColor: colors[intentConfig.bgColor] as string },
-            ]}
-          >
-            <Ionicons
-              name={intentConfig.icon}
-              size={11}
-              color={colors[intentConfig.textColor] as string}
-            />
-            <Text
-              style={[
-                styles.intentBadgeText,
-                { color: colors[intentConfig.textColor] as string },
-              ]}
-            >
-              {t(intentConfig.labelKey)}
+          {nextBillingLabel != null && (
+            <Text style={styles.nextBillingText} numberOfLines={1}>
+              {nextBillingLabel}
             </Text>
-          </View>
+          )}
 
           {isCancelled ? (
             <View style={styles.cancelledBadge}>

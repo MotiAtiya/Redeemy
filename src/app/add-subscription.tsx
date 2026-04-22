@@ -199,10 +199,15 @@ type StepId =
   | 'category'
   | 'intent'
   | 'reminder'
-  | 'website'
+  | 'notesQuestion'
+  | 'notesInput'
   | 'summary';
 
-function getSteps(billingCycle: SubscriptionBillingCycle | null): StepId[] {
+function getSteps(
+  billingCycle: SubscriptionBillingCycle | null,
+  wantsNotes: boolean | null,
+  skipNotesQuestion = false,
+): StepId[] {
   const steps: StepId[] = [
     'serviceName',
     'category',
@@ -213,7 +218,10 @@ function getSteps(billingCycle: SubscriptionBillingCycle | null): StepId[] {
   if (billingCycle === SubscriptionBillingCycle.MONTHLY) {
     steps.push('commitmentMonths');
   }
-  steps.push('intent', 'reminder', 'website', 'summary');
+  steps.push('intent', 'reminder');
+  if (!skipNotesQuestion) steps.push('notesQuestion');
+  if (skipNotesQuestion || wantsNotes === true) steps.push('notesInput');
+  steps.push('summary');
   return steps;
 }
 
@@ -234,14 +242,6 @@ function useToast() {
   useEffect(() => () => { if (timerRef.current) clearTimeout(timerRef.current); }, []);
 
   return { toastMessage: message, showToast: show };
-}
-
-// ---------------------------------------------------------------------------
-// URL validation helper
-// ---------------------------------------------------------------------------
-
-function isValidUrl(url: string): boolean {
-  return url.startsWith('http://') || url.startsWith('https://');
 }
 
 // ---------------------------------------------------------------------------
@@ -456,26 +456,63 @@ function makeStyles(colors: AppColors, isRTL: boolean) {
       lineHeight: 20,
     },
 
-    // Website step
-    urlInput: {
-      height: 52,
+    // Notes question step
+    notesQCenter: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+      paddingHorizontal: 24,
+      gap: 16,
+    },
+    notesQIcon: {
+      width: 90,
+      height: 90,
+      borderRadius: 45,
+      backgroundColor: colors.primarySurface,
+      justifyContent: 'center',
+      alignItems: 'center',
+      marginBottom: 8,
+    },
+    notesQTitle: {
+      fontSize: 24,
+      fontWeight: '700',
+      color: colors.textPrimary,
+      textAlign: 'center',
+    },
+    notesQSub: {
+      fontSize: 15,
+      color: colors.textSecondary,
+      textAlign: 'center',
+      lineHeight: 22,
+      marginBottom: 16,
+    },
+    notesQBtn: {
+      width: '100%',
+      height: 54,
+      borderRadius: 14,
+      backgroundColor: colors.primary,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    notesQBtnSecondary: {
+      backgroundColor: 'transparent',
+      borderWidth: 1.5,
+      borderColor: colors.separator,
+    },
+    notesQBtnText: { fontSize: 16, fontWeight: '700', color: '#FFFFFF' },
+    notesQBtnTextSecondary: { color: colors.textSecondary, fontWeight: '500' },
+    // Notes input step
+    notesInput: {
       borderWidth: 1,
       borderColor: colors.separator,
       borderRadius: 12,
-      paddingHorizontal: 16,
+      padding: 14,
       fontSize: 16,
       color: colors.textPrimary,
       backgroundColor: colors.background,
-      textAlign: 'left',
-      direction: 'ltr',
+      minHeight: 130,
+      textAlignVertical: 'top',
     },
-    skipLink: {
-      alignSelf: 'center',
-      marginTop: 16,
-      paddingVertical: 8,
-      paddingHorizontal: 16,
-    },
-    skipLinkText: { fontSize: 15, color: colors.primary, fontWeight: '500' },
 
     // Summary step
     summaryCard: {
@@ -573,7 +610,9 @@ export default function AddSubscriptionScreen() {
   const [category, setCategory] = useState('other');
   const [intent, setIntent] = useState<SubscriptionIntent | null>(null);
   const [reminderDays, setReminderDays] = useState(7);
-  const [websiteUrl, setWebsiteUrl] = useState('');
+  const [wantsNotes, setWantsNotes] = useState<boolean | null>(null);
+  const [skipNotesQuestion, setSkipNotesQuestion] = useState(false);
+  const [notes, setNotes] = useState('');
   const [saving, setSaving] = useState(false);
   const [dateError, setDateError] = useState('');
   const [amountError, setAmountError] = useState('');
@@ -584,7 +623,7 @@ export default function AddSubscriptionScreen() {
   const slideAnim = useRef(new Animated.Value(0)).current;
   const keyboardPadding = useRef(new Animated.Value(0)).current;
 
-  const steps = useMemo(() => getSteps(billingCycle), [billingCycle]);
+  const steps = useMemo(() => getSteps(billingCycle, wantsNotes, skipNotesQuestion), [billingCycle, wantsNotes, skipNotesQuestion]);
   const currentStepIndex = steps.indexOf(currentStepId);
 
   // Keyboard tracking
@@ -633,7 +672,13 @@ export default function AddSubscriptionScreen() {
     setCategory(existingSubscription.category);
     setIntent(existingSubscription.intent);
     setReminderDays(existingSubscription.reminderDays);
-    setWebsiteUrl(existingSubscription.websiteUrl ?? '');
+    if (existingSubscription.notes) {
+      setNotes(existingSubscription.notes);
+      setWantsNotes(true);
+      setSkipNotesQuestion(true);
+    } else {
+      setWantsNotes(false);
+    }
     if (existingSubscription.currency) setCurrency(existingSubscription.currency);
     if (existingSubscription.commitmentMonths) setCommitmentMonths(existingSubscription.commitmentMonths);
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -717,15 +762,15 @@ export default function AddSubscriptionScreen() {
       case 'commitmentMonths': return true;
       case 'category':  return true;
       case 'intent':    return intent !== null;
-      case 'reminder':  return true;
-      case 'website':   return websiteUrl.trim() === '' || isValidUrl(websiteUrl);
-      case 'summary':   return false;
+      case 'reminder':      return true;
+      case 'notesInput':    return true;
+      case 'summary':       return false;
       default:          return false;
     }
   }, [
     currentStepId, billingCycle, serviceName, isFree, isFreeTrial, amountInput,
     freeTrialMonths, billingDayOfMonth, nextBillingDate,
-    category, intent, reminderDays, websiteUrl,
+    category, intent, reminderDays,
   ]);
 
   // Monthly breakdown for ANNUAL billing
@@ -834,8 +879,7 @@ export default function AddSubscriptionScreen() {
       status: SubscriptionStatus.ACTIVE,
       reminderDays,
       notificationIds: [],
-      websiteUrl: websiteUrl.trim() || undefined,
-      notes: '',
+      notes: notes.trim() || undefined,
       ...(familyId
         ? {
             familyId,
@@ -1253,28 +1297,61 @@ export default function AddSubscriptionScreen() {
     );
   }
 
-  function renderWebsiteStep() {
+  function renderNotesQuestionStep() {
+    return (
+      <View style={[styles.stepContent, styles.notesQCenter]}>
+        <View style={styles.notesQIcon}>
+          <Ionicons name="chatbubble-ellipses-outline" size={40} color={colors.primary} />
+        </View>
+        <Text style={styles.notesQTitle}>{t('addSubscription.step.notesQuestion')}</Text>
+        <Text style={styles.notesQSub}>{t('addSubscription.stepSub.notesQuestion')}</Text>
+        <TouchableOpacity
+          style={styles.notesQBtn}
+          onPress={() => {
+            setWantsNotes(true);
+            animateTransition('forward', () => {
+              const updatedSteps = getSteps(billingCycle, true);
+              const nextIdx = updatedSteps.indexOf('notesInput');
+              if (nextIdx !== -1) setCurrentStepId('notesInput');
+            });
+          }}
+        >
+          <Text style={styles.notesQBtnText}>{t('addSubscription.notesYes')}</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.notesQBtn, styles.notesQBtnSecondary]}
+          onPress={() => {
+            setWantsNotes(false);
+            animateTransition('forward', () => setCurrentStepId('summary'));
+          }}
+        >
+          <Text style={[styles.notesQBtnText, styles.notesQBtnTextSecondary]}>
+            {t('addSubscription.notesNo')}
+          </Text>
+        </TouchableOpacity>
+      </View>
+    );
+  }
+
+  function renderNotesInputStep() {
     return (
       <ScrollView
         style={styles.stepScroll}
         contentContainerStyle={styles.stepContent}
         keyboardShouldPersistTaps="handled"
       >
-        <Text style={styles.stepTitle}>{t('addSubscription.step.website')}</Text>
+        <Text style={styles.stepTitle}>{t('addSubscription.step.notesInput')}</Text>
+        <Text style={styles.notesQSub}>{t('addSubscription.stepSub.notesInput')}</Text>
         <TextInput
-          style={styles.urlInput}
-          placeholder={t('addSubscription.website.placeholder')}
+          style={styles.notesInput}
+          placeholder={t('addSubscription.notesPlaceholder')}
           placeholderTextColor={colors.textTertiary}
-          keyboardType="url"
-          autoCapitalize="none"
-          autoCorrect={false}
-          value={websiteUrl}
-          onChangeText={setWebsiteUrl}
+          multiline
+          numberOfLines={5}
+          value={notes}
+          onChangeText={setNotes}
           autoFocus
         />
-        <TouchableOpacity style={styles.skipLink} onPress={goNext}>
-          <Text style={styles.skipLinkText}>{t('addSubscription.website.skip')}</Text>
-        </TouchableOpacity>
       </ScrollView>
     );
   }
@@ -1375,14 +1452,12 @@ export default function AddSubscriptionScreen() {
             <Text style={styles.summaryValue}>{reminderDisplay}</Text>
           </View>
 
-          {websiteUrl.trim().length > 0 && (
+          {notes.trim().length > 0 ? (
             <View style={[styles.summaryRow, styles.summaryRowLast]}>
-              <Text style={styles.summaryLabel}>{t('addSubscription.summary.website')}</Text>
-              <Text style={styles.summaryValue} numberOfLines={2}>{websiteUrl}</Text>
+              <Text style={styles.summaryLabel}>{t('addSubscription.summary.notes')}</Text>
+              <Text style={styles.summaryValue} numberOfLines={3}>{notes}</Text>
             </View>
-          )}
-
-          {!websiteUrl.trim() && (
+          ) : (
             <View style={[styles.summaryRow, styles.summaryRowLast]} />
           )}
         </View>
@@ -1400,7 +1475,8 @@ export default function AddSubscriptionScreen() {
       case 'category':         return renderCategoryStep();
       case 'intent':           return renderIntentStep();
       case 'reminder':         return renderReminderStep();
-      case 'website':          return renderWebsiteStep();
+      case 'notesQuestion':    return renderNotesQuestionStep();
+      case 'notesInput':       return renderNotesInputStep();
       case 'summary':          return renderSummaryStep();
     }
   }
@@ -1410,8 +1486,9 @@ export default function AddSubscriptionScreen() {
   // ---------------------------------------------------------------------------
 
   function renderFooterButton() {
-    // billingType auto-advances — no continue button
+    // billingType and notesQuestion handle their own navigation — no continue button
     if (currentStepId === 'billingType') return null;
+    if (currentStepId === 'notesQuestion') return null;
 
     if (currentStepId === 'summary') {
       return (

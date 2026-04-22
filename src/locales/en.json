@@ -16,7 +16,9 @@
       "recent": "Recent"
     },
     "search": "Search by store or notes…",
-    "filter": { "all": "All" },
+    "filter": {
+      "all": "All"
+    },
     "empty": {
       "title": "No credits yet",
       "subtitle": "Add your first credit and never lose money again",
@@ -351,7 +353,9 @@
   "warranties": {
     "title": "Warranties",
     "search": "Search by store, product or notes…",
-    "filter": { "all": "All" },
+    "filter": {
+      "all": "All"
+    },
     "empty": {
       "title": "No warranties yet",
       "subtitle": "Add your first warranty to keep track of product guarantees",
@@ -580,7 +584,9 @@
     "activeCount_one": "{{count}} active subscription",
     "activeCount_other": "{{count}} active subscriptions",
     "search": "Search by service or notes…",
-    "filter": { "all": "All" },
+    "filter": {
+      "all": "All"
+    },
     "sort": {
       "billingDate": "Billing Date",
       "serviceAZ": "Service A–Z",
@@ -710,8 +716,9 @@
       "category": "Category",
       "intent": "Intention",
       "reminder": "Reminder",
-      "website": "Website or app",
-      "summary": "Looking good?"
+      "summary": "Looking good?",
+      "notesQuestion": "Notes",
+      "notesInput": "Notes"
     },
     "commitmentMonths": {
       "option_one": "1 month",
@@ -737,10 +744,6 @@
       "customPlaceholder": "Days before",
       "cancelModifyNote": "You'll get two reminders — a week before and a day before."
     },
-    "website": {
-      "placeholder": "https://...",
-      "skip": "Skip"
-    },
     "summary": {
       "service": "Service",
       "billing": "Billing",
@@ -750,14 +753,14 @@
       "category": "Category",
       "intent": "Intent",
       "reminder": "Reminder",
-      "website": "Website",
       "free": "Free",
       "freeTrial": "Free trial ({{months}} months, then {{price}}/month)",
       "monthly": "Monthly",
       "annual": "Annual",
       "dayOfMonth": "{{day}}th of each month",
       "reminderDays_one": "{{count}} day before",
-      "reminderDays_other": "{{count}} days before"
+      "reminderDays_other": "{{count}} days before",
+      "notes": "Notes"
     },
     "offline": {
       "adding": "Adding subscriptions requires an internet connection.",
@@ -772,9 +775,15 @@
       "amountInvalid": "Enter a valid positive amount",
       "invalidDay": "Enter a valid day (1–31)",
       "invalidDate": "Select a valid future date",
-      "invalidUrl": "Enter a valid URL starting with http:// or https://",
       "priceAfterTrialRequired": "Enter the price after the trial period",
       "freeTrialMonthsRequired": "Enter the number of free months"
-    }
+    },
+    "stepSub": {
+      "notesQuestion": "Would you like to add a note to this subscription?",
+      "notesInput": "Write any info you want to remember"
+    },
+    "notesYes": "Yes, add a note",
+    "notesNo": "Skip",
+    "notesPlaceholder": "Subscription details, account info…"
   }
 }

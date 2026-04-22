@@ -16,7 +16,9 @@
       "recent": "אחרונים"
     },
     "search": "חפש לפי חנות או הערות…",
-    "filter": { "all": "הכל" },
+    "filter": {
+      "all": "הכל"
+    },
     "empty": {
       "title": "אין זיכויים עדיין",
       "subtitle": "הוסף את הזיכוי הראשון שלך ואל תאבד כסף",
@@ -350,7 +352,9 @@
   "warranties": {
     "title": "אחריויות",
     "search": "חפש לפי חנות, מוצר או הערות…",
-    "filter": { "all": "הכל" },
+    "filter": {
+      "all": "הכל"
+    },
     "empty": {
       "title": "אין אחריויות עדיין",
       "subtitle": "הוסף את האחריות הראשונה שלך ואל תפספס שום תוקף",
@@ -579,7 +583,9 @@
     "activeCount_one": "מנוי פעיל אחד",
     "activeCount_other": "{{count}} מנויים פעילים",
     "search": "חפש לפי שירות או הערות…",
-    "filter": { "all": "הכל" },
+    "filter": {
+      "all": "הכל"
+    },
     "sort": {
       "billingDate": "תאריך חיוב",
       "serviceAZ": "שירות א-ת",
@@ -709,8 +715,9 @@
       "category": "קטגוריה",
       "intent": "כוונה",
       "reminder": "תזכורת",
-      "website": "אתר או אפליקציה",
-      "summary": "הכל נראה טוב?"
+      "summary": "הכל נראה טוב?",
+      "notesQuestion": "הערות",
+      "notesInput": "הערות"
     },
     "commitmentMonths": {
       "option_one": "חודש אחד",
@@ -736,10 +743,6 @@
       "customPlaceholder": "ימים לפני",
       "cancelModifyNote": "תקבל שני תזכורות — שבוע לפני ויום לפני."
     },
-    "website": {
-      "placeholder": "https://...",
-      "skip": "דלג"
-    },
     "summary": {
       "service": "שירות",
       "billing": "חיוב",
@@ -749,14 +752,14 @@
       "category": "קטגוריה",
       "intent": "כוונה",
       "reminder": "תזכורת",
-      "website": "אתר",
       "free": "חינמי",
       "freeTrial": "ניסיון חינמי ({{months}} חודשים, לאחר מכן {{price}}/חודש)",
       "monthly": "חודשי",
       "annual": "שנתי",
       "dayOfMonth": "{{day}} לכל חודש",
       "reminderDays_one": "יום {{count}} לפני",
-      "reminderDays_other": "{{count}} ימים לפני"
+      "reminderDays_other": "{{count}} ימים לפני",
+      "notes": "הערות"
     },
     "offline": {
       "adding": "הוספת מנויים דורשת חיבור לאינטרנט.",
@@ -771,9 +774,15 @@
       "amountInvalid": "הכנס סכום חיובי תקין",
       "invalidDay": "הכנס יום תקין (1–31)",
       "invalidDate": "בחר תאריך עתידי תקין",
-      "invalidUrl": "הכנס כתובת URL תקינה שמתחילה ב-http:// או https://",
       "priceAfterTrialRequired": "הכנס את המחיר לאחר תקופת הניסיון",
       "freeTrialMonthsRequired": "הכנס את מספר חודשי הניסיון החינמיים"
-    }
+    },
+    "stepSub": {
+      "notesQuestion": "האם ברצונך להוסיף הערה למנוי זה?",
+      "notesInput": "כתוב כל מידע שתרצה לזכור"
+    },
+    "notesYes": "כן, הוסף הערה",
+    "notesNo": "דלג",
+    "notesPlaceholder": "פרטי המנוי, פרטי חשבון…"
   }
 }
