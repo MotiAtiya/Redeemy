@@ -1084,7 +1084,6 @@ export default function AddCreditScreen() {
         keyboardShouldPersistTaps="handled"
       >
         <Text style={styles.stepTitle}>{t('addCredit.step.notesInput')}</Text>
-        <Text style={styles.stepSubtitle}>{t('addCredit.stepSub.notesInput')}</Text>
         <TextInput
           style={styles.notesInput}
           placeholder={t('addCredit.notesPlaceholder')}

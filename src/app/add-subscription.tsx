@@ -506,12 +506,15 @@ function makeStyles(colors: AppColors, isRTL: boolean) {
       borderWidth: 1,
       borderColor: colors.separator,
       borderRadius: 12,
-      padding: 14,
-      fontSize: 16,
+      paddingHorizontal: 16,
+      paddingTop: 14,
+      paddingBottom: 14,
+      fontSize: 15,
       color: colors.textPrimary,
       backgroundColor: colors.background,
-      minHeight: 130,
+      minHeight: 120,
       textAlignVertical: 'top',
+      textAlign: isRTL ? 'right' : 'left',
     },
 
     // Summary step
@@ -1341,7 +1344,6 @@ export default function AddSubscriptionScreen() {
         keyboardShouldPersistTaps="handled"
       >
         <Text style={styles.stepTitle}>{t('addSubscription.step.notesInput')}</Text>
-        <Text style={styles.notesQSub}>{t('addSubscription.stepSub.notesInput')}</Text>
         <TextInput
           style={styles.notesInput}
           placeholder={t('addSubscription.notesPlaceholder')}
