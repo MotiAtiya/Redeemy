@@ -1,43 +1,58 @@
 import * as Notifications from 'expo-notifications';
-import { SubscriptionIntent, type Subscription } from '@/types/subscriptionTypes';
+import { SubscriptionBillingCycle, type Subscription } from '@/types/subscriptionTypes';
 import { useSettingsStore } from '@/stores/settingsStore';
 import i18n from './i18n';
 import { getNextBillingDate } from './subscriptionUtils';
 import { requestNotificationPermission, cancelNotification } from './notifications';
 
 // ---------------------------------------------------------------------------
-// Scheduling
+// Types
 // ---------------------------------------------------------------------------
 
 export interface ScheduledSubscriptionNotifications {
   notificationIds: string[];
   renewalNotificationId?: string;
+  specialPeriodNotificationId?: string;
 }
 
 type SchedulableSub = Pick<
   Subscription,
   | 'id'
   | 'serviceName'
-  | 'intent'
   | 'reminderDays'
   | 'billingCycle'
   | 'billingDayOfMonth'
   | 'nextBillingDate'
+  | 'renewalType'
+  | 'isFree'
+  | 'hasFixedPeriod'
+  | 'freeReviewReminderMonths'
+  | 'isFreeTrial'
+  | 'specialPeriodType'
+  | 'specialPeriodUnit'
+  | 'specialPeriodMonths'
+  | 'specialPeriodDays'
+  | 'trialEndsDate'
+  | 'reminderSpecialPeriodEnabled'
 >;
+
+// ---------------------------------------------------------------------------
+// Internal helpers
+// ---------------------------------------------------------------------------
 
 async function scheduleAt(
   date: Date,
   title: string,
   body: string,
   subscriptionId: string,
-  intent?: string,
+  extraData?: Record<string, string>,
 ): Promise<string | null> {
   if (date <= new Date()) return null;
   return Notifications.scheduleNotificationAsync({
     content: {
       title,
       body,
-      data: { subscriptionId, type: 'subscription', ...(intent ? { intent } : {}) },
+      data: { subscriptionId, type: 'subscription', ...extraData },
     },
     trigger: {
       type: Notifications.SchedulableTriggerInputTypes.DATE,
@@ -46,28 +61,84 @@ async function scheduleAt(
   });
 }
 
+// ---------------------------------------------------------------------------
+// Scheduling
+// ---------------------------------------------------------------------------
+
 /**
- * Schedules intent-based notifications for a subscription.
+ * Schedules notifications for a subscription based on its type:
  *
- * | Intent    | Notifications                                                    |
- * |-----------|------------------------------------------------------------------|
- * | RENEW     | 1 — on billing day ("התחדש ✓ — האם הסכום השתנה?")               |
- * | CANCEL    | 2 — reminderDays before + 1 day before                          |
- * | CHECK     | 1 — reminderDays before                                         |
+ * Free subscription:
+ *   → 1 review reminder N months from now
  *
- * Caller is responsible for persisting the returned ids on the subscription doc.
+ * Paid — auto renewal (default):
+ *   → reminder N days before billing
+ *   → on-day renewal notification
+ *
+ * Paid — manual renewal:
+ *   → reminder N days before billing
+ *   → reminder 1 day before billing
+ *
+ * Special period (if reminderSpecialPeriodEnabled):
+ *   → reminder 7 days before special period ends
  */
 export async function scheduleSubscriptionNotifications(
   sub: SchedulableSub,
 ): Promise<ScheduledSubscriptionNotifications> {
-  const empty: ScheduledSubscriptionNotifications = { notificationIds: [], renewalNotificationId: undefined };
+  const empty: ScheduledSubscriptionNotifications = { notificationIds: [] };
   if (!useSettingsStore.getState().notificationsEnabled) return empty;
   const granted = await requestNotificationPermission();
   if (!granted) return empty;
 
   const t = i18n.t.bind(i18n);
   const { notificationHour, notificationMinute } = useSettingsStore.getState();
+  const result: ScheduledSubscriptionNotifications = { notificationIds: [] };
 
+  // Periodic review reminder: free subscriptions + monthly with no fixed period
+  const isPeriodicReview =
+    sub.isFree ||
+    (sub.billingCycle === SubscriptionBillingCycle.MONTHLY && sub.hasFixedPeriod === false);
+
+  if (isPeriodicReview) {
+    const months = sub.freeReviewReminderMonths ?? 3;
+    const reminderDate = new Date();
+    reminderDate.setMonth(reminderDate.getMonth() + months);
+    reminderDate.setHours(notificationHour, notificationMinute, 0, 0);
+    const id = await scheduleAt(
+      reminderDate,
+      t('notifications.subscription.freeReview.title'),
+      t('notifications.subscription.freeReview.body', { serviceName: sub.serviceName }),
+      sub.id,
+    );
+    if (id) result.notificationIds.push(id);
+    return result;
+  }
+
+  // Special period end reminder (smart timing: min(floor(duration/2), 7) days before)
+  if (sub.reminderSpecialPeriodEnabled && sub.trialEndsDate) {
+    const endDate = sub.trialEndsDate instanceof Date
+      ? sub.trialEndsDate
+      : new Date(sub.trialEndsDate as unknown as string);
+
+    // For days-based short trials, use at most half the duration as lead time
+    let daysBefore = 7;
+    if (sub.specialPeriodUnit === 'days' && sub.specialPeriodDays) {
+      daysBefore = Math.max(1, Math.min(Math.floor(sub.specialPeriodDays / 2), 7));
+    }
+
+    const reminderDate = new Date(endDate);
+    reminderDate.setDate(reminderDate.getDate() - daysBefore);
+    reminderDate.setHours(notificationHour, notificationMinute, 0, 0);
+    const id = await scheduleAt(
+      reminderDate,
+      t('notifications.subscription.specialPeriodEnd.title'),
+      t('notifications.subscription.specialPeriodEnd.body', { serviceName: sub.serviceName }),
+      sub.id,
+    );
+    if (id) result.specialPeriodNotificationId = id;
+  }
+
+  // Compute billing trigger dates
   const nextBilling = getNextBillingDate(sub as Subscription);
   const billingTriggerDate = new Date(nextBilling);
   billingTriggerDate.setHours(notificationHour, notificationMinute, 0, 0);
@@ -78,62 +149,66 @@ export async function scheduleSubscriptionNotifications(
   const reminderBefore = new Date(billingTriggerDate);
   reminderBefore.setDate(reminderBefore.getDate() - Math.max(1, sub.reminderDays));
 
-  const result: ScheduledSubscriptionNotifications = { notificationIds: [] };
+  const isManual = sub.renewalType === 'manual';
 
-  if (sub.intent === SubscriptionIntent.RENEW) {
-    const id = await scheduleAt(
-      billingTriggerDate,
-      t('notifications.subscription.renew.title'),
-      t('notifications.subscription.renew.body', { serviceName: sub.serviceName }),
-      sub.id,
-      'renew',
-    );
-    if (id) result.renewalNotificationId = id;
-    return result;
-  }
-
-  if (sub.intent === SubscriptionIntent.CANCEL) {
+  if (isManual) {
+    // Manual renewal: remind N days before + 1 day before
     const firstId = await scheduleAt(
       reminderBefore,
-      t('notifications.subscription.cancel.title'),
-      t('notifications.subscription.cancel.body', { serviceName: sub.serviceName, days: sub.reminderDays }),
+      t('notifications.subscription.manual.title'),
+      t('notifications.subscription.manual.body', { serviceName: sub.serviceName, days: sub.reminderDays }),
       sub.id,
     );
     if (firstId) result.notificationIds.push(firstId);
+
     const secondId = await scheduleAt(
       dayBefore,
-      t('notifications.subscription.cancel.title'),
-      t('notifications.subscription.cancel.body', { serviceName: sub.serviceName, days: 1 }),
+      t('notifications.subscription.manual.title'),
+      t('notifications.subscription.manual.body', { serviceName: sub.serviceName, days: 1 }),
       sub.id,
     );
     if (secondId) result.notificationIds.push(secondId);
-    return result;
+  } else {
+    // Auto renewal: remind N days before + on-day notification
+    const reminderId = await scheduleAt(
+      reminderBefore,
+      t('notifications.subscription.auto.reminder.title'),
+      t('notifications.subscription.auto.reminder.body', { serviceName: sub.serviceName, days: sub.reminderDays }),
+      sub.id,
+    );
+    if (reminderId) result.notificationIds.push(reminderId);
+
+    const renewalId = await scheduleAt(
+      billingTriggerDate,
+      t('notifications.subscription.auto.renewal.title'),
+      t('notifications.subscription.auto.renewal.body', { serviceName: sub.serviceName }),
+      sub.id,
+      { notificationType: 'renewal' },
+    );
+    if (renewalId) result.renewalNotificationId = renewalId;
   }
 
-  // CHECK
-  const id = await scheduleAt(
-    reminderBefore,
-    t('notifications.subscription.check.title'),
-    t('notifications.subscription.check.body', { serviceName: sub.serviceName, days: sub.reminderDays }),
-    sub.id,
-  );
-  if (id) result.notificationIds.push(id);
   return result;
 }
+
+// ---------------------------------------------------------------------------
+// Cancellation
+// ---------------------------------------------------------------------------
 
 /**
  * Cancels all scheduled notifications for a subscription.
  */
 export async function cancelSubscriptionNotifications(
-  sub: Pick<Subscription, 'notificationIds' | 'renewalNotificationId'>,
+  sub: Pick<Subscription, 'notificationIds' | 'renewalNotificationId' | 'specialPeriodNotificationId'>,
 ): Promise<void> {
   const ids = sub.notificationIds ?? [];
   await Promise.all(ids.map((id) => cancelNotification(id)));
   if (sub.renewalNotificationId) await cancelNotification(sub.renewalNotificationId);
+  if (sub.specialPeriodNotificationId) await cancelNotification(sub.specialPeriodNotificationId);
 }
 
 // ---------------------------------------------------------------------------
-// Deep-link helper
+// Deep-link helpers
 // ---------------------------------------------------------------------------
 
 /**
@@ -150,14 +225,17 @@ export function getSubscriptionIdFromNotification(
 }
 
 /**
- * Returns true if a notification response originated from a RENEW-intent on-billing notification.
+ * Returns true if a notification response is an auto-renewal on-billing-day notification.
  * Used by the detail screen to show an "עדכן סכום" inline prompt.
  */
 export function isRenewalPromptNotification(
   response: Notifications.NotificationResponse,
 ): boolean {
   const data = response.notification.request.content.data as
-    | { subscriptionId?: string; type?: string; intent?: string }
+    | { subscriptionId?: string; type?: string; intent?: string; notificationType?: string }
     | undefined;
-  return data?.type === 'subscription' && data?.intent === 'renew';
+  return (
+    data?.type === 'subscription' &&
+    (data?.intent === 'renew' || data?.notificationType === 'renewal')
+  );
 }

@@ -9,7 +9,6 @@ import {
   Modal,
   ActivityIndicator,
   I18nManager,
-  Linking,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, useLocalSearchParams } from 'expo-router';
@@ -25,13 +24,10 @@ import { useFamilyStore } from '@/stores/familyStore';
 import { useSettingsStore, CURRENCY_SYMBOLS } from '@/stores/settingsStore';
 import { useUIStore } from '@/stores/uiStore';
 import { useAppTheme } from '@/hooks/useAppTheme';
-import { SubscriptionBillingCycle, SubscriptionIntent, SubscriptionStatus } from '@/types/subscriptionTypes';
+import { SubscriptionBillingCycle, SubscriptionStatus } from '@/types/subscriptionTypes';
 import { SUBSCRIPTION_CATEGORIES } from '@/constants/subscriptionCategories';
 import { getNextBillingDate, daysUntilBilling, normalizeToMonthlyAgorot } from '@/lib/subscriptionUtils';
 import type { AppColors } from '@/constants/colors';
-import type { ComponentProps } from 'react';
-
-type IoniconsName = ComponentProps<typeof Ionicons>['name'];
 
 // ---------------------------------------------------------------------------
 // useToast — copied from src/app/family/[id].tsx
@@ -48,38 +44,6 @@ function useToast() {
   useEffect(() => () => { if (timerRef.current) clearTimeout(timerRef.current); }, []);
   return { toastMessage: message, showToast: show };
 }
-
-// ---------------------------------------------------------------------------
-// Intent config — mirrors SubscriptionCard
-// ---------------------------------------------------------------------------
-
-interface IntentConfig {
-  icon: IoniconsName;
-  labelKey: string;
-  textColor: keyof AppColors;
-  bgColor: keyof AppColors;
-}
-
-const INTENT_CONFIG: Record<SubscriptionIntent, IntentConfig> = {
-  [SubscriptionIntent.RENEW]: {
-    icon: 'refresh-outline',
-    labelKey: 'subscriptions.intent.renew',
-    textColor: 'urgencyGreen',
-    bgColor: 'urgencyGreenSurface',
-  },
-  [SubscriptionIntent.CANCEL]: {
-    icon: 'close-circle-outline',
-    labelKey: 'subscriptions.intent.cancel',
-    textColor: 'urgencyRed',
-    bgColor: 'urgencyRedSurface',
-  },
-  [SubscriptionIntent.CHECK]: {
-    icon: 'eye-outline',
-    labelKey: 'subscriptions.intent.check',
-    textColor: 'textSecondary',
-    bgColor: 'separator',
-  },
-};
 
 // ---------------------------------------------------------------------------
 // Styles
@@ -140,7 +104,6 @@ function makeStyles(colors: AppColors) {
     detailLabel: { fontSize: 12, color: colors.textTertiary, fontWeight: '500', alignSelf: 'flex-start' },
     detailValue: { fontSize: 15, color: colors.textPrimary, alignSelf: 'flex-start' },
     notesValue: { fontSize: 15, color: colors.textPrimary, alignSelf: 'flex-start', textAlign: 'left' },
-    detailValueLink: { fontSize: 15, color: colors.primary, alignSelf: 'flex-start' },
     separator: { height: 1, backgroundColor: colors.separator, marginStart: 44 },
     // Footer
     footer: {
@@ -279,7 +242,6 @@ export default function SubscriptionDetailScreen() {
     [sub?.category]
   );
 
-  const intentCfg = sub ? INTENT_CONFIG[sub.intent] : null;
   const isCancelled = sub?.status === SubscriptionStatus.CANCELLED;
   const nextBillingDate = sub ? getNextBillingDate(sub) : null;
   const daysLeft = sub ? daysUntilBilling(sub) : 0;
@@ -435,11 +397,11 @@ export default function SubscriptionDetailScreen() {
             />
           </View>
           <Text style={styles.heroServiceName}>{sub.serviceName}</Text>
-          {intentCfg && (
-            <View style={[styles.intentBadge, { backgroundColor: colors[intentCfg.bgColor] as string }]}>
-              <Ionicons name={intentCfg.icon} size={14} color={colors[intentCfg.textColor] as string} />
-              <Text style={[styles.intentBadgeText, { color: colors[intentCfg.textColor] as string }]}>
-                {t(intentCfg.labelKey)}
+          {sub.renewalType === 'manual' && (
+            <View style={[styles.intentBadge, { backgroundColor: colors.urgencyAmberSurface }]}>
+              <Ionicons name="hand-left-outline" size={14} color={colors.urgencyAmber} />
+              <Text style={[styles.intentBadgeText, { color: colors.urgencyAmber }]}>
+                {t('subscription.detail.manualRenewal')}
               </Text>
             </View>
           )}
@@ -502,14 +464,14 @@ export default function SubscriptionDetailScreen() {
           </View>
           <View style={styles.separator} />
 
-          {/* Intent */}
-          {intentCfg && (
+          {/* Renewal type (only show if manual) */}
+          {sub.renewalType === 'manual' && (
             <>
               <View style={styles.detailRow}>
-                <Ionicons name={intentCfg.icon} size={18} color={colors.textTertiary} />
+                <Ionicons name="hand-left-outline" size={18} color={colors.textTertiary} />
                 <View style={styles.detailRowContent}>
-                  <Text style={styles.detailLabel}>{t('subscription.detail.intent')}</Text>
-                  <Text style={styles.detailValue}>{t(intentCfg.labelKey)}</Text>
+                  <Text style={styles.detailLabel}>{t('subscription.detail.renewalType')}</Text>
+                  <Text style={styles.detailValue}>{t('subscription.detail.manualRenewal')}</Text>
                 </View>
               </View>
               <View style={styles.separator} />
@@ -526,25 +488,6 @@ export default function SubscriptionDetailScreen() {
               </Text>
             </View>
           </View>
-
-          {/* Website (only if set) */}
-          {!!sub.websiteUrl && (
-            <>
-              <View style={styles.separator} />
-              <TouchableOpacity
-                style={styles.detailRow}
-                onPress={() => { void Linking.openURL(sub.websiteUrl!); }}
-                activeOpacity={0.7}
-              >
-                <Ionicons name="globe-outline" size={18} color={colors.textTertiary} />
-                <View style={styles.detailRowContent}>
-                  <Text style={styles.detailLabel}>{t('subscription.detail.website')}</Text>
-                  <Text style={styles.detailValueLink} numberOfLines={1}>{sub.websiteUrl}</Text>
-                </View>
-                <Ionicons name="open-outline" size={14} color={colors.primary} />
-              </TouchableOpacity>
-            </>
-          )}
 
           {/* Notes (only if set) */}
           {!!sub.notes && (

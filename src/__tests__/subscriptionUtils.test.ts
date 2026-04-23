@@ -9,7 +9,6 @@ import {
 } from '@/lib/subscriptionUtils';
 import {
   SubscriptionBillingCycle,
-  SubscriptionIntent,
   SubscriptionStatus,
   type Subscription,
 } from '@/types/subscriptionTypes';
@@ -29,7 +28,6 @@ function makeSub(overrides: Partial<Subscription> = {}): Subscription {
     isFreeTrial: false,
     billingDayOfMonth: 15,
     category: 'streaming',
-    intent: SubscriptionIntent.RENEW,
     status: SubscriptionStatus.ACTIVE,
     reminderDays: 7,
     notificationIds: [],

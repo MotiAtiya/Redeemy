@@ -55,7 +55,7 @@ export type UserSchemaInput = z.input<typeof UserSchema>;
 // Subscription schema
 // ---------------------------------------------------------------------------
 
-import { SubscriptionBillingCycle, SubscriptionIntent, SubscriptionStatus } from '@/types/subscriptionTypes';
+import { SubscriptionBillingCycle, SubscriptionStatus } from '@/types/subscriptionTypes';
 
 export const SubscriptionSchema = z.object({
   serviceName: z.string().min(1, 'Service name is required'),
@@ -66,31 +66,36 @@ export const SubscriptionSchema = z.object({
 
   isFree: z.boolean(),
 
-  billingDayOfMonth: z.number().int().min(1).max(31).optional(),
+  billingDayOfMonth: z.number().int().min(1).max(28).optional(),
 
   nextBillingDate: z.date().optional(),
 
   isFreeTrial: z.boolean(),
 
-  freeTrialMonths: z.number().int().positive().optional(),
+  specialPeriodType: z.enum(['trial', 'discounted']).optional(),
+
+  specialPeriodMonths: z.number().int().positive().optional(),
+
+  specialPeriodPriceAgorot: z.number().int().min(0).optional(),
 
   priceAfterTrialAgorot: z.number().int().min(0).optional(),
 
-  category: z.string().min(1, 'Category is required'),
+  hasFixedPeriod: z.boolean().optional(),
 
-  intent: z.nativeEnum(SubscriptionIntent),
+  commitmentMonths: z.number().int().positive().optional(),
+
+  renewalType: z.enum(['auto', 'manual']).optional(),
+
+  freeReviewReminderMonths: z.number().int().positive().optional(),
+
+  category: z.string().min(1, 'Category is required'),
 
   status: z.nativeEnum(SubscriptionStatus).default(SubscriptionStatus.ACTIVE),
 
   reminderDays: z.number().int().positive(),
 
-  websiteUrl: z.string().url().optional().or(z.literal('')),
-
   notes: z.string().optional().default(''),
-}).refine(
-  (data) => !data.isFreeTrial || (data.priceAfterTrialAgorot !== undefined && data.priceAfterTrialAgorot > 0),
-  { message: 'Price after trial is required when free trial is enabled' }
-);
+});
 
 export type SubscriptionSchemaInput = z.input<typeof SubscriptionSchema>;
 export type SubscriptionSchemaOutput = z.output<typeof SubscriptionSchema>;
@@ -98,4 +103,4 @@ export type SubscriptionSchemaOutput = z.output<typeof SubscriptionSchema>;
 // ---------------------------------------------------------------------------
 // Shared enums re-exported for convenience
 // ---------------------------------------------------------------------------
-export { CreditStatus, SubscriptionBillingCycle, SubscriptionIntent, SubscriptionStatus };
+export { CreditStatus, SubscriptionBillingCycle, SubscriptionStatus };

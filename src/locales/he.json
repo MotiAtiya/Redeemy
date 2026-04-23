@@ -731,8 +731,8 @@
       "monthlyStructure": "מבנה המנוי",
       "commitmentMonths": "לכמה חודשים?",
       "billingDay": "יום חיוב",
-      "annualBillingDate": "תאריך חידוש שנתי",
-      "renewalType": "חידוש",
+      "annualBillingDate": "מתי נרשמת?",
+      "renewalType": "מה יקרה כשהתקופה תסתיים?",
       "reminder": "תזכורת",
       "notesQuestion": "הערות",
       "notesInput": "הערות",
@@ -753,9 +753,19 @@
     "specialPeriod": {
       "typeTrial": "ניסיון חינמי",
       "typeDiscounted": "תשלום מוזל",
+      "durationLabel": "משך התקופה",
+      "unitDays": "ימים",
+      "unitMonths": "חודשים",
+      "daysOption_one": "יום אחד",
+      "daysOption_other": "{{count}} ימים",
       "monthsLabel": "משך התקופה",
       "priceLabel": "מחיר בתקופה המיוחדת",
       "monthlyBreakdown": "({{amount}}/חודש)"
+    },
+    "annualBillingDate": {
+      "sub": "נחשב מזה את תאריך החיוב הבא",
+      "today": "הצטרפתי היום",
+      "orChooseDate": "בתאריך אחר"
     },
     "billingCycle": {
       "monthly": "חודשי",
@@ -771,11 +781,11 @@
       "noFixedDesc": "מתחדש מדי חודש ללא התחייבות"
     },
     "renewalType": {
-      "title": "איך המנוי מתחדש?",
-      "auto": "אוטומטי",
-      "autoDesc": "מתחדש אוטומטית — אני אבטל אם ארצה",
-      "manual": "ידני",
-      "manualDesc": "לא יתחדש אלא אם אפעל — אצטרך לבטל לפני תום התקופה"
+      "title": "מה יקרה כשהתקופה תסתיים?",
+      "auto": "מתחדש אוטומטית",
+      "autoDesc": "החיוב ימשיך אוטומטית עד שאבטל",
+      "manual": "מסתיים בסוף התקופה",
+      "manualDesc": "לא יתחדש — אצטרך לחדש בעצמי"
     },
     "freeReminder": {
       "title": "כל כמה זמן לשלוח תזכורת ביקורת?",
@@ -817,7 +827,11 @@
       "reminder": "תזכורת",
       "free": "חינמי",
       "trial": "ניסיון חינמי — {{months}} חודשים",
+      "trialDays_one": "ניסיון חינמי — יום אחד",
+      "trialDays_other": "ניסיון חינמי — {{count}} ימים",
       "discounted": "מוזל — {{months}} חודשים ב-{{price}}",
+      "discountedDays_one": "מוזל — יום אחד ב-{{price}}",
+      "discountedDays_other": "מוזל — {{count}} ימים ב-{{price}}",
       "monthly": "חודשי",
       "annual": "שנתי",
       "dayOfMonth": "{{day}} לכל חודש",

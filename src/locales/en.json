@@ -732,8 +732,8 @@
       "monthlyStructure": "Subscription structure",
       "commitmentMonths": "Commitment period",
       "billingDay": "Billing day",
-      "annualBillingDate": "Annual renewal date",
-      "renewalType": "Renewal",
+      "annualBillingDate": "When did you sign up?",
+      "renewalType": "What happens when the period ends?",
       "reminder": "Reminder",
       "notesQuestion": "Notes",
       "notesInput": "Notes",
@@ -754,9 +754,19 @@
     "specialPeriod": {
       "typeTrial": "Free trial",
       "typeDiscounted": "Discounted price",
+      "durationLabel": "Period duration",
+      "unitDays": "Days",
+      "unitMonths": "Months",
+      "daysOption_one": "1 day",
+      "daysOption_other": "{{count}} days",
       "monthsLabel": "Period duration",
       "priceLabel": "Price during special period",
       "monthlyBreakdown": "({{amount}}/month)"
+    },
+    "annualBillingDate": {
+      "sub": "We'll calculate the next billing date from this",
+      "today": "I signed up today",
+      "orChooseDate": "Choose a different date"
     },
     "billingCycle": {
       "monthly": "Monthly",
@@ -772,11 +782,11 @@
       "noFixedDesc": "Renews month-to-month with no commitment"
     },
     "renewalType": {
-      "title": "How does the subscription renew?",
-      "auto": "Automatic",
-      "autoDesc": "Renews automatically — I'll cancel if I want to stop",
-      "manual": "Manual",
-      "manualDesc": "Won't renew unless I act — I need to cancel before the period ends"
+      "title": "What happens when the period ends?",
+      "auto": "Renews automatically",
+      "autoDesc": "Billing continues automatically until I cancel",
+      "manual": "Ends at period end",
+      "manualDesc": "Won't renew — I'll need to renew it myself"
     },
     "freeReminder": {
       "title": "How often should we send a review reminder?",
@@ -818,7 +828,11 @@
       "reminder": "Reminder",
       "free": "Free",
       "trial": "Free trial — {{months}} months",
+      "trialDays_one": "Free trial — 1 day",
+      "trialDays_other": "Free trial — {{count}} days",
       "discounted": "Discounted — {{months}} months at {{price}}",
+      "discountedDays_one": "Discounted — 1 day at {{price}}",
+      "discountedDays_other": "Discounted — {{count}} days at {{price}}",
       "monthly": "Monthly",
       "annual": "Annual",
       "dayOfMonth": "{{day}}th of each month",
