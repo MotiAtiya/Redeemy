@@ -47,7 +47,7 @@ import { formatDate } from '@/lib/formatDate';
 import type { AppColors } from '@/constants/colors';
 
 // ---------------------------------------------------------------------------
-// Day wheel picker (max 28)
+// Day wheel picker (1–31; getNextBillingDate handles end-of-month clamping)
 // ---------------------------------------------------------------------------
 
 const DAY_ITEM_H = 52;
@@ -60,12 +60,12 @@ interface DayWheelPickerProps {
 }
 
 function DayWheelPicker({ value, onChange, colors }: DayWheelPickerProps) {
-  const days = Array.from({ length: 28 }, (_, i) => i + 1);
+  const days = Array.from({ length: 31 }, (_, i) => i + 1);
   const center = Math.floor(DAY_VISIBLE / 2);
 
   function handleScrollEnd(e: { nativeEvent: { contentOffset: { y: number } } }) {
     const index = Math.round(e.nativeEvent.contentOffset.y / DAY_ITEM_H);
-    const clamped = Math.max(0, Math.min(27, index));
+    const clamped = Math.max(0, Math.min(30, index));
     onChange(clamped + 1);
   }
 
@@ -601,7 +601,7 @@ export default function AddSubscriptionScreen() {
   const [billingCycle, setBillingCycle] = useState<SubscriptionBillingCycle | null>(null);
   const [monthlyStructure, setMonthlyStructure] = useState<'fixed' | 'noFixed' | null>(null);
   const [commitmentMonths, setCommitmentMonths] = useState(12);
-  const [billingDayOfMonth, setBillingDayOfMonth] = useState(1);
+  const [billingDayOfMonth, setBillingDayOfMonth] = useState(new Date().getDate());
   const [nextBillingDate, setNextBillingDate] = useState<Date | null>(null);
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [dateError, setDateError] = useState('');
@@ -640,7 +640,7 @@ export default function AddSubscriptionScreen() {
     if (specialPeriodUnit === 'days' && specialPeriodDays > 0) {
       const trialEnd = new Date();
       trialEnd.setDate(trialEnd.getDate() + specialPeriodDays);
-      setBillingDayOfMonth(Math.min(trialEnd.getDate(), 28));
+      setBillingDayOfMonth(Math.min(trialEnd.getDate(), 31));
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentStepId]);
@@ -690,7 +690,7 @@ export default function AddSubscriptionScreen() {
       // Billing cycle
       setBillingCycle(s.billingCycle);
       if (s.billingCycle === SubscriptionBillingCycle.MONTHLY) {
-        if (s.billingDayOfMonth) setBillingDayOfMonth(Math.min(s.billingDayOfMonth, 28));
+        if (s.billingDayOfMonth) setBillingDayOfMonth(Math.min(s.billingDayOfMonth, 31));
         if (s.hasFixedPeriod === false) {
           setMonthlyStructure('noFixed');
           setPeriodicReminderMonths(s.freeReviewReminderMonths ?? 3);
