@@ -74,15 +74,6 @@ function makeStyles(colors: AppColors) {
       color: colors.textPrimary,
       textAlign: 'center',
     },
-    intentBadge: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: 6,
-      paddingHorizontal: 12,
-      paddingVertical: 6,
-      borderRadius: 20,
-    },
-    intentBadgeText: { fontSize: 13, fontWeight: '600' },
     // Details card
     detailsCard: { backgroundColor: colors.surface, borderRadius: 14, overflow: 'hidden' },
     // Footer
@@ -269,23 +260,25 @@ export default function SubscriptionDetailScreen() {
   // Billing text helpers
   // -------------------------------------------------------------------------
 
+  const symbol = CURRENCY_SYMBOLS[sub?.currency ?? 'ILS'];
+
+  const trialEndsDate = sub?.trialEndsDate
+    ? (sub.trialEndsDate instanceof Date ? sub.trialEndsDate : new Date(sub.trialEndsDate as unknown as string))
+    : null;
+
+  const commitmentEndDate = sub?.commitmentEndDate
+    ? (sub.commitmentEndDate instanceof Date ? sub.commitmentEndDate : new Date(sub.commitmentEndDate as unknown as string))
+    : null;
+
+  const familyCreatorName = sub?.familyId && sub.createdBy !== currentUid ? (sub.createdByName ?? null) : null;
+
   function getBillingText(): string {
     const s = sub!;
     if (s.isFree) return t('subscription.detail.free');
-    const symbol = CURRENCY_SYMBOLS[s.currency ?? 'ILS'];
+    if (s.isFreeTrial) return t('subscription.detail.freeTrialBilling');
     const amount = formatCurrency(s.amountAgorot, symbol);
     if (s.billingCycle === SubscriptionBillingCycle.MONTHLY) {
-      const base = t('subscription.detail.monthlyAmount', { amount });
-      if (s.commitmentMonths && s.commitmentEndDate) {
-        const endDate = s.commitmentEndDate instanceof Date
-          ? s.commitmentEndDate
-          : new Date(s.commitmentEndDate as unknown as string);
-        return `${base} · ${t('subscription.detail.commitment', {
-          months: s.commitmentMonths,
-          date: formatDate(endDate, dateFormat),
-        })}`;
-      }
-      return base;
+      return t('subscription.detail.monthlyAmount', { amount });
     }
     const monthly = formatCurrency(normalizeToMonthlyAgorot(s), symbol);
     return t('subscription.detail.annualAmount', { amount, monthly });
@@ -294,14 +287,12 @@ export default function SubscriptionDetailScreen() {
   function getNextBillingText(): string {
     const s = sub!;
     if (daysLeft === 0) return t('subscription.detail.renewsToday');
-    if (s.billingCycle === SubscriptionBillingCycle.MONTHLY) {
-      return t('subscription.detail.monthlyBillingDay', {
-        day: s.billingDayOfMonth ?? 1,
-        days: daysLeft,
-      });
+    if (daysLeft === 1) return t('subscription.detail.tomorrow');
+    if (s.billingCycle === SubscriptionBillingCycle.ANNUAL) {
+      const dateStr = nextBillingDate ? formatDate(nextBillingDate, dateFormat) : '';
+      return t('subscription.detail.annualRenewal', { date: dateStr, days: daysLeft });
     }
-    const dateStr = nextBillingDate ? formatDate(nextBillingDate, dateFormat) : '';
-    return t('subscription.detail.annualRenewal', { date: dateStr, days: daysLeft });
+    return t('subscription.detail.inDays', { count: daysLeft });
   }
 
   // -------------------------------------------------------------------------
@@ -334,75 +325,134 @@ export default function SubscriptionDetailScreen() {
             />
           </View>
           <Text style={styles.heroServiceName}>{sub.serviceName}</Text>
-          {sub.renewalType === 'manual' && (
-            <View style={[styles.intentBadge, { backgroundColor: colors.urgencyAmberSurface }]}>
-              <Ionicons name="hand-left-outline" size={14} color={colors.urgencyAmber} />
-              <Text style={[styles.intentBadgeText, { color: colors.urgencyAmber }]}>
-                {t('subscription.detail.manualRenewal')}
-              </Text>
-            </View>
-          )}
         </View>
 
         {/* Details card */}
         <View style={styles.detailsCard}>
+          {/* Billing amount */}
           <DetailRow
             icon="card-outline"
             label={t('subscription.detail.billing')}
             value={getBillingText()}
             showSeparator
           />
-          <DetailRow
-            icon="calendar-outline"
-            label={t('subscription.detail.nextBilling')}
-            value={getNextBillingText()}
-            showSeparator={!!sub.isFreeTrial}
-          />
-          {sub.isFreeTrial && !!sub.trialEndsDate && (
+
+          {/* Discounted period (specialPeriodType = 'discounted') */}
+          {sub.specialPeriodType === 'discounted' && !!trialEndsDate && (
             <DetailRow
-              icon="gift-outline"
-              label={t('subscription.detail.freeTrial')}
-              value={t('subscription.detail.freeTrialDetail', {
-                date: formatDate(
-                  sub.trialEndsDate instanceof Date
-                    ? sub.trialEndsDate
-                    : new Date(sub.trialEndsDate as unknown as string),
-                  dateFormat
-                ),
-                price: formatCurrency(sub.priceAfterTrialAgorot ?? 0, CURRENCY_SYMBOLS[sub.currency ?? 'ILS']),
+              icon="pricetag-outline"
+              label={t('subscription.detail.discountedPeriod')}
+              value={t('subscription.detail.discountedDetail', {
+                price: formatCurrency(sub.specialPeriodPriceAgorot ?? 0, symbol),
+                date: formatDate(trialEndsDate, dateFormat),
+                regular: formatCurrency(sub.amountAgorot, symbol),
               })}
               showSeparator
             />
           )}
+
+          {/* Free trial */}
+          {sub.isFreeTrial && !!trialEndsDate && (
+            <DetailRow
+              icon="gift-outline"
+              label={t('subscription.detail.freeTrial')}
+              value={t('subscription.detail.freeTrialDetail', {
+                date: formatDate(trialEndsDate, dateFormat),
+                price: formatCurrency(sub.priceAfterTrialAgorot ?? 0, symbol),
+              })}
+              showSeparator
+            />
+          )}
+
+          {/* Next billing */}
+          <DetailRow
+            icon="calendar-outline"
+            label={t('subscription.detail.nextBilling')}
+            value={getNextBillingText()}
+            showSeparator
+          />
+
+          {/* Billing day of month (monthly only) */}
+          {sub.billingCycle === SubscriptionBillingCycle.MONTHLY && !sub.isFree && !!sub.billingDayOfMonth && (
+            <DetailRow
+              icon="repeat-outline"
+              label={t('subscription.detail.billingDay')}
+              value={t('subscription.detail.billingDayValue', { day: sub.billingDayOfMonth })}
+              showSeparator
+            />
+          )}
+
+          {/* Commitment period */}
+          {sub.hasFixedPeriod && !!sub.commitmentMonths && !!commitmentEndDate && (
+            <DetailRow
+              icon="lock-closed-outline"
+              label={t('subscription.detail.commitmentLabel')}
+              value={t('subscription.detail.commitment', {
+                months: sub.commitmentMonths,
+                date: formatDate(commitmentEndDate, dateFormat),
+              })}
+              showSeparator
+            />
+          )}
+
+          {/* Free review reminder */}
+          {sub.isFree && !!sub.freeReviewReminderMonths && (
+            <DetailRow
+              icon="alarm-outline"
+              label={t('subscription.detail.reviewReminder')}
+              value={t('subscription.detail.reviewReminderValue', { count: sub.freeReviewReminderMonths })}
+              showSeparator
+            />
+          )}
+
+          {/* Category */}
           <DetailRow
             icon={categoryMeta?.icon ?? 'grid-outline'}
             label={t('subscription.detail.category')}
             value={t('subscriptions.category.' + sub.category)}
             showSeparator
           />
-          {sub.renewalType === 'manual' && (
-            <DetailRow
-              icon="hand-left-outline"
-              label={t('subscription.detail.renewalType')}
-              value={t('subscription.detail.manualRenewal')}
-              showSeparator
-            />
-          )}
+
+          {/* Renewal type — always shown */}
+          <DetailRow
+            icon={sub.renewalType === 'manual' ? 'hand-left-outline' : 'refresh-outline'}
+            label={t('subscription.detail.renewalType')}
+            value={sub.renewalType === 'manual'
+              ? t('subscription.detail.manualRenewal')
+              : t('subscription.detail.autoRenewal')}
+            showSeparator
+          />
+
+          {/* Reminder before billing */}
           <DetailRow
             icon="notifications-outline"
             label={t('subscription.detail.reminder')}
             value={t('subscription.detail.reminderDays', { count: sub.reminderDays })}
-            showSeparator={!!sub.notes}
+            showSeparator={!!sub.reminderSpecialPeriodEnabled || !!sub.notes || !!familyCreatorName}
           />
+
+          {/* Special period reminder */}
+          {!!sub.reminderSpecialPeriodEnabled && !!trialEndsDate && (
+            <DetailRow
+              icon="alarm-outline"
+              label={t('subscription.detail.specialPeriodReminderLabel')}
+              value={t('subscription.detail.specialPeriodReminderValue')}
+              showSeparator={!!sub.notes || !!familyCreatorName}
+            />
+          )}
+
+          {/* Notes */}
           {!!sub.notes && (
             <DetailRow
               icon="document-text-outline"
               label={t('subscription.detail.notes')}
               value={sub.notes}
-              showSeparator
+              showSeparator={!!familyCreatorName}
               multiline
             />
           )}
+
+          {/* Added date */}
           <DetailRow
             icon="time-outline"
             label={t('subscription.detail.added')}
@@ -410,7 +460,17 @@ export default function SubscriptionDetailScreen() {
               sub.createdAt instanceof Date ? sub.createdAt : new Date(sub.createdAt as unknown as string),
               dateFormat
             )}
+            showSeparator={!!familyCreatorName}
           />
+
+          {/* Added by (family member) */}
+          {!!familyCreatorName && (
+            <DetailRow
+              icon="people-outline"
+              label={t('subscription.detail.addedBy')}
+              value={familyCreatorName}
+            />
+          )}
         </View>
       </ScrollView>
 
