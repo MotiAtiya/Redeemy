@@ -122,7 +122,7 @@ export function SubscriptionCard({ subscription: sub, onPress, variant = 'active
       const weeks = Math.ceil(daysForUrgency / 7);
       return weeks === 1 ? t('badge.oneWeek') : t('badge.weeks', { weeks });
     }
-    const months = Math.ceil(daysForUrgency / 30);
+    const months = Math.max(1, Math.round(daysForUrgency / 30.44));
     return months === 1 ? t('badge.oneMonth') : t('badge.months', { months });
   }, [daysForUrgency, t]);
 
