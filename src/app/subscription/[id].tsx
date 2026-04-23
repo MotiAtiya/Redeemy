@@ -7,7 +7,6 @@ import {
   TouchableOpacity,
   StyleSheet,
   Alert,
-  Modal,
   ActivityIndicator,
   I18nManager,
 } from 'react-native';
@@ -116,27 +115,6 @@ function makeStyles(colors: AppColors) {
     },
     cancelledBannerText: { fontSize: 15, color: colors.textTertiary, fontWeight: '500' },
     // Cancel confirmation sheet
-    cancelSheet: {
-      backgroundColor: colors.surface,
-      borderTopLeftRadius: 20,
-      borderTopRightRadius: 20,
-      padding: 20,
-      paddingBottom: 36,
-      gap: 12,
-    },
-    cancelSheetTitle: {
-      fontSize: 18,
-      fontWeight: '700',
-      color: colors.textPrimary,
-      textAlign: 'center',
-      marginTop: 4,
-    },
-    cancelSheetMessage: {
-      fontSize: 15,
-      color: colors.textSecondary,
-      textAlign: 'center',
-      lineHeight: 22,
-    },
     dangerButton: {
       alignItems: 'center',
       justifyContent: 'center',
@@ -186,7 +164,6 @@ export default function SubscriptionDetailScreen() {
   const { toastMessage, showToast } = useToast();
 
   const [showActionSheet, setShowActionSheet] = useState(false);
-  const [showCancelSheet, setShowCancelSheet] = useState(false);
   const [loading, setLoading] = useState(false);
   const afterDismissRef = useRef<(() => void) | null>(null);
 
@@ -225,27 +202,34 @@ export default function SubscriptionDetailScreen() {
     setShowActionSheet(false);
   }
 
-  async function handleCancelConfirm() {
+  function handleCancelSub() {
     if (useUIStore.getState().offlineMode) {
       Alert.alert(t('offline.title'), t('subscription.cancel.offlineMessage'));
       return;
     }
     const s = sub!;
-    setLoading(true);
-    try {
-      await cancelSubscriptionNotifications(s);
-      updateSubInStore(s.id, { status: SubscriptionStatus.CANCELLED, cancelledAt: new Date() });
-      await updateSubscription(s.id, { status: SubscriptionStatus.CANCELLED, cancelledAt: new Date() });
-      setShowCancelSheet(false);
-      showToast(t('subscription.cancel.toast', { name: s.serviceName }));
-      setTimeout(() => router.back(), 500);
-    } catch {
-      updateSubInStore(s.id, { status: SubscriptionStatus.ACTIVE, cancelledAt: undefined });
-      setShowCancelSheet(false);
-      Alert.alert(t('common.error'), t('subscription.cancel.error'));
-    } finally {
-      setLoading(false);
-    }
+    Alert.alert(t('subscription.cancel.title'), t('subscription.cancel.message', { name: s.serviceName }), [
+      { text: t('common.cancel'), style: 'cancel' },
+      {
+        text: t('subscription.cancel.confirm'),
+        style: 'destructive',
+        onPress: async () => {
+          setLoading(true);
+          try {
+            await cancelSubscriptionNotifications(s);
+            updateSubInStore(s.id, { status: SubscriptionStatus.CANCELLED, cancelledAt: new Date() });
+            await updateSubscription(s.id, { status: SubscriptionStatus.CANCELLED, cancelledAt: new Date() });
+            showToast(t('subscription.cancel.toast', { name: s.serviceName }));
+            setTimeout(() => router.back(), 500);
+          } catch {
+            updateSubInStore(s.id, { status: SubscriptionStatus.ACTIVE, cancelledAt: undefined });
+            Alert.alert(t('common.error'), t('subscription.cancel.error'));
+          } finally {
+            setLoading(false);
+          }
+        },
+      },
+    ]);
   }
 
   async function handleDelete() {
@@ -451,7 +435,7 @@ export default function SubscriptionDetailScreen() {
         ) : (
           <TouchableOpacity
             style={[styles.cancelSubButton, loading && styles.buttonDisabled]}
-            onPress={() => setShowCancelSheet(true)}
+            onPress={handleCancelSub}
             disabled={loading}
             accessibilityRole="button"
           >
@@ -494,36 +478,7 @@ export default function SubscriptionDetailScreen() {
         ]}
       />
 
-      {/* Cancel confirmation sheet */}
-      <Modal
-        visible={showCancelSheet}
-        transparent
-        animationType="slide"
-        onRequestClose={() => setShowCancelSheet(false)}
-      >
-        <TouchableOpacity style={styles.overlay} activeOpacity={1} onPress={() => setShowCancelSheet(false)} />
-        <View style={styles.cancelSheet}>
-          <View style={styles.actionSheetHandle} />
-          <Text style={styles.cancelSheetTitle}>{t('subscription.cancel.title')}</Text>
-          <Text style={styles.cancelSheetMessage}>
-            {t('subscription.cancel.message', { name: sub.serviceName })}
-          </Text>
-          <TouchableOpacity
-            style={[styles.dangerButton, loading && styles.buttonDisabled]}
-            onPress={handleCancelConfirm}
-            disabled={loading}
-          >
-            {loading ? (
-              <ActivityIndicator color="#FFFFFF" />
-            ) : (
-              <Text style={styles.dangerButtonText}>{t('subscription.cancel.confirm')}</Text>
-            )}
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.cancelButton} onPress={() => setShowCancelSheet(false)}>
-            <Text style={styles.cancelText}>{t('common.cancel')}</Text>
-          </TouchableOpacity>
-        </View>
-      </Modal>
+
     </SafeAreaView>
   );
 }
