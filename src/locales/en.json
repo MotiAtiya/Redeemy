@@ -67,8 +67,8 @@
       "apply": "Apply Filters"
     },
     "empty": {
-      "title": "No credits redeemed yet",
-      "subtitle": "Your history will appear here after you use a credit"
+      "title": "History is empty",
+      "subtitle": "Credits, warranties and subscriptions you close will appear here"
     }
   },
   "more": {
@@ -493,19 +493,27 @@
       "body": "Today is the last day to redeem your {{storeName}} credit — {{amount}}"
     },
     "subscription": {
-      "title": "Subscription ending soon",
-      "body": "{{serviceName}} ends in {{days}} days",
-      "renew": {
-        "title": "{{serviceName}} renewed",
-        "body": "Your {{serviceName}} subscription just renewed ✓ — did the amount change?"
+      "auto": {
+        "reminder": {
+          "title": "Renewal reminder",
+          "body": "Your {{serviceName}} subscription renews in {{days}} days"
+        },
+        "renewal": {
+          "title": "{{serviceName}} renewed",
+          "body": "Your {{serviceName}} subscription just renewed ✓ — did the amount change?"
+        }
       },
-      "cancel": {
-        "title": "Renewal reminder",
-        "body": "Your {{serviceName}} subscription renews in {{days}} day(s) — remember to cancel?"
+      "manual": {
+        "title": "Remember to cancel",
+        "body": "Your {{serviceName}} subscription renews in {{days}} day(s) — did you remember to cancel?"
       },
-      "check": {
-        "title": "Is it still worth it?",
-        "body": "Your {{serviceName}} subscription renews in {{days}} day(s) — worth a quick check"
+      "freeReview": {
+        "title": "Worth a check",
+        "body": "Still enjoying {{serviceName}}? Make sure your free subscription still works for you"
+      },
+      "specialPeriodEnd": {
+        "title": "Special period ending",
+        "body": "{{serviceName}}'s special period ends in a week — plan accordingly"
       }
     }
   },
@@ -610,14 +618,6 @@
       "subtitle": "Add your first subscription to track recurring payments",
       "action": "Add Subscription"
     },
-    "intent": {
-      "renew": "Renew",
-      "renewDesc": "I plan to keep this subscription",
-      "cancel": "Cancel",
-      "cancelDesc": "I want to cancel before renewal",
-      "check": "Check",
-      "checkDesc": "Remind me to evaluate this"
-    },
     "billingCycle": {
       "monthly": "Monthly",
       "annual": "Annual"
@@ -675,16 +675,16 @@
       "billing": "Billing",
       "nextBilling": "Next Billing",
       "category": "Category",
-      "intent": "Intent",
+      "renewalType": "Renewal",
+      "manualRenewal": "Manual renewal",
       "reminder": "Reminder",
-      "website": "Website",
       "notes": "Notes",
       "added": "Added",
-      "freeTrial": "Free Trial",
+      "freeTrial": "Special Period",
       "monthlyBillingDay": "{{day}}th of each month — in {{days}} days",
       "annualRenewal": "{{date}} — in {{days}} days",
       "renewsToday": "Renews today",
-      "freeTrialDetail": "Free trial — ends {{date}}, then ₪{{price}}/month",
+      "freeTrialDetail": "Ends {{date}}, then {{price}}/month",
       "reminderDays_one": "{{count}} day before",
       "reminderDays_other": "{{count}} days before",
       "free": "Free",
@@ -719,60 +719,117 @@
     "savedToast": "Subscription saved ✓",
     "serviceNamePlaceholder": "e.g. Spotify, Netflix",
     "step": {
-      "billingType": "Billing type",
       "serviceName": "Service name",
-      "amount": "Subscription amount",
-      "billingDateMonthly": "Billing day",
-      "billingDateAnnual": "Renewal date",
-      "commitmentMonths": "Commitment period",
       "category": "Category",
-      "intent": "Intention",
+      "accessType": "Subscription type",
+      "freeReminderInterval": "Review reminder",
+      "periodicReminderInterval": "Review reminder",
+      "specialPeriodQuestion": "Initial period",
+      "specialPeriodDetails": "Period details",
+      "regularAmount": "Regular price",
+      "amount": "Subscription amount",
+      "billingCycle": "Billing frequency",
+      "monthlyStructure": "Subscription structure",
+      "commitmentMonths": "Commitment period",
+      "billingDay": "Billing day",
+      "annualBillingDate": "Annual renewal date",
+      "renewalType": "Renewal",
       "reminder": "Reminder",
-      "summary": "Looking good?",
       "notesQuestion": "Notes",
-      "notesInput": "Notes"
+      "notesInput": "Notes",
+      "summary": "Looking good?"
     },
-    "commitmentMonths": {
-      "option_one": "1 month",
-      "option_other": "{{count}} months"
+    "accessType": {
+      "paid": "Paid",
+      "paidDesc": "A subscription that requires monthly or annual payment",
+      "free": "Free",
+      "freeDesc": "A service provided at no cost"
     },
-    "billingType": {
-      "monthly": "Monthly",
-      "annual": "Annual"
+    "specialPeriodQuestion": {
+      "title": "Is there a special period at the start?",
+      "sub": "E.g. free trial, introductory discounted price",
+      "yes": "Yes, there's a special period",
+      "no": "No, starts at the regular price"
     },
-    "amount": {
-      "freeToggle": "Free subscription",
-      "freeTrialToggle": "Free trial period",
-      "freeTrialMonths": "How many months free?",
-      "priceAfterTrial": "Monthly price after trial:",
+    "specialPeriod": {
+      "typeTrial": "Free trial",
+      "typeDiscounted": "Discounted price",
+      "monthsLabel": "Period duration",
+      "priceLabel": "Price during special period",
       "monthlyBreakdown": "({{amount}}/month)"
+    },
+    "billingCycle": {
+      "monthly": "Monthly",
+      "monthlyDesc": "Charged every month",
+      "annual": "Annual",
+      "annualDesc": "Charged once a year"
+    },
+    "monthlyStructure": {
+      "title": "What is the monthly subscription structure?",
+      "fixed": "Fixed period",
+      "fixedDesc": "E.g. an annual plan billed monthly — has an end date",
+      "noFixed": "No fixed period",
+      "noFixedDesc": "Renews month-to-month with no commitment"
+    },
+    "renewalType": {
+      "title": "How does the subscription renew?",
+      "auto": "Automatic",
+      "autoDesc": "Renews automatically — I'll cancel if I want to stop",
+      "manual": "Manual",
+      "manualDesc": "Won't renew unless I act — I need to cancel before the period ends"
+    },
+    "freeReminder": {
+      "title": "How often should we send a review reminder?",
+      "sub": "We'll remind you to check that the free subscription still works for you",
+      "option_one": "Every month",
+      "option_other": "Every {{count}} months"
+    },
+    "periodicReminder": {
+      "subFree": "We'll remind you to check that this free service still works for you",
+      "subPaid": "This subscription renews month-to-month with no end date — we'll send a periodic reminder to check if it's still worth it",
+      "option_one": "Every month",
+      "option_other": "Every {{count}} months"
     },
     "reminder": {
       "3days": "3 Days",
       "1week": "1 Week",
       "2weeks": "2 Weeks",
       "1month": "1 Month",
-      "custom": "Custom",
-      "customPlaceholder": "Days before",
-      "cancelModifyNote": "You'll get two reminders — a week before and a day before."
+      "specialPeriodToggle": "Remind before special period ends",
+      "specialPeriodNote": "You'll get a reminder 7 days before the special period ends",
+      "manualNote": "You'll get two reminders — before and one day before — so you don't miss the cancellation window"
+    },
+    "amount": {
+      "monthlyBreakdown": "({{amount}}/month)"
+    },
+    "commitmentMonths": {
+      "option_one": "1 month",
+      "option_other": "{{count}} months"
     },
     "summary": {
       "service": "Service",
       "billing": "Billing",
       "amount": "Amount",
+      "specialPeriod": "Special Period",
       "billingDay": "Billing Day",
       "renewalDate": "Renewal Date",
+      "renewalType": "Renewal",
       "category": "Category",
-      "intent": "Intent",
       "reminder": "Reminder",
       "free": "Free",
-      "freeTrial": "Free trial ({{months}} months, then {{price}}/month)",
+      "trial": "Free trial — {{months}} months",
+      "discounted": "Discounted — {{months}} months at {{price}}",
       "monthly": "Monthly",
       "annual": "Annual",
       "dayOfMonth": "{{day}}th of each month",
       "reminderDays_one": "{{count}} day before",
       "reminderDays_other": "{{count}} days before",
-      "notes": "Notes"
+      "notes": "Notes",
+      "commitmentMonths": "Period",
+      "renewalAuto": "Automatic",
+      "renewalManual": "Manual",
+      "freeReviewEvery": "Review every {{months}} months",
+      "periodicReview": "Review every {{months}} months"
     },
     "offline": {
       "adding": "Adding subscriptions requires an internet connection.",
@@ -785,10 +842,7 @@
     "validation": {
       "amountRequired": "Amount is required",
       "amountInvalid": "Enter a valid positive amount",
-      "invalidDay": "Enter a valid day (1–31)",
-      "invalidDate": "Select a valid future date",
-      "priceAfterTrialRequired": "Enter the price after the trial period",
-      "freeTrialMonthsRequired": "Enter the number of free months"
+      "invalidDate": "Select a valid future date"
     },
     "stepSub": {
       "notesQuestion": "Would you like to add a note to this subscription?",

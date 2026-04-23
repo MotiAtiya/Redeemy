@@ -67,8 +67,8 @@
       "apply": "החל סינון"
     },
     "empty": {
-      "title": "אין זיכויים שמומשו עדיין",
-      "subtitle": "ההיסטוריה תופיע כאן לאחר שתממש זיכוי"
+      "title": "ההיסטוריה ריקה",
+      "subtitle": "כאן יופיעו זיכויים, אחריויות ומנויים שנסגרו"
     }
   },
   "more": {
@@ -492,19 +492,27 @@
       "body": "היום הוא היום האחרון למימוש זיכוי {{storeName}} — {{amount}}"
     },
     "subscription": {
-      "title": "מנוי מסתיים בקרוב",
-      "body": "המנוי {{serviceName}} מסתיים בעוד {{days}} ימים",
-      "renew": {
-        "title": "{{serviceName}} התחדש",
-        "body": "המנוי שלך ל-{{serviceName}} התחדש ✓ — האם הסכום השתנה?"
+      "auto": {
+        "reminder": {
+          "title": "תזכורת חידוש",
+          "body": "המנוי שלך ל-{{serviceName}} מתחדש בעוד {{days}} ימים"
+        },
+        "renewal": {
+          "title": "{{serviceName}} התחדש",
+          "body": "המנוי שלך ל-{{serviceName}} התחדש ✓ — האם הסכום השתנה?"
+        }
       },
-      "cancel": {
-        "title": "תזכורת חידוש",
+      "manual": {
+        "title": "זכור לבטל",
         "body": "המנוי שלך ל-{{serviceName}} מתחדש בעוד {{days}} ימים — זכרת לבטל?"
       },
-      "check": {
-        "title": "עדיין משתלם?",
-        "body": "המנוי שלך ל-{{serviceName}} מתחדש בעוד {{days}} ימים — כדאי לבדוק אם עדיין משתלם"
+      "freeReview": {
+        "title": "כדאי לבדוק",
+        "body": "עדיין נהנה מ-{{serviceName}}? שווה לוודא שהמנוי החינמי עדיין מתאים לך"
+      },
+      "specialPeriodEnd": {
+        "title": "תקופה מיוחדת מסתיימת",
+        "body": "התקופה המיוחדת של {{serviceName}} מסתיימת בעוד שבוע — תכנן בהתאם"
       }
     }
   },
@@ -609,14 +617,6 @@
       "subtitle": "הוסף את המנוי הראשון שלך ועקוב אחרי תשלומים חוזרים",
       "action": "הוסף מנוי"
     },
-    "intent": {
-      "renew": "לחדש",
-      "renewDesc": "אני מתכוון להמשיך את המנוי",
-      "cancel": "לבטל",
-      "cancelDesc": "אני רוצה לבטל לפני החידוש",
-      "check": "לבדוק",
-      "checkDesc": "הזכר לי לבדוק אם זה משתלם"
-    },
     "billingCycle": {
       "monthly": "חודשי",
       "annual": "שנתי"
@@ -674,16 +674,16 @@
       "billing": "חיוב",
       "nextBilling": "חיוב הבא",
       "category": "קטגוריה",
-      "intent": "כוונה",
+      "renewalType": "חידוש",
+      "manualRenewal": "חידוש ידני",
       "reminder": "תזכורת",
-      "website": "אתר",
       "notes": "הערות",
       "added": "נוסף",
-      "freeTrial": "ניסיון חינמי",
+      "freeTrial": "תקופה מיוחדת",
       "monthlyBillingDay": "ב-{{day}} לכל חודש — בעוד {{days}} ימים",
       "annualRenewal": "{{date}} — בעוד {{days}} ימים",
       "renewsToday": "מתחדש היום",
-      "freeTrialDetail": "ניסיון חינמי — מסתיים ב-{{date}}, לאחר מכן ₪{{price}}/חודש",
+      "freeTrialDetail": "מסתיים ב-{{date}}, לאחר מכן {{price}}/חודש",
       "reminderDays_one": "{{count}} יום לפני",
       "reminderDays_other": "{{count}} ימים לפני",
       "free": "חינמי",
@@ -718,60 +718,117 @@
     "savedToast": "המנוי נשמר ✓",
     "serviceNamePlaceholder": "לדוגמה: Spotify, Netflix",
     "step": {
-      "billingType": "סוג המנוי",
       "serviceName": "שם השירות",
-      "amount": "סכום המנוי",
-      "billingDateMonthly": "יום חיוב",
-      "billingDateAnnual": "תאריך החידוש הבא",
-      "commitmentMonths": "לכמה חודשים?",
       "category": "קטגוריה",
-      "intent": "כוונה",
+      "accessType": "סוג מנוי",
+      "freeReminderInterval": "תזכורת ביקורת",
+      "periodicReminderInterval": "תזכורת ביקורת",
+      "specialPeriodQuestion": "תקופה התחלתית",
+      "specialPeriodDetails": "פרטי התקופה",
+      "regularAmount": "מחיר רגיל",
+      "amount": "סכום המנוי",
+      "billingCycle": "תדירות חיוב",
+      "monthlyStructure": "מבנה המנוי",
+      "commitmentMonths": "לכמה חודשים?",
+      "billingDay": "יום חיוב",
+      "annualBillingDate": "תאריך חידוש שנתי",
+      "renewalType": "חידוש",
       "reminder": "תזכורת",
-      "summary": "הכל נראה טוב?",
       "notesQuestion": "הערות",
-      "notesInput": "הערות"
+      "notesInput": "הערות",
+      "summary": "הכל נראה טוב?"
     },
-    "commitmentMonths": {
-      "option_one": "חודש אחד",
-      "option_other": "{{count}} חודשים"
+    "accessType": {
+      "paid": "בתשלום",
+      "paidDesc": "מנוי שדורש תשלום חודשי או שנתי",
+      "free": "חינמי",
+      "freeDesc": "שירות שמסופק ללא תשלום"
     },
-    "billingType": {
-      "monthly": "חודשי",
-      "annual": "שנתי"
+    "specialPeriodQuestion": {
+      "title": "האם יש תקופה מיוחדת בהתחלה?",
+      "sub": "לדוגמה: ניסיון חינמי, מחיר מוזל לתקופה",
+      "yes": "כן, יש תקופה מיוחדת",
+      "no": "לא, מתחיל מייד במחיר הרגיל"
     },
-    "amount": {
-      "freeToggle": "מנוי חינמי",
-      "freeTrialToggle": "תקופת ניסיון חינמי",
-      "freeTrialMonths": "כמה חודשים חינם?",
-      "priceAfterTrial": "מחיר חודשי לאחר הניסיון:",
+    "specialPeriod": {
+      "typeTrial": "ניסיון חינמי",
+      "typeDiscounted": "תשלום מוזל",
+      "monthsLabel": "משך התקופה",
+      "priceLabel": "מחיר בתקופה המיוחדת",
       "monthlyBreakdown": "({{amount}}/חודש)"
+    },
+    "billingCycle": {
+      "monthly": "חודשי",
+      "monthlyDesc": "מחייב כל חודש",
+      "annual": "שנתי",
+      "annualDesc": "מחייב פעם בשנה"
+    },
+    "monthlyStructure": {
+      "title": "מה מבנה המנוי החודשי?",
+      "fixed": "תקופה קבועה",
+      "fixedDesc": "כגון מינוי שנתי המחויב חודשית — יש תאריך סיום",
+      "noFixed": "ללא תקופה קבועה",
+      "noFixedDesc": "מתחדש מדי חודש ללא התחייבות"
+    },
+    "renewalType": {
+      "title": "איך המנוי מתחדש?",
+      "auto": "אוטומטי",
+      "autoDesc": "מתחדש אוטומטית — אני אבטל אם ארצה",
+      "manual": "ידני",
+      "manualDesc": "לא יתחדש אלא אם אפעל — אצטרך לבטל לפני תום התקופה"
+    },
+    "freeReminder": {
+      "title": "כל כמה זמן לשלוח תזכורת ביקורת?",
+      "sub": "נשלח תזכורת לבדוק שהמנוי עדיין מתאים לך",
+      "option_one": "חודש אחד",
+      "option_other": "כל {{count}} חודשים"
+    },
+    "periodicReminder": {
+      "subFree": "נשלח תזכורת לבדוק שהשירות החינמי עדיין מתאים לך",
+      "subPaid": "המנוי מתחדש חודש-חודש ואין תאריך סיום — נשלח תזכורת תקופתית לבדוק אם עדיין משתלם",
+      "option_one": "חודש אחד",
+      "option_other": "כל {{count}} חודשים"
     },
     "reminder": {
       "3days": "3 ימים",
       "1week": "שבוע",
       "2weeks": "שבועיים",
       "1month": "חודש",
-      "custom": "מותאם אישית",
-      "customPlaceholder": "ימים לפני",
-      "cancelModifyNote": "תקבל שני תזכורות — שבוע לפני ויום לפני."
+      "specialPeriodToggle": "תזכורת לפני סיום התקופה המיוחדת",
+      "specialPeriodNote": "תקבל תזכורת 7 ימים לפני שהתקופה המיוחדת מסתיימת",
+      "manualNote": "תקבל שתי תזכורות — לפני ויום לפני — כדי לא לפספס את מועד הביטול"
+    },
+    "amount": {
+      "monthlyBreakdown": "({{amount}}/חודש)"
+    },
+    "commitmentMonths": {
+      "option_one": "חודש אחד",
+      "option_other": "{{count}} חודשים"
     },
     "summary": {
       "service": "שירות",
       "billing": "חיוב",
       "amount": "סכום",
+      "specialPeriod": "תקופה מיוחדת",
       "billingDay": "יום חיוב",
       "renewalDate": "תאריך חידוש",
+      "renewalType": "חידוש",
       "category": "קטגוריה",
-      "intent": "כוונה",
       "reminder": "תזכורת",
       "free": "חינמי",
-      "freeTrial": "ניסיון חינמי ({{months}} חודשים, לאחר מכן {{price}}/חודש)",
+      "trial": "ניסיון חינמי — {{months}} חודשים",
+      "discounted": "מוזל — {{months}} חודשים ב-{{price}}",
       "monthly": "חודשי",
       "annual": "שנתי",
       "dayOfMonth": "{{day}} לכל חודש",
       "reminderDays_one": "יום {{count}} לפני",
       "reminderDays_other": "{{count}} ימים לפני",
-      "notes": "הערות"
+      "notes": "הערות",
+      "commitmentMonths": "תקופה",
+      "renewalAuto": "אוטומטי",
+      "renewalManual": "ידני",
+      "freeReviewEvery": "תזכורת כל {{months}} חודשים",
+      "periodicReview": "ביקורת כל {{months}} חודשים"
     },
     "offline": {
       "adding": "הוספת מנויים דורשת חיבור לאינטרנט.",
@@ -784,10 +841,7 @@
     "validation": {
       "amountRequired": "נדרש סכום",
       "amountInvalid": "הכנס סכום חיובי תקין",
-      "invalidDay": "הכנס יום תקין (1–31)",
-      "invalidDate": "בחר תאריך עתידי תקין",
-      "priceAfterTrialRequired": "הכנס את המחיר לאחר תקופת הניסיון",
-      "freeTrialMonthsRequired": "הכנס את מספר חודשי הניסיון החינמיים"
+      "invalidDate": "בחר תאריך עתידי תקין"
     },
     "stepSub": {
       "notesQuestion": "האם ברצונך להוסיף הערה למנוי זה?",
