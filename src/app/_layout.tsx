@@ -14,9 +14,11 @@ import { OfflineToast } from '@/components/redeemy/OfflineToast';
 import { useAuthStore } from '@/stores/authStore';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { migrateCreditsToFamily } from '@/lib/firestoreCredits';
+import { migrateSubscriptionsToFamily } from '@/lib/firestoreSubscriptions';
 import { AuthStatus } from '@/types/userTypes';
 import { configureGoogleSignIn } from '@/lib/auth';
 import { registerNotificationCategories, getCreditIdFromNotification } from '@/lib/notifications';
+import { getSubscriptionIdFromNotification } from '@/lib/subscriptionNotifications';
 import { getSavedLanguage, resolveLanguage, initI18n, applyRTL } from '@/lib/i18n';
 
 // One-time module-level setup
@@ -38,7 +40,10 @@ function AuthGate({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (!familyId || !currentUser?.uid || familyCreditsMigrated) return;
     const displayName = currentUser.displayName ?? currentUser.email?.split('@')[0] ?? 'Member';
-    migrateCreditsToFamily(currentUser.uid, familyId, displayName)
+    Promise.all([
+      migrateCreditsToFamily(currentUser.uid, familyId, displayName),
+      migrateSubscriptionsToFamily(currentUser.uid, familyId, displayName),
+    ])
       .then(() => setFamilyCreditsMigrated(true))
       .catch(() => { /* silent — will retry next launch */ });
   }, [familyId, currentUser?.uid, familyCreditsMigrated, setFamilyCreditsMigrated]);
@@ -62,12 +67,21 @@ function AuthGate({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     Notifications.getLastNotificationResponseAsync().then((response) => {
       if (!response) return;
-      const creditId = getCreditIdFromNotification(response);
-      if (creditId && authStatus === AuthStatus.AUTHENTICATED) {
-        router.push(`/credit/${creditId}`);
+      if (authStatus !== AuthStatus.AUTHENTICATED) return;
+      const subscriptionId = getSubscriptionIdFromNotification(response);
+      if (subscriptionId) {
+        router.push(`/subscription/${subscriptionId}`);
+        return;
       }
+      const creditId = getCreditIdFromNotification(response);
+      if (creditId) router.push(`/credit/${creditId}`);
     });
     const sub = Notifications.addNotificationResponseReceivedListener((response) => {
+      const subscriptionId = getSubscriptionIdFromNotification(response);
+      if (subscriptionId) {
+        router.push(`/subscription/${subscriptionId}`);
+        return;
+      }
       const creditId = getCreditIdFromNotification(response);
       if (creditId) router.push(`/credit/${creditId}`);
     });

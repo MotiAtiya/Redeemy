@@ -494,7 +494,19 @@
     },
     "subscription": {
       "title": "Subscription ending soon",
-      "body": "{{serviceName}} ends in {{days}} days"
+      "body": "{{serviceName}} ends in {{days}} days",
+      "renew": {
+        "title": "{{serviceName}} renewed",
+        "body": "Your {{serviceName}} subscription just renewed ✓ — did the amount change?"
+      },
+      "cancel": {
+        "title": "Renewal reminder",
+        "body": "Your {{serviceName}} subscription renews in {{days}} day(s) — remember to cancel?"
+      },
+      "check": {
+        "title": "Is it still worth it?",
+        "body": "Your {{serviceName}} subscription renews in {{days}} day(s) — worth a quick check"
+      }
     }
   },
   "common": {

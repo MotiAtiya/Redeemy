@@ -16,6 +16,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import { createFamily } from '@/lib/firestoreFamilies';
 import { migrateCreditsToFamily } from '@/lib/firestoreCredits';
+import { migrateSubscriptionsToFamily } from '@/lib/firestoreSubscriptions';
 import { useAuthStore } from '@/stores/authStore';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { useAppTheme } from '@/hooks/useAppTheme';
@@ -133,6 +134,7 @@ export default function CreateFamilyScreen() {
       const familyId = await createFamily(trimmed, currentUser);
       const displayName = currentUser.displayName ?? currentUser.email?.split('@')[0] ?? 'Member';
       await migrateCreditsToFamily(currentUser.uid, familyId, displayName);
+      await migrateSubscriptionsToFamily(currentUser.uid, familyId, displayName);
       setFamilyId(familyId);
       router.replace(`/family/${familyId}?created=1`);
     } catch (err) {

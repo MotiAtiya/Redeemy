@@ -115,3 +115,76 @@ export function computeCommitmentEndDate(firstBillingDate: Date, commitmentMonth
   end.setMonth(end.getMonth() + commitmentMonths);
   return end;
 }
+
+/**
+ * Advances a subscription's billing cycle by one period after the billing date has passed.
+ *
+ * For ANNUAL: nextBillingDate moves +1 year.
+ * For MONTHLY: the billing date is derived from billingDayOfMonth at read-time, so we
+ * don't mutate any stored date — we only reset notificationIds so the caller re-schedules.
+ *
+ * Returns a patch suitable for `updateSubscription(sub.id, patch)`.
+ * Returns null when no advance is needed (nextBillingDate still in the future / missing data).
+ */
+export function advanceBillingCycle(sub: Subscription): Partial<Subscription> | null {
+  const now = Date.now();
+  if (sub.billingCycle === SubscriptionBillingCycle.ANNUAL) {
+    if (!sub.nextBillingDate) return null;
+    const current = sub.nextBillingDate instanceof Date
+      ? sub.nextBillingDate
+      : new Date(sub.nextBillingDate as unknown as string);
+    if (current.getTime() > now) return null;
+    const next = new Date(current);
+    next.setFullYear(next.getFullYear() + 1);
+    return {
+      nextBillingDate: next,
+      notificationIds: [],
+      renewalNotificationId: undefined,
+    };
+  }
+  // MONTHLY — only advance if current billing day has already passed this cycle.
+  if (!sub.billingDayOfMonth) return null;
+  const today = new Date();
+  const day = sub.billingDayOfMonth;
+  const lastDay = new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate();
+  const thisMonthBillingDate = new Date(
+    today.getFullYear(),
+    today.getMonth(),
+    Math.min(day, lastDay),
+  );
+  // Only trigger when we're past the billing date for the current month.
+  if (thisMonthBillingDate > today) return null;
+  return {
+    notificationIds: [],
+    renewalNotificationId: undefined,
+  };
+}
+
+/**
+ * Checks whether a free trial has ended (today ≥ trialEndsDate).
+ * Returns a patch that converts the subscription to a paid subscription:
+ *   isFree, isFreeTrial → false
+ *   amountAgorot → priceAfterTrialAgorot
+ * nextBillingDate advances one month from trialEndsDate (for ANNUAL callers adapt as needed).
+ * Returns null when not applicable.
+ */
+export function endFreeTrialIfDue(sub: Subscription): Partial<Subscription> | null {
+  if (!sub.isFreeTrial || !sub.trialEndsDate || !sub.priceAfterTrialAgorot) return null;
+  const trialEnd = sub.trialEndsDate instanceof Date
+    ? sub.trialEndsDate
+    : new Date(sub.trialEndsDate as unknown as string);
+  if (trialEnd.getTime() > Date.now()) return null;
+  const nextBilling = new Date(trialEnd);
+  nextBilling.setMonth(nextBilling.getMonth() + 1);
+  const patch: Partial<Subscription> = {
+    isFree: false,
+    isFreeTrial: false,
+    amountAgorot: sub.priceAfterTrialAgorot,
+    notificationIds: [],
+    renewalNotificationId: undefined,
+  };
+  if (sub.billingCycle === SubscriptionBillingCycle.ANNUAL) {
+    patch.nextBillingDate = nextBilling;
+  }
+  return patch;
+}
