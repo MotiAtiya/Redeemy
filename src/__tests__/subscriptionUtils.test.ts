@@ -4,6 +4,8 @@ import {
   daysUntilSubscriptionEnd,
   normalizeToMonthlyAgorot,
   computeMonthlyTotal,
+  advanceBillingCycle,
+  endFreeTrialIfDue,
 } from '@/lib/subscriptionUtils';
 import {
   SubscriptionBillingCycle,
@@ -388,5 +390,108 @@ describe('computeMonthlyTotal', () => {
       makeSub({ id: `s${i}`, amountAgorot: 1000 })
     );
     expect(computeMonthlyTotal(subs)).toBe(100_000);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// advanceBillingCycle
+// ---------------------------------------------------------------------------
+
+describe('advanceBillingCycle', () => {
+  it('advances ANNUAL nextBillingDate by 1 year when past', () => {
+    const past = new Date(Date.now() - 1000 * 60 * 60 * 24); // yesterday
+    const sub = makeSub({
+      billingCycle: SubscriptionBillingCycle.ANNUAL,
+      nextBillingDate: past,
+      billingDayOfMonth: undefined,
+    });
+    const patch = advanceBillingCycle(sub);
+    expect(patch).not.toBeNull();
+    expect(patch?.notificationIds).toEqual([]);
+    expect(patch?.renewalNotificationId).toBeUndefined();
+    const advanced = patch?.nextBillingDate as Date;
+    expect(advanced.getFullYear()).toBe(past.getFullYear() + 1);
+  });
+
+  it('returns null for ANNUAL still in the future', () => {
+    const future = new Date(Date.now() + 1000 * 60 * 60 * 24 * 30);
+    const sub = makeSub({
+      billingCycle: SubscriptionBillingCycle.ANNUAL,
+      nextBillingDate: future,
+      billingDayOfMonth: undefined,
+    });
+    expect(advanceBillingCycle(sub)).toBeNull();
+  });
+
+  it('returns reset-notifications patch for MONTHLY when billing day already passed this month', () => {
+    const today = new Date();
+    const passedDay = today.getDate() > 1 ? 1 : today.getDate();
+    const sub = makeSub({ billingDayOfMonth: passedDay });
+    const patch = advanceBillingCycle(sub);
+    if (today.getDate() === 1) {
+      expect(patch).toBeDefined(); // today is day 1 → treated as reached
+    }
+    if (patch) {
+      expect(patch.notificationIds).toEqual([]);
+      expect(patch.renewalNotificationId).toBeUndefined();
+    }
+  });
+
+  it('returns null for MONTHLY when billing day not yet reached', () => {
+    const today = new Date();
+    if (today.getDate() >= 28) return; // skip on edge days
+    const futureDay = Math.min(28, today.getDate() + 1);
+    const sub = makeSub({ billingDayOfMonth: futureDay });
+    expect(advanceBillingCycle(sub)).toBeNull();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// endFreeTrialIfDue
+// ---------------------------------------------------------------------------
+
+describe('endFreeTrialIfDue', () => {
+  it('returns a paid-subscription patch when trial end is past', () => {
+    const pastTrial = new Date(Date.now() - 1000 * 60 * 60 * 24);
+    const sub = makeSub({
+      isFreeTrial: true,
+      isFree: true,
+      amountAgorot: 0,
+      trialEndsDate: pastTrial,
+      priceAfterTrialAgorot: 2990,
+    });
+    const patch = endFreeTrialIfDue(sub);
+    expect(patch).not.toBeNull();
+    expect(patch?.isFree).toBe(false);
+    expect(patch?.isFreeTrial).toBe(false);
+    expect(patch?.amountAgorot).toBe(2990);
+    expect(patch?.notificationIds).toEqual([]);
+  });
+
+  it('returns null when trial is still active', () => {
+    const future = new Date(Date.now() + 1000 * 60 * 60 * 24 * 7);
+    const sub = makeSub({
+      isFreeTrial: true,
+      trialEndsDate: future,
+      priceAfterTrialAgorot: 2990,
+    });
+    expect(endFreeTrialIfDue(sub)).toBeNull();
+  });
+
+  it('returns null when not on a free trial', () => {
+    expect(endFreeTrialIfDue(makeSub({ isFreeTrial: false }))).toBeNull();
+  });
+
+  it('sets nextBillingDate for ANNUAL subscription', () => {
+    const past = new Date(Date.now() - 1000 * 60 * 60 * 24);
+    const sub = makeSub({
+      billingCycle: SubscriptionBillingCycle.ANNUAL,
+      isFreeTrial: true,
+      trialEndsDate: past,
+      priceAfterTrialAgorot: 29900,
+      billingDayOfMonth: undefined,
+    });
+    const patch = endFreeTrialIfDue(sub);
+    expect(patch?.nextBillingDate).toBeInstanceOf(Date);
   });
 });

@@ -9,6 +9,7 @@ import {
   serverTimestamp,
   query,
   where,
+  writeBatch,
   onSnapshot,
   type Unsubscribe,
   type DocumentSnapshot,
@@ -118,4 +119,56 @@ export async function deleteAllUserSubscriptions(userId: string): Promise<void> 
   const q = query(collection(db, SUBSCRIPTIONS_COLLECTION), where('userId', '==', userId));
   const snapshot = await getDocs(q);
   await Promise.all(snapshot.docs.map((d) => deleteDoc(d.ref)));
+}
+
+/**
+ * Batch-assigns familyId (and createdBy info) to all subscriptions belonging to a user.
+ * Called when a user joins a family — makes their subscriptions visible to all family members.
+ */
+export async function migrateSubscriptionsToFamily(
+  userId: string,
+  familyId: string,
+  createdByName: string
+): Promise<void> {
+  const q = query(collection(db, SUBSCRIPTIONS_COLLECTION), where('userId', '==', userId));
+  const snapshot = await getDocs(q);
+  if (snapshot.empty) return;
+
+  const batch = writeBatch(db);
+  snapshot.docs.forEach((d) => {
+    batch.update(d.ref, {
+      familyId,
+      createdBy: userId,
+      createdByName,
+      updatedAt: serverTimestamp(),
+    });
+  });
+  await batch.commit();
+}
+
+/**
+ * Batch-removes familyId and createdBy from all subscriptions belonging to a user.
+ * Called when a user leaves a family — their subscriptions revert to personal ownership.
+ */
+export async function migrateSubscriptionsFromFamily(
+  userId: string,
+  familyId?: string
+): Promise<void> {
+  const constraints = familyId
+    ? [where('userId', '==', userId), where('familyId', '==', familyId)]
+    : [where('userId', '==', userId)];
+  const q = query(collection(db, SUBSCRIPTIONS_COLLECTION), ...constraints);
+  const snapshot = await getDocs(q);
+  if (snapshot.empty) return;
+
+  const batch = writeBatch(db);
+  snapshot.docs.forEach((d) => {
+    batch.update(d.ref, {
+      familyId: deleteField(),
+      createdBy: deleteField(),
+      createdByName: deleteField(),
+      updatedAt: serverTimestamp(),
+    });
+  });
+  await batch.commit();
 }

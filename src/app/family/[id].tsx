@@ -37,6 +37,7 @@ import {
   transferAdmin,
 } from '@/lib/firestoreFamilies';
 import { migrateCreditsFromFamily } from '@/lib/firestoreCredits';
+import { migrateSubscriptionsFromFamily } from '@/lib/firestoreSubscriptions';
 import { useAppTheme } from '@/hooks/useAppTheme';
 import { FamilyRole, type FamilyMember } from '@/types/familyTypes';
 import type { AppColors } from '@/constants/colors';
@@ -429,6 +430,7 @@ export default function FamilyManageScreen() {
             setRemovingUid(member.userId);
             try {
               await migrateCreditsFromFamily(member.userId, family.id);
+              await migrateSubscriptionsFromFamily(member.userId, family.id);
               await removeMember(family.id, member.userId);
             } catch {
               Alert.alert(t('common.error'), t('family.errors.removeFailed'));
@@ -459,6 +461,7 @@ export default function FamilyManageScreen() {
             setIsLeaving(true);
             try {
               await migrateCreditsFromFamily(currentUser.uid);
+              await migrateSubscriptionsFromFamily(currentUser.uid);
               await leaveFamily(family.id, currentUser.uid);
               useFamilyStore.getState().setFamily(null);
               setFamilyId(null);

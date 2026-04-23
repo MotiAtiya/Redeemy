@@ -27,7 +27,10 @@ import { IntentSelector } from '@/components/redeemy/IntentSelector';
 import { StepProgressBar } from '@/components/redeemy/StepProgressBar';
 import { createSubscription, updateSubscription } from '@/lib/firestoreSubscriptions';
 import { computeCommitmentEndDate } from '@/lib/subscriptionUtils';
-import { scheduleSubscriptionCommitmentNotification } from '@/lib/notifications';
+import {
+  scheduleSubscriptionNotifications,
+  cancelSubscriptionNotifications,
+} from '@/lib/subscriptionNotifications';
 import { parseAmountToAgot } from '@/constants/currencies';
 import { formatCurrency } from '@/lib/formatCurrency';
 import { useAuthStore } from '@/stores/authStore';
@@ -898,22 +901,21 @@ export default function AddSubscriptionScreen() {
       try {
         subscriptionsStore.getState().updateSubscription(existingSubscription.id, subscriptionData);
         await updateSubscription(existingSubscription.id, subscriptionData);
-        // Reschedule commitment notification for edited subscription
-        if (commitmentEndDate) {
-          const oldNotifId = existingSubscription.notificationIds?.[0];
-          const notifId = await scheduleSubscriptionCommitmentNotification(
-            {
-              id: existingSubscription.id,
-              serviceName: serviceName.trim(),
-              reminderDays,
-              commitmentEndDate,
-            },
-            oldNotifId,
-          );
-          if (notifId) {
-            await updateSubscription(existingSubscription.id, { notificationIds: [notifId] });
-          }
-        }
+        // Cancel old notifications and reschedule based on intent
+        await cancelSubscriptionNotifications(existingSubscription);
+        const scheduled = await scheduleSubscriptionNotifications({
+          id: existingSubscription.id,
+          serviceName: serviceName.trim(),
+          intent: intent!,
+          reminderDays,
+          billingCycle: billingCycle!,
+          billingDayOfMonth: subscriptionData.billingDayOfMonth,
+          nextBillingDate: subscriptionData.nextBillingDate,
+        });
+        await updateSubscription(existingSubscription.id, {
+          notificationIds: scheduled.notificationIds,
+          renewalNotificationId: scheduled.renewalNotificationId,
+        });
         showToast(t('addSubscription.savedToast'));
         setTimeout(() => router.back(), 300);
       } catch (err) {
@@ -940,17 +942,20 @@ export default function AddSubscriptionScreen() {
     try {
       const newId = await createSubscription(subscriptionData);
       subscriptionsStore.getState().removeSubscription(tempId);
-      // Schedule commitment notification for new subscription
-      if (commitmentEndDate && newId) {
-        const notifId = await scheduleSubscriptionCommitmentNotification({
+      if (newId) {
+        const scheduled = await scheduleSubscriptionNotifications({
           id: newId,
           serviceName: serviceName.trim(),
+          intent: intent!,
           reminderDays,
-          commitmentEndDate,
+          billingCycle: billingCycle!,
+          billingDayOfMonth: subscriptionData.billingDayOfMonth,
+          nextBillingDate: subscriptionData.nextBillingDate,
         });
-        if (notifId) {
-          await updateSubscription(newId, { notificationIds: [notifId] });
-        }
+        await updateSubscription(newId, {
+          notificationIds: scheduled.notificationIds,
+          renewalNotificationId: scheduled.renewalNotificationId,
+        });
       }
       // onSnapshot listener will re-add the real document
       showToast(t('addSubscription.savedToast'));

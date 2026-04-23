@@ -16,7 +16,7 @@ import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import { updateSubscription, deleteSubscription } from '@/lib/firestoreSubscriptions';
-import { cancelNotification } from '@/lib/notifications';
+import { cancelSubscriptionNotifications } from '@/lib/subscriptionNotifications';
 import { formatCurrency } from '@/lib/formatCurrency';
 import { formatDate } from '@/lib/formatDate';
 import { useSubscriptionsStore } from '@/stores/subscriptionsStore';
@@ -318,10 +318,7 @@ export default function SubscriptionDetailScreen() {
     const s = sub!;
     setLoading(true);
     try {
-      for (const nid of (s.notificationIds ?? [])) {
-        await cancelNotification(nid);
-      }
-      await cancelNotification(s.renewalNotificationId);
+      await cancelSubscriptionNotifications(s);
       updateSubInStore(s.id, { status: SubscriptionStatus.CANCELLED, cancelledAt: new Date() });
       await updateSubscription(s.id, { status: SubscriptionStatus.CANCELLED, cancelledAt: new Date() });
       setShowCancelSheet(false);
@@ -355,10 +352,7 @@ export default function SubscriptionDetailScreen() {
           onPress: async () => {
             setLoading(true);
             try {
-              for (const nid of s.notificationIds) {
-                await cancelNotification(nid);
-              }
-              await cancelNotification(s.renewalNotificationId);
+              await cancelSubscriptionNotifications(s);
               removeSubFromStore(s.id);
               await deleteSubscription(s.id);
               router.back();

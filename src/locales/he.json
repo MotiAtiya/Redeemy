@@ -493,7 +493,19 @@
     },
     "subscription": {
       "title": "מנוי מסתיים בקרוב",
-      "body": "המנוי {{serviceName}} מסתיים בעוד {{days}} ימים"
+      "body": "המנוי {{serviceName}} מסתיים בעוד {{days}} ימים",
+      "renew": {
+        "title": "{{serviceName}} התחדש",
+        "body": "המנוי שלך ל-{{serviceName}} התחדש ✓ — האם הסכום השתנה?"
+      },
+      "cancel": {
+        "title": "תזכורת חידוש",
+        "body": "המנוי שלך ל-{{serviceName}} מתחדש בעוד {{days}} ימים — זכרת לבטל?"
+      },
+      "check": {
+        "title": "עדיין משתלם?",
+        "body": "המנוי שלך ל-{{serviceName}} מתחדש בעוד {{days}} ימים — כדאי לבדוק אם עדיין משתלם"
+      }
     }
   },
   "common": {
