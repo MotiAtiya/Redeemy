@@ -1,4 +1,5 @@
-import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useStepAnimation } from '@/hooks/useStepAnimation';
 import {
   View,
   Text,
@@ -9,21 +10,17 @@ import {
   Platform,
   ActivityIndicator,
   Alert,
-  Keyboard,
-  Dimensions,
   Switch,
-  Animated,
-  Pressable,
   I18nManager,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { Image } from 'expo-image';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import DateTimePicker, { type DateTimePickerEvent } from '@react-native-community/datetimepicker';
 import { StoreAutocomplete } from '@/components/redeemy/StoreAutocomplete';
-import { StepProgressBar } from '@/components/redeemy/StepProgressBar';
+import { CategorySelector } from '@/components/redeemy/CategorySelector';
+import { StepFormScreen } from '@/components/redeemy/StepFormScreen';
 import { openCamera, openGallery, uploadCreditImage } from '@/lib/imageUpload';
 import { CropModal } from '@/components/redeemy/CropModal';
 import { createWarranty, updateWarranty } from '@/lib/firestoreWarranties';
@@ -70,31 +67,7 @@ function getSteps(noExpiry: boolean, wantsNotes: boolean | null, skipNotesQuesti
 // ---------------------------------------------------------------------------
 
 function makeStyles(colors: AppColors, isRTL: boolean) {
-  const { width: screenWidth } = Dimensions.get('window');
   return StyleSheet.create({
-    safe: { flex: 1, backgroundColor: colors.surface },
-    flex: { flex: 1 },
-    header: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      paddingHorizontal: 16,
-      paddingVertical: 12,
-      borderBottomWidth: StyleSheet.hairlineWidth,
-      borderBottomColor: colors.separator,
-    },
-    headerBack: { width: 40, justifyContent: 'center' },
-    headerTitle: {
-      flex: 1,
-      fontSize: 17,
-      fontWeight: '600',
-      color: colors.textPrimary,
-      textAlign: 'center',
-    },
-    headerRight: { width: 40 },
-    stepContainer: {
-      flex: 1,
-      width: screenWidth,
-    },
     stepScroll: { flex: 1 },
     stepContent: { padding: 24, paddingBottom: 16, flexGrow: 1 },
     stepTitle: {
@@ -109,13 +82,6 @@ function makeStyles(colors: AppColors, isRTL: boolean) {
       color: colors.textSecondary,
       alignSelf: 'flex-start',
       marginBottom: 32,
-    },
-    footer: {
-      paddingHorizontal: 20,
-      paddingBottom: Platform.OS === 'ios' ? 8 : 16,
-      backgroundColor: colors.surface,
-      borderTopWidth: StyleSheet.hairlineWidth,
-      borderTopColor: colors.separator,
     },
     continueBtn: {
       height: 54,
@@ -140,39 +106,6 @@ function makeStyles(colors: AppColors, isRTL: boolean) {
       backgroundColor: colors.background,
       textAlign: isRTL ? 'right' : 'left',
     },
-    // Category step — grid
-    categoryGrid: {
-      flexDirection: 'row',
-      flexWrap: 'wrap',
-      gap: 12,
-    },
-    categoryCell: {
-      width: '30%',
-      aspectRatio: 1,
-      borderRadius: 16,
-      borderWidth: 1.5,
-      borderColor: colors.separator,
-      backgroundColor: colors.background,
-      justifyContent: 'center',
-      alignItems: 'center',
-      paddingVertical: 4,
-    },
-    categoryCellSelected: {
-      borderColor: colors.primary,
-      backgroundColor: colors.primarySurface,
-    },
-    categoryCellInner: {
-      alignItems: 'center',
-      gap: 6,
-    },
-    categoryLabel: {
-      fontSize: 11,
-      fontWeight: '500',
-      color: colors.textSecondary,
-      textAlign: 'center',
-      paddingHorizontal: 4,
-    },
-    categoryLabelSelected: { color: colors.primary, fontWeight: '700' },
     // Expiry date step
     noExpiryRow: {
       flexDirection: 'row',
@@ -419,32 +352,7 @@ export default function AddWarrantyScreen() {
 
   // Step state
   const [currentStepId, setCurrentStepId] = useState<StepId>('storeName');
-  const fadeAnim = useRef(new Animated.Value(1)).current;
-  const slideAnim = useRef(new Animated.Value(0)).current;
-
-  // Keyboard tracking
-  const keyboardPadding = useRef(new Animated.Value(0)).current;
-  useEffect(() => {
-    const showEvent = Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow';
-    const hideEvent = Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide';
-
-    const showSub = Keyboard.addListener(showEvent, (e) => {
-      Animated.timing(keyboardPadding, {
-        toValue: e.endCoordinates.height,
-        duration: (e as any).duration ?? 250,
-        useNativeDriver: false,
-      }).start();
-    });
-    const hideSub = Keyboard.addListener(hideEvent, (e) => {
-      Animated.timing(keyboardPadding, {
-        toValue: 0,
-        duration: (e as any).duration ?? 250,
-        useNativeDriver: false,
-      }).start();
-    });
-    return () => { showSub.remove(); hideSub.remove(); };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  const { fadeAnim, slideAnim, animateTransition } = useStepAnimation();
 
   const steps = useMemo(() => getSteps(noExpiry, wantsNotes, skipNotesQuestion), [noExpiry, wantsNotes, skipNotesQuestion]);
   const currentStepIndex = steps.indexOf(currentStepId);
@@ -492,29 +400,6 @@ export default function AddWarrantyScreen() {
   // ---------------------------------------------------------------------------
   // Navigation
   // ---------------------------------------------------------------------------
-
-  function animateTransition(direction: 'forward' | 'back', callback: () => void) {
-    const { width } = Dimensions.get('window');
-    const exitX = direction === 'forward' ? -width * 0.25 : width * 0.25;
-    const enterX = direction === 'forward' ? width * 0.25 : -width * 0.25;
-
-    Animated.parallel([
-      Animated.timing(fadeAnim, { toValue: 0, duration: 110, useNativeDriver: true }),
-      Animated.timing(slideAnim, { toValue: exitX, duration: 110, useNativeDriver: true }),
-    ]).start(() => {
-      callback();
-      slideAnim.setValue(enterX);
-      Animated.parallel([
-        Animated.timing(fadeAnim, { toValue: 1, duration: 180, useNativeDriver: true }),
-        Animated.spring(slideAnim, {
-          toValue: 0,
-          useNativeDriver: true,
-          tension: 80,
-          friction: 11,
-        }),
-      ]).start();
-    });
-  }
 
   const goNext = useCallback(() => {
     const nextIndex = currentStepIndex + 1;
@@ -780,34 +665,12 @@ export default function AddWarrantyScreen() {
         keyboardShouldPersistTaps="handled"
       >
         <Text style={styles.stepTitle}>{t('addWarranty.step.category')}</Text>
-        <View style={styles.categoryGrid}>
-          {CATEGORIES.map((cat) => {
-            const isSelected = cat.id === category;
-            return (
-              <Pressable
-                key={cat.id}
-                style={[styles.categoryCell, isSelected && styles.categoryCellSelected]}
-                onPress={() => setCategory(cat.id)}
-                accessibilityRole="radio"
-                accessibilityState={{ checked: isSelected }}
-              >
-                <View style={styles.categoryCellInner}>
-                  <Ionicons
-                    name={cat.icon}
-                    size={26}
-                    color={isSelected ? colors.primary : colors.textSecondary}
-                  />
-                  <Text
-                    style={[styles.categoryLabel, isSelected && styles.categoryLabelSelected]}
-                    numberOfLines={2}
-                  >
-                    {t('category.' + cat.id)}
-                  </Text>
-                </View>
-              </Pressable>
-            );
-          })}
-        </View>
+        <CategorySelector
+          categories={CATEGORIES}
+          selected={category}
+          onSelect={setCategory}
+          labelFor={(id) => t('category.' + id)}
+        />
       </ScrollView>
     );
   }
@@ -1170,48 +1033,24 @@ export default function AddWarrantyScreen() {
   const headerTitle = isEditing ? t('addWarranty.titleEdit') : t('addWarranty.title');
 
   return (
-    <SafeAreaView style={styles.safe} edges={['top']}>
-      {cropUri && (
+    <StepFormScreen
+      title={headerTitle}
+      onBack={goBack}
+      isFirstStep={currentStepIndex === 0}
+      totalSteps={steps.length}
+      currentStepIndex={currentStepIndex}
+      fadeAnim={fadeAnim}
+      slideAnim={slideAnim}
+      footerButton={renderFooterButton()}
+      extras={cropUri ? (
         <CropModal
           uri={cropUri}
-          onCrop={(uri) => {
-            setImageUri(uri);
-            setCropUri(null);
-          }}
+          onCrop={(uri) => { setImageUri(uri); setCropUri(null); }}
           onCancel={() => setCropUri(null)}
         />
-      )}
-
-      {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity style={styles.headerBack} onPress={goBack} hitSlop={8}>
-          <Ionicons
-            name={currentStepIndex === 0 ? 'close' : (isRTL ? 'chevron-forward' : 'chevron-back')}
-            size={24}
-            color={colors.textPrimary}
-          />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle} numberOfLines={1}>
-          {headerTitle}
-        </Text>
-        <View style={styles.headerRight} />
-      </View>
-
-      <Animated.View style={[styles.flex, { paddingBottom: keyboardPadding }]}>
-        <Animated.View
-          style={[
-            styles.stepContainer,
-            { flex: 1, opacity: fadeAnim, transform: [{ translateX: slideAnim }] },
-          ]}
-        >
-          {renderCurrentStep()}
-        </Animated.View>
-
-        <View style={styles.footer}>
-          <StepProgressBar totalSteps={steps.length} currentStep={currentStepIndex} />
-          {renderFooterButton()}
-        </View>
-      </Animated.View>
-    </SafeAreaView>
+      ) : undefined}
+    >
+      {renderCurrentStep()}
+    </StepFormScreen>
   );
 }

@@ -20,8 +20,10 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { ExpirationBadge } from '@/components/redeemy/ExpirationBadge';
+import { DetailRow } from '@/components/redeemy/DetailRow';
+import { ActionModal } from '@/components/redeemy/ActionModal';
 import { deleteWarranty, updateWarranty } from '@/lib/firestoreWarranties';
-import { cancelNotification } from '@/lib/notifications';
+import { cancelCreditNotifications } from '@/lib/notifications';
 import { formatDate } from '@/lib/formatDate';
 import { useWarrantiesStore } from '@/stores/warrantiesStore';
 import { useSettingsStore } from '@/stores/settingsStore';
@@ -63,12 +65,6 @@ function makeStyles(colors: AppColors) {
     storeName: { fontSize: 22, fontWeight: '700', color: colors.textPrimary, alignSelf: 'flex-start' },
     productName: { fontSize: 28, fontWeight: '800', color: colors.textPrimary, letterSpacing: -0.5, alignSelf: 'flex-start' },
     detailsCard: { backgroundColor: colors.surface, borderRadius: 14, overflow: 'hidden' },
-    detailRow: { flexDirection: 'row', alignItems: 'flex-start', padding: 14, gap: 12 },
-    detailRowContent: { flex: 1, gap: 2 },
-    detailLabel: { fontSize: 12, color: colors.textTertiary, fontWeight: '500', alignSelf: 'flex-start' },
-    detailValue: { fontSize: 15, color: colors.textPrimary, alignSelf: 'flex-start' },
-    notesValue: { fontSize: 15, color: colors.textPrimary, alignSelf: 'flex-start', textAlign: 'left' },
-    separator: { height: 1, backgroundColor: colors.separator, marginStart: 44 },
     footer: {
       padding: 16,
       paddingBottom: 8,
@@ -97,33 +93,6 @@ function makeStyles(colors: AppColors) {
       borderRadius: 12,
     },
     closedBannerText: { fontSize: 15, color: colors.textTertiary, fontWeight: '500' },
-    overlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.35)' },
-    actionSheet: {
-      backgroundColor: colors.surface,
-      borderTopLeftRadius: 20,
-      borderTopRightRadius: 20,
-      padding: 16,
-      paddingBottom: 36,
-      gap: 4,
-    },
-    actionSheetHandle: {
-      width: 36,
-      height: 4,
-      borderRadius: 2,
-      backgroundColor: colors.separator,
-      alignSelf: 'center',
-      marginBottom: 12,
-    },
-    actionSheetButton: { flexDirection: 'row', alignItems: 'center', gap: 14, padding: 14, borderRadius: 10 },
-    actionSheetLabel: { fontSize: 16 },
-    cancelButton: {
-      alignItems: 'center',
-      padding: 14,
-      marginTop: 8,
-      backgroundColor: colors.background,
-      borderRadius: 10,
-    },
-    cancelText: { fontSize: 16, fontWeight: '600', color: colors.textPrimary },
     fullscreenModal: { flex: 1, backgroundColor: '#000000', direction: 'ltr' },
     fullscreenClose: {
       position: 'absolute',
@@ -215,8 +184,7 @@ export default function WarrantyDetailScreen() {
           onPress: async () => {
             setLoading(true);
             try {
-              await cancelNotification(w.notificationId);
-              await cancelNotification(w.expirationNotificationId);
+              await cancelCreditNotifications(w.notificationId, w.expirationNotificationId);
               updateWarrantyInStore(w.id, { status: WarrantyStatus.CLOSED, closedAt: new Date() });
               await updateWarranty(w.id, { status: WarrantyStatus.CLOSED, closedAt: new Date() });
               router.back();
@@ -251,8 +219,7 @@ export default function WarrantyDetailScreen() {
           onPress: async () => {
             setLoading(true);
             try {
-              await cancelNotification(w.notificationId);
-              await cancelNotification(w.expirationNotificationId);
+              await cancelCreditNotifications(w.notificationId, w.expirationNotificationId);
               removeWarranty(w.id);
               await deleteWarranty(w.id);
               router.back();
@@ -337,59 +304,46 @@ export default function WarrantyDetailScreen() {
         </View>
 
         <View style={styles.detailsCard}>
-          <View style={styles.detailRow}>
-            <Ionicons name="pricetag-outline" size={18} color={colors.textTertiary} />
-            <View style={styles.detailRowContent}>
-              <Text style={styles.detailLabel}>{t('warranty.detail.category')}</Text>
-              <Text style={styles.detailValue}>{categoryMeta ? t('category.' + categoryMeta.id) : warranty.category}</Text>
-            </View>
-          </View>
-          <View style={styles.separator} />
-          <View style={styles.detailRow}>
-            <Ionicons name="calendar-outline" size={18} color={colors.textTertiary} />
-            <View style={styles.detailRowContent}>
-              <Text style={styles.detailLabel}>{t('warranty.detail.expires')}</Text>
-              <Text style={styles.detailValue}>
-                {warranty.noExpiry
-                  ? t('warranty.detail.noExpiry')
-                  : expirationDate
-                  ? formatDate(expirationDate, dateFormat)
-                  : t('warranty.detail.noExpiry')}
-              </Text>
-            </View>
-          </View>
+          <DetailRow
+            icon="pricetag-outline"
+            label={t('warranty.detail.category')}
+            value={categoryMeta ? t('category.' + categoryMeta.id) : warranty.category}
+            showSeparator
+          />
+          <DetailRow
+            icon="calendar-outline"
+            label={t('warranty.detail.expires')}
+            value={
+              warranty.noExpiry
+                ? t('warranty.detail.noExpiry')
+                : expirationDate
+                ? formatDate(expirationDate, dateFormat)
+                : t('warranty.detail.noExpiry')
+            }
+            showSeparator={!!(expirationDate && !warranty.noExpiry)}
+          />
           {expirationDate && !warranty.noExpiry && (
-            <>
-              <View style={styles.separator} />
-              <View style={styles.detailRow}>
-                <Ionicons name="notifications-outline" size={18} color={colors.textTertiary} />
-                <View style={styles.detailRowContent}>
-                  <Text style={styles.detailLabel}>{t('warranty.detail.reminder')}</Text>
-                  <Text style={styles.detailValue}>{t('credit.detail.reminderDays', { count: warranty.reminderDays })}</Text>
-                </View>
-              </View>
-            </>
+            <DetailRow
+              icon="notifications-outline"
+              label={t('warranty.detail.reminder')}
+              value={t('credit.detail.reminderDays', { count: warranty.reminderDays })}
+              showSeparator={!!warranty.notes}
+            />
           )}
-          {warranty.notes ? (
-            <>
-              <View style={styles.separator} />
-              <View style={styles.detailRow}>
-                <Ionicons name="document-text-outline" size={18} color={colors.textTertiary} />
-                <View style={styles.detailRowContent}>
-                  <Text style={styles.detailLabel}>{t('warranty.detail.notes')}</Text>
-                  <Text style={styles.notesValue}>{warranty.notes}</Text>
-                </View>
-              </View>
-            </>
-          ) : null}
-          <View style={styles.separator} />
-          <View style={styles.detailRow}>
-            <Ionicons name="time-outline" size={18} color={colors.textTertiary} />
-            <View style={styles.detailRowContent}>
-              <Text style={styles.detailLabel}>{t('warranty.detail.added')}</Text>
-              <Text style={styles.detailValue}>{formatDate(new Date(warranty.createdAt as Date), dateFormat)}</Text>
-            </View>
-          </View>
+          {!!warranty.notes && (
+            <DetailRow
+              icon="document-text-outline"
+              label={t('warranty.detail.notes')}
+              value={warranty.notes}
+              showSeparator
+              multiline
+            />
+          )}
+          <DetailRow
+            icon="time-outline"
+            label={t('warranty.detail.added')}
+            value={formatDate(new Date(warranty.createdAt as Date), dateFormat)}
+          />
         </View>
       </ScrollView>
 
@@ -470,37 +424,24 @@ export default function WarrantyDetailScreen() {
         </View>
       </Modal>
 
-      <Modal
+      <ActionModal
         visible={showActionSheet}
-        transparent
-        animationType="slide"
-        onRequestClose={() => setShowActionSheet(false)}
+        onClose={() => setShowActionSheet(false)}
+        cancelLabel={t('common.cancel')}
         onDismiss={() => {
           const action = afterDismissRef.current;
           afterDismissRef.current = null;
           action?.();
         }}
-      >
-        <TouchableOpacity style={styles.overlay} activeOpacity={1} onPress={() => setShowActionSheet(false)} />
-        <View style={styles.actionSheet}>
-          <View style={styles.actionSheetHandle} />
-          {warranty.status === WarrantyStatus.ACTIVE && (
-            <TouchableOpacity style={styles.actionSheetButton} onPress={handleEdit}>
-              <Ionicons name="create-outline" size={22} color={colors.textPrimary} />
-              <Text style={[styles.actionSheetLabel, { color: colors.textPrimary }]}>{t('warranty.action.edit')}</Text>
-            </TouchableOpacity>
-          )}
-          {canDelete && (
-            <TouchableOpacity style={styles.actionSheetButton} onPress={handleDelete}>
-              <Ionicons name="trash-outline" size={22} color={colors.danger} />
-              <Text style={[styles.actionSheetLabel, { color: colors.danger }]}>{t('warranty.action.delete')}</Text>
-            </TouchableOpacity>
-          )}
-          <TouchableOpacity style={styles.cancelButton} onPress={() => setShowActionSheet(false)}>
-            <Text style={styles.cancelText}>{t('common.cancel')}</Text>
-          </TouchableOpacity>
-        </View>
-      </Modal>
+        actions={[
+          warranty.status === WarrantyStatus.ACTIVE
+            ? { icon: 'create-outline', label: t('warranty.action.edit'), color: colors.textPrimary, onPress: handleEdit }
+            : null,
+          canDelete
+            ? { icon: 'trash-outline', label: t('warranty.action.delete'), color: colors.danger, onPress: handleDelete }
+            : null,
+        ]}
+      />
     </SafeAreaView>
   );
 }

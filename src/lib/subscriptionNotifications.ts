@@ -3,7 +3,7 @@ import { SubscriptionBillingCycle, type Subscription } from '@/types/subscriptio
 import { useSettingsStore } from '@/stores/settingsStore';
 import i18n from './i18n';
 import { getNextBillingDate } from './subscriptionUtils';
-import { requestNotificationPermission, cancelNotification } from './notifications';
+import { requestNotificationPermission, cancelNotification, scheduleNotificationAt } from './notifications';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -35,31 +35,6 @@ type SchedulableSub = Pick<
   | 'trialEndsDate'
   | 'reminderSpecialPeriodEnabled'
 >;
-
-// ---------------------------------------------------------------------------
-// Internal helpers
-// ---------------------------------------------------------------------------
-
-async function scheduleAt(
-  date: Date,
-  title: string,
-  body: string,
-  subscriptionId: string,
-  extraData?: Record<string, string>,
-): Promise<string | null> {
-  if (date <= new Date()) return null;
-  return Notifications.scheduleNotificationAsync({
-    content: {
-      title,
-      body,
-      data: { subscriptionId, type: 'subscription', ...extraData },
-    },
-    trigger: {
-      type: Notifications.SchedulableTriggerInputTypes.DATE,
-      date,
-    },
-  });
-}
 
 // ---------------------------------------------------------------------------
 // Scheduling
@@ -104,11 +79,11 @@ export async function scheduleSubscriptionNotifications(
     const reminderDate = new Date();
     reminderDate.setMonth(reminderDate.getMonth() + months);
     reminderDate.setHours(notificationHour, notificationMinute, 0, 0);
-    const id = await scheduleAt(
+    const id = await scheduleNotificationAt(
       reminderDate,
       t('notifications.subscription.freeReview.title'),
       t('notifications.subscription.freeReview.body', { serviceName: sub.serviceName }),
-      sub.id,
+      { subscriptionId: sub.id, type: 'subscription' },
     );
     if (id) result.notificationIds.push(id);
     return result;
@@ -129,11 +104,11 @@ export async function scheduleSubscriptionNotifications(
     const reminderDate = new Date(endDate);
     reminderDate.setDate(reminderDate.getDate() - daysBefore);
     reminderDate.setHours(notificationHour, notificationMinute, 0, 0);
-    const id = await scheduleAt(
+    const id = await scheduleNotificationAt(
       reminderDate,
       t('notifications.subscription.specialPeriodEnd.title'),
       t('notifications.subscription.specialPeriodEnd.body', { serviceName: sub.serviceName }),
-      sub.id,
+      { subscriptionId: sub.id, type: 'subscription' },
     );
     if (id) result.specialPeriodNotificationId = id;
   }
@@ -153,37 +128,36 @@ export async function scheduleSubscriptionNotifications(
 
   if (isManual) {
     // Manual renewal: remind N days before + 1 day before
-    const firstId = await scheduleAt(
+    const firstId = await scheduleNotificationAt(
       reminderBefore,
       t('notifications.subscription.manual.title'),
       t('notifications.subscription.manual.body', { serviceName: sub.serviceName, days: sub.reminderDays }),
-      sub.id,
+      { subscriptionId: sub.id, type: 'subscription' },
     );
     if (firstId) result.notificationIds.push(firstId);
 
-    const secondId = await scheduleAt(
+    const secondId = await scheduleNotificationAt(
       dayBefore,
       t('notifications.subscription.manual.title'),
       t('notifications.subscription.manual.body', { serviceName: sub.serviceName, days: 1 }),
-      sub.id,
+      { subscriptionId: sub.id, type: 'subscription' },
     );
     if (secondId) result.notificationIds.push(secondId);
   } else {
     // Auto renewal: remind N days before + on-day notification
-    const reminderId = await scheduleAt(
+    const reminderId = await scheduleNotificationAt(
       reminderBefore,
       t('notifications.subscription.auto.reminder.title'),
       t('notifications.subscription.auto.reminder.body', { serviceName: sub.serviceName, days: sub.reminderDays }),
-      sub.id,
+      { subscriptionId: sub.id, type: 'subscription' },
     );
     if (reminderId) result.notificationIds.push(reminderId);
 
-    const renewalId = await scheduleAt(
+    const renewalId = await scheduleNotificationAt(
       billingTriggerDate,
       t('notifications.subscription.auto.renewal.title'),
       t('notifications.subscription.auto.renewal.body', { serviceName: sub.serviceName }),
-      sub.id,
-      { notificationType: 'renewal' },
+      { subscriptionId: sub.id, type: 'subscription', notificationType: 'renewal' },
     );
     if (renewalId) result.renewalNotificationId = renewalId;
   }

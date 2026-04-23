@@ -1,4 +1,5 @@
 import { useState, useRef, useMemo, useCallback, useEffect } from 'react';
+import { useToast } from '@/hooks/useToast';
 import {
   View,
   Text,
@@ -24,26 +25,12 @@ import { useFamilyStore } from '@/stores/familyStore';
 import { useSettingsStore, CURRENCY_SYMBOLS } from '@/stores/settingsStore';
 import { useUIStore } from '@/stores/uiStore';
 import { useAppTheme } from '@/hooks/useAppTheme';
+import { DetailRow } from '@/components/redeemy/DetailRow';
+import { ActionModal } from '@/components/redeemy/ActionModal';
 import { SubscriptionBillingCycle, SubscriptionStatus } from '@/types/subscriptionTypes';
 import { SUBSCRIPTION_CATEGORIES } from '@/constants/subscriptionCategories';
 import { getNextBillingDate, daysUntilBilling, normalizeToMonthlyAgorot } from '@/lib/subscriptionUtils';
 import type { AppColors } from '@/constants/colors';
-
-// ---------------------------------------------------------------------------
-// useToast — copied from src/app/family/[id].tsx
-// ---------------------------------------------------------------------------
-
-function useToast() {
-  const [message, setMessage] = useState<string | null>(null);
-  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const show = useCallback((msg: string) => {
-    if (timerRef.current) clearTimeout(timerRef.current);
-    setMessage(msg);
-    timerRef.current = setTimeout(() => setMessage(null), 2000);
-  }, []);
-  useEffect(() => () => { if (timerRef.current) clearTimeout(timerRef.current); }, []);
-  return { toastMessage: message, showToast: show };
-}
 
 // ---------------------------------------------------------------------------
 // Styles
@@ -99,12 +86,6 @@ function makeStyles(colors: AppColors) {
     intentBadgeText: { fontSize: 13, fontWeight: '600' },
     // Details card
     detailsCard: { backgroundColor: colors.surface, borderRadius: 14, overflow: 'hidden' },
-    detailRow: { flexDirection: 'row', alignItems: 'flex-start', padding: 14, gap: 12 },
-    detailRowContent: { flex: 1, gap: 2 },
-    detailLabel: { fontSize: 12, color: colors.textTertiary, fontWeight: '500', alignSelf: 'flex-start' },
-    detailValue: { fontSize: 15, color: colors.textPrimary, alignSelf: 'flex-start' },
-    notesValue: { fontSize: 15, color: colors.textPrimary, alignSelf: 'flex-start', textAlign: 'left' },
-    separator: { height: 1, backgroundColor: colors.separator, marginStart: 44 },
     // Footer
     footer: {
       padding: 16,
@@ -134,34 +115,6 @@ function makeStyles(colors: AppColors) {
       borderRadius: 12,
     },
     cancelledBannerText: { fontSize: 15, color: colors.textTertiary, fontWeight: '500' },
-    // Overlay / action sheet
-    overlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.35)' },
-    actionSheet: {
-      backgroundColor: colors.surface,
-      borderTopLeftRadius: 20,
-      borderTopRightRadius: 20,
-      padding: 16,
-      paddingBottom: 36,
-      gap: 4,
-    },
-    actionSheetHandle: {
-      width: 36,
-      height: 4,
-      borderRadius: 2,
-      backgroundColor: colors.separator,
-      alignSelf: 'center',
-      marginBottom: 12,
-    },
-    actionSheetButton: { flexDirection: 'row', alignItems: 'center', gap: 14, padding: 14, borderRadius: 10 },
-    actionSheetLabel: { fontSize: 16 },
-    cancelButton: {
-      alignItems: 'center',
-      padding: 14,
-      marginTop: 8,
-      backgroundColor: colors.background,
-      borderRadius: 10,
-    },
-    cancelText: { fontSize: 16, fontWeight: '600', color: colors.textPrimary },
     // Cancel confirmation sheet
     cancelSheet: {
       backgroundColor: colors.surface,
@@ -409,115 +362,71 @@ export default function SubscriptionDetailScreen() {
 
         {/* Details card */}
         <View style={styles.detailsCard}>
-          {/* Billing */}
-          <View style={styles.detailRow}>
-            <Ionicons name="card-outline" size={18} color={colors.textTertiary} />
-            <View style={styles.detailRowContent}>
-              <Text style={styles.detailLabel}>{t('subscription.detail.billing')}</Text>
-              <Text style={styles.detailValue}>{getBillingText()}</Text>
-            </View>
-          </View>
-          <View style={styles.separator} />
-
-          {/* Next billing */}
-          <View style={styles.detailRow}>
-            <Ionicons name="calendar-outline" size={18} color={colors.textTertiary} />
-            <View style={styles.detailRowContent}>
-              <Text style={styles.detailLabel}>{t('subscription.detail.nextBilling')}</Text>
-              <Text style={styles.detailValue}>{getNextBillingText()}</Text>
-            </View>
-          </View>
-
-          {/* Free trial (only if applicable) */}
+          <DetailRow
+            icon="card-outline"
+            label={t('subscription.detail.billing')}
+            value={getBillingText()}
+            showSeparator
+          />
+          <DetailRow
+            icon="calendar-outline"
+            label={t('subscription.detail.nextBilling')}
+            value={getNextBillingText()}
+            showSeparator={!!sub.isFreeTrial}
+          />
           {sub.isFreeTrial && !!sub.trialEndsDate && (
-            <>
-              <View style={styles.separator} />
-              <View style={styles.detailRow}>
-                <Ionicons name="gift-outline" size={18} color={colors.textTertiary} />
-                <View style={styles.detailRowContent}>
-                  <Text style={styles.detailLabel}>{t('subscription.detail.freeTrial')}</Text>
-                  <Text style={styles.detailValue}>
-                    {t('subscription.detail.freeTrialDetail', {
-                      date: formatDate(
-                        sub.trialEndsDate instanceof Date
-                          ? sub.trialEndsDate
-                          : new Date(sub.trialEndsDate as unknown as string),
-                        dateFormat
-                      ),
-                      price: formatCurrency(sub.priceAfterTrialAgorot ?? 0, CURRENCY_SYMBOLS[sub.currency ?? 'ILS']),
-                    })}
-                  </Text>
-                </View>
-              </View>
-            </>
-          )}
-
-          <View style={styles.separator} />
-
-          {/* Category */}
-          <View style={styles.detailRow}>
-            <Ionicons name={categoryMeta?.icon ?? 'grid-outline'} size={18} color={colors.textTertiary} />
-            <View style={styles.detailRowContent}>
-              <Text style={styles.detailLabel}>{t('subscription.detail.category')}</Text>
-              <Text style={styles.detailValue}>{t('subscriptions.category.' + sub.category)}</Text>
-            </View>
-          </View>
-          <View style={styles.separator} />
-
-          {/* Renewal type (only show if manual) */}
-          {sub.renewalType === 'manual' && (
-            <>
-              <View style={styles.detailRow}>
-                <Ionicons name="hand-left-outline" size={18} color={colors.textTertiary} />
-                <View style={styles.detailRowContent}>
-                  <Text style={styles.detailLabel}>{t('subscription.detail.renewalType')}</Text>
-                  <Text style={styles.detailValue}>{t('subscription.detail.manualRenewal')}</Text>
-                </View>
-              </View>
-              <View style={styles.separator} />
-            </>
-          )}
-
-          {/* Reminder */}
-          <View style={styles.detailRow}>
-            <Ionicons name="notifications-outline" size={18} color={colors.textTertiary} />
-            <View style={styles.detailRowContent}>
-              <Text style={styles.detailLabel}>{t('subscription.detail.reminder')}</Text>
-              <Text style={styles.detailValue}>
-                {t('subscription.detail.reminderDays', { count: sub.reminderDays })}
-              </Text>
-            </View>
-          </View>
-
-          {/* Notes (only if set) */}
-          {!!sub.notes && (
-            <>
-              <View style={styles.separator} />
-              <View style={styles.detailRow}>
-                <Ionicons name="document-text-outline" size={18} color={colors.textTertiary} />
-                <View style={styles.detailRowContent}>
-                  <Text style={styles.detailLabel}>{t('subscription.detail.notes')}</Text>
-                  <Text style={styles.notesValue}>{sub.notes}</Text>
-                </View>
-              </View>
-            </>
-          )}
-
-          <View style={styles.separator} />
-
-          {/* Added date */}
-          <View style={styles.detailRow}>
-            <Ionicons name="time-outline" size={18} color={colors.textTertiary} />
-            <View style={styles.detailRowContent}>
-              <Text style={styles.detailLabel}>{t('subscription.detail.added')}</Text>
-              <Text style={styles.detailValue}>
-                {formatDate(
-                  sub.createdAt instanceof Date ? sub.createdAt : new Date(sub.createdAt as unknown as string),
+            <DetailRow
+              icon="gift-outline"
+              label={t('subscription.detail.freeTrial')}
+              value={t('subscription.detail.freeTrialDetail', {
+                date: formatDate(
+                  sub.trialEndsDate instanceof Date
+                    ? sub.trialEndsDate
+                    : new Date(sub.trialEndsDate as unknown as string),
                   dateFormat
-                )}
-              </Text>
-            </View>
-          </View>
+                ),
+                price: formatCurrency(sub.priceAfterTrialAgorot ?? 0, CURRENCY_SYMBOLS[sub.currency ?? 'ILS']),
+              })}
+              showSeparator
+            />
+          )}
+          <DetailRow
+            icon={categoryMeta?.icon ?? 'grid-outline'}
+            label={t('subscription.detail.category')}
+            value={t('subscriptions.category.' + sub.category)}
+            showSeparator
+          />
+          {sub.renewalType === 'manual' && (
+            <DetailRow
+              icon="hand-left-outline"
+              label={t('subscription.detail.renewalType')}
+              value={t('subscription.detail.manualRenewal')}
+              showSeparator
+            />
+          )}
+          <DetailRow
+            icon="notifications-outline"
+            label={t('subscription.detail.reminder')}
+            value={t('subscription.detail.reminderDays', { count: sub.reminderDays })}
+            showSeparator={!!sub.notes}
+          />
+          {!!sub.notes && (
+            <DetailRow
+              icon="document-text-outline"
+              label={t('subscription.detail.notes')}
+              value={sub.notes}
+              showSeparator
+              multiline
+            />
+          )}
+          <DetailRow
+            icon="time-outline"
+            label={t('subscription.detail.added')}
+            value={formatDate(
+              sub.createdAt instanceof Date ? sub.createdAt : new Date(sub.createdAt as unknown as string),
+              dateFormat
+            )}
+          />
         </View>
       </ScrollView>
 
@@ -566,41 +475,24 @@ export default function SubscriptionDetailScreen() {
       )}
 
       {/* Action sheet */}
-      <Modal
+      <ActionModal
         visible={showActionSheet}
-        transparent
-        animationType="slide"
-        onRequestClose={() => setShowActionSheet(false)}
+        onClose={() => setShowActionSheet(false)}
+        cancelLabel={t('common.cancel')}
         onDismiss={() => {
           const action = afterDismissRef.current;
           afterDismissRef.current = null;
           action?.();
         }}
-      >
-        <TouchableOpacity style={styles.overlay} activeOpacity={1} onPress={() => setShowActionSheet(false)} />
-        <View style={styles.actionSheet}>
-          <View style={styles.actionSheetHandle} />
-          {!isCancelled && (
-            <TouchableOpacity style={styles.actionSheetButton} onPress={handleEdit}>
-              <Ionicons name="create-outline" size={22} color={colors.textPrimary} />
-              <Text style={[styles.actionSheetLabel, { color: colors.textPrimary }]}>
-                {t('subscription.action.edit')}
-              </Text>
-            </TouchableOpacity>
-          )}
-          {canDelete && (
-            <TouchableOpacity style={styles.actionSheetButton} onPress={handleDelete}>
-              <Ionicons name="trash-outline" size={22} color={colors.danger} />
-              <Text style={[styles.actionSheetLabel, { color: colors.danger }]}>
-                {t('subscription.action.delete')}
-              </Text>
-            </TouchableOpacity>
-          )}
-          <TouchableOpacity style={styles.cancelButton} onPress={() => setShowActionSheet(false)}>
-            <Text style={styles.cancelText}>{t('common.cancel')}</Text>
-          </TouchableOpacity>
-        </View>
-      </Modal>
+        actions={[
+          !isCancelled
+            ? { icon: 'create-outline', label: t('subscription.action.edit'), color: colors.textPrimary, onPress: handleEdit }
+            : null,
+          canDelete
+            ? { icon: 'trash-outline', label: t('subscription.action.delete'), color: colors.danger, onPress: handleDelete }
+            : null,
+        ]}
+      />
 
       {/* Cancel confirmation sheet */}
       <Modal

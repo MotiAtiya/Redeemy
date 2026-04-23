@@ -38,6 +38,30 @@ export async function requestNotificationPermission(): Promise<boolean> {
 }
 
 // ---------------------------------------------------------------------------
+// Schedule helpers
+// ---------------------------------------------------------------------------
+
+/**
+ * Schedules a single notification at a specific date.
+ * Returns the notification ID, or null if the date is in the past.
+ */
+export async function scheduleNotificationAt(
+  date: Date,
+  title: string,
+  body: string,
+  data: Record<string, unknown>,
+): Promise<string | null> {
+  if (date <= new Date()) return null;
+  return Notifications.scheduleNotificationAsync({
+    content: { title, body, data },
+    trigger: {
+      type: Notifications.SchedulableTriggerInputTypes.DATE,
+      date,
+    },
+  });
+}
+
+// ---------------------------------------------------------------------------
 // Schedule
 // ---------------------------------------------------------------------------
 
@@ -72,46 +96,32 @@ export async function scheduleReminderNotification(
   triggerDate.setDate(triggerDate.getDate() - credit.reminderDays);
   triggerDate.setHours(notificationHour, notificationMinute, 0, 0);
 
-  let reminderId: string | null = null;
-  if (triggerDate > now) {
-    reminderId = await Notifications.scheduleNotificationAsync({
-      content: {
-        title: t('notifications.reminder.title'),
-        body: t('notifications.reminder.body', {
-          storeName: credit.storeName,
-          amount: formatCurrency(credit.amount, currencySymbol),
-          days: credit.reminderDays,
-        }),
-        data: { creditId: credit.id },
-      },
-      trigger: {
-        type: Notifications.SchedulableTriggerInputTypes.DATE,
-        date: triggerDate,
-      },
-    });
-  }
+  const reminderId = await scheduleNotificationAt(
+    triggerDate,
+    t('notifications.reminder.title'),
+    t('notifications.reminder.body', {
+      storeName: credit.storeName,
+      amount: formatCurrency(credit.amount, currencySymbol),
+      days: credit.reminderDays,
+    }),
+    { creditId: credit.id },
+  );
 
   // --- Expiration-day notification (at configured time on the expiration date) ---
   const expiryTrigger = new Date(credit.expirationDate);
   expiryTrigger.setHours(notificationHour, notificationMinute, 0, 0);
 
-  let expiryId: string | null = null;
-  if (expiryNotificationEnabled && expiryTrigger > now) {
-    expiryId = await Notifications.scheduleNotificationAsync({
-      content: {
-        title: t('notifications.expiry.title'),
-        body: t('notifications.expiry.body', {
+  const expiryId = expiryNotificationEnabled
+    ? await scheduleNotificationAt(
+        expiryTrigger,
+        t('notifications.expiry.title'),
+        t('notifications.expiry.body', {
           storeName: credit.storeName,
           amount: formatCurrency(credit.amount, currencySymbol),
         }),
-        data: { creditId: credit.id },
-      },
-      trigger: {
-        type: Notifications.SchedulableTriggerInputTypes.DATE,
-        date: expiryTrigger,
-      },
-    });
-  }
+        { creditId: credit.id },
+      )
+    : null;
 
   return { reminderId, expiryId };
 }

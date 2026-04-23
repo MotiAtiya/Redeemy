@@ -1,9 +1,10 @@
 import { useMemo } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
+import { BaseCard } from './BaseCard';
+import { MemberAvatar } from './MemberAvatar';
 import { useAppTheme } from '@/hooks/useAppTheme';
-import { useAuthStore } from '@/stores/authStore';
 import { useSettingsStore, CURRENCY_SYMBOLS } from '@/stores/settingsStore';
 import { formatCurrency } from '@/lib/formatCurrency';
 import { formatDate } from '@/lib/formatDate';
@@ -26,32 +27,15 @@ import type { AppColors } from '@/constants/colors';
 
 function makeStyles(colors: AppColors) {
   return StyleSheet.create({
-    card: {
-      backgroundColor: colors.surface,
-      borderRadius: 14,
-      marginHorizontal: 16,
-      marginBottom: 10,
-      shadowColor: '#000',
-      shadowOffset: { width: 0, height: 1 },
-      shadowOpacity: 0.06,
-      shadowRadius: 4,
-      elevation: 2,
-    },
-    cardDimmed: { opacity: 0.6 },
     cancelledBadge: {
-      paddingHorizontal: 7,
-      paddingVertical: 2,
-      borderRadius: 8,
-      backgroundColor: colors.separator,
+      paddingHorizontal: 8,
+      paddingVertical: 3,
+      borderRadius: 10,
+      borderWidth: 1,
+      borderColor: colors.separator,
+      backgroundColor: colors.background,
     },
-    cancelledBadgeText: { fontSize: 11, fontWeight: '600', color: colors.textTertiary },
-    content: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      padding: 14,
-      gap: 12,
-    },
-    // Amount block (start side — right in RTL, left in LTR)
+    cancelledBadgeText: { fontSize: 11, fontWeight: '500', color: colors.textTertiary },
     amountBlock: {
       alignItems: 'center',
       justifyContent: 'center',
@@ -65,39 +49,13 @@ function makeStyles(colors: AppColors) {
       letterSpacing: -0.5,
       textAlign: 'center',
     },
-    amountNumberFree: {
-      fontSize: 16,
-      fontWeight: '700',
-      color: colors.textTertiary,
-    },
-    amountNumberTrial: {
-      fontSize: 16,
-      fontWeight: '700',
-      color: colors.urgencyAmber,
-    },
-    amountCents: {
-      fontSize: 13,
-      fontWeight: '600',
-      letterSpacing: 0,
-    },
-    amountPeriod: {
-      fontSize: 11,
-      color: colors.textSecondary,
-      marginTop: 1,
-    },
-    // Content column — alignItems: 'flex-start' flips to right in RTL, same as CreditCard
+    amountNumberFree: { fontSize: 16, fontWeight: '700', color: colors.textTertiary },
+    amountNumberTrial: { fontSize: 16, fontWeight: '700', color: colors.urgencyAmber },
+    amountCents: { fontSize: 13, fontWeight: '600', letterSpacing: 0 },
+    amountPeriod: { fontSize: 11, color: colors.textSecondary, marginTop: 1 },
     contentColumn: { flex: 1, gap: 5, alignItems: 'flex-start' },
-    serviceName: {
-      fontSize: 16,
-      fontWeight: '700',
-      color: colors.textPrimary,
-    },
-    nextBillingText: {
-      fontSize: 12,
-      color: colors.textSecondary,
-      fontWeight: '500',
-    },
-    // Urgency badge
+    serviceName: { fontSize: 16, fontWeight: '700', color: colors.textPrimary },
+    nextBillingText: { fontSize: 12, color: colors.textSecondary, fontWeight: '500' },
     urgencyBadge: {
       paddingHorizontal: 7,
       paddingVertical: 2,
@@ -105,7 +63,6 @@ function makeStyles(colors: AppColors) {
       borderWidth: 1,
     },
     urgencyBadgeText: { fontSize: 11, fontWeight: '600' },
-    // Category icon circle (end side — left in RTL, right in LTR)
     categoryIconCircle: {
       width: 40,
       height: 40,
@@ -115,20 +72,6 @@ function makeStyles(colors: AppColors) {
       alignItems: 'center',
       position: 'relative',
     },
-    memberAvatar: {
-      position: 'absolute',
-      bottom: -4,
-      end: -4,
-      width: 20,
-      height: 20,
-      borderRadius: 10,
-      backgroundColor: colors.primary,
-      justifyContent: 'center',
-      alignItems: 'center',
-      borderWidth: 1.5,
-      borderColor: colors.surface,
-    },
-    memberAvatarText: { fontSize: 8, fontWeight: '700', color: '#FFFFFF' },
   });
 }
 
@@ -148,7 +91,6 @@ export function SubscriptionCard({ subscription: sub, onPress, variant = 'active
   const { t } = useTranslation();
   const currencySymbol = CURRENCY_SYMBOLS[sub.currency ?? 'ILS'];
   const dateFormat = useSettingsStore((s) => s.dateFormat);
-  const currentUid = useAuthStore((s) => s.currentUser?.uid);
 
   const isCancelled = variant === 'cancelled';
   const categoryMeta = SUBSCRIPTION_CATEGORIES.find((c) => c.id === sub.category);
@@ -161,40 +103,17 @@ export function SubscriptionCard({ subscription: sub, onPress, variant = 'active
       )
     : null;
 
-  // Family member avatar
-  const showMemberAvatar =
-    sub.familyId &&
-    sub.createdBy &&
-    sub.createdByName &&
-    sub.createdBy !== currentUid;
-  const memberInitials = showMemberAvatar
-    ? sub.createdByName!
-        .split(' ')
-        .slice(0, 2)
-        .map((w) => w[0])
-        .join('')
-        .toUpperCase()
-    : null;
-
-  // Days until the next billing event — used for the "next billing" line.
   const daysUntilNextBilling = useMemo(() => daysUntilBilling(sub), [sub]);
-
-  // Days until the subscription itself ends (commitment / trial / annual renewal)
-  // — used for the urgency badge that tells the user how long they have left.
   const daysForUrgency = useMemo(() => daysUntilSubscriptionEnd(sub), [sub]);
 
-  // Urgency badge colors
   const { urgencyText, urgencyBg } = useMemo(() => {
-    if (daysForUrgency < 7) {
+    if (daysForUrgency < 7)
       return { urgencyText: colors.urgencyRed, urgencyBg: colors.urgencyRedSurface };
-    }
-    if (daysForUrgency <= 30) {
+    if (daysForUrgency <= 30)
       return { urgencyText: colors.urgencyAmber, urgencyBg: colors.urgencyAmberSurface };
-    }
     return { urgencyText: colors.urgencyGreen, urgencyBg: colors.urgencyGreenSurface };
   }, [daysForUrgency, colors]);
 
-  // Urgency label
   const urgencyLabel = useMemo(() => {
     if (daysForUrgency === 0) return t('badge.today');
     if (daysForUrgency === 1) return t('badge.oneDay');
@@ -207,7 +126,6 @@ export function SubscriptionCard({ subscription: sub, onPress, variant = 'active
     return months === 1 ? t('badge.oneMonth') : t('badge.months', { months });
   }, [daysForUrgency, t]);
 
-  // Next billing label (replaces intent badge)
   const nextBillingLabel = useMemo(() => {
     if (sub.isFree || sub.isFreeTrial) return null;
     const days = daysUntilNextBilling;
@@ -221,14 +139,11 @@ export function SubscriptionCard({ subscription: sub, onPress, variant = 'active
     return t('subscriptionCard.renewsInDays', { days });
   }, [sub, daysUntilNextBilling, t, dateFormat]);
 
-  // Amount block content
   const { amountLabel, periodLabel, amountStyle } = useMemo(() => {
-    if (sub.isFree) {
+    if (sub.isFree)
       return { amountLabel: t('subscriptionCard.free'), periodLabel: null, amountStyle: styles.amountNumberFree };
-    }
-    if (sub.isFreeTrial) {
+    if (sub.isFreeTrial)
       return { amountLabel: t('subscriptionCard.trial'), periodLabel: null, amountStyle: styles.amountNumberTrial };
-    }
     const monthly = sub.billingCycle === SubscriptionBillingCycle.ANNUAL
       ? normalizeToMonthlyAgorot(sub)
       : sub.amountAgorot;
@@ -240,78 +155,68 @@ export function SubscriptionCard({ subscription: sub, onPress, variant = 'active
   }, [sub, t, currencySymbol, styles]);
 
   return (
-    <TouchableOpacity
-      style={[styles.card, isCancelled && styles.cardDimmed]}
-      onPress={onPress}
-      activeOpacity={0.75}
-      accessibilityRole="button"
-      accessibilityLabel={sub.serviceName}
-    >
-      <View style={styles.content}>
-        {/* Amount block (start side) */}
-        <View style={styles.amountBlock}>
-          {(() => {
-            const dotIndex = amountLabel.indexOf('.');
-            if (dotIndex === -1) {
-              return <Text style={amountStyle} numberOfLines={1}>{amountLabel}</Text>;
-            }
-            const whole = amountLabel.slice(0, dotIndex);
-            const cents = amountLabel.slice(dotIndex + 1);
-            return (
-              <Text style={amountStyle} numberOfLines={1}>
-                {whole}
-                <Text style={[amountStyle, styles.amountCents]}>.{cents}</Text>
-              </Text>
-            );
-          })()}
-          {periodLabel && (
-            <Text style={styles.amountPeriod}>{periodLabel}</Text>
-          )}
-        </View>
-
-        {/* Content column */}
-        <View style={styles.contentColumn}>
-          <Text style={styles.serviceName} numberOfLines={1}>
-            {sub.serviceName}
-          </Text>
-
-          {nextBillingLabel != null && (
-            <Text style={styles.nextBillingText} numberOfLines={1}>
-              {nextBillingLabel}
+    <BaseCard onPress={onPress} dimmed={isCancelled} accessibilityLabel={sub.serviceName}>
+      {/* Amount block (start side) */}
+      <View style={styles.amountBlock}>
+        {(() => {
+          const dotIndex = amountLabel.indexOf('.');
+          if (dotIndex === -1) {
+            return <Text style={amountStyle} numberOfLines={1}>{amountLabel}</Text>;
+          }
+          const whole = amountLabel.slice(0, dotIndex);
+          const cents = amountLabel.slice(dotIndex + 1);
+          return (
+            <Text style={amountStyle} numberOfLines={1}>
+              {whole}
+              <Text style={[amountStyle, styles.amountCents]}>.{cents}</Text>
             </Text>
-          )}
-
-          {isCancelled ? (
-            <View style={styles.cancelledBadge}>
-              <Text style={styles.cancelledBadgeText}>
-                {cancelledDate
-                  ? t('subscriptionCard.cancelledOn', { date: cancelledDate })
-                  : t('subscriptionCard.cancelled')}
-              </Text>
-            </View>
-          ) : (
-            <View style={[styles.urgencyBadge, { backgroundColor: urgencyBg, borderColor: urgencyText }]}>
-              <Text style={[styles.urgencyBadgeText, { color: urgencyText }]}>
-                {urgencyLabel}
-              </Text>
-            </View>
-          )}
-        </View>
-
-        {/* Category icon circle (end side) */}
-        <View style={styles.categoryIconCircle}>
-          <Ionicons
-            name={categoryMeta?.icon ?? 'repeat-outline'}
-            size={20}
-            color={colors.primary}
-          />
-          {showMemberAvatar && (
-            <View style={styles.memberAvatar}>
-              <Text style={styles.memberAvatarText}>{memberInitials}</Text>
-            </View>
-          )}
-        </View>
+          );
+        })()}
+        {periodLabel && <Text style={styles.amountPeriod}>{periodLabel}</Text>}
       </View>
-    </TouchableOpacity>
+
+      {/* Content column */}
+      <View style={styles.contentColumn}>
+        <Text style={styles.serviceName} numberOfLines={1}>
+          {sub.serviceName}
+        </Text>
+
+        {nextBillingLabel != null && (
+          <Text style={styles.nextBillingText} numberOfLines={1}>
+            {nextBillingLabel}
+          </Text>
+        )}
+
+        {isCancelled ? (
+          <View style={styles.cancelledBadge}>
+            <Text style={styles.cancelledBadgeText}>
+              {cancelledDate
+                ? t('subscriptionCard.cancelledOn', { date: cancelledDate })
+                : t('subscriptionCard.cancelled')}
+            </Text>
+          </View>
+        ) : (
+          <View style={[styles.urgencyBadge, { backgroundColor: urgencyBg, borderColor: urgencyText }]}>
+            <Text style={[styles.urgencyBadgeText, { color: urgencyText }]}>
+              {urgencyLabel}
+            </Text>
+          </View>
+        )}
+      </View>
+
+      {/* Category icon circle (end side) */}
+      <View style={styles.categoryIconCircle}>
+        <Ionicons
+          name={categoryMeta?.icon ?? 'repeat-outline'}
+          size={20}
+          color={colors.primary}
+        />
+        <MemberAvatar
+          familyId={sub.familyId}
+          createdBy={sub.createdBy}
+          createdByName={sub.createdByName}
+        />
+      </View>
+    </BaseCard>
   );
 }

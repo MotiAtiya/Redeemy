@@ -18,6 +18,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { ExpirationBadge } from '@/components/redeemy/ExpirationBadge';
+import { DetailRow } from '@/components/redeemy/DetailRow';
+import { ActionModal } from '@/components/redeemy/ActionModal';
 import { deleteCredit, updateCredit } from '@/lib/firestoreCredits';
 import { cancelCreditNotifications } from '@/lib/notifications';
 import * as MediaLibrary from 'expo-media-library';
@@ -64,12 +66,6 @@ function makeStyles(colors: AppColors) {
     storeName: { fontSize: 22, fontWeight: '700', color: colors.textPrimary, alignSelf: 'flex-start' },
     amount: { fontSize: 36, fontWeight: '800', color: colors.textPrimary, letterSpacing: -1, alignSelf: 'flex-start' },
     detailsCard: { backgroundColor: colors.surface, borderRadius: 14, overflow: 'hidden' },
-    detailRow: { flexDirection: 'row', alignItems: 'flex-start', padding: 14, gap: 12 },
-    detailRowContent: { flex: 1, gap: 2 },
-    detailLabel: { fontSize: 12, color: colors.textTertiary, fontWeight: '500', alignSelf: 'flex-start' },
-    detailValue: { fontSize: 15, color: colors.textPrimary, alignSelf: 'flex-start' },
-    notesValue: { fontSize: 15, color: colors.textPrimary, alignSelf: 'flex-start', textAlign: 'left' },
-    separator: { height: 1, backgroundColor: colors.separator, marginStart: 44 },
     footer: {
       padding: 16,
       paddingBottom: 8,
@@ -88,33 +84,6 @@ function makeStyles(colors: AppColors) {
     },
     buttonDisabled: { opacity: 0.7 },
     redeemButtonText: { color: '#FFFFFF', fontSize: 16, fontWeight: '700' },
-    overlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.35)' },
-    actionSheet: {
-      backgroundColor: colors.surface,
-      borderTopLeftRadius: 20,
-      borderTopRightRadius: 20,
-      padding: 16,
-      paddingBottom: 36,
-      gap: 4,
-    },
-    actionSheetHandle: {
-      width: 36,
-      height: 4,
-      borderRadius: 2,
-      backgroundColor: colors.separator,
-      alignSelf: 'center',
-      marginBottom: 12,
-    },
-    actionSheetButton: { flexDirection: 'row', alignItems: 'center', gap: 14, padding: 14, borderRadius: 10 },
-    actionSheetLabel: { fontSize: 16 },
-    cancelButton: {
-      alignItems: 'center',
-      padding: 14,
-      marginTop: 8,
-      backgroundColor: colors.background,
-      borderRadius: 10,
-    },
-    cancelText: { fontSize: 16, fontWeight: '600', color: colors.textPrimary },
     redeemedBanner: {
       flexDirection: 'row',
       alignItems: 'center',
@@ -345,55 +314,40 @@ export default function CreditDetailScreen() {
         </View>
 
         <View style={styles.detailsCard}>
-          <View style={styles.detailRow}>
-            <Ionicons name="pricetag-outline" size={18} color={colors.textTertiary} />
-            <View style={styles.detailRowContent}>
-              <Text style={styles.detailLabel}>{t('credit.detail.category')}</Text>
-              <Text style={styles.detailValue}>{categoryMeta ? t('category.' + categoryMeta.id) : credit.category}</Text>
-            </View>
-          </View>
-          <View style={styles.separator} />
-          <View style={styles.detailRow}>
-            <Ionicons name="calendar-outline" size={18} color={colors.textTertiary} />
-            <View style={styles.detailRowContent}>
-              <Text style={styles.detailLabel}>{t('credit.detail.expires')}</Text>
-              <Text style={styles.detailValue}>
-                {expirationDate ? formatDate(expirationDate, dateFormat) : t('credit.detail.noExpiry')}
-              </Text>
-            </View>
-          </View>
+          <DetailRow
+            icon="pricetag-outline"
+            label={t('credit.detail.category')}
+            value={categoryMeta ? t('category.' + categoryMeta.id) : credit.category}
+            showSeparator
+          />
+          <DetailRow
+            icon="calendar-outline"
+            label={t('credit.detail.expires')}
+            value={expirationDate ? formatDate(expirationDate, dateFormat) : t('credit.detail.noExpiry')}
+            showSeparator={!!expirationDate}
+          />
           {expirationDate && (
-            <>
-              <View style={styles.separator} />
-              <View style={styles.detailRow}>
-                <Ionicons name="notifications-outline" size={18} color={colors.textTertiary} />
-                <View style={styles.detailRowContent}>
-                  <Text style={styles.detailLabel}>{t('credit.detail.reminder')}</Text>
-                  <Text style={styles.detailValue}>{t('credit.detail.reminderDays', { count: credit.reminderDays })}</Text>
-                </View>
-              </View>
-            </>
+            <DetailRow
+              icon="notifications-outline"
+              label={t('credit.detail.reminder')}
+              value={t('credit.detail.reminderDays', { count: credit.reminderDays })}
+              showSeparator={!!credit.notes}
+            />
           )}
-          {credit.notes ? (
-            <>
-              <View style={styles.separator} />
-              <View style={styles.detailRow}>
-                <Ionicons name="document-text-outline" size={18} color={colors.textTertiary} />
-                <View style={styles.detailRowContent}>
-                  <Text style={styles.detailLabel}>{t('credit.detail.notes')}</Text>
-                  <Text style={styles.notesValue}>{credit.notes}</Text>
-                </View>
-              </View>
-            </>
-          ) : null}
-          <View style={styles.separator} />
-          <View style={styles.detailRow}>
-            <Ionicons name="time-outline" size={18} color={colors.textTertiary} />
-            <View style={styles.detailRowContent}>
-              <Text style={styles.detailLabel}>{t('credit.detail.added')}</Text>
-              <Text style={styles.detailValue}>{formatDate(new Date(credit.createdAt as Date), dateFormat)}</Text>
-            </View>
-          </View>
+          {!!credit.notes && (
+            <DetailRow
+              icon="document-text-outline"
+              label={t('credit.detail.notes')}
+              value={credit.notes}
+              showSeparator
+              multiline
+            />
+          )}
+          <DetailRow
+            icon="time-outline"
+            label={t('credit.detail.added')}
+            value={formatDate(new Date(credit.createdAt as Date), dateFormat)}
+          />
         </View>
       </ScrollView>
 
@@ -474,43 +428,27 @@ export default function CreditDetailScreen() {
         </View>
       </Modal>
 
-      <Modal
+      <ActionModal
         visible={showActionSheet}
-        transparent
-        animationType="slide"
-        onRequestClose={() => setShowActionSheet(false)}
+        onClose={() => setShowActionSheet(false)}
+        cancelLabel={t('common.cancel')}
         onDismiss={() => {
           const action = afterDismissRef.current;
           afterDismissRef.current = null;
           action?.();
         }}
-      >
-        <TouchableOpacity style={styles.overlay} activeOpacity={1} onPress={() => setShowActionSheet(false)} />
-        <View style={styles.actionSheet}>
-          <View style={styles.actionSheetHandle} />
-          {credit.status === CreditStatus.ACTIVE && (
-            <TouchableOpacity style={styles.actionSheetButton} onPress={handleEdit}>
-              <Ionicons name="create-outline" size={22} color={colors.textPrimary} />
-              <Text style={[styles.actionSheetLabel, { color: colors.textPrimary }]}>{t('credit.action.edit')}</Text>
-            </TouchableOpacity>
-          )}
-          {credit.status === CreditStatus.REDEEMED && (
-            <TouchableOpacity style={styles.actionSheetButton} onPress={handleRestore}>
-              <Ionicons name="refresh-outline" size={22} color={colors.primary} />
-              <Text style={[styles.actionSheetLabel, { color: colors.primary }]}>{t('credit.action.restore')}</Text>
-            </TouchableOpacity>
-          )}
-          {canDelete && (
-            <TouchableOpacity style={styles.actionSheetButton} onPress={handleDelete}>
-              <Ionicons name="trash-outline" size={22} color={colors.danger} />
-              <Text style={[styles.actionSheetLabel, { color: colors.danger }]}>{t('credit.action.delete')}</Text>
-            </TouchableOpacity>
-          )}
-          <TouchableOpacity style={styles.cancelButton} onPress={() => setShowActionSheet(false)}>
-            <Text style={styles.cancelText}>{t('common.cancel')}</Text>
-          </TouchableOpacity>
-        </View>
-      </Modal>
+        actions={[
+          credit.status === CreditStatus.ACTIVE
+            ? { icon: 'create-outline', label: t('credit.action.edit'), color: colors.textPrimary, onPress: handleEdit }
+            : null,
+          credit.status === CreditStatus.REDEEMED
+            ? { icon: 'refresh-outline', label: t('credit.action.restore'), color: colors.primary, onPress: handleRestore }
+            : null,
+          canDelete
+            ? { icon: 'trash-outline', label: t('credit.action.delete'), color: colors.danger, onPress: handleDelete }
+            : null,
+        ]}
+      />
     </SafeAreaView>
   );
 }

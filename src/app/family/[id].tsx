@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
+import { useToast } from '@/hooks/useToast';
 import {
   View,
   Text,
@@ -42,24 +43,6 @@ import { useAppTheme } from '@/hooks/useAppTheme';
 import { FamilyRole, type FamilyMember } from '@/types/familyTypes';
 import type { AppColors } from '@/constants/colors';
 
-// ---------------------------------------------------------------------------
-// Toast helper
-// ---------------------------------------------------------------------------
-
-function useToast() {
-  const [message, setMessage] = useState<string | null>(null);
-  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  const show = useCallback((msg: string) => {
-    if (timerRef.current) clearTimeout(timerRef.current);
-    setMessage(msg);
-    timerRef.current = setTimeout(() => setMessage(null), 2000);
-  }, []);
-
-  useEffect(() => () => { if (timerRef.current) clearTimeout(timerRef.current); }, []);
-
-  return { toastMessage: message, showToast: show };
-}
 
 // ---------------------------------------------------------------------------
 // Styles
