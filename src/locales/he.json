@@ -773,7 +773,7 @@
       "daysOption_one": "יום אחד",
       "daysOption_other": "{{count}} ימים",
       "monthsLabel": "משך התקופה",
-      "priceLabel": "מחיר בתקופה המיוחדת",
+      "priceLabel": "מחיר בתקופה המוזלת",
       "monthlyBreakdown": "({{amount}}/חודש)"
     },
     "annualBillingDate": {
