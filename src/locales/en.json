@@ -789,11 +789,11 @@
       "annualDesc": "Charged once a year"
     },
     "monthlyStructure": {
-      "title": "What is the monthly subscription structure?",
-      "fixed": "Fixed period",
-      "fixedDesc": "E.g. an annual plan billed monthly — has an end date",
-      "noFixed": "No fixed period",
-      "noFixedDesc": "Renews month-to-month with no commitment"
+      "title": "How does the subscription work?",
+      "fixed": "Fixed term",
+      "fixedDesc": "The subscription has an end date",
+      "noFixed": "Renews every month",
+      "noFixedDesc": "Can be cancelled at any time"
     },
     "renewalType": {
       "title": "What happens when the period ends?",
@@ -804,15 +804,15 @@
     },
     "freeReminder": {
       "title": "How often should we send a review reminder?",
-      "sub": "We'll remind you to check that the free subscription still works for you",
-      "option_one": "Every month",
-      "option_other": "Every {{count}} months"
+      "sub": "We'll remind you to check that the free subscription still works for you, every",
+      "option_one": "month",
+      "option_other": "{{count}} months"
     },
     "periodicReminder": {
-      "subFree": "We'll remind you to check that this free service still works for you",
-      "subPaid": "This subscription renews month-to-month with no end date — we'll send a periodic reminder to check if it's still worth it",
-      "option_one": "Every month",
-      "option_other": "Every {{count}} months"
+      "subFree": "We'll remind you to check that this free service still works for you, every",
+      "subPaid": "This subscription renews month-to-month with no end date — we'll send a periodic reminder to check if it's still worth it, every",
+      "option_one": "month",
+      "option_other": "{{count}} months"
     },
     "reminder": {
       "3days": "3 Days",

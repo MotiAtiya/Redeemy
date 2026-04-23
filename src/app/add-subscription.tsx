@@ -256,7 +256,6 @@ function makeStyles(colors: AppColors, isRTL: boolean) {
     stepSub: {
       fontSize: 15,
       color: colors.textSecondary,
-      alignSelf: 'flex-start',
       marginTop: -8,
       marginBottom: 20,
       lineHeight: 22,
