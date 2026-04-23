@@ -1,5 +1,5 @@
 import { useRef, useCallback } from 'react';
-import { Animated, Dimensions } from 'react-native';
+import { Animated, Dimensions, I18nManager } from 'react-native';
 
 export function useStepAnimation() {
   const fadeAnim = useRef(new Animated.Value(1)).current;
@@ -8,8 +8,10 @@ export function useStepAnimation() {
   const animateTransition = useCallback(
     (direction: 'forward' | 'back', callback: () => void) => {
       const { width } = Dimensions.get('window');
-      const exitX = direction === 'forward' ? -width * 0.25 : width * 0.25;
-      const enterX = direction === 'forward' ? width * 0.25 : -width * 0.25;
+      // In RTL (Hebrew), "forward" = moving left visually, so directions are mirrored
+      const rtl = I18nManager.isRTL;
+      const exitX = direction === 'forward' ? (rtl ? width * 0.25 : -width * 0.25) : (rtl ? -width * 0.25 : width * 0.25);
+      const enterX = direction === 'forward' ? (rtl ? -width * 0.25 : width * 0.25) : (rtl ? width * 0.25 : -width * 0.25);
 
       Animated.parallel([
         Animated.timing(fadeAnim, { toValue: 0, duration: 110, useNativeDriver: true }),
