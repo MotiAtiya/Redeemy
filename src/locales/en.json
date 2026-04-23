@@ -743,7 +743,7 @@
       "regularAmount": "Regular price",
       "amount": "Subscription amount",
       "billingCycle": "Billing frequency",
-      "monthlyStructure": "Subscription structure",
+      "monthlyStructure": "How does the subscription work?",
       "commitmentMonths": "Commitment period",
       "billingDay": "Billing day",
       "annualBillingDate": "When did you sign up?",

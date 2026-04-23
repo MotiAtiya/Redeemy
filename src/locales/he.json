@@ -742,7 +742,7 @@
       "regularAmount": "מחיר רגיל",
       "amount": "סכום המנוי",
       "billingCycle": "תדירות חיוב",
-      "monthlyStructure": "מבנה המנוי",
+      "monthlyStructure": "איך המנוי עובד?",
       "commitmentMonths": "לכמה חודשים?",
       "billingDay": "יום חיוב",
       "annualBillingDate": "מתי נרשמת?",
