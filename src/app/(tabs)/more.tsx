@@ -18,8 +18,12 @@ import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import { cancelAllNotifications } from '@/lib/notifications';
 import { deleteAllUserCredits } from '@/lib/firestoreCredits';
+import { deleteAllUserWarranties } from '@/lib/firestoreWarranties';
+import { deleteAllUserSubscriptions } from '@/lib/firestoreSubscriptions';
 import { useAuthStore } from '@/stores/authStore';
 import { useCreditsStore } from '@/stores/creditsStore';
+import { useWarrantiesStore } from '@/stores/warrantiesStore';
+import { useSubscriptionsStore } from '@/stores/subscriptionsStore';
 import { useUIStore } from '@/stores/uiStore';
 import { useSettingsStore, type DateFormat, type CurrencyCode, CURRENCY_SYMBOLS } from '@/stores/settingsStore';
 import { useFamilyStore } from '@/stores/familyStore';
@@ -49,6 +53,9 @@ function resetAllStores() {
   const ui = useUIStore.getState();
   ui.setActiveTab('credits');
   ui.setOfflineMode(false);
+
+  useWarrantiesStore.getState().setWarranties([]);
+  useSubscriptionsStore.getState().setSubscriptions([]);
 
   useFamilyStore.getState().setFamily(null);
   useSettingsStore.getState().setFamilyId(null);
@@ -260,6 +267,8 @@ export default function MoreScreen() {
           try {
             await cancelAllNotifications();
             await deleteAllUserCredits(currentUser.uid);
+            await deleteAllUserWarranties(currentUser.uid);
+            await deleteAllUserSubscriptions(currentUser.uid);
             resetAllStores();
             setDeletingData(false);
             Alert.alert(t('more.deleteData.successTitle'), t('more.deleteData.successMessage'));
