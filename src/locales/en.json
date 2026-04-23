@@ -698,7 +698,7 @@
     },
     "cancel": {
       "title": "Cancel Subscription",
-      "message": "Cancel {{name}}? It will be archived.",
+      "message": "This subscription will be archived.",
       "confirm": "Cancel Subscription",
       "toast": "{{name}} was cancelled and archived",
       "error": "Could not cancel. Check your connection and try again.",

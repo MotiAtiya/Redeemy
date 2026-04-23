@@ -131,6 +131,12 @@ function makeStyles(colors: AppColors) {
       textAlign: 'center',
       marginTop: 4,
     },
+    cancelSheetServiceName: {
+      fontSize: 16,
+      fontWeight: '600',
+      color: colors.textPrimary,
+      textAlign: 'center',
+    },
     cancelSheetMessage: {
       fontSize: 15,
       color: colors.textSecondary,
@@ -505,9 +511,8 @@ export default function SubscriptionDetailScreen() {
         <View style={styles.cancelSheet}>
           <View style={styles.actionSheetHandle} />
           <Text style={styles.cancelSheetTitle}>{t('subscription.cancel.title')}</Text>
-          <Text style={styles.cancelSheetMessage}>
-            {t('subscription.cancel.message', { name: sub.serviceName })}
-          </Text>
+          <Text style={styles.cancelSheetServiceName} numberOfLines={2}>{sub.serviceName}</Text>
+          <Text style={styles.cancelSheetMessage}>{t('subscription.cancel.message')}</Text>
           <TouchableOpacity
             style={[styles.dangerButton, loading && styles.buttonDisabled]}
             onPress={handleCancelConfirm}
