@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { useToast } from '@/hooks/useToast';
 import { useStepAnimation } from '@/hooks/useStepAnimation';
 import {
@@ -570,6 +570,30 @@ export default function AddSubscriptionScreen() {
 
   const [saving, setSaving] = useState(false);
 
+  // Stash: preserve paid-specific state when user temporarily switches to 'free',
+  // so we can restore it if they switch back to 'paid'.
+  const paidStateStash = useRef<{
+    hasSpecialPeriod: boolean | null;
+    specialPeriodType: 'trial' | 'discounted' | null;
+    specialPeriodUnit: 'days' | 'months';
+    specialPeriodMonths: number;
+    specialPeriodDays: number;
+    specialAmountInput: string;
+    billingCycle: SubscriptionBillingCycle | null;
+    monthlyStructure: 'fixed' | 'noFixed' | null;
+    renewalType: 'auto' | 'manual' | null;
+    commitmentMonths: number;
+    amountInput: string;
+  } | null>(null);
+
+  // Stash: preserve monthly-specific state when user switches to 'annual'.
+  const monthlyStateStash = useRef<{
+    monthlyStructure: 'fixed' | 'noFixed' | null;
+    renewalType: 'auto' | 'manual' | null;
+    commitmentMonths: number;
+    periodicReminderMonths: number;
+  } | null>(null);
+
   // Step navigation
   const [currentStepId, setCurrentStepId] = useState<StepId>('serviceName');
   const { fadeAnim, slideAnim, animateTransition } = useStepAnimation();
@@ -686,12 +710,43 @@ export default function AddSubscriptionScreen() {
   // ---------------------------------------------------------------------------
 
   function handleSelectAccessType(type: 'free' | 'paid') {
-    // Only reset downstream state if the access type actually changed
     if (type !== accessType) {
-      setHasSpecialPeriod(null);
-      setBillingCycle(null);
-      setMonthlyStructure(null);
-      setRenewalType(null);
+      if (type === 'free') {
+        // Switching paid → free: stash all paid-specific state so it can be restored
+        paidStateStash.current = {
+          hasSpecialPeriod, specialPeriodType, specialPeriodUnit,
+          specialPeriodMonths, specialPeriodDays, specialAmountInput,
+          billingCycle, monthlyStructure, renewalType, commitmentMonths, amountInput,
+        };
+        setHasSpecialPeriod(null);
+        setBillingCycle(null);
+        setMonthlyStructure(null);
+        setRenewalType(null);
+        setAmountInput('');
+        setSpecialAmountInput('');
+      } else {
+        // Switching free → paid: restore stash if available
+        if (paidStateStash.current) {
+          const s = paidStateStash.current;
+          setHasSpecialPeriod(s.hasSpecialPeriod);
+          setSpecialPeriodType(s.specialPeriodType);
+          setSpecialPeriodUnit(s.specialPeriodUnit);
+          setSpecialPeriodMonths(s.specialPeriodMonths);
+          setSpecialPeriodDays(s.specialPeriodDays);
+          setSpecialAmountInput(s.specialAmountInput);
+          setBillingCycle(s.billingCycle);
+          setMonthlyStructure(s.monthlyStructure);
+          setRenewalType(s.renewalType);
+          setCommitmentMonths(s.commitmentMonths);
+          setAmountInput(s.amountInput);
+          paidStateStash.current = null;
+        } else {
+          setHasSpecialPeriod(null);
+          setBillingCycle(null);
+          setMonthlyStructure(null);
+          setRenewalType(null);
+        }
+      }
     }
     setAccessType(type);
     const nextStep: StepId = type === 'free' ? 'periodicReminderInterval' : 'specialPeriodQuestion';
@@ -700,9 +755,27 @@ export default function AddSubscriptionScreen() {
 
   function handleSelectBillingCycle(cycle: SubscriptionBillingCycle) {
     if (cycle !== billingCycle) {
-      // Cycle changed — reset structure and renewal since they depend on cycle
-      setMonthlyStructure(null);
-      setRenewalType(null);
+      if (cycle === SubscriptionBillingCycle.ANNUAL) {
+        // Switching monthly → annual: stash monthly-specific state
+        monthlyStateStash.current = {
+          monthlyStructure, renewalType, commitmentMonths, periodicReminderMonths,
+        };
+        setMonthlyStructure(null);
+        setRenewalType(null);
+      } else {
+        // Switching annual → monthly: restore stash if available
+        if (monthlyStateStash.current) {
+          const s = monthlyStateStash.current;
+          setMonthlyStructure(s.monthlyStructure);
+          setRenewalType(s.renewalType);
+          setCommitmentMonths(s.commitmentMonths);
+          setPeriodicReminderMonths(s.periodicReminderMonths);
+          monthlyStateStash.current = null;
+        } else {
+          setMonthlyStructure(null);
+          setRenewalType(null);
+        }
+      }
     }
     setBillingCycle(cycle);
     const nextStep: StepId = hasSpecialPeriod ? 'regularAmount' : 'amount';
@@ -753,6 +826,32 @@ export default function AddSubscriptionScreen() {
       default:              return false;
     }
   }, [currentStepId, serviceName, specialPeriodType, specialAmountInput, amountInput]);
+
+  // Whether the form is complete enough to allow quick-save in edit mode.
+  // All required fields for the current configuration must be filled.
+  const isFormComplete = useMemo(() => {
+    if (!serviceName.trim()) return false;
+    if (!accessType) return false;
+    if (accessType === 'free') return true; // periodicReminderMonths always has a default
+    // paid
+    if (hasSpecialPeriod === null) return false;
+    if (hasSpecialPeriod) {
+      if (!specialPeriodType) return false;
+      if (specialPeriodType === 'discounted') {
+        const a = parseAmountToAgot(specialAmountInput);
+        if (isNaN(a) || a <= 0) return false;
+      }
+    }
+    if (!billingCycle) return false;
+    const a = parseAmountToAgot(amountInput);
+    if (isNaN(a) || a <= 0) return false;
+    if (billingCycle === SubscriptionBillingCycle.MONTHLY) {
+      if (!monthlyStructure) return false;
+      if (monthlyStructure === 'fixed' && !renewalType) return false;
+    }
+    return true;
+  }, [serviceName, accessType, hasSpecialPeriod, specialPeriodType, specialAmountInput,
+      billingCycle, amountInput, monthlyStructure, renewalType]);
 
   // Monthly breakdown for ANNUAL billing
   const monthlyBreakdown = useMemo(() => {
@@ -1712,7 +1811,7 @@ export default function AddSubscriptionScreen() {
       fadeAnim={fadeAnim}
       slideAnim={slideAnim}
       footerButton={renderFooterButton()}
-      onSave={isEditing ? handleSave : undefined}
+      onSave={isEditing && isFormComplete ? handleSave : undefined}
       isSaving={saving}
       toast={toastMessage ? (
         <View style={styles.toast} pointerEvents="none">
