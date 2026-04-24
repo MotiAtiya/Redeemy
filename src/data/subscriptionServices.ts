@@ -349,6 +349,13 @@ export const SUBSCRIPTION_SERVICES: [string, string][] = [
   ['AIG',                  'insurance'],
   ['שומרה',               'insurance'],
   ['ביטוח ישיר',           'insurance'],
+  ['ליברה',               'insurance'],
+  ['Libra',                'insurance'],
+  ['אנקור',               'insurance'],
+  ['Anchor',               'insurance'],
+  ['ביטוח ישיר לרכב',     'insurance'],
+  ['מטריה ביטוח',          'insurance'],
+  ['ביטוח לאומי',          'insurance'],
 
   // ─── צדקה ───
   ['Patreon',              'charity'],
