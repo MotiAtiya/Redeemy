@@ -523,8 +523,9 @@ export default function AddSubscriptionScreen() {
   // Form state
   // ---------------------------------------------------------------------------
 
-  // Access type
-  const [accessType, setAccessType] = useState<'free' | 'paid' | null>(isEditing ? null : 'paid');
+  // Access type (committed = real value; pending = visual highlight only, committed on Continue)
+  const [accessType, setAccessType] = useState<'free' | 'paid' | null>(null);
+  const [pendingAccessType, setPendingAccessType] = useState<'free' | 'paid' | null>('paid');
 
   // Service
   const [serviceName, setServiceName] = useState('');
@@ -537,8 +538,9 @@ export default function AddSubscriptionScreen() {
   const [periodicReminderMonths, setPeriodicReminderMonths] = useState(3);
 
   // Special period
-  const [hasSpecialPeriod, setHasSpecialPeriod] = useState<boolean | null>(isEditing ? null : true);
-  const [specialPeriodType, setSpecialPeriodType] = useState<'trial' | 'discounted' | null>(isEditing ? null : 'trial');
+  const [hasSpecialPeriod, setHasSpecialPeriod] = useState<boolean | null>(null);
+  const [pendingHasSpecialPeriod, setPendingHasSpecialPeriod] = useState<boolean | null>(true);
+  const [specialPeriodType, setSpecialPeriodType] = useState<'trial' | 'discounted' | null>('trial');
   const [specialPeriodUnit, setSpecialPeriodUnit] = useState<'days' | 'months'>('months');
   const [specialPeriodMonths, setSpecialPeriodMonths] = useState(1);
   const [specialPeriodDays, setSpecialPeriodDays] = useState(7);
@@ -553,12 +555,15 @@ export default function AddSubscriptionScreen() {
   const [showDatePicker, setShowDatePicker] = useState(false);
 
   // Billing
-  const [billingCycle, setBillingCycle] = useState<SubscriptionBillingCycle | null>(isEditing ? null : SubscriptionBillingCycle.MONTHLY);
-  const [monthlyStructure, setMonthlyStructure] = useState<'fixed' | 'noFixed' | null>(isEditing ? null : 'noFixed');
+  const [billingCycle, setBillingCycle] = useState<SubscriptionBillingCycle | null>(null);
+  const [pendingBillingCycle, setPendingBillingCycle] = useState<SubscriptionBillingCycle | null>(SubscriptionBillingCycle.MONTHLY);
+  const [monthlyStructure, setMonthlyStructure] = useState<'fixed' | 'noFixed' | null>(null);
+  const [pendingMonthlyStructure, setPendingMonthlyStructure] = useState<'fixed' | 'noFixed' | null>('noFixed');
   const [commitmentMonths, setCommitmentMonths] = useState(12);
 
   // Renewal
   const [renewalType, setRenewalType] = useState<'auto' | 'manual' | null>(null);
+  const [pendingRenewalType, setPendingRenewalType] = useState<'auto' | 'manual' | null>(null);
 
   // Reminder
   const [reminderDays, setReminderDays] = useState(7);
@@ -623,15 +628,15 @@ export default function AddSubscriptionScreen() {
 
     // Access type
     if (s.isFree) {
-      setAccessType('free');
+      setAccessType('free'); setPendingAccessType('free');
       setPeriodicReminderMonths(s.freeReviewReminderMonths ?? 3);
     } else {
-      setAccessType('paid');
+      setAccessType('paid'); setPendingAccessType('paid');
       setAmountInput((s.amountAgorot / 100).toFixed(2));
 
       // Special period
       if (s.specialPeriodType === 'discounted') {
-        setHasSpecialPeriod(true);
+        setHasSpecialPeriod(true); setPendingHasSpecialPeriod(true);
         setSpecialPeriodType('discounted');
         const unit = s.specialPeriodUnit ?? 'months';
         setSpecialPeriodUnit(unit);
@@ -639,7 +644,7 @@ export default function AddSubscriptionScreen() {
         else setSpecialPeriodMonths(s.specialPeriodMonths ?? 1);
         setSpecialAmountInput(((s.specialPeriodPriceAgorot ?? 0) / 100).toFixed(2));
       } else if (s.isFreeTrial || s.specialPeriodType === 'trial') {
-        setHasSpecialPeriod(true);
+        setHasSpecialPeriod(true); setPendingHasSpecialPeriod(true);
         setSpecialPeriodType('trial');
         const unit = s.specialPeriodUnit ?? 'months';
         setSpecialPeriodUnit(unit);
@@ -648,17 +653,17 @@ export default function AddSubscriptionScreen() {
         // amountInput is the regular price after trial
         setAmountInput(((s.priceAfterTrialAgorot ?? 0) / 100).toFixed(2));
       } else {
-        setHasSpecialPeriod(false);
+        setHasSpecialPeriod(false); setPendingHasSpecialPeriod(false);
       }
 
       // Billing cycle
-      setBillingCycle(s.billingCycle);
+      setBillingCycle(s.billingCycle); setPendingBillingCycle(s.billingCycle);
       if (s.billingCycle === SubscriptionBillingCycle.MONTHLY) {
         if (s.hasFixedPeriod === false) {
-          setMonthlyStructure('noFixed');
+          setMonthlyStructure('noFixed'); setPendingMonthlyStructure('noFixed');
           setPeriodicReminderMonths(s.freeReviewReminderMonths ?? 3);
         } else if (s.hasFixedPeriod === true || s.commitmentMonths) {
-          setMonthlyStructure('fixed');
+          setMonthlyStructure('fixed'); setPendingMonthlyStructure('fixed');
           if (s.commitmentMonths) setCommitmentMonths(s.commitmentMonths);
         }
       }
@@ -680,7 +685,8 @@ export default function AddSubscriptionScreen() {
       }
 
       // Renewal type
-      setRenewalType(s.renewalType ?? 'auto');
+      const rt = s.renewalType ?? 'auto';
+      setRenewalType(rt); setPendingRenewalType(rt);
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -706,87 +712,78 @@ export default function AddSubscriptionScreen() {
   }
 
   // ---------------------------------------------------------------------------
-  // Auto-advance handlers for tap-to-select steps
+  // Tap handlers — update pending (visual highlight) only, no commit
   // ---------------------------------------------------------------------------
 
-  function handleSelectAccessType(type: 'free' | 'paid') {
+  function handleSelectAccessType(type: 'free' | 'paid') { setPendingAccessType(type); }
+  function handleSelectBillingCycle(cycle: SubscriptionBillingCycle) { setPendingBillingCycle(cycle); }
+  function handleSelectMonthlyStructure(structure: 'fixed' | 'noFixed') { setPendingMonthlyStructure(structure); }
+  function handleSelectRenewalType(type: 'auto' | 'manual') { setPendingRenewalType(type); }
+
+  // ---------------------------------------------------------------------------
+  // Commit functions — called from handleContinue, apply stash/restore logic
+  // ---------------------------------------------------------------------------
+
+  function commitAccessType(type: 'free' | 'paid') {
     if (type !== accessType) {
       if (type === 'free') {
-        // Switching paid → free: stash all paid-specific state so it can be restored
         paidStateStash.current = {
           hasSpecialPeriod, specialPeriodType, specialPeriodUnit,
           specialPeriodMonths, specialPeriodDays, specialAmountInput,
           billingCycle, monthlyStructure, renewalType, commitmentMonths, amountInput,
         };
-        setHasSpecialPeriod(null);
-        setBillingCycle(null);
-        setMonthlyStructure(null);
-        setRenewalType(null);
-        setAmountInput('');
-        setSpecialAmountInput('');
+        setHasSpecialPeriod(null); setPendingHasSpecialPeriod(true);
+        setBillingCycle(null);     setPendingBillingCycle(SubscriptionBillingCycle.MONTHLY);
+        setMonthlyStructure(null); setPendingMonthlyStructure('noFixed');
+        setRenewalType(null);      setPendingRenewalType(null);
+        setAmountInput(''); setSpecialAmountInput('');
       } else {
-        // Switching free → paid: restore stash if available
         if (paidStateStash.current) {
-          const s = paidStateStash.current;
-          setHasSpecialPeriod(s.hasSpecialPeriod);
-          setSpecialPeriodType(s.specialPeriodType);
-          setSpecialPeriodUnit(s.specialPeriodUnit);
-          setSpecialPeriodMonths(s.specialPeriodMonths);
-          setSpecialPeriodDays(s.specialPeriodDays);
-          setSpecialAmountInput(s.specialAmountInput);
-          setBillingCycle(s.billingCycle);
-          setMonthlyStructure(s.monthlyStructure);
-          setRenewalType(s.renewalType);
-          setCommitmentMonths(s.commitmentMonths);
-          setAmountInput(s.amountInput);
+          const st = paidStateStash.current;
+          setHasSpecialPeriod(st.hasSpecialPeriod); setPendingHasSpecialPeriod(st.hasSpecialPeriod ?? true);
+          setSpecialPeriodType(st.specialPeriodType);
+          setSpecialPeriodUnit(st.specialPeriodUnit);
+          setSpecialPeriodMonths(st.specialPeriodMonths);
+          setSpecialPeriodDays(st.specialPeriodDays);
+          setSpecialAmountInput(st.specialAmountInput);
+          setBillingCycle(st.billingCycle); setPendingBillingCycle(st.billingCycle ?? SubscriptionBillingCycle.MONTHLY);
+          setMonthlyStructure(st.monthlyStructure); setPendingMonthlyStructure(st.monthlyStructure ?? 'noFixed');
+          setRenewalType(st.renewalType);   setPendingRenewalType(st.renewalType);
+          setCommitmentMonths(st.commitmentMonths);
+          setAmountInput(st.amountInput);
           paidStateStash.current = null;
         } else {
-          setHasSpecialPeriod(null);
-          setBillingCycle(null);
-          setMonthlyStructure(null);
-          setRenewalType(null);
+          setHasSpecialPeriod(null); setPendingHasSpecialPeriod(true);
+          setBillingCycle(null);     setPendingBillingCycle(SubscriptionBillingCycle.MONTHLY);
+          setMonthlyStructure(null); setPendingMonthlyStructure('noFixed');
+          setRenewalType(null);      setPendingRenewalType(null);
         }
       }
     }
-    setAccessType(type);
+    setAccessType(type); setPendingAccessType(type);
   }
 
-  function handleSelectBillingCycle(cycle: SubscriptionBillingCycle) {
+  function commitBillingCycle(cycle: SubscriptionBillingCycle) {
     if (cycle !== billingCycle) {
       if (cycle === SubscriptionBillingCycle.ANNUAL) {
-        // Switching monthly → annual: stash monthly-specific state
-        monthlyStateStash.current = {
-          monthlyStructure, renewalType, commitmentMonths, periodicReminderMonths,
-        };
-        setMonthlyStructure(null);
-        setRenewalType(null);
+        monthlyStateStash.current = { monthlyStructure, renewalType, commitmentMonths, periodicReminderMonths };
+        setMonthlyStructure(null); setPendingMonthlyStructure('noFixed');
+        setRenewalType(null);      setPendingRenewalType(null);
       } else {
-        // Switching annual → monthly: restore stash if available
         if (monthlyStateStash.current) {
-          const s = monthlyStateStash.current;
-          setMonthlyStructure(s.monthlyStructure);
-          setRenewalType(s.renewalType);
-          setCommitmentMonths(s.commitmentMonths);
-          setPeriodicReminderMonths(s.periodicReminderMonths);
+          const st = monthlyStateStash.current;
+          setMonthlyStructure(st.monthlyStructure); setPendingMonthlyStructure(st.monthlyStructure ?? 'noFixed');
+          setRenewalType(st.renewalType);           setPendingRenewalType(st.renewalType);
+          setCommitmentMonths(st.commitmentMonths);
+          setPeriodicReminderMonths(st.periodicReminderMonths);
           monthlyStateStash.current = null;
         } else {
-          setMonthlyStructure(null);
-          setRenewalType(null);
+          setMonthlyStructure(null); setPendingMonthlyStructure('noFixed');
+          setRenewalType(null);      setPendingRenewalType(null);
         }
       }
     }
-    setBillingCycle(cycle);
-  }
-
-  function handleSelectMonthlyStructure(structure: 'fixed' | 'noFixed') {
-    if (structure !== monthlyStructure) {
-      setRenewalType(null);
-    }
-    setMonthlyStructure(structure);
-  }
-
-  function handleSelectRenewalType(type: 'auto' | 'manual') {
-    setRenewalType(type);
+    setBillingCycle(cycle); setPendingBillingCycle(cycle);
   }
 
   // ---------------------------------------------------------------------------
@@ -798,11 +795,11 @@ export default function AddSubscriptionScreen() {
       case 'serviceName':   return serviceName.trim().length > 0;
       case 'category':      return true;
       case 'registrationDate': return true;
-      case 'accessType':            return accessType !== null;
-      case 'specialPeriodQuestion': return hasSpecialPeriod !== null;
-      case 'billingCycle':          return billingCycle !== null;
-      case 'monthlyStructure':      return monthlyStructure !== null;
-      case 'renewalType':           return renewalType !== null;
+      case 'accessType':            return pendingAccessType !== null;
+      case 'specialPeriodQuestion': return pendingHasSpecialPeriod !== null;
+      case 'billingCycle':          return pendingBillingCycle !== null;
+      case 'monthlyStructure':      return pendingMonthlyStructure !== null;
+      case 'renewalType':           return pendingRenewalType !== null;
       case 'freeReminderInterval':
       case 'periodicReminderInterval': return true;
       case 'specialPeriodDetails': {
@@ -823,7 +820,9 @@ export default function AddSubscriptionScreen() {
       case 'notesInput':    return true;
       default:              return false;
     }
-  }, [currentStepId, serviceName, accessType, hasSpecialPeriod, billingCycle, monthlyStructure, renewalType, specialPeriodType, specialAmountInput, amountInput]);
+  }, [currentStepId, serviceName,
+      pendingAccessType, pendingHasSpecialPeriod, pendingBillingCycle, pendingMonthlyStructure, pendingRenewalType,
+      specialPeriodType, specialAmountInput, amountInput]);
 
   // Whether the form is complete enough to allow quick-save in edit mode.
   // All required fields for the current configuration must be filled.
@@ -846,6 +845,9 @@ export default function AddSubscriptionScreen() {
     if (billingCycle === SubscriptionBillingCycle.MONTHLY) {
       if (!monthlyStructure) return false;
       if (monthlyStructure === 'fixed' && !renewalType) return false;
+    } else {
+      // Annual also requires renewalType
+      if (!renewalType) return false;
     }
     return true;
   }, [serviceName, accessType, hasSpecialPeriod, specialPeriodType, specialAmountInput,
@@ -882,7 +884,40 @@ export default function AddSubscriptionScreen() {
   // ---------------------------------------------------------------------------
 
   function handleContinue() {
-    goNext();
+    switch (currentStepId) {
+      case 'accessType': {
+        commitAccessType(pendingAccessType!);
+        const next: StepId = pendingAccessType === 'free' ? 'periodicReminderInterval' : 'specialPeriodQuestion';
+        animateTransition('forward', () => setCurrentStepId(next));
+        return;
+      }
+      case 'specialPeriodQuestion': {
+        setHasSpecialPeriod(pendingHasSpecialPeriod);
+        const next: StepId = pendingHasSpecialPeriod ? 'specialPeriodDetails' : 'billingCycle';
+        animateTransition('forward', () => setCurrentStepId(next));
+        return;
+      }
+      case 'billingCycle': {
+        commitBillingCycle(pendingBillingCycle!);
+        // hasSpecialPeriod is already committed from the specialPeriodQuestion step
+        const next: StepId = hasSpecialPeriod ? 'regularAmount' : 'amount';
+        animateTransition('forward', () => setCurrentStepId(next));
+        return;
+      }
+      case 'monthlyStructure': {
+        setMonthlyStructure(pendingMonthlyStructure);
+        const next: StepId = pendingMonthlyStructure === 'fixed' ? 'commitmentMonths' : 'periodicReminderInterval';
+        animateTransition('forward', () => setCurrentStepId(next));
+        return;
+      }
+      case 'renewalType': {
+        setRenewalType(pendingRenewalType);
+        animateTransition('forward', () => setCurrentStepId('reminder'));
+        return;
+      }
+      default:
+        goNext();
+    }
   }
 
   // ---------------------------------------------------------------------------
@@ -1097,26 +1132,26 @@ export default function AddSubscriptionScreen() {
         <Text style={styles.stepTitle}>{t('addSubscription.step.accessType')}</Text>
         <View style={styles.choiceCards}>
           <Pressable
-            style={[styles.choiceCard, accessType === 'paid' && styles.choiceCardSelected]}
+            style={[styles.choiceCard, pendingAccessType === 'paid' && styles.choiceCardSelected]}
             onPress={() => handleSelectAccessType('paid')}
             accessibilityRole="radio"
-            accessibilityState={{ checked: accessType === 'paid' }}
+            accessibilityState={{ checked: pendingAccessType === 'paid' }}
           >
             <View style={styles.choiceCardContent}>
-              <Text style={[styles.choiceCardTitle, accessType === 'paid' && styles.choiceCardTitleSelected]}>
+              <Text style={[styles.choiceCardTitle, pendingAccessType === 'paid' && styles.choiceCardTitleSelected]}>
                 {t('addSubscription.accessType.paid')}
               </Text>
               <Text style={styles.choiceCardDesc}>{t('addSubscription.accessType.paidDesc')}</Text>
             </View>
           </Pressable>
           <Pressable
-            style={[styles.choiceCard, accessType === 'free' && styles.choiceCardSelected]}
+            style={[styles.choiceCard, pendingAccessType === 'free' && styles.choiceCardSelected]}
             onPress={() => handleSelectAccessType('free')}
             accessibilityRole="radio"
-            accessibilityState={{ checked: accessType === 'free' }}
+            accessibilityState={{ checked: pendingAccessType === 'free' }}
           >
             <View style={styles.choiceCardContent}>
-              <Text style={[styles.choiceCardTitle, accessType === 'free' && styles.choiceCardTitleSelected]}>
+              <Text style={[styles.choiceCardTitle, pendingAccessType === 'free' && styles.choiceCardTitleSelected]}>
                 {t('addSubscription.accessType.free')}
               </Text>
               <Text style={styles.choiceCardDesc}>{t('addSubscription.accessType.freeDesc')}</Text>
@@ -1176,26 +1211,26 @@ export default function AddSubscriptionScreen() {
         <Text style={styles.stepTitle}>{t('addSubscription.specialPeriodQuestion.title')}</Text>
         <View style={styles.choiceCards}>
           <Pressable
-            style={[styles.choiceCard, hasSpecialPeriod === true && styles.choiceCardSelected]}
-            onPress={() => setHasSpecialPeriod(true)}
+            style={[styles.choiceCard, pendingHasSpecialPeriod === true && styles.choiceCardSelected]}
+            onPress={() => setPendingHasSpecialPeriod(true)}
             accessibilityRole="radio"
-            accessibilityState={{ checked: hasSpecialPeriod === true }}
+            accessibilityState={{ checked: pendingHasSpecialPeriod === true }}
           >
             <View style={styles.choiceCardContent}>
-              <Text style={[styles.choiceCardTitle, hasSpecialPeriod === true && styles.choiceCardTitleSelected]}>
+              <Text style={[styles.choiceCardTitle, pendingHasSpecialPeriod === true && styles.choiceCardTitleSelected]}>
                 {t('addSubscription.specialPeriodQuestion.yes')}
               </Text>
               <Text style={styles.choiceCardDesc}>{t('addSubscription.specialPeriodQuestion.sub')}</Text>
             </View>
           </Pressable>
           <Pressable
-            style={[styles.choiceCard, hasSpecialPeriod === false && styles.choiceCardSelected]}
-            onPress={() => setHasSpecialPeriod(false)}
+            style={[styles.choiceCard, pendingHasSpecialPeriod === false && styles.choiceCardSelected]}
+            onPress={() => setPendingHasSpecialPeriod(false)}
             accessibilityRole="radio"
-            accessibilityState={{ checked: hasSpecialPeriod === false }}
+            accessibilityState={{ checked: pendingHasSpecialPeriod === false }}
           >
             <View style={styles.choiceCardContent}>
-              <Text style={[styles.choiceCardTitle, hasSpecialPeriod === false && styles.choiceCardTitleSelected]}>
+              <Text style={[styles.choiceCardTitle, pendingHasSpecialPeriod === false && styles.choiceCardTitleSelected]}>
                 {t('addSubscription.specialPeriodQuestion.no')}
               </Text>
             </View>
@@ -1332,26 +1367,26 @@ export default function AddSubscriptionScreen() {
         <Text style={styles.stepTitle}>{t('addSubscription.step.billingCycle')}</Text>
         <View style={styles.choiceCards}>
           <Pressable
-            style={[styles.choiceCard, billingCycle === SubscriptionBillingCycle.MONTHLY && styles.choiceCardSelected]}
+            style={[styles.choiceCard, pendingBillingCycle === SubscriptionBillingCycle.MONTHLY && styles.choiceCardSelected]}
             onPress={() => handleSelectBillingCycle(SubscriptionBillingCycle.MONTHLY)}
             accessibilityRole="radio"
-            accessibilityState={{ checked: billingCycle === SubscriptionBillingCycle.MONTHLY }}
+            accessibilityState={{ checked: pendingBillingCycle === SubscriptionBillingCycle.MONTHLY }}
           >
             <View style={styles.choiceCardContent}>
-              <Text style={[styles.choiceCardTitle, billingCycle === SubscriptionBillingCycle.MONTHLY && styles.choiceCardTitleSelected]}>
+              <Text style={[styles.choiceCardTitle, pendingBillingCycle === SubscriptionBillingCycle.MONTHLY && styles.choiceCardTitleSelected]}>
                 {t('addSubscription.billingCycle.monthly')}
               </Text>
               <Text style={styles.choiceCardDesc}>{t('addSubscription.billingCycle.monthlyDesc')}</Text>
             </View>
           </Pressable>
           <Pressable
-            style={[styles.choiceCard, billingCycle === SubscriptionBillingCycle.ANNUAL && styles.choiceCardSelected]}
+            style={[styles.choiceCard, pendingBillingCycle === SubscriptionBillingCycle.ANNUAL && styles.choiceCardSelected]}
             onPress={() => handleSelectBillingCycle(SubscriptionBillingCycle.ANNUAL)}
             accessibilityRole="radio"
-            accessibilityState={{ checked: billingCycle === SubscriptionBillingCycle.ANNUAL }}
+            accessibilityState={{ checked: pendingBillingCycle === SubscriptionBillingCycle.ANNUAL }}
           >
             <View style={styles.choiceCardContent}>
-              <Text style={[styles.choiceCardTitle, billingCycle === SubscriptionBillingCycle.ANNUAL && styles.choiceCardTitleSelected]}>
+              <Text style={[styles.choiceCardTitle, pendingBillingCycle === SubscriptionBillingCycle.ANNUAL && styles.choiceCardTitleSelected]}>
                 {t('addSubscription.billingCycle.annual')}
               </Text>
               <Text style={styles.choiceCardDesc}>{t('addSubscription.billingCycle.annualDesc')}</Text>
@@ -1368,26 +1403,26 @@ export default function AddSubscriptionScreen() {
         <Text style={styles.stepTitle}>{t('addSubscription.step.monthlyStructure')}</Text>
         <View style={styles.choiceCards}>
           <Pressable
-            style={[styles.choiceCard, monthlyStructure === 'noFixed' && styles.choiceCardSelected]}
+            style={[styles.choiceCard, pendingMonthlyStructure === 'noFixed' && styles.choiceCardSelected]}
             onPress={() => handleSelectMonthlyStructure('noFixed')}
             accessibilityRole="radio"
-            accessibilityState={{ checked: monthlyStructure === 'noFixed' }}
+            accessibilityState={{ checked: pendingMonthlyStructure === 'noFixed' }}
           >
             <View style={styles.choiceCardContent}>
-              <Text style={[styles.choiceCardTitle, monthlyStructure === 'noFixed' && styles.choiceCardTitleSelected]}>
+              <Text style={[styles.choiceCardTitle, pendingMonthlyStructure === 'noFixed' && styles.choiceCardTitleSelected]}>
                 {t('addSubscription.monthlyStructure.noFixed')}
               </Text>
               <Text style={styles.choiceCardDesc}>{t('addSubscription.monthlyStructure.noFixedDesc')}</Text>
             </View>
           </Pressable>
           <Pressable
-            style={[styles.choiceCard, monthlyStructure === 'fixed' && styles.choiceCardSelected]}
+            style={[styles.choiceCard, pendingMonthlyStructure === 'fixed' && styles.choiceCardSelected]}
             onPress={() => handleSelectMonthlyStructure('fixed')}
             accessibilityRole="radio"
-            accessibilityState={{ checked: monthlyStructure === 'fixed' }}
+            accessibilityState={{ checked: pendingMonthlyStructure === 'fixed' }}
           >
             <View style={styles.choiceCardContent}>
-              <Text style={[styles.choiceCardTitle, monthlyStructure === 'fixed' && styles.choiceCardTitleSelected]}>
+              <Text style={[styles.choiceCardTitle, pendingMonthlyStructure === 'fixed' && styles.choiceCardTitleSelected]}>
                 {t('addSubscription.monthlyStructure.fixed')}
               </Text>
               <Text style={styles.choiceCardDesc}>{t('addSubscription.monthlyStructure.fixedDesc')}</Text>
@@ -1465,26 +1500,26 @@ export default function AddSubscriptionScreen() {
         <Text style={styles.stepTitle}>{t('addSubscription.step.renewalType')}</Text>
         <View style={styles.choiceCards}>
           <Pressable
-            style={[styles.choiceCard, renewalType === 'auto' && styles.choiceCardSelected]}
+            style={[styles.choiceCard, pendingRenewalType === 'auto' && styles.choiceCardSelected]}
             onPress={() => handleSelectRenewalType('auto')}
             accessibilityRole="radio"
-            accessibilityState={{ checked: renewalType === 'auto' }}
+            accessibilityState={{ checked: pendingRenewalType === 'auto' }}
           >
             <View style={styles.choiceCardContent}>
-              <Text style={[styles.choiceCardTitle, renewalType === 'auto' && styles.choiceCardTitleSelected]}>
+              <Text style={[styles.choiceCardTitle, pendingRenewalType === 'auto' && styles.choiceCardTitleSelected]}>
                 {t('addSubscription.renewalType.auto')}
               </Text>
               <Text style={styles.choiceCardDesc}>{t('addSubscription.renewalType.autoDesc')}</Text>
             </View>
           </Pressable>
           <Pressable
-            style={[styles.choiceCard, renewalType === 'manual' && styles.choiceCardSelected]}
+            style={[styles.choiceCard, pendingRenewalType === 'manual' && styles.choiceCardSelected]}
             onPress={() => handleSelectRenewalType('manual')}
             accessibilityRole="radio"
-            accessibilityState={{ checked: renewalType === 'manual' }}
+            accessibilityState={{ checked: pendingRenewalType === 'manual' }}
           >
             <View style={styles.choiceCardContent}>
-              <Text style={[styles.choiceCardTitle, renewalType === 'manual' && styles.choiceCardTitleSelected]}>
+              <Text style={[styles.choiceCardTitle, pendingRenewalType === 'manual' && styles.choiceCardTitleSelected]}>
                 {t('addSubscription.renewalType.manual')}
               </Text>
               <Text style={styles.choiceCardDesc}>{t('addSubscription.renewalType.manualDesc')}</Text>
