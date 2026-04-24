@@ -43,6 +43,8 @@ export interface Subscription {
   priceAfterTrialAgorot?: number;      // regular price after trial period
   trialEndsDate?: Date;                // createdAt + duration (for both trial & discounted)
   freeTrialMonths?: number;            // kept for backward compat (= specialPeriodMonths when trial)
+  // Registration date (anchor for billing day, annual renewal, and review reminders)
+  registrationDate?: Date;
   // Free subscription review
   freeReviewReminderMonths?: number;   // remind user to review free sub every N months
   // Classification

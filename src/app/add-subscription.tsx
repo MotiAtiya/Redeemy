@@ -47,65 +47,11 @@ import { formatDate } from '@/lib/formatDate';
 import type { AppColors } from '@/constants/colors';
 
 // ---------------------------------------------------------------------------
-// Day wheel picker (1–31; getNextBillingDate handles end-of-month clamping)
+// Month wheel picker
 // ---------------------------------------------------------------------------
 
 const DAY_ITEM_H = 52;
 const DAY_VISIBLE = 5;
-
-interface DayWheelPickerProps {
-  value: number;
-  onChange: (day: number) => void;
-  colors: AppColors;
-}
-
-function DayWheelPicker({ value, onChange, colors }: DayWheelPickerProps) {
-  const days = Array.from({ length: 31 }, (_, i) => i + 1);
-  const center = Math.floor(DAY_VISIBLE / 2);
-
-  function handleScrollEnd(e: { nativeEvent: { contentOffset: { y: number } } }) {
-    const index = Math.round(e.nativeEvent.contentOffset.y / DAY_ITEM_H);
-    const clamped = Math.max(0, Math.min(30, index));
-    onChange(clamped + 1);
-  }
-
-  return (
-    <View style={{ height: DAY_ITEM_H * DAY_VISIBLE, overflow: 'hidden', borderRadius: 14, backgroundColor: colors.surface }}>
-      <View
-        style={{
-          position: 'absolute', left: 32, right: 32,
-          top: DAY_ITEM_H * center, height: DAY_ITEM_H,
-          backgroundColor: colors.primarySurface, borderRadius: 10,
-        }}
-        pointerEvents="none"
-      />
-      <ScrollView
-        showsVerticalScrollIndicator={false}
-        snapToInterval={DAY_ITEM_H}
-        decelerationRate="fast"
-        contentOffset={{ x: 0, y: (value - 1) * DAY_ITEM_H }}
-        onMomentumScrollEnd={handleScrollEnd}
-        onScrollEndDrag={handleScrollEnd}
-        contentContainerStyle={{ paddingVertical: DAY_ITEM_H * center }}
-      >
-        {days.map((day) => {
-          const sel = day === value;
-          return (
-            <View key={day} style={{ height: DAY_ITEM_H, justifyContent: 'center', alignItems: 'center' }}>
-              <Text style={{ fontSize: sel ? 26 : 18, fontWeight: sel ? '700' : '400', color: sel ? colors.primary : colors.textTertiary }}>
-                {day}
-              </Text>
-            </View>
-          );
-        })}
-      </ScrollView>
-    </View>
-  );
-}
-
-// ---------------------------------------------------------------------------
-// Month wheel picker
-// ---------------------------------------------------------------------------
 
 interface MonthWheelPickerProps {
   value: number;
@@ -166,6 +112,7 @@ function MonthWheelPicker({ value, onChange, max = 36, colors, labelFn }: MonthW
 type StepId =
   | 'serviceName'
   | 'category'
+  | 'registrationDate'
   | 'accessType'
   | 'freeReminderInterval'
   | 'periodicReminderInterval'
@@ -176,8 +123,6 @@ type StepId =
   | 'billingCycle'
   | 'monthlyStructure'
   | 'commitmentMonths'
-  | 'billingDay'
-  | 'annualBillingDate'
   | 'renewalType'
   | 'reminder'
   | 'notesQuestion'
@@ -195,7 +140,7 @@ type FlowState = {
 function getSteps(state: FlowState): StepId[] {
   const { accessType, hasSpecialPeriod, billingCycle, monthlyStructure, wantsNotes } = state;
 
-  const steps: StepId[] = ['serviceName', 'category', 'accessType'];
+  const steps: StepId[] = ['serviceName', 'category', 'registrationDate', 'accessType'];
 
   if (accessType === 'free') {
     steps.push('periodicReminderInterval', 'notesQuestion');
@@ -210,25 +155,33 @@ function getSteps(state: FlowState): StepId[] {
   if (hasSpecialPeriod === null) return steps;
 
   if (hasSpecialPeriod) {
-    steps.push('specialPeriodDetails', 'regularAmount');
+    steps.push('specialPeriodDetails');
+  }
+
+  // Billing cycle comes before the amount — so the amount title can reflect monthly/annual
+  steps.push('billingCycle');
+  if (billingCycle === null) return steps;
+
+  // Amount step after billing cycle is selected
+  if (hasSpecialPeriod) {
+    steps.push('regularAmount');
   } else {
     steps.push('amount');
   }
-
-  steps.push('billingCycle');
-  if (billingCycle === null) return steps;
 
   if (billingCycle === SubscriptionBillingCycle.MONTHLY) {
     steps.push('monthlyStructure');
     if (monthlyStructure === null) return steps;
     if (monthlyStructure === 'fixed') {
-      steps.push('commitmentMonths', 'billingDay', 'renewalType', 'reminder');
+      // Billing day derived from registrationDate — no separate billingDay step
+      steps.push('commitmentMonths', 'renewalType', 'reminder');
     } else {
       // No fixed period → periodic review reminder (like free), not a billing countdown
-      steps.push('billingDay', 'periodicReminderInterval');
+      steps.push('periodicReminderInterval');
     }
   } else {
-    steps.push('annualBillingDate', 'renewalType', 'reminder');
+    // Annual date derived from registrationDate — no separate annualBillingDate step
+    steps.push('renewalType', 'reminder');
   }
 
   steps.push('notesQuestion');
@@ -420,7 +373,6 @@ function makeStyles(colors: AppColors, isRTL: boolean) {
     },
     dateButtonText: { flex: 1, fontSize: 16, color: colors.textPrimary, textAlign: isRTL ? 'right' : 'left' },
     datePlaceholder: { color: colors.textTertiary },
-    dateError: { fontSize: 12, color: colors.danger, marginTop: 6, alignSelf: 'flex-start' },
 
     // Reminder step
     reminderGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 12 },
@@ -596,14 +548,14 @@ export default function AddSubscriptionScreen() {
   const [amountInput, setAmountInput] = useState('');
   const [amountError, setAmountError] = useState('');
 
+  // Registration date (anchor for billing day, annual renewal, and review reminders)
+  const [registrationDate, setRegistrationDate] = useState<Date>(new Date());
+  const [showDatePicker, setShowDatePicker] = useState(false);
+
   // Billing
   const [billingCycle, setBillingCycle] = useState<SubscriptionBillingCycle | null>(null);
   const [monthlyStructure, setMonthlyStructure] = useState<'fixed' | 'noFixed' | null>(null);
   const [commitmentMonths, setCommitmentMonths] = useState(12);
-  const [billingDayOfMonth, setBillingDayOfMonth] = useState(new Date().getDate());
-  const [nextBillingDate, setNextBillingDate] = useState<Date | null>(null);
-  const [showDatePicker, setShowDatePicker] = useState(false);
-  const [dateError, setDateError] = useState('');
 
   // Renewal
   const [renewalType, setRenewalType] = useState<'auto' | 'manual' | null>(null);
@@ -632,17 +584,6 @@ export default function AddSubscriptionScreen() {
 
   const steps = useMemo(() => getSteps(flowState), [flowState]);
   const currentStepIndex = steps.indexOf(currentStepId);
-
-  // Auto-fill billing day from trial end date (days-based trial)
-  useEffect(() => {
-    if (currentStepId !== 'billingDay') return;
-    if (specialPeriodUnit === 'days' && specialPeriodDays > 0) {
-      const trialEnd = new Date();
-      trialEnd.setDate(trialEnd.getDate() + specialPeriodDays);
-      setBillingDayOfMonth(Math.min(trialEnd.getDate(), 31));
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentStepId]);
 
   // Pre-fill for edit mode
   useEffect(() => {
@@ -689,7 +630,6 @@ export default function AddSubscriptionScreen() {
       // Billing cycle
       setBillingCycle(s.billingCycle);
       if (s.billingCycle === SubscriptionBillingCycle.MONTHLY) {
-        if (s.billingDayOfMonth) setBillingDayOfMonth(Math.min(s.billingDayOfMonth, 31));
         if (s.hasFixedPeriod === false) {
           setMonthlyStructure('noFixed');
           setPeriodicReminderMonths(s.freeReviewReminderMonths ?? 3);
@@ -697,8 +637,22 @@ export default function AddSubscriptionScreen() {
           setMonthlyStructure('fixed');
           if (s.commitmentMonths) setCommitmentMonths(s.commitmentMonths);
         }
-      } else {
-        if (s.nextBillingDate) setNextBillingDate(s.nextBillingDate instanceof Date ? s.nextBillingDate : new Date(s.nextBillingDate as unknown as string));
+      }
+
+      // Restore registration date
+      if (s.registrationDate) {
+        setRegistrationDate(s.registrationDate instanceof Date ? s.registrationDate : new Date(s.registrationDate as unknown as string));
+      } else if (s.billingCycle === SubscriptionBillingCycle.MONTHLY && s.billingDayOfMonth) {
+        // Fallback: reconstruct approximate date from billing day
+        const d = new Date();
+        d.setDate(Math.min(s.billingDayOfMonth, 28));
+        setRegistrationDate(d);
+      } else if (s.billingCycle === SubscriptionBillingCycle.ANNUAL && s.nextBillingDate) {
+        // Fallback: go back one year from next billing date
+        const nb = s.nextBillingDate instanceof Date ? s.nextBillingDate : new Date(s.nextBillingDate as unknown as string);
+        const d = new Date(nb);
+        d.setFullYear(d.getFullYear() - 1);
+        setRegistrationDate(d);
       }
 
       // Renewal type
@@ -745,13 +699,14 @@ export default function AddSubscriptionScreen() {
 
   function handleSelectBillingCycle(cycle: SubscriptionBillingCycle) {
     setBillingCycle(cycle);
-    const nextStep: StepId = cycle === SubscriptionBillingCycle.MONTHLY ? 'monthlyStructure' : 'annualBillingDate';
+    // Amount step comes after billing cycle — title will reflect monthly vs annual
+    const nextStep: StepId = hasSpecialPeriod ? 'regularAmount' : 'amount';
     animateTransition('forward', () => setCurrentStepId(nextStep));
   }
 
   function handleSelectMonthlyStructure(structure: 'fixed' | 'noFixed') {
     setMonthlyStructure(structure);
-    const nextStep: StepId = structure === 'fixed' ? 'commitmentMonths' : 'billingDay';
+    const nextStep: StepId = structure === 'fixed' ? 'commitmentMonths' : 'periodicReminderInterval';
     animateTransition('forward', () => setCurrentStepId(nextStep));
   }
 
@@ -768,6 +723,7 @@ export default function AddSubscriptionScreen() {
     switch (currentStepId) {
       case 'serviceName':   return serviceName.trim().length > 0;
       case 'category':      return true;
+      case 'registrationDate': return true;
       case 'freeReminderInterval':
       case 'periodicReminderInterval': return true;
       case 'specialPeriodDetails': {
@@ -784,13 +740,11 @@ export default function AddSubscriptionScreen() {
         return !isNaN(a) && a > 0;
       }
       case 'commitmentMonths': return true;
-      case 'billingDay':    return true;
-      case 'annualBillingDate': return nextBillingDate !== null;
       case 'reminder':      return true;
       case 'notesInput':    return true;
       default:              return false;
     }
-  }, [currentStepId, serviceName, specialPeriodType, specialAmountInput, amountInput, nextBillingDate]);
+  }, [currentStepId, serviceName, specialPeriodType, specialAmountInput, amountInput]);
 
   // Monthly breakdown for ANNUAL billing
   const monthlyBreakdown = useMemo(() => {
@@ -815,7 +769,7 @@ export default function AddSubscriptionScreen() {
 
   function onDateChange(_event: DateTimePickerEvent, date?: Date) {
     if (Platform.OS === 'android') setShowDatePicker(false);
-    if (date) { setNextBillingDate(date); setDateError(''); }
+    if (date) setRegistrationDate(date);
   }
 
   // ---------------------------------------------------------------------------
@@ -823,11 +777,6 @@ export default function AddSubscriptionScreen() {
   // ---------------------------------------------------------------------------
 
   function handleContinue() {
-    if (currentStepId === 'annualBillingDate' && !nextBillingDate) {
-      setDateError(t('addSubscription.validation.invalidDate'));
-      return;
-    }
-    setDateError('');
     goNext();
   }
 
@@ -862,45 +811,41 @@ export default function AddSubscriptionScreen() {
 
     const now = new Date();
 
-    // Compute trial end date based on unit
+    // Derive billing primitives from registrationDate
+    const billingDayOfMonth = registrationDate.getDate();
+
+    // Compute trial end date anchored to registrationDate
     let trialEndsDate: Date | undefined;
     if (isTrialPeriod || isDiscountedPeriod) {
       if (specialPeriodUnit === 'days' && specialPeriodDays > 0) {
-        trialEndsDate = new Date(now);
+        trialEndsDate = new Date(registrationDate);
         trialEndsDate.setDate(trialEndsDate.getDate() + specialPeriodDays);
       } else if (specialPeriodMonths > 0) {
-        trialEndsDate = new Date(now.getFullYear(), now.getMonth() + specialPeriodMonths, now.getDate());
+        trialEndsDate = new Date(registrationDate.getFullYear(), registrationDate.getMonth() + specialPeriodMonths, registrationDate.getDate());
       }
     }
 
     const specialMonths = hasSpecialPeriod && specialPeriodUnit === 'months' ? specialPeriodMonths : undefined;
 
-    const realNextBillingDate = nextBillingDate ? advanceToFuture(nextBillingDate) : undefined;
-
-    // Compute commitmentEndDate for monthly fixed
-    let commitmentEndDate: Date | undefined;
     const resolvedBillingCycle = isFree
       ? SubscriptionBillingCycle.MONTHLY
       : billingCycle ?? SubscriptionBillingCycle.MONTHLY;
 
+    // For annual: advance registration date by full years until it's in the future
+    const realNextBillingDate = resolvedBillingCycle === SubscriptionBillingCycle.ANNUAL
+      ? advanceToFuture(registrationDate)
+      : undefined;
+
+    // Compute commitmentEndDate for monthly fixed (anchored to registrationDate)
+    let commitmentEndDate: Date | undefined;
     if (resolvedBillingCycle === SubscriptionBillingCycle.MONTHLY && monthlyStructure === 'fixed') {
-      const day = billingDayOfMonth;
-      const lastDay = (y: number, m: number) => new Date(y, m + 1, 0).getDate();
-      const yr = now.getFullYear(), mo = now.getMonth();
-      const thisMonth = new Date(yr, mo, Math.min(day, lastDay(yr, mo)));
-      const firstBilling = thisMonth > now
-        ? thisMonth
-        : (() => {
-            const nm = mo + 1 > 11 ? 0 : mo + 1;
-            const ny = mo + 1 > 11 ? yr + 1 : yr;
-            return new Date(ny, nm, Math.min(day, lastDay(ny, nm)));
-          })();
-      commitmentEndDate = computeCommitmentEndDate(firstBilling, commitmentMonths);
+      commitmentEndDate = computeCommitmentEndDate(registrationDate, commitmentMonths);
     }
 
     const subscriptionData: Omit<Subscription, 'id' | 'createdAt' | 'updatedAt'> = {
       userId: currentUser.uid,
       serviceName: serviceName.trim(),
+      registrationDate,
       billingCycle: resolvedBillingCycle,
       amountAgorot,
       currency: isFree ? undefined : currency,
@@ -1141,7 +1086,7 @@ export default function AddSubscriptionScreen() {
           style={[styles.questionBtn, styles.questionBtnSecondary]}
           onPress={() => {
             setHasSpecialPeriod(false);
-            animateTransition('forward', () => setCurrentStepId('amount'));
+            animateTransition('forward', () => setCurrentStepId('billingCycle'));
           }}
         >
           <Text style={[styles.questionBtnText, styles.questionBtnTextSecondary]}>
@@ -1243,7 +1188,10 @@ export default function AddSubscriptionScreen() {
 
   function renderAmountStep(isRegularAmount = false) {
     const sym = CURRENCY_SYMBOLS[currency];
-    const titleKey = isRegularAmount ? 'addSubscription.step.regularAmount' : 'addSubscription.step.amount';
+    const isMonthly = billingCycle === SubscriptionBillingCycle.MONTHLY;
+    const titleKey = isRegularAmount
+      ? (isMonthly ? 'addSubscription.step.regularAmountMonthly' : 'addSubscription.step.regularAmountAnnual')
+      : (isMonthly ? 'addSubscription.step.amountMonthly' : 'addSubscription.step.amountAnnual');
     return (
       <ScrollView style={styles.stepScroll} contentContainerStyle={styles.stepContent} keyboardShouldPersistTaps="handled">
         <Text style={styles.stepTitle}>{t(titleKey)}</Text>
@@ -1356,56 +1304,42 @@ export default function AddSubscriptionScreen() {
     );
   }
 
-  function renderBillingDayStep() {
-    return (
-      <ScrollView style={styles.stepScroll} contentContainerStyle={styles.stepContent} keyboardShouldPersistTaps="handled">
-        <Text style={styles.stepTitle}>{t('addSubscription.step.billingDay')}</Text>
-        <DayWheelPicker
-          value={billingDayOfMonth}
-          onChange={setBillingDayOfMonth}
-          colors={colors}
-        />
-      </ScrollView>
-    );
-  }
-
-  function renderAnnualBillingDateStep() {
+  function renderRegistrationDateStep() {
     return (
       <ScrollView
         style={styles.stepScroll}
         contentContainerStyle={[styles.stepContent, { paddingBottom: showDatePicker ? 320 : 16 }]}
         keyboardShouldPersistTaps="handled"
       >
-        <Text style={styles.stepTitle}>{t('addSubscription.step.annualBillingDate')}</Text>
-        <Text style={styles.stepSub}>{t('addSubscription.annualBillingDate.sub')}</Text>
+        <Text style={styles.stepTitle}>{t('addSubscription.step.registrationDate')}</Text>
+        <Text style={styles.stepSub}>{t('addSubscription.registrationDate.sub')}</Text>
 
         {/* Quick "today" option */}
         <TouchableOpacity
-          style={[styles.choiceCard, nextBillingDate && isToday(nextBillingDate) && styles.choiceCardSelected, { marginBottom: 16 }]}
-          onPress={() => { setNextBillingDate(new Date()); setShowDatePicker(false); setDateError(''); }}
+          style={[styles.choiceCard, isToday(registrationDate) && styles.choiceCardSelected, { marginBottom: 16 }]}
+          onPress={() => { setRegistrationDate(new Date()); setShowDatePicker(false); }}
         >
           <View style={styles.choiceCardContent}>
-            <Text style={[styles.choiceCardTitle, nextBillingDate && isToday(nextBillingDate) && styles.choiceCardTitleSelected]}>
-              {t('addSubscription.annualBillingDate.today')}
+            <Text style={[styles.choiceCardTitle, isToday(registrationDate) && styles.choiceCardTitleSelected]}>
+              {t('addSubscription.registrationDate.today')}
             </Text>
           </View>
         </TouchableOpacity>
 
-        {/* Manual date picker */}
+        {/* Manual date picker for past date */}
         <TouchableOpacity
-          style={[styles.dateButton, nextBillingDate && !isToday(nextBillingDate) && { borderColor: colors.primary }]}
+          style={[styles.dateButton, !isToday(registrationDate) && { borderColor: colors.primary }]}
           onPress={() => setShowDatePicker((v) => !v)}
         >
           <Ionicons name="calendar-outline" size={20} color={colors.textSecondary} />
-          <Text style={[styles.dateButtonText, (!nextBillingDate || isToday(nextBillingDate)) && styles.datePlaceholder]}>
-            {nextBillingDate && !isToday(nextBillingDate) ? formatDate(nextBillingDate, dateFormat) : t('addSubscription.annualBillingDate.orChooseDate')}
+          <Text style={[styles.dateButtonText, isToday(registrationDate) && styles.datePlaceholder]}>
+            {!isToday(registrationDate) ? formatDate(registrationDate, dateFormat) : t('addSubscription.registrationDate.orChooseDate')}
           </Text>
         </TouchableOpacity>
 
-        {!!dateError && <Text style={styles.dateError}>{dateError}</Text>}
         {showDatePicker && (
           <DateTimePicker
-            value={nextBillingDate ?? new Date()}
+            value={registrationDate}
             mode="date"
             display={Platform.OS === 'ios' ? 'spinner' : 'default'}
             maximumDate={new Date()}
@@ -1590,10 +1524,8 @@ export default function AddSubscriptionScreen() {
     const billingDateDisplay = isFree
       ? '—'
       : billingCycle === SubscriptionBillingCycle.MONTHLY
-      ? t('addSubscription.summary.dayOfMonth', { day: billingDayOfMonth })
-      : nextBillingDate
-      ? formatDate(advanceToFuture(nextBillingDate), dateFormat)
-      : '—';
+      ? t('addSubscription.summary.dayOfMonth', { day: registrationDate.getDate() })
+      : formatDate(advanceToFuture(registrationDate), dateFormat);
 
     const reminderDisplay = t('addSubscription.summary.reminderDays', { count: reminderDays });
 
@@ -1611,6 +1543,11 @@ export default function AddSubscriptionScreen() {
           <View style={styles.summaryRow}>
             <Text style={styles.summaryLabel}>{t('addSubscription.summary.service')}</Text>
             <Text style={styles.summaryValue}>{serviceName}</Text>
+          </View>
+
+          <View style={styles.summaryRow}>
+            <Text style={styles.summaryLabel}>{t('addSubscription.summary.registrationDate')}</Text>
+            <Text style={styles.summaryValue}>{formatDate(registrationDate, dateFormat)}</Text>
           </View>
 
           {!isFree && (
@@ -1693,6 +1630,7 @@ export default function AddSubscriptionScreen() {
     switch (currentStepId) {
       case 'serviceName':           return renderServiceNameStep();
       case 'category':              return renderCategoryStep();
+      case 'registrationDate':      return renderRegistrationDateStep();
       case 'accessType':            return renderAccessTypeStep();
       case 'freeReminderInterval':
       case 'periodicReminderInterval': return renderPeriodicReminderIntervalStep();
@@ -1703,8 +1641,6 @@ export default function AddSubscriptionScreen() {
       case 'billingCycle':          return renderBillingCycleStep();
       case 'monthlyStructure':      return renderMonthlyStructureStep();
       case 'commitmentMonths':      return renderCommitmentMonthsStep();
-      case 'billingDay':            return renderBillingDayStep();
-      case 'annualBillingDate':     return renderAnnualBillingDateStep();
       case 'renewalType':           return renderRenewalTypeStep();
       case 'reminder':              return renderReminderStep();
       case 'notesQuestion':         return renderNotesQuestionStep();

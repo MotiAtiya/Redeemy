@@ -740,13 +740,14 @@
       "periodicReminderInterval": "Review reminder",
       "specialPeriodQuestion": "Initial period",
       "specialPeriodDetails": "Period details",
-      "regularAmount": "Regular price",
-      "amount": "Subscription amount",
+      "regularAmountMonthly": "Regular monthly price",
+      "regularAmountAnnual": "Regular annual price",
+      "amountMonthly": "Monthly subscription price",
+      "amountAnnual": "Annual subscription price",
       "billingCycle": "Billing frequency",
       "monthlyStructure": "How does the subscription work?",
       "commitmentMonths": "Commitment period",
-      "billingDay": "Billing day",
-      "annualBillingDate": "When did you sign up?",
+      "registrationDate": "When did you sign up?",
       "renewalType": "What happens when the period ends?",
       "reminder": "Reminder",
       "notesQuestion": "Notes",
@@ -777,8 +778,8 @@
       "priceLabel": "Price during special period",
       "monthlyBreakdown": "({{amount}}/month)"
     },
-    "annualBillingDate": {
-      "sub": "We'll calculate the next billing date from this",
+    "registrationDate": {
+      "sub": "We'll use this to calculate your billing day and reminder dates",
       "today": "I signed up today",
       "orChooseDate": "Choose a different date"
     },
@@ -832,6 +833,7 @@
     },
     "summary": {
       "service": "Service",
+      "registrationDate": "Sign-up date",
       "billing": "Billing",
       "amount": "Amount",
       "specialPeriod": "Special Period",

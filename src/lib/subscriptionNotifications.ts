@@ -27,6 +27,7 @@ type SchedulableSub = Pick<
   | 'isFree'
   | 'hasFixedPeriod'
   | 'freeReviewReminderMonths'
+  | 'registrationDate'
   | 'isFreeTrial'
   | 'specialPeriodType'
   | 'specialPeriodUnit'
@@ -76,8 +77,18 @@ export async function scheduleSubscriptionNotifications(
 
   if (isPeriodicReview) {
     const months = sub.freeReviewReminderMonths ?? 3;
-    const reminderDate = new Date();
+    // Anchor to registrationDate; advance by `months` intervals until it's in the future
+    const anchor = sub.registrationDate instanceof Date
+      ? sub.registrationDate
+      : sub.registrationDate
+      ? new Date(sub.registrationDate as unknown as string)
+      : new Date();
+    const now = new Date();
+    const reminderDate = new Date(anchor);
     reminderDate.setMonth(reminderDate.getMonth() + months);
+    while (reminderDate <= now) {
+      reminderDate.setMonth(reminderDate.getMonth() + months);
+    }
     reminderDate.setHours(notificationHour, notificationMinute, 0, 0);
     const id = await scheduleNotificationAt(
       reminderDate,

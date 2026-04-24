@@ -739,13 +739,14 @@
       "periodicReminderInterval": "תזכורת ביקורת",
       "specialPeriodQuestion": "תקופה התחלתית",
       "specialPeriodDetails": "פרטי התקופה",
-      "regularAmount": "מחיר רגיל",
-      "amount": "סכום המנוי",
+      "regularAmountMonthly": "המחיר החודשי הרגיל",
+      "regularAmountAnnual": "המחיר השנתי הרגיל",
+      "amountMonthly": "סכום המנוי החודשי",
+      "amountAnnual": "סכום המנוי השנתי",
       "billingCycle": "תדירות חיוב",
       "monthlyStructure": "איך המנוי עובד?",
       "commitmentMonths": "לכמה חודשים?",
-      "billingDay": "יום חיוב",
-      "annualBillingDate": "מתי נרשמת?",
+      "registrationDate": "מתי נרשמת?",
       "renewalType": "מה יקרה כשהתקופה תסתיים?",
       "reminder": "תזכורת",
       "notesQuestion": "הערות",
@@ -776,8 +777,8 @@
       "priceLabel": "מחיר בתקופה המוזלת",
       "monthlyBreakdown": "({{amount}}/חודש)"
     },
-    "annualBillingDate": {
-      "sub": "נחשב מזה את תאריך החיוב הבא",
+    "registrationDate": {
+      "sub": "נחשב מזה את יום החיוב ומועד התזכורות",
       "today": "הצטרפתי היום",
       "orChooseDate": "בתאריך אחר"
     },
@@ -831,6 +832,7 @@
     },
     "summary": {
       "service": "שירות",
+      "registrationDate": "תאריך הרשמה",
       "billing": "חיוב",
       "amount": "סכום",
       "specialPeriod": "תקופה מיוחדת",
