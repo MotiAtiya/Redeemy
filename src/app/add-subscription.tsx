@@ -203,7 +203,7 @@ function makeStyles(colors: AppColors, isRTL: boolean) {
       fontSize: 26,
       fontWeight: '700',
       color: colors.textPrimary,
-      alignSelf: 'flex-start',
+      textAlign: isRTL ? 'right' : 'left',
       marginBottom: 16,
     },
     stepSub: {
