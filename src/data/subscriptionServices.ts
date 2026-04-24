@@ -128,6 +128,7 @@ export const SUBSCRIPTION_SERVICES: [string, string][] = [
   ['מיקרוסופט 365',       'software'],
   ['Google Workspace',     'software'],
   ['גוגל וורקספייס',      'software'],
+  ['Apple iCloud+',        'software'],
   ['iCloud+',              'software'],
   ['iCloud',               'software'],
   ['אייקלאוד',            'software'],
