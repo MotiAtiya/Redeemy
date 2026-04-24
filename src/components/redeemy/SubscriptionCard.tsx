@@ -15,9 +15,9 @@ import {
 } from '@/types/subscriptionTypes';
 import {
   daysUntilBilling,
-  daysUntilSubscriptionEnd,
   getNextBillingDate,
   normalizeToMonthlyAgorot,
+  getNextReminderInfo,
 } from '@/lib/subscriptionUtils';
 import type { AppColors } from '@/constants/colors';
 
@@ -104,27 +104,41 @@ export function SubscriptionCard({ subscription: sub, onPress, variant = 'active
     : null;
 
   const daysUntilNextBilling = useMemo(() => daysUntilBilling(sub), [sub]);
-  const daysForUrgency = useMemo(() => daysUntilSubscriptionEnd(sub), [sub]);
+  const reminderInfo = useMemo(() => getNextReminderInfo(sub), [sub]);
 
   const { urgencyText, urgencyBg } = useMemo(() => {
-    if (daysForUrgency < 7)
+    if (reminderInfo.days < 7)
       return { urgencyText: colors.urgencyRed, urgencyBg: colors.urgencyRedSurface };
-    if (daysForUrgency <= 30)
+    if (reminderInfo.days <= 30)
       return { urgencyText: colors.urgencyAmber, urgencyBg: colors.urgencyAmberSurface };
     return { urgencyText: colors.urgencyGreen, urgencyBg: colors.urgencyGreenSurface };
-  }, [daysForUrgency, colors]);
+  }, [reminderInfo.days, colors]);
 
   const urgencyLabel = useMemo(() => {
-    if (daysForUrgency === 0) return t('badge.today');
-    if (daysForUrgency === 1) return t('badge.oneDay');
-    if (daysForUrgency < 7) return t('badge.days', { days: daysForUrgency });
-    if (daysForUrgency < 30) {
-      const weeks = Math.ceil(daysForUrgency / 7);
-      return weeks === 1 ? t('badge.oneWeek') : t('badge.weeks', { weeks });
+    const { days, type } = reminderInfo;
+    const time = (() => {
+      if (days === 0) return t('subscriptionCard.badgeTimeToday');
+      if (days === 1) return t('subscriptionCard.badgeTimeOneDay');
+      if (days < 7) return t('subscriptionCard.badgeTimeDays', { days });
+      if (days < 30) {
+        const weeks = Math.ceil(days / 7);
+        return weeks === 1
+          ? t('subscriptionCard.badgeTimeOneWeek')
+          : t('subscriptionCard.badgeTimeWeeks', { weeks });
+      }
+      const months = Math.max(1, Math.round(days / 30.44));
+      return months === 1
+        ? t('subscriptionCard.badgeTimeOneMonth')
+        : t('subscriptionCard.badgeTimeMonths', { months });
+    })();
+    switch (type) {
+      case 'trial':      return t('subscriptionCard.badgeTrialEnds', { time });
+      case 'discounted': return t('subscriptionCard.badgeDiscountEnds', { time });
+      case 'review':     return t('subscriptionCard.badgeReview', { time });
+      case 'renews':     return t('subscriptionCard.badgeRenews', { time });
+      case 'expires':    return t('subscriptionCard.badgeExpires', { time });
     }
-    const months = Math.max(1, Math.round(daysForUrgency / 30.44));
-    return months === 1 ? t('badge.oneMonth') : t('badge.months', { months });
-  }, [daysForUrgency, t]);
+  }, [reminderInfo, t]);
 
   const nextBillingLabel = useMemo(() => {
     if (sub.isFree || sub.isFreeTrial) return null;
@@ -144,6 +158,22 @@ export function SubscriptionCard({ subscription: sub, onPress, variant = 'active
       return { amountLabel: t('subscriptionCard.free'), periodLabel: null, amountStyle: styles.amountNumberFree };
     if (sub.isFreeTrial)
       return { amountLabel: t('subscriptionCard.trial'), periodLabel: null, amountStyle: styles.amountNumberTrial };
+    // In discounted period → show discounted price in amber
+    if (sub.specialPeriodType === 'discounted' && sub.specialPeriodPriceAgorot && sub.trialEndsDate) {
+      const trialEnd = sub.trialEndsDate instanceof Date
+        ? sub.trialEndsDate
+        : new Date(sub.trialEndsDate as unknown as string);
+      if (trialEnd.getTime() > Date.now()) {
+        const discountedMonthly = sub.billingCycle === SubscriptionBillingCycle.ANNUAL
+          ? Math.round(sub.specialPeriodPriceAgorot / 12)
+          : sub.specialPeriodPriceAgorot;
+        return {
+          amountLabel: formatCurrency(discountedMonthly, currencySymbol),
+          periodLabel: t('subscriptionCard.perMonth'),
+          amountStyle: styles.amountNumberTrial,
+        };
+      }
+    }
     const monthly = sub.billingCycle === SubscriptionBillingCycle.ANNUAL
       ? normalizeToMonthlyAgorot(sub)
       : sub.amountAgorot;

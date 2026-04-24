@@ -672,7 +672,19 @@
     "renewsOnDayInDays": "Renews on the {{day}}th — in {{days}} days",
     "renewsOnDate": "Next billing in {{days}} days — {{date}}",
     "cancelled": "Cancelled",
-    "cancelledOn": "Cancelled on {{date}}"
+    "cancelledOn": "Cancelled on {{date}}",
+    "badgeTimeToday": "today",
+    "badgeTimeOneDay": "tomorrow",
+    "badgeTimeDays": "in {{days}} days",
+    "badgeTimeOneWeek": "in 1 week",
+    "badgeTimeWeeks": "in {{weeks}} weeks",
+    "badgeTimeOneMonth": "in 1 month",
+    "badgeTimeMonths": "in {{months}} months",
+    "badgeTrialEnds": "Trial ends {{time}}",
+    "badgeDiscountEnds": "Discount ends {{time}}",
+    "badgeReview": "Review reminder {{time}}",
+    "badgeRenews": "Renews {{time}}",
+    "badgeExpires": "Expires {{time}}"
   },
   "subscription": {
     "notFound": "Subscription not found",

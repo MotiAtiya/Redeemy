@@ -69,6 +69,63 @@ export function daysUntilSubscriptionEnd(sub: Subscription): number {
   return Math.max(0, Math.ceil((endDate.getTime() - Date.now()) / msPerDay));
 }
 
+// ---------------------------------------------------------------------------
+// Badge / reminder info
+// ---------------------------------------------------------------------------
+
+export type ReminderType = 'trial' | 'discounted' | 'review' | 'renews' | 'expires';
+
+export interface ReminderInfo {
+  days: number;
+  type: ReminderType;
+}
+
+/**
+ * Returns the relevant "next event" for the subscription badge:
+ *
+ * 1. Still in trial/discounted period → time until it ends
+ * 2. Free or monthly no-fixed → time until next periodic review reminder
+ * 3. Auto-renewing (fixed/annual) → time until next billing (badge says "מתחדש")
+ * 4. Manual renewal → time until next billing (badge says "פג")
+ */
+export function getNextReminderInfo(sub: Subscription): ReminderInfo {
+  const msPerDay = 1000 * 60 * 60 * 24;
+  const now = Date.now();
+
+  // 1. In special period?
+  if (sub.trialEndsDate) {
+    const trialEnd = sub.trialEndsDate instanceof Date
+      ? sub.trialEndsDate
+      : new Date(sub.trialEndsDate as unknown as string);
+    if (trialEnd.getTime() > now) {
+      const days = Math.max(0, Math.ceil((trialEnd.getTime() - now) / msPerDay));
+      return { days, type: sub.specialPeriodType === 'discounted' ? 'discounted' : 'trial' };
+    }
+  }
+
+  // 2. Free or monthly no-fixed → periodic review reminder
+  if (sub.isFree || sub.hasFixedPeriod === false) {
+    const months = sub.freeReviewReminderMonths ?? 3;
+    const anchor = sub.registrationDate instanceof Date
+      ? sub.registrationDate
+      : sub.registrationDate
+        ? new Date(sub.registrationDate as unknown as string)
+        : new Date();
+    const reminderDate = new Date(anchor);
+    reminderDate.setMonth(reminderDate.getMonth() + months);
+    while (reminderDate.getTime() <= now) {
+      reminderDate.setMonth(reminderDate.getMonth() + months);
+    }
+    const days = Math.max(0, Math.ceil((reminderDate.getTime() - now) / msPerDay));
+    return { days, type: 'review' };
+  }
+
+  // 3. Paid with billing date → renews or expires
+  const nextDate = getNextBillingDate(sub);
+  const days = Math.max(0, Math.ceil((nextDate.getTime() - now) / msPerDay));
+  return { days, type: sub.renewalType === 'manual' ? 'expires' : 'renews' };
+}
+
 /**
  * Normalizes subscription amount to monthly agorot.
  * Free subscriptions return 0.

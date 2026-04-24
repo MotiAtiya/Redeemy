@@ -671,7 +671,19 @@
     "renewsOnDayInDays": "מתחדש ב-{{day}} לכל חודש — בעוד {{days}} ימים",
     "renewsOnDate": "החיוב הבא בעוד {{days}} ימים — {{date}}",
     "cancelled": "בוטל",
-    "cancelledOn": "בוטל ב-{{date}}"
+    "cancelledOn": "בוטל ב-{{date}}",
+    "badgeTimeToday": "היום",
+    "badgeTimeOneDay": "מחר",
+    "badgeTimeDays": "בעוד {{days}} ימים",
+    "badgeTimeOneWeek": "בעוד שבוע",
+    "badgeTimeWeeks": "בעוד {{weeks}} שבועות",
+    "badgeTimeOneMonth": "בעוד חודש",
+    "badgeTimeMonths": "בעוד {{months}} חודשים",
+    "badgeTrialEnds": "ניסיון מסתיים {{time}}",
+    "badgeDiscountEnds": "מחיר מוזל מסתיים {{time}}",
+    "badgeReview": "תזכורת לבדיקה {{time}}",
+    "badgeRenews": "מתחדש {{time}}",
+    "badgeExpires": "פג {{time}}"
   },
   "subscription": {
     "notFound": "המנוי לא נמצא",
