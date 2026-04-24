@@ -3,6 +3,7 @@ import {
   View,
   Text,
   TouchableOpacity,
+  ActivityIndicator,
   StyleSheet,
   Platform,
   Dimensions,
@@ -33,6 +34,9 @@ interface Props {
   extras?: ReactNode;
   /** Toast overlay rendered over everything */
   toast?: ReactNode;
+  /** When provided, shows a save icon in the header (edit mode quick-save) */
+  onSave?: () => void;
+  isSaving?: boolean;
 }
 
 /**
@@ -51,6 +55,8 @@ export function StepFormScreen({
   children,
   extras,
   toast,
+  onSave,
+  isSaving = false,
 }: Props) {
   const colors = useAppTheme();
   const isRTL = I18nManager.isRTL;
@@ -77,7 +83,16 @@ export function StepFormScreen({
         <Text style={[styles.headerTitle, { color: colors.textPrimary }]} numberOfLines={1}>
           {title}
         </Text>
-        <View style={styles.headerRight} />
+        {onSave ? (
+          <TouchableOpacity style={styles.headerRight} onPress={onSave} disabled={isSaving} hitSlop={8}>
+            {isSaving
+              ? <ActivityIndicator size="small" color={colors.primary} />
+              : <Ionicons name="checkmark" size={26} color={colors.primary} />
+            }
+          </TouchableOpacity>
+        ) : (
+          <View style={styles.headerRight} />
+        )}
       </View>
 
       {/* Keyboard-aware wrapper */}

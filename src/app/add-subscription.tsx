@@ -686,25 +686,33 @@ export default function AddSubscriptionScreen() {
   // ---------------------------------------------------------------------------
 
   function handleSelectAccessType(type: 'free' | 'paid') {
+    // Only reset downstream state if the access type actually changed
+    if (type !== accessType) {
+      setHasSpecialPeriod(null);
+      setBillingCycle(null);
+      setMonthlyStructure(null);
+      setRenewalType(null);
+    }
     setAccessType(type);
-    // Reset downstream state when switching paths
-    setHasSpecialPeriod(null);
-    setBillingCycle(null);
-    setMonthlyStructure(null);
-    setRenewalType(null);
-    // Navigate directly — goNext() would use stale steps
     const nextStep: StepId = type === 'free' ? 'periodicReminderInterval' : 'specialPeriodQuestion';
     animateTransition('forward', () => setCurrentStepId(nextStep));
   }
 
   function handleSelectBillingCycle(cycle: SubscriptionBillingCycle) {
+    if (cycle !== billingCycle) {
+      // Cycle changed — reset structure and renewal since they depend on cycle
+      setMonthlyStructure(null);
+      setRenewalType(null);
+    }
     setBillingCycle(cycle);
-    // Amount step comes after billing cycle — title will reflect monthly vs annual
     const nextStep: StepId = hasSpecialPeriod ? 'regularAmount' : 'amount';
     animateTransition('forward', () => setCurrentStepId(nextStep));
   }
 
   function handleSelectMonthlyStructure(structure: 'fixed' | 'noFixed') {
+    if (structure !== monthlyStructure) {
+      setRenewalType(null);
+    }
     setMonthlyStructure(structure);
     const nextStep: StepId = structure === 'fixed' ? 'commitmentMonths' : 'periodicReminderInterval';
     animateTransition('forward', () => setCurrentStepId(nextStep));
@@ -1704,6 +1712,8 @@ export default function AddSubscriptionScreen() {
       fadeAnim={fadeAnim}
       slideAnim={slideAnim}
       footerButton={renderFooterButton()}
+      onSave={isEditing ? handleSave : undefined}
+      isSaving={saving}
       toast={toastMessage ? (
         <View style={styles.toast} pointerEvents="none">
           <Text style={styles.toastText}>{toastMessage}</Text>
