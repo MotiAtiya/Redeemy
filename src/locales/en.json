@@ -625,9 +625,12 @@
     "category": {
       "communication": "Communication",
       "entertainment": "Entertainment",
-      "fitness": "Fitness",
+      "ai": "AI",
       "software": "Software",
+      "fitness": "Fitness",
       "education": "Education",
+      "health": "Healthcare",
+      "insurance": "Insurance",
       "charity": "Charity",
       "home": "Home",
       "automotive": "Automotive",

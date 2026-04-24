@@ -624,9 +624,12 @@
     "category": {
       "communication": "תקשורת",
       "entertainment": "בידור",
-      "fitness": "כושר",
+      "ai": "בינה מלאכותית",
       "software": "תוכנה",
+      "fitness": "כושר",
       "education": "חינוך",
+      "health": "קופת חולים",
+      "insurance": "ביטוח",
       "charity": "תרומות",
       "home": "בית",
       "automotive": "רכב",
