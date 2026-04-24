@@ -199,20 +199,10 @@ export const SUBSCRIPTION_SERVICES: [string, string][] = [
   ['Swimming Pool',        'fitness'],
 
   // ─── כושר: קבוצות ספורט ───
-  ['מכבי תל אביב',        'fitness'],
-  ['Maccabi Tel Aviv',     'fitness'],
-  ['הפועל תל אביב',       'fitness'],
-  ['בית"ר ירושלים',       'fitness'],
-  ['מכבי חיפה',           'fitness'],
-  ['הפועל חיפה',          'fitness'],
-  ['הפועל ירושלים',       'fitness'],
-  ['הפועל באר שבע',       'fitness'],
-  ['מכבי פתח תקווה',      'fitness'],
-  ['עירוני קריות',         'fitness'],
-  ['בני סכנין',            'fitness'],
-  ['הפועל רמת גן',        'fitness'],
-  ['מנוי כדורגל',         'fitness'],
-  ['מנוי כדורסל',         'fitness'],
+  ['מנוי קבוצת כדורגל',   'fitness'],
+  ['מנוי קבוצת כדורסל',   'fitness'],
+  ['מנוי קבוצת כדורעף',   'fitness'],
+  ['מנוי קבוצת כדורמים',  'fitness'],
   ['מנוי עונה',           'fitness'],
 
   // ─── חינוך: ספריות ───
