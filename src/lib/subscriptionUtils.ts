@@ -120,10 +120,21 @@ export function getNextReminderInfo(sub: Subscription): ReminderInfo {
     return { days, type: 'review' };
   }
 
-  // 3. Paid with billing date → renews or expires
+  // 3. Manual renewal → expires at commitmentEndDate (if set), else nextBillingDate
+  if (sub.renewalType === 'manual') {
+    const expiryDate = sub.commitmentEndDate
+      ? (sub.commitmentEndDate instanceof Date
+          ? sub.commitmentEndDate
+          : new Date(sub.commitmentEndDate as unknown as string))
+      : getNextBillingDate(sub);
+    const days = Math.max(0, Math.ceil((expiryDate.getTime() - now) / msPerDay));
+    return { days, type: 'expires' };
+  }
+
+  // 4. Auto-renewing → next billing date
   const nextDate = getNextBillingDate(sub);
   const days = Math.max(0, Math.ceil((nextDate.getTime() - now) / msPerDay));
-  return { days, type: sub.renewalType === 'manual' ? 'expires' : 'renews' };
+  return { days, type: 'renews' };
 }
 
 /**
