@@ -15,25 +15,25 @@
       "storeAZ": "חנות א-ת",
       "recent": "אחרונים"
     },
-    "search": "חפש לפי חנות או הערות…",
+    "search": "חיפוש לפי חנות או הערות…",
     "filter": {
       "all": "הכל"
     },
     "empty": {
       "title": "אין זיכויים עדיין",
-      "subtitle": "הוסף את הזיכוי הראשון שלך ואל תאבד כסף",
-      "action": "הוסף זיכוי"
+      "subtitle": "הוסיפו את הזיכוי הראשון שלכם ואל תאבדו כסף",
+      "action": "הוספת זיכוי"
     }
   },
   "stores": {
     "title": "חנויות",
-    "search": "חפש חנויות…",
+    "search": "חיפוש חנויות…",
     "activeCredits_one": "זיכוי פעיל אחד",
     "activeCredits_other": "{{count}} זיכויים פעילים",
     "empty": {
       "title": "אין זיכויים פעילים עדיין",
-      "subtitle": "הוסף את הזיכוי הראשון שלך כדי להתחיל",
-      "action": "הוסף זיכוי"
+      "subtitle": "הוסיפו את הזיכוי הראשון שלכם כדי להתחיל",
+      "action": "הוספת זיכוי"
     }
   },
   "history": {
@@ -54,7 +54,7 @@
       "storeAZ": "שם חנות א-ת",
       "amountHighLow": "סכום (גבוה לנמוך)"
     },
-    "search": "חפש בהיסטוריה…",
+    "search": "חיפוש בהיסטוריה…",
     "filter": {
       "title": "סנן היסטוריה",
       "dateRange": "טווח תאריכים",
@@ -125,26 +125,26 @@
     },
     "about": {
       "tagline": "לא שוכחים זיכויים",
-      "contact": "פנה לתמיכה"
+      "contact": "פנו לתמיכה"
     },
     "signOut": {
-      "button": "התנתק",
+      "button": "התנתקות",
       "title": "התנתקות",
       "message": "האם אתה בטוח שברצונך להתנתק?",
       "error": "לא ניתן להתנתק. נסה שנית."
     },
     "editName": {
-      "label": "שנה שם",
-      "title": "שנה שם",
-      "save": "שמור"
+      "label": "שינוי שם",
+      "title": "שינוי שם",
+      "save": "שמירה"
     },
     "changePassword": {
-      "label": "שנה סיסמה",
-      "title": "שנה סיסמה",
+      "label": "שינוי סיסמה",
+      "title": "שינוי סיסמה",
       "current": "סיסמה נוכחית",
       "new": "סיסמה חדשה",
       "confirm": "אשר סיסמה חדשה",
-      "save": "עדכן סיסמה",
+      "save": "עדכון סיסמה",
       "currentRequired": "נדרשת סיסמה נוכחית",
       "wrongPassword": "הסיסמה הנוכחית שגויה",
       "successTitle": "הסיסמה עודכנה",
@@ -168,7 +168,7 @@
       "message": "פעולה זו תמחק לצמיתות את חשבונך וכל הנתונים (זיכויים, אחריויות). לא ניתן לבטל פעולה זו.",
       "confirm": "מחק את חשבוני",
       "passwordTitle": "אימות זהות",
-      "passwordMessage": "הזן את הסיסמה הנוכחית שלך לאישור מחיקת החשבון.",
+      "passwordMessage": "הזינו את הסיסמה הנוכחית שלכם לאישור מחיקת החשבון.",
       "passwordPlaceholder": "סיסמה נוכחית",
       "passwordRequired": "נדרשת סיסמה למחיקת החשבון",
       "wrongPassword": "סיסמה שגויה",
@@ -185,14 +185,14 @@
     "password": "סיסמה",
     "signIn": {
       "title": "התחברות",
-      "button": "התחבר",
+      "button": "התחברות",
       "noAccount": "אין לך חשבון?",
-      "createLink": "צור חשבון",
+      "createLink": "צרו חשבון",
       "forgotPassword": "שכחתי סיסמה"
     },
     "forgotPassword": {
       "title": "איפוס סיסמה",
-      "description": "הכנס את האימייל שלך ונשלח לך קישור לאיפוס הסיסמה.",
+      "description": "הכניסו את האימייל שלכם ונשלח לכם קישור לאיפוס הסיסמה.",
       "button": "שלח קישור לאיפוס",
       "successTitle": "האימייל נשלח!",
       "successDescription": "בדוק את תיבת הדואר שלך לקישור לאיפוס הסיסמה. אם לא רואה, בדוק גם בספאם.",
@@ -201,10 +201,10 @@
     "signUp": {
       "title": "יצירת חשבון",
       "subtitle": "הצטרף ל-Redeemy לניהול כרטיסי המתנה",
-      "button": "צור חשבון",
-      "confirmPassword": "אשר סיסמה",
+      "button": "צרו חשבון",
+      "confirmPassword": "אישור סיסמה",
       "haveAccount": "כבר יש לך חשבון?",
-      "signInLink": "התחבר"
+      "signInLink": "התחברות"
     },
     "google": "המשך עם Google",
     "apple": "המשך עם Apple",
@@ -238,13 +238,13 @@
   },
   "addCredit": {
     "title": "הוספת זיכוי",
-    "titleAdd": "הוסף זיכוי",
-    "titleEdit": "ערוך זיכוי",
-    "save": "שמור",
+    "titleAdd": "הוספת זיכוי",
+    "titleEdit": "עריכת זיכוי",
+    "save": "שמירה",
     "continue": "המשך",
     "takePhoto": "פתח מצלמה",
     "chooseGallery": "בחר מהגלריה",
-    "retakePhoto": "צלם מחדש",
+    "retakePhoto": "צילום מחדש",
     "storeName": "שם החנות",
     "amount": "סכום",
     "category": "קטגוריה",
@@ -254,7 +254,7 @@
     "notes": "הערות",
     "notesPlaceholder": "קוד הנחה, הוראות מימוש, שם החנות…",
     "notesYes": "כן, אוסיף הערה",
-    "notesNo": "דלג",
+    "notesNo": "דלגו",
     "noPhotoYet": "טרם צולמה תמונה",
     "step": {
       "storeName": "שם החנות",
@@ -273,7 +273,7 @@
       "amount": "לא לזלזל באגורות",
       "expiryDate": "מתי פוגה הזיכוי?",
       "reminder": "כמה זמן לפני שתרצה לקבל תזכורת?",
-      "photo": "צלם את תעודת הזיכוי",
+      "photo": "צלמו את תעודת הזיכוי",
       "notesQuestion": "האם ברצונך להוסיף הערה?",
       "notesInput": "כתוב כל מידע שתרצה לזכור",
       "summary": "בדוק את כל הפרטים לפני השמירה"
@@ -316,7 +316,7 @@
       "productName": "שם המוצר",
       "expiryDate": "תאריך תפוגה",
       "reminder": "תזכורת",
-      "photo": "צלם את הקבלה",
+      "photo": "צלמו את הקבלה",
       "notesQuestion": "להוסיף הערות?",
       "notesInput": "הערות",
       "summary": "הכל נראה טוב?"
@@ -324,12 +324,12 @@
     "productNamePlaceholder": "לדוגמה: תנור אפייה Bosch HBF154",
     "noExpiry": "ללא תאריך תפוגה",
     "continue": "המשך",
-    "save": "שמור אחריות",
-    "retakePhoto": "צלם מחדש",
+    "save": "שמירת אחריות",
+    "retakePhoto": "צילום מחדש",
     "chooseGallery": "בחר מהגלריה",
-    "takePhoto": "צלם תמונה",
-    "notesYes": "הוסף הערות",
-    "notesNo": "דלג",
+    "takePhoto": "צילום תמונה",
+    "notesYes": "הוספת הערות",
+    "notesNo": "דלגו",
     "notesPlaceholder": "פרטי אחריות, מספר סידורי...",
     "summary": {
       "store": "חנות",
@@ -351,14 +351,14 @@
   },
   "warranties": {
     "title": "אחריויות",
-    "search": "חפש לפי חנות, מוצר או הערות…",
+    "search": "חיפוש לפי חנות, מוצר או הערות…",
     "filter": {
       "all": "הכל"
     },
     "empty": {
       "title": "אין אחריויות עדיין",
-      "subtitle": "הוסף את האחריות הראשונה שלך ואל תפספס שום תוקף",
-      "action": "הוסף אחריות"
+      "subtitle": "הוסיפו את האחריות הראשונה שלכם ואל תפספסו שום תוקף",
+      "action": "הוספת אחריות"
     },
     "sort": {
       "expiry": "תפוגה",
@@ -390,7 +390,7 @@
       "error": "לא ניתן למחוק את האחריות. נסה שנית."
     },
     "action": {
-      "edit": "ערוך",
+      "edit": "עריכה",
       "delete": "מחק"
     },
     "detail": {
@@ -421,7 +421,7 @@
       "error": "לא ניתן למחוק את הזיכוי. נסה שנית."
     },
     "action": {
-      "edit": "ערוך",
+      "edit": "עריכה",
       "delete": "מחק",
       "restore": "החזר לפעיל"
     },
@@ -539,7 +539,7 @@
   "family": {
     "sectionLabel": "משפחה",
     "createRow": "יצירת משפחה",
-    "joinRow": "הצטרף למשפחה",
+    "joinRow": "הצטרפות למשפחה",
     "memberCount_one": "חבר {{count}}",
     "memberCount_other": "{{count}} חברים",
     "createScreen": {
@@ -555,7 +555,7 @@
       "inviteExpires": "פג תוקף בעוד {{time}}",
       "inviteExpired": "הקוד פג תוקף",
       "inviteCopy": "העתק",
-      "inviteRegenerate": "חדש קוד",
+      "inviteRegenerate": "חידוש קוד",
       "inviteGenerateNew": "צור קוד חדש",
       "inviteCopiedToast": "קוד ההזמנה הועתק",
       "membersSection": "חברים",
@@ -565,8 +565,8 @@
       "transferAdminButton": "העברת ניהול",
       "transferAdminTitle": "העברת ניהול",
       "transferAdminMessage": "בחר חבר שיהפוך למנהל החדש:",
-      "transferAdminConfirm": "הפוך למנהל",
-      "leaveButton": "עזוב משפחה",
+      "transferAdminConfirm": "מינוי מנהל/ת",
+      "leaveButton": "עזיבת משפחה",
       "leaveConfirmTitle": "לעזוב את {{name}}?",
       "leaveConfirmMessage": "הזיכויים שלך יישארו אצלך.",
       "leaveConfirmAction": "עזוב",
@@ -575,8 +575,8 @@
       "removeConfirmAction": "הסר"
     },
     "join": {
-      "title": "הצטרף למשפחה",
-      "subtitle": "הזן את קוד ההזמנה בן 6 התווים שנשלח אליך ממנהל המשפחה.",
+      "title": "הצטרפות למשפחה",
+      "subtitle": "הזינו את קוד ההזמנה בן 6 התווים שנשלח אליכם ממנהל/ת המשפחה.",
       "codeLabel": "קוד הזמנה",
       "button": "הצטרף",
       "errors": {
@@ -602,7 +602,7 @@
     "allFree": "כל המנויים חינמיים",
     "activeCount_one": "מנוי פעיל אחד",
     "activeCount_other": "{{count}} מנויים פעילים",
-    "search": "חפש לפי שירות או הערות…",
+    "search": "חיפוש לפי שירות או הערות…",
     "filter": {
       "all": "הכל"
     },
@@ -614,8 +614,8 @@
     },
     "empty": {
       "title": "אין מנויים עדיין",
-      "subtitle": "הוסף את המנוי הראשון שלך ועקוב אחרי תשלומים חוזרים",
-      "action": "הוסף מנוי"
+      "subtitle": "הוסיפו את המנוי הראשון שלכם ועקבו אחרי תשלומים חוזרים",
+      "action": "הוספת מנוי"
     },
     "billingCycle": {
       "monthly": "חודשי",
@@ -723,7 +723,7 @@
       "addedBy": "נוסף ע״י"
     },
     "action": {
-      "edit": "ערוך",
+      "edit": "עריכה",
       "delete": "מחק לצמיתות"
     },
     "cancel": {
@@ -742,10 +742,49 @@
     },
     "cancelledBanner": "בוטל ב-{{date}}"
   },
+  "onboarding": {
+    "skip": "דלגו",
+    "continue": "המשיכו",
+    "viewTour": "צפו בהדרכה מחדש",
+    "welcome": {
+      "title": "ברוכים הבאים ל-Redeemy",
+      "subtitle": "זיכויים, אחריויות ומנויים — כל מה שצריך לזכור במקום אחד"
+    },
+    "credits": {
+      "title": "זיכויים שלא ייעלמו",
+      "subtitle": "צלמו זיכוי חנות, הכניסו סכום ותאריך — ונזכיר לכם לפני שזה פג"
+    },
+    "warranties": {
+      "title": "אחריויות במקום אחד",
+      "subtitle": "תעדו כל מוצר עם קבלה ותאריך אחריות — לא תצטרכו לחפש יותר"
+    },
+    "subscriptions": {
+      "title": "מנויים תחת שליטה",
+      "subtitle": "עקבו אחרי כל חיוב חוזר — קבלו תזכורת לפני חידוש אוטומטי"
+    },
+    "family": {
+      "title": "שתפו עם המשפחה",
+      "subtitle": "צרו קבוצה משפחתית — כולם רואים את אותם הזיכויים והמנויים בזמן אמת"
+    },
+    "notifications": {
+      "title": "תזכורות שמגיעות בזמן",
+      "subtitle": "נשלח לכם התראה לפני שזיכוי פג, לפני חידוש מנוי, ועוד",
+      "allow": "אפשרו התראות",
+      "later": "אחר כך"
+    },
+    "complete": {
+      "title": "הכל מוכן!",
+      "subtitle": "מאיפה תרצו להתחיל?",
+      "addCredit": "הוסיפו זיכוי",
+      "addWarranty": "הוסיפו אחריות",
+      "addSubscription": "הוסיפו מנוי",
+      "goToApp": "כניסה לאפליקציה"
+    }
+  },
   "addSubscription": {
     "title": "הוספת מנוי",
     "titleEdit": "עריכת מנוי",
-    "save": "שמור מנוי",
+    "save": "שמירת מנוי",
     "savedToast": "המנוי נשמר ✓",
     "serviceNamePlaceholder": "לדוגמה: Spotify, Netflix",
     "step": {
@@ -894,8 +933,8 @@
       "notesQuestion": "האם ברצונך להוסיף הערה למנוי זה?",
       "notesInput": "כתוב כל מידע שתרצה לזכור"
     },
-    "notesYes": "כן, הוסף הערה",
-    "notesNo": "דלג",
+    "notesYes": "כן, אוסיף הערה",
+    "notesNo": "דלגו",
     "notesPlaceholder": "פרטי המנוי, פרטי חשבון…"
   }
 }

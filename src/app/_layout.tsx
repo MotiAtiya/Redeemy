@@ -51,6 +51,7 @@ function AuthGate({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const segments = useSegments();
   const authStatus = useAuthStore((s) => s.authStatus);
+  const hasOnboarded = useSettingsStore((s) => s.hasOnboarded);
   const colors = useAppTheme();
   const isDark = useIsDark();
 
@@ -60,9 +61,13 @@ function AuthGate({ children }: { children: React.ReactNode }) {
     if (authStatus === AuthStatus.UNAUTHENTICATED && !inAuthGroup) {
       router.replace('/auth/sign-in');
     } else if (authStatus === AuthStatus.AUTHENTICATED && inAuthGroup) {
-      router.replace('/(tabs)');
+      if (!hasOnboarded) {
+        router.replace('/onboarding');
+      } else {
+        router.replace('/(tabs)');
+      }
     }
-  }, [authStatus, segments, router]);
+  }, [authStatus, segments, router, hasOnboarded]);
 
   useEffect(() => {
     Notifications.getLastNotificationResponseAsync().then((response) => {
@@ -154,6 +159,7 @@ export default function RootLayout() {
         <Stack.Screen name="family/create" options={{ headerShown: false }} />
         <Stack.Screen name="family/[id]" options={{ headerShown: false }} />
         <Stack.Screen name="family/join" options={{ headerShown: false }} />
+        <Stack.Screen name="onboarding" options={{ headerShown: false }} />
       </Stack>
     </AuthGate>
   );

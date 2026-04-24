@@ -36,6 +36,8 @@ interface SettingsStore {
   setFamilyId: (id: string | null) => void;
   familyCreditsMigrated: boolean;
   setFamilyCreditsMigrated: (done: boolean) => void;
+  hasOnboarded: boolean;
+  setHasOnboarded: (done: boolean) => void;
 }
 
 export const useSettingsStore = create<SettingsStore>()(
@@ -62,6 +64,8 @@ export const useSettingsStore = create<SettingsStore>()(
       setFamilyId: (familyId) => set({ familyId }),
       familyCreditsMigrated: false,
       setFamilyCreditsMigrated: (familyCreditsMigrated) => set({ familyCreditsMigrated }),
+      hasOnboarded: false,
+      setHasOnboarded: (hasOnboarded) => set({ hasOnboarded }),
     }),
     {
       name: 'redeemy-settings',

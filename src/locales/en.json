@@ -743,6 +743,45 @@
     },
     "cancelledBanner": "Cancelled on {{date}}"
   },
+  "onboarding": {
+    "skip": "Skip",
+    "continue": "Continue",
+    "viewTour": "View Tour Again",
+    "welcome": {
+      "title": "Welcome to Redeemy",
+      "subtitle": "Credits, warranties and subscriptions — everything you need to remember, in one place"
+    },
+    "credits": {
+      "title": "Credits you won't forget",
+      "subtitle": "Photograph a store credit, enter the amount and date — we'll remind you before it expires"
+    },
+    "warranties": {
+      "title": "Warranties in one place",
+      "subtitle": "Document every product with its receipt and warranty date — no more searching"
+    },
+    "subscriptions": {
+      "title": "Subscriptions under control",
+      "subtitle": "Track every recurring charge — get reminded before auto-renewal"
+    },
+    "family": {
+      "title": "Share with family",
+      "subtitle": "Create a family group — everyone sees the same credits and subscriptions in real time"
+    },
+    "notifications": {
+      "title": "Reminders that arrive on time",
+      "subtitle": "We'll notify you before a credit expires, before a subscription renews, and more",
+      "allow": "Allow Notifications",
+      "later": "Later"
+    },
+    "complete": {
+      "title": "All set!",
+      "subtitle": "Where would you like to start?",
+      "addCredit": "Add first credit",
+      "addWarranty": "Add warranty",
+      "addSubscription": "Add subscription",
+      "goToApp": "Go to app"
+    }
+  },
   "addSubscription": {
     "title": "Add Subscription",
     "titleEdit": "Edit Subscription",

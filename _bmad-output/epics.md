@@ -1392,9 +1392,119 @@ So that my full history is in one place and my household sees the same subscript
 
 ---
 
+---
+
+## Epic 13: Onboarding Flow
+
+**Goal:** New users see a beautiful first-run experience that introduces all three core features (credits, warranties, subscriptions), family sharing, and requests notification permission in context — eliminating the "empty screen" drop-off and increasing retention.
+
+**User value:** The user immediately understands what Redeemy does and is guided to their first action. No confusion, no cold start.
+
+---
+
+### Story 13.1: Onboarding Infrastructure & Navigation Gate
+
+As a new user,
+I want to be guided through the app after signing up,
+So that I understand all features before I start using it.
+
+**Acceptance Criteria:**
+
+**Given** a user signs up or signs in for the first time on this device
+**When** authentication succeeds
+**Then** the app routes to `/onboarding` instead of `/(tabs)`
+
+**Given** a returning user opens the app (already authenticated, `hasOnboarded = true`)
+**When** the app starts
+**Then** the onboarding screen is skipped and the user lands on `/(tabs)` normally
+
+**And** `hasOnboarded: boolean` (default `false`) is added to `settingsStore` and persisted via AsyncStorage
+
+**And** `src/app/onboarding.tsx` is a Stack screen registered in `_layout.tsx` with `headerShown: false`
+
+**Prerequisites:** Story 1.4, Story 2.4
+
+**Technical Notes:**
+- Auth gate in `_layout.tsx`: when `AUTHENTICATED && inAuthGroup && !hasOnboarded` → `router.replace('/onboarding')`
+- `hasOnboarded` default `false` — only affects users coming from auth screens (new/re-login), not existing authenticated users
+- Existing authenticated users (segments not in auth group) are never redirected to onboarding
+
+---
+
+### Story 13.2: Feature Slides & Content
+
+As a new user,
+I want to swipe through illustrated slides explaining the app's features,
+So that I know what credits, warranties, subscriptions, and family sharing are before I start.
+
+**Acceptance Criteria:**
+
+**Given** the onboarding screen is open
+**When** the user progresses through slides
+**Then** 6 slides appear in order:
+1. Welcome — "ברוך הבא ל-Redeemy"
+2. Credits — "זיכויים שלא ייעלמו"
+3. Warranties — "אחריויות במקום אחד"
+4. Subscriptions — "מנויים תחת שליטה"
+5. Family — "שתף עם המשפחה"
+6. Notifications — "תזכורות שמגיעות בזמן" (with permission request)
+
+**And** each slide has: large emoji in a teal circle, bold title, descriptive subtitle, progress dots (active dot wider), Continue button
+
+**And** a Skip button in the top corner exits onboarding immediately (`hasOnboarded = true` → `/(tabs)`)
+
+**And** transitions use fade animation (150ms out, 220ms in) with no external animation library
+
+**And** when viewed again from Settings (`hasOnboarded` already `true`): a close (✕) button replaces Skip, and completion routes back with `router.back()`
+
+**Prerequisites:** Story 13.1
+
+**Technical Notes:**
+- Single file: `src/app/onboarding.tsx` — no external swiper library
+- `Animated.Value` for fade; `useState` for current slide index
+- All strings in `he.json` and `en.json` under `onboarding.*`
+- RTL: skip/close button positioned with `isRTL ? { left: 16 } : { right: 16 }`
+
+---
+
+### Story 13.3: Notifications Permission & Completion
+
+As a new user,
+I want to grant notification permission in context and then be guided to my first action,
+So that reminders work from day one and I know how to get started.
+
+**Acceptance Criteria:**
+
+**Given** the user reaches the Notifications slide
+**When** they tap "אפשר התראות"
+**Then** `Notifications.requestPermissionsAsync()` is called, then the completion screen appears
+
+**Given** the user taps "אחר כך"
+**Then** the completion screen appears without requesting permission
+
+**Given** the completion screen appears (first time)
+**Then** three action buttons are shown:
+- Primary: "הוסף זיכוי ראשון" → `router.replace('/(tabs)')` + `router.push('/add-credit')`
+- Secondary: "הוסף אחריות" → `/(tabs)` + `/add-warranty`
+- Secondary: "הוסף מנוי" → `/(tabs)` + `/add-subscription`
+- Text link: "כניסה לאפליקציה" → `/(tabs)` only
+
+**And** `setHasOnboarded(true)` is called on any completion action
+
+**And** "צפה בהדרכה מחדש" row added to Settings section in `(tabs)/more.tsx` → `router.push('/onboarding')`
+
+**Prerequisites:** Stories 13.1, 13.2
+
+**Technical Notes:**
+- `isViewingAgain = useSettingsStore(s => s.hasOnboarded)` — detected at screen entry
+- Completion when viewing again: single "חזרה לאפליקציה" button → `router.back()`
+- Modal routing: `requestAnimationFrame` double-wrap after `router.replace('/(tabs)')` before pushing modal to allow tabs to mount
+
+---
+
 ## Summary
 
-**Total: 11 Epics · 34 Stories**
+**Total: 12 Epics · 37 Stories**
 
 | Epic | Stories | Delivers |
 |------|---------|---------|
@@ -1408,6 +1518,7 @@ So that my full history is in one place and my household sees the same subscript
 | Epic 9: Theme & Appearance | 2 | Dark mode + settings improvements |
 | Epic 10: Family Sharing | 3 | Shared credit pool — household management |
 | Epic 12: Subscription Management | 6 | Track recurring subscriptions with intent-based reminders |
+| Epic 13: Onboarding Flow | 3 | First-run experience — feature tour, notification permission, first action CTA |
 
 **Context incorporated:**
 - ✅ Product Brief requirements (all 14 FRs)
