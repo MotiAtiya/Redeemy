@@ -21,6 +21,7 @@ export const SUBSCRIPTION_CATEGORIES: SubscriptionCategory[] = [
   { id: 'charity',       label: 'Charity',          icon: 'heart-outline'              },
   { id: 'home',          label: 'Home',             icon: 'home-outline'               },
   { id: 'automotive',    label: 'Automotive',       icon: 'car-outline'                },
+  { id: 'news',          label: 'News & Media',     icon: 'newspaper-outline'          },
   { id: 'loyalty',       label: 'Loyalty Club',     icon: 'pricetag-outline'           },
   { id: 'other',         label: 'Other',            icon: 'grid-outline'               },
 ];

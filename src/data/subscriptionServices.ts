@@ -169,7 +169,7 @@ export const SUBSCRIPTION_SERVICES: [string, string][] = [
   ['McAfee',               'software'],
   ['Kaspersky',            'software'],
 
-  // ─── כושר ובריאות ───
+  // ─── כושר: אפליקציות ואימון ───
   ['Apple Fitness+',       'fitness'],
   ['Peloton',              'fitness'],
   ['Headspace',            'fitness'],
@@ -179,6 +179,8 @@ export const SUBSCRIPTION_SERVICES: [string, string][] = [
   ['Strava',               'fitness'],
   ['Garmin Connect',       'fitness'],
   ['ClassPass',            'fitness'],
+
+  // ─── כושר: רשתות ספורט בישראל ───
   ['Holmes Place',         'fitness'],
   ['הולמס פלייס',         'fitness'],
   ['GO Active',            'fitness'],
@@ -187,8 +189,39 @@ export const SUBSCRIPTION_SERVICES: [string, string][] = [
   ['פרפקט',               'fitness'],
   ['Urbanfit',             'fitness'],
   ['אורבנפיט',            'fitness'],
+  ['חדר כושר',            'fitness'],
+  ['מנוי ספורט',          'fitness'],
 
-  // ─── חינוך: כלים ולמידה ───
+  // ─── כושר: בריכות ───
+  ['בריכת שחייה',         'fitness'],
+  ['מנוי בריכה',          'fitness'],
+  ['בריכה עירונית',       'fitness'],
+  ['Swimming Pool',        'fitness'],
+
+  // ─── כושר: קבוצות ספורט ───
+  ['מכבי תל אביב',        'fitness'],
+  ['Maccabi Tel Aviv',     'fitness'],
+  ['הפועל תל אביב',       'fitness'],
+  ['בית"ר ירושלים',       'fitness'],
+  ['מכבי חיפה',           'fitness'],
+  ['הפועל חיפה',          'fitness'],
+  ['הפועל ירושלים',       'fitness'],
+  ['הפועל באר שבע',       'fitness'],
+  ['מכבי פתח תקווה',      'fitness'],
+  ['עירוני קריות',         'fitness'],
+  ['בני סכנין',            'fitness'],
+  ['הפועל רמת גן',        'fitness'],
+  ['מנוי כדורגל',         'fitness'],
+  ['מנוי כדורסל',         'fitness'],
+  ['מנוי עונה',           'fitness'],
+
+  // ─── חינוך: ספריות ───
+  ['ספרייה',               'education'],
+  ['ספרייה ציבורית',       'education'],
+  ['Library',              'education'],
+  ['Scribd',               'education'],
+
+  // ─── חינוך: פלטפורמות למידה ───
   ['Duolingo Plus',        'education'],
   ['Duolingo',             'education'],
   ['דואולינגו',            'education'],
@@ -224,6 +257,8 @@ export const SUBSCRIPTION_SERVICES: [string, string][] = [
   ['IDC',                  'education'],
   ['מכון ויצמן',           'education'],
   ['Weizmann Institute',   'education'],
+
+  // ─── חינוך: מכללות אקדמיות ───
   ['המכון הטכנולוגי חולון', 'education'],
   ['HIT',                  'education'],
   ['מכללת ספיר',           'education'],
@@ -232,9 +267,43 @@ export const SUBSCRIPTION_SERVICES: [string, string][] = [
   ['Azrieli College',      'education'],
   ['מכללת שנקר',           'education'],
   ['Shenkar College',      'education'],
+  ['מכללת הדסה',           'education'],
+  ['Hadassah College',     'education'],
+  ['מכללת בית ברל',        'education'],
+  ['Beit Berl College',    'education'],
+  ['מכללת גורדון',         'education'],
+  ['Gordon College',       'education'],
+  ['מכללת לוינסקי-וינגייט', 'education'],
+  ['המכללה האקדמית תל אביב יפו', 'education'],
+  ['המרכז האקדמי רופין',   'education'],
+  ['Ruppin Academic Center', 'education'],
+  ['מכללת צפת',            'education'],
+  ['המכללה האקדמית גליל מערבי', 'education'],
+  ['אקדמיית ויצ"ו',        'education'],
+  ['WIZO Academy',         'education'],
+  ['המכללה למינהל',        'education'],
+  ['College of Management', 'education'],
   ['מכללת אחווה',          'education'],
   ['מכללת אשקלון',         'education'],
   ['מכללת כנרת',           'education'],
+  ['מכללת תל חי',          'education'],
+
+  // ─── חינוך: בתי ספר לקידוד ומקצועות טכנולוגיים ───
+  ['קמפוס שטראוס',         'education'],
+  ['פרוג',                 'education'],
+  ['Prog',                 'education'],
+  ['John Bryce',           'education'],
+  ["ג'ון ברייס",           'education'],
+  ['סלע',                  'education'],
+  ['Sela',                 'education'],
+  ['Elevation Academy',    'education'],
+  ['ITC',                  'education'],
+  ['Israel Tech Challenge', 'education'],
+  ['Kamatech',             'education'],
+  ['קמטק',                'education'],
+  ['iHLS Academy',         'education'],
+  ['Enterstep',            'education'],
+  ['מחשבות אקדמיה',        'education'],
 
   // ─── קופות חולים ובריאות ───
   ['כללית',               'health'],
@@ -301,6 +370,8 @@ export const SUBSCRIPTION_SERVICES: [string, string][] = [
 
   // ─── מועדוני לקוחות ───
   ['Amazon Prime',         'loyalty'],
+  ['מפעל הפיס',            'loyalty'],
+  ['Mifal HaPais',         'loyalty'],
 
   // ─── ארגונים מקצועיים ודמי חבר ───
   ['ארגון המורים',         'other'],
@@ -313,21 +384,32 @@ export const SUBSCRIPTION_SERVICES: [string, string][] = [
   ['ועד עובדים',           'other'],
   ['דמי חבר',              'other'],
 
-  // ─── אחר: חדשות ומדיה ───
-  ['הארץ',                'other'],
-  ['Haaretz',              'other'],
-  ['דה מרקר',             'other'],
-  ['TheMarker',            'other'],
-  ['כלכליסט',             'other'],
-  ['Calcalist',            'other'],
-  ['גלובס',               'other'],
-  ['Globes',               'other'],
-  ['ינט פרמיום',           'other'],
-  ['Ynet Premium',         'other'],
-  ['וואלה',               'other'],
-  ['Walla',                'other'],
-  ['Medium',               'other'],
-  ['Substack',             'other'],
+  // ─── עיתונות ומדיה ───
+  ['הארץ',                'news'],
+  ['Haaretz',              'news'],
+  ['דה מרקר',             'news'],
+  ['TheMarker',            'news'],
+  ['כלכליסט',             'news'],
+  ['Calcalist',            'news'],
+  ['גלובס',               'news'],
+  ['Globes',               'news'],
+  ['ינט פרמיום',           'news'],
+  ['Ynet Premium',         'news'],
+  ['וואלה',               'news'],
+  ['Walla',                'news'],
+  ['N12 Premium',          'news'],
+  ['N12',                  'news'],
+  ['ישראל היום',           'news'],
+  ['Israel Hayom',         'news'],
+  ['מעריב',               'news'],
+  ['Maariv',               'news'],
+  ['The Times of Israel',  'news'],
+  ['Zman Israel',          'news'],
+  ['זמן ישראל',            'news'],
+  ['i24 News',             'news'],
+  ['The Marker',           'news'],
+  ['Medium',               'news'],
+  ['Substack',             'news'],
 ];
 
 /**
