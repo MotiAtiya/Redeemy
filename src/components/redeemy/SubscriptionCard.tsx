@@ -6,7 +6,7 @@ import { BaseCard } from './BaseCard';
 import { MemberAvatar } from './MemberAvatar';
 import { useAppTheme } from '@/hooks/useAppTheme';
 import { useSettingsStore, CURRENCY_SYMBOLS } from '@/stores/settingsStore';
-import { formatCurrency } from '@/lib/formatCurrency';
+import { formatCurrencyCompact } from '@/lib/formatCurrency';
 import { formatDate } from '@/lib/formatDate';
 import { SUBSCRIPTION_CATEGORIES } from '@/constants/subscriptionCategories';
 import {
@@ -168,7 +168,7 @@ export function SubscriptionCard({ subscription: sub, onPress, variant = 'active
           ? Math.round(sub.specialPeriodPriceAgorot / 12)
           : sub.specialPeriodPriceAgorot;
         return {
-          amountLabel: formatCurrency(discountedMonthly, currencySymbol),
+          amountLabel: formatCurrencyCompact(discountedMonthly, currencySymbol),
           periodLabel: t('subscriptionCard.perMonth'),
           amountStyle: styles.amountNumberTrial,
         };
@@ -178,7 +178,7 @@ export function SubscriptionCard({ subscription: sub, onPress, variant = 'active
       ? normalizeToMonthlyAgorot(sub)
       : sub.amountAgorot;
     return {
-      amountLabel: formatCurrency(monthly, currencySymbol),
+      amountLabel: formatCurrencyCompact(monthly, currencySymbol),
       periodLabel: t('subscriptionCard.perMonth'),
       amountStyle: styles.amountNumber,
     };

@@ -8,6 +8,18 @@ export function formatCurrency(agot: number, symbol: string): string {
 }
 
 /**
+ * Compact variant for card displays where space is limited.
+ * Drops decimals when amount ≥ 1000 to prevent truncation.
+ * formatCurrencyCompact(525000, '₪') → "₪5250"
+ * formatCurrencyCompact(7820, '₪')  → "₪78.20"
+ */
+export function formatCurrencyCompact(agot: number, symbol: string): string {
+  const amount = agot / 100;
+  if (amount >= 1000) return `${symbol}${Math.round(amount)}`;
+  return `${symbol}${amount.toFixed(2)}`;
+}
+
+/**
  * Parses a user-typed amount string to agot integer.
  * Returns NaN if the input is not a valid positive number.
  */
