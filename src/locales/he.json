@@ -681,7 +681,7 @@
     "badgeTimeMonths": "בעוד {{months}} חודשים",
     "badgeTrialEnds": "ניסיון מסתיים {{time}}",
     "badgeDiscountEnds": "מחיר מוזל מסתיים {{time}}",
-    "badgeReview": "תזכורת לבדיקה {{time}}",
+    "badgeReview": "בדיקה {{time}}",
     "badgeRenews": "מתחדש {{time}}",
     "badgeExpires": "פג {{time}}"
   },
