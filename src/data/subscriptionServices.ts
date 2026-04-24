@@ -375,6 +375,9 @@ export const SUBSCRIPTION_SERVICES: [string, string][] = [
   ['Waze Unlimited',       'automotive'],
 
   // ─── פיננסים ───
+  ['ישראכרט',             'finance'],
+  ['כאל',                'finance'],
+  ['מקס',                'finance'],
   ['הלוואה',              'finance'],
   ['הלוואת בנק',          'finance'],
   ['הלוואת רכב',          'finance'],
