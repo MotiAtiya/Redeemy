@@ -232,6 +232,7 @@ export const SUBSCRIPTION_SERVICES: [string, string][] = [
   ['Udemy',                'education'],
   ['יודמי',               'education'],
   ['LinkedIn Learning',    'education'],
+  ['KodeKloud',            'education'],
   ['Masterclass',          'education'],
   ['Skillshare',           'education'],
   ['Rosetta Stone',        'education'],
