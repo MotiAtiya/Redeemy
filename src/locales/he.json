@@ -796,7 +796,7 @@
     },
     "registrationDate": {
       "sub": "נחשב מזה את יום החיוב ומועד התזכורות",
-      "today": "הצטרפתי היום",
+      "today": "היום",
       "orChooseDate": "בתאריך אחר"
     },
     "billingCycle": {

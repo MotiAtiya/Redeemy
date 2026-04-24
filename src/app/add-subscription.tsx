@@ -212,7 +212,7 @@ function makeStyles(colors: AppColors, isRTL: boolean) {
       marginTop: -8,
       marginBottom: 20,
       lineHeight: 22,
-      textAlign: isRTL ? 'right' : 'left',
+      alignSelf: 'flex-start',
     },
     continueBtn: {
       height: 54,
@@ -241,7 +241,7 @@ function makeStyles(colors: AppColors, isRTL: boolean) {
     choiceCardContent: { flex: 1, gap: 6 },
     choiceCardTitle: {
       fontSize: 18,
-      fontWeight: '700',
+      fontWeight: '600',
       color: colors.textPrimary,
       alignSelf: 'flex-start',
     },
