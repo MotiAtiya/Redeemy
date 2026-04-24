@@ -159,6 +159,17 @@ export const SUBSCRIPTION_SERVICES: [string, string][] = [
   ['Jira',                 'software'],
   ['Trello',               'software'],
 
+  // ─── תוכנה: אחסון ודומיינים ───
+  ['Cloudflare',           'software'],
+  ['GoDaddy',              'software'],
+  ['Namecheap',            'software'],
+  ['Netlify',              'software'],
+  ['Vercel',               'software'],
+  ['DigitalOcean',         'software'],
+  ['AWS',                  'software'],
+  ['Google Cloud',         'software'],
+  ['Azure',                'software'],
+
   // ─── תוכנה: אבטחה ו-VPN ───
   ['NordVPN',              'software'],
   ['ExpressVPN',           'software'],
@@ -352,11 +363,27 @@ export const SUBSCRIPTION_SERVICES: [string, string][] = [
   ['Nest Aware',           'home'],
   ['Amazon Alexa',         'home'],
 
-  // ─── רכב ───
+  // ─── רכב ותחבורה ───
   ['שכירות רכב',           'automotive'],
   ['ליסינג רכב',           'automotive'],
+  ['חניה חודשית',          'automotive'],
+  ['חופשי חודשי',          'automotive'],
+  ['רב קו חודשי',          'automotive'],
   ['Tesla Premium Connectivity', 'automotive'],
   ['Waze Unlimited',       'automotive'],
+
+  // ─── פיננסים ───
+  ['הלוואה',              'finance'],
+  ['הלוואת בנק',          'finance'],
+  ['הלוואת רכב',          'finance'],
+  ['הלוואה אישית',        'finance'],
+  ['משכנתא',              'finance'],
+  ['קרן פנסיה',           'finance'],
+  ['קרן השתלמות',         'finance'],
+  ['ביטוח מנהלים',        'finance'],
+  ['קופת גמל',            'finance'],
+  ['חיסכון חודשי',        'finance'],
+  ['תכנית חיסכון',        'finance'],
 
   // ─── מועדוני לקוחות ───
   ['Amazon Prime',         'loyalty'],
