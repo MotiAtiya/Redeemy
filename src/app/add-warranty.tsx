@@ -1042,6 +1042,8 @@ export default function AddWarrantyScreen() {
       fadeAnim={fadeAnim}
       slideAnim={slideAnim}
       footerButton={renderFooterButton()}
+      onSave={isEditing ? handleSave : undefined}
+      isSaving={saving}
       extras={cropUri ? (
         <CropModal
           uri={cropUri}
