@@ -524,7 +524,7 @@ export default function AddSubscriptionScreen() {
   // ---------------------------------------------------------------------------
 
   // Access type
-  const [accessType, setAccessType] = useState<'free' | 'paid' | null>(null);
+  const [accessType, setAccessType] = useState<'free' | 'paid' | null>(isEditing ? null : 'paid');
 
   // Service
   const [serviceName, setServiceName] = useState('');
@@ -537,8 +537,8 @@ export default function AddSubscriptionScreen() {
   const [periodicReminderMonths, setPeriodicReminderMonths] = useState(3);
 
   // Special period
-  const [hasSpecialPeriod, setHasSpecialPeriod] = useState<boolean | null>(null);
-  const [specialPeriodType, setSpecialPeriodType] = useState<'trial' | 'discounted' | null>(null);
+  const [hasSpecialPeriod, setHasSpecialPeriod] = useState<boolean | null>(isEditing ? null : true);
+  const [specialPeriodType, setSpecialPeriodType] = useState<'trial' | 'discounted' | null>(isEditing ? null : 'trial');
   const [specialPeriodUnit, setSpecialPeriodUnit] = useState<'days' | 'months'>('months');
   const [specialPeriodMonths, setSpecialPeriodMonths] = useState(1);
   const [specialPeriodDays, setSpecialPeriodDays] = useState(7);
@@ -553,8 +553,8 @@ export default function AddSubscriptionScreen() {
   const [showDatePicker, setShowDatePicker] = useState(false);
 
   // Billing
-  const [billingCycle, setBillingCycle] = useState<SubscriptionBillingCycle | null>(null);
-  const [monthlyStructure, setMonthlyStructure] = useState<'fixed' | 'noFixed' | null>(null);
+  const [billingCycle, setBillingCycle] = useState<SubscriptionBillingCycle | null>(isEditing ? null : SubscriptionBillingCycle.MONTHLY);
+  const [monthlyStructure, setMonthlyStructure] = useState<'fixed' | 'noFixed' | null>(isEditing ? null : 'noFixed');
   const [commitmentMonths, setCommitmentMonths] = useState(12);
 
   // Renewal
@@ -749,8 +749,6 @@ export default function AddSubscriptionScreen() {
       }
     }
     setAccessType(type);
-    const nextStep: StepId = type === 'free' ? 'periodicReminderInterval' : 'specialPeriodQuestion';
-    animateTransition('forward', () => setCurrentStepId(nextStep));
   }
 
   function handleSelectBillingCycle(cycle: SubscriptionBillingCycle) {
@@ -778,8 +776,6 @@ export default function AddSubscriptionScreen() {
       }
     }
     setBillingCycle(cycle);
-    const nextStep: StepId = hasSpecialPeriod ? 'regularAmount' : 'amount';
-    animateTransition('forward', () => setCurrentStepId(nextStep));
   }
 
   function handleSelectMonthlyStructure(structure: 'fixed' | 'noFixed') {
@@ -787,13 +783,10 @@ export default function AddSubscriptionScreen() {
       setRenewalType(null);
     }
     setMonthlyStructure(structure);
-    const nextStep: StepId = structure === 'fixed' ? 'commitmentMonths' : 'periodicReminderInterval';
-    animateTransition('forward', () => setCurrentStepId(nextStep));
   }
 
   function handleSelectRenewalType(type: 'auto' | 'manual') {
     setRenewalType(type);
-    animateTransition('forward', () => setCurrentStepId('reminder'));
   }
 
   // ---------------------------------------------------------------------------
@@ -805,6 +798,11 @@ export default function AddSubscriptionScreen() {
       case 'serviceName':   return serviceName.trim().length > 0;
       case 'category':      return true;
       case 'registrationDate': return true;
+      case 'accessType':            return accessType !== null;
+      case 'specialPeriodQuestion': return hasSpecialPeriod !== null;
+      case 'billingCycle':          return billingCycle !== null;
+      case 'monthlyStructure':      return monthlyStructure !== null;
+      case 'renewalType':           return renewalType !== null;
       case 'freeReminderInterval':
       case 'periodicReminderInterval': return true;
       case 'specialPeriodDetails': {
@@ -825,7 +823,7 @@ export default function AddSubscriptionScreen() {
       case 'notesInput':    return true;
       default:              return false;
     }
-  }, [currentStepId, serviceName, specialPeriodType, specialAmountInput, amountInput]);
+  }, [currentStepId, serviceName, accessType, hasSpecialPeriod, billingCycle, monthlyStructure, renewalType, specialPeriodType, specialAmountInput, amountInput]);
 
   // Whether the form is complete enough to allow quick-save in edit mode.
   // All required fields for the current configuration must be filled.
@@ -1174,33 +1172,36 @@ export default function AddSubscriptionScreen() {
 
   function renderSpecialPeriodQuestionStep() {
     return (
-      <View style={[styles.stepContent, styles.questionCenter]}>
-        <View style={styles.questionIcon}>
-          <Ionicons name="gift-outline" size={40} color={colors.primary} />
+      <ScrollView style={styles.stepScroll} contentContainerStyle={styles.stepContent} keyboardShouldPersistTaps="handled">
+        <Text style={styles.stepTitle}>{t('addSubscription.specialPeriodQuestion.title')}</Text>
+        <View style={styles.choiceCards}>
+          <Pressable
+            style={[styles.choiceCard, hasSpecialPeriod === true && styles.choiceCardSelected]}
+            onPress={() => setHasSpecialPeriod(true)}
+            accessibilityRole="radio"
+            accessibilityState={{ checked: hasSpecialPeriod === true }}
+          >
+            <View style={styles.choiceCardContent}>
+              <Text style={[styles.choiceCardTitle, hasSpecialPeriod === true && styles.choiceCardTitleSelected]}>
+                {t('addSubscription.specialPeriodQuestion.yes')}
+              </Text>
+              <Text style={styles.choiceCardDesc}>{t('addSubscription.specialPeriodQuestion.sub')}</Text>
+            </View>
+          </Pressable>
+          <Pressable
+            style={[styles.choiceCard, hasSpecialPeriod === false && styles.choiceCardSelected]}
+            onPress={() => setHasSpecialPeriod(false)}
+            accessibilityRole="radio"
+            accessibilityState={{ checked: hasSpecialPeriod === false }}
+          >
+            <View style={styles.choiceCardContent}>
+              <Text style={[styles.choiceCardTitle, hasSpecialPeriod === false && styles.choiceCardTitleSelected]}>
+                {t('addSubscription.specialPeriodQuestion.no')}
+              </Text>
+            </View>
+          </Pressable>
         </View>
-        <Text style={styles.questionTitle}>{t('addSubscription.specialPeriodQuestion.title')}</Text>
-        <Text style={styles.questionSub}>{t('addSubscription.specialPeriodQuestion.sub')}</Text>
-        <TouchableOpacity
-          style={styles.questionBtn}
-          onPress={() => {
-            setHasSpecialPeriod(true);
-            animateTransition('forward', () => setCurrentStepId('specialPeriodDetails'));
-          }}
-        >
-          <Text style={styles.questionBtnText}>{t('addSubscription.specialPeriodQuestion.yes')}</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[styles.questionBtn, styles.questionBtnSecondary]}
-          onPress={() => {
-            setHasSpecialPeriod(false);
-            animateTransition('forward', () => setCurrentStepId('billingCycle'));
-          }}
-        >
-          <Text style={[styles.questionBtnText, styles.questionBtnTextSecondary]}>
-            {t('addSubscription.specialPeriodQuestion.no')}
-          </Text>
-        </TouchableOpacity>
-      </View>
+      </ScrollView>
     );
   }
 
@@ -1761,15 +1762,8 @@ export default function AddSubscriptionScreen() {
   // ---------------------------------------------------------------------------
 
   function renderFooterButton() {
-    // Steps that handle their own navigation — no footer button
-    if (
-      currentStepId === 'accessType' ||
-      currentStepId === 'billingCycle' ||
-      currentStepId === 'monthlyStructure' ||
-      currentStepId === 'renewalType' ||
-      currentStepId === 'specialPeriodQuestion' ||
-      currentStepId === 'notesQuestion'
-    ) return null;
+    // notesQuestion handles its own navigation (auto-advance on tap)
+    if (currentStepId === 'notesQuestion') return null;
 
     if (currentStepId === 'summary') {
       return (
