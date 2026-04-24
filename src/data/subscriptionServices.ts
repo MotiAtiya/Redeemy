@@ -237,20 +237,23 @@ export const SUBSCRIPTION_SERVICES: [string, string][] = [
   ['מכללת כנרת',           'education'],
 
   // ─── קופות חולים ובריאות ───
-  ['מכבי שירותי בריאות',  'health'],
+  ['כללית',               'health'],
+  ['Clalit',               'health'],
+  ['כללית מושלם זהב',     'health'],
+  ['כללית מושלם פלטינום', 'health'],
+  ['לאומית',              'health'],
+  ['Leumit',               'health'],
+  ['לאומית כסף',           'health'],
+  ['לאומית זהב',           'health'],
   ['מכבי',                'health'],
-  ['Maccabi Healthcare',   'health'],
+  ['Maccabi',              'health'],
   ['מכבי כסף',            'health'],
   ['מכבי זהב',            'health'],
-  ['כללית',               'health'],
-  ['Clalit Health Services', 'health'],
-  ['כללית מושלם',          'health'],
-  ['כללית פלטינום',        'health'],
+  ['מכבי שלי',            'health'],
   ['מאוחדת',              'health'],
   ['Meuhedet',             'health'],
-  ['לאומית',              'health'],
-  ['Leumit Health Services', 'health'],
-  ['לאומית שלמה',          'health'],
+  ['מאוחדת עדיף',         'health'],
+  ['מאוחדת שיא',          'health'],
 
   // ─── ביטוחים ───
   ['ביטוח חיים',           'insurance'],
@@ -281,17 +284,34 @@ export const SUBSCRIPTION_SERVICES: [string, string][] = [
   ['Ko-fi',                'charity'],
 
   // ─── בית ───
+  ['שכירות דירה',          'home'],
+  ['שכירות בית',           'home'],
+  ['ועד בית',              'home'],
+  ['ארנונה',               'home'],
   ['Ring',                 'home'],
   ['Google Nest',          'home'],
   ['Nest Aware',           'home'],
   ['Amazon Alexa',         'home'],
 
   // ─── רכב ───
+  ['שכירות רכב',           'automotive'],
+  ['ליסינג רכב',           'automotive'],
   ['Tesla Premium Connectivity', 'automotive'],
   ['Waze Unlimited',       'automotive'],
 
   // ─── מועדוני לקוחות ───
   ['Amazon Prime',         'loyalty'],
+
+  // ─── ארגונים מקצועיים ודמי חבר ───
+  ['ארגון המורים',         'other'],
+  ['הסתדרות',              'other'],
+  ['לשכת עורכי הדין',     'other'],
+  ['לשכת רואי החשבון',    'other'],
+  ['לשכת המהנדסים',       'other'],
+  ['התאחדות הקבלנים',     'other'],
+  ['מרכז השלטון המקומי',  'other'],
+  ['ועד עובדים',           'other'],
+  ['דמי חבר',              'other'],
 
   // ─── אחר: חדשות ומדיה ───
   ['הארץ',                'other'],

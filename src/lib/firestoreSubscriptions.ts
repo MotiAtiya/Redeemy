@@ -27,8 +27,9 @@ const SUBSCRIPTIONS_COLLECTION = 'subscriptions';
 function docToSubscription(d: DocumentSnapshot): Subscription {
   const data = d.data()!;
   return {
-    ...(data as Omit<Subscription, 'id' | 'nextBillingDate' | 'trialEndsDate' | 'commitmentEndDate' | 'cancelledAt' | 'createdAt' | 'updatedAt'>),
+    ...(data as Omit<Subscription, 'id' | 'registrationDate' | 'nextBillingDate' | 'trialEndsDate' | 'commitmentEndDate' | 'cancelledAt' | 'createdAt' | 'updatedAt'>),
     id: d.id,
+    registrationDate:   data.registrationDate?.toDate?.() ?? undefined,
     nextBillingDate:    data.nextBillingDate?.toDate?.() ?? undefined,
     trialEndsDate:      data.trialEndsDate?.toDate?.() ?? undefined,
     commitmentEndDate:  data.commitmentEndDate?.toDate?.() ?? undefined,
