@@ -8,6 +8,7 @@ export interface SubscriptionReminderPreset {
  * Subscription reminders are earlier since billing dates are known in advance.
  */
 export const SUBSCRIPTION_REMINDER_PRESETS: SubscriptionReminderPreset[] = [
+  { days: 0,  labelKey: 'notificationSettings.none'        },
   { days: 3,  labelKey: 'addSubscription.reminder.3days'  },
   { days: 7,  labelKey: 'addSubscription.reminder.1week'  },
   { days: 14, labelKey: 'addSubscription.reminder.2weeks' },

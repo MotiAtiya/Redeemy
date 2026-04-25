@@ -33,14 +33,16 @@ export function buildOccasionTitle(occasion: Occasion): string {
 export async function scheduleOccasionNotifications(
   occasion: Occasion
 ): Promise<string[]> {
-  if (!useSettingsStore.getState().notificationsEnabled) return [];
+  const settings = useSettingsStore.getState();
+  if (!settings.notificationsEnabled) return [];
 
   const granted = await requestNotificationPermission();
   if (!granted) return [];
 
-  const { notificationHour, notificationMinute } = useSettingsStore.getState();
-  const eventDate = occasion.eventDate as Date;
+  const { notificationHour, notificationMinute, occasionOnDayAlert, occasionEarlyReminderDays } = settings;
+  if (!occasionOnDayAlert && occasionEarlyReminderDays === 0) return [];
 
+  const eventDate = occasion.eventDate as Date;
   const dates = occasion.useHebrewDate && occasion.hebrewDay != null && occasion.hebrewMonth != null
     ? getNextHebrewOccurrences(occasion.hebrewDay, occasion.hebrewMonth, 5)
     : getNextGregorianOccurrences(eventDate.getMonth(), eventDate.getDate(), 5);
@@ -49,10 +51,22 @@ export async function scheduleOccasionNotifications(
   const ids: string[] = [];
 
   for (const date of dates) {
-    const trigger = new Date(date);
-    trigger.setHours(notificationHour, notificationMinute, 0, 0);
-    const id = await scheduleNotificationAt(trigger, title, '', { occasionId: occasion.id });
-    if (id) ids.push(id);
+    // On-day notification
+    if (occasionOnDayAlert) {
+      const trigger = new Date(date);
+      trigger.setHours(notificationHour, notificationMinute, 0, 0);
+      const id = await scheduleNotificationAt(trigger, title, '', { occasionId: occasion.id });
+      if (id) ids.push(id);
+    }
+
+    // Early reminder (N days before)
+    if (occasionEarlyReminderDays > 0) {
+      const early = new Date(date);
+      early.setDate(early.getDate() - occasionEarlyReminderDays);
+      early.setHours(notificationHour, notificationMinute, 0, 0);
+      const id = await scheduleNotificationAt(early, title, '', { occasionId: occasion.id });
+      if (id) ids.push(id);
+    }
   }
 
   return ids;

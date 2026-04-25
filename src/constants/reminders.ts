@@ -6,6 +6,7 @@ export interface ReminderPreset {
 
 /** 4 preset reminder options shown as chips in the Add Credit form */
 export const REMINDER_PRESETS: ReminderPreset[] = [
+  { days: 0,  label: 'None'     },
   { days: 1,  label: '1 Day'    },
   { days: 7,  label: '1 Week'   },
   { days: 30, label: '1 Month'  },

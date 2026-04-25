@@ -33,6 +33,10 @@ interface SettingsStore {
   setWarrantyLastDayAlert: (enabled: boolean) => void;
   subscriptionLastDayAlert: boolean;
   setSubscriptionLastDayAlert: (enabled: boolean) => void;
+  occasionEarlyReminderDays: number;
+  setOccasionEarlyReminderDays: (days: number) => void;
+  occasionOnDayAlert: boolean;
+  setOccasionOnDayAlert: (enabled: boolean) => void;
   currency: CurrencyCode;
   setCurrency: (code: CurrencyCode) => void;
   dateFormat: DateFormat;
@@ -69,6 +73,10 @@ export const useSettingsStore = create<SettingsStore>()(
       setWarrantyLastDayAlert: (warrantyLastDayAlert) => set({ warrantyLastDayAlert }),
       subscriptionLastDayAlert: true,
       setSubscriptionLastDayAlert: (subscriptionLastDayAlert) => set({ subscriptionLastDayAlert }),
+      occasionEarlyReminderDays: 0,
+      setOccasionEarlyReminderDays: (occasionEarlyReminderDays) => set({ occasionEarlyReminderDays }),
+      occasionOnDayAlert: true,
+      setOccasionOnDayAlert: (occasionOnDayAlert) => set({ occasionOnDayAlert }),
       currency: 'ILS',
       setCurrency: (currency) => set({ currency }),
       dateFormat: 'DD/MM/YYYY',

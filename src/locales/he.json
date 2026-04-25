@@ -536,12 +536,18 @@
     "reminderBeforeBilling": "תזכורת לפני חיוב",
     "lastDayAlert": "התראה ביום האחרון",
     "lastDayBeforeBilling": "התראה יום לפני החיוב",
+    "none": "ללא",
     "sheetTitleCredit": "תזכורת לזיכויים",
     "sheetTitleWarranty": "תזכורת לאחריויות",
-    "sheetTitleSubscription": "תזכורת למנויים"
+    "sheetTitleSubscription": "תזכורת למנויים",
+    "sheetTitleOccasion": "תזכורת לפני האירוע",
+    "occasions": "אירועים",
+    "reminderBeforeOccasion": "תזכורת לפני האירוע",
+    "onDayAlert": "התראה ביום האירוע"
   },
   "reminder": {
     "1day": "יום אחד",
+    "3days": "שלושה ימים",
     "1week": "שבוע",
     "1month": "חודש",
     "3months": "3 חודשים"

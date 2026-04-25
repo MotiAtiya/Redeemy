@@ -539,10 +539,16 @@
     "lastDayBeforeBilling": "Alert day before billing",
     "sheetTitleCredit": "Credit reminder",
     "sheetTitleWarranty": "Warranty reminder",
-    "sheetTitleSubscription": "Subscription reminder"
+    "none": "None",
+    "sheetTitleSubscription": "Subscription reminder",
+    "sheetTitleOccasion": "Reminder before event",
+    "occasions": "Events",
+    "reminderBeforeOccasion": "Reminder before event",
+    "onDayAlert": "Alert on event day"
   },
   "reminder": {
     "1day": "1 Day",
+    "3days": "3 Days",
     "1week": "1 Week",
     "1month": "1 Month",
     "3months": "3 Months"

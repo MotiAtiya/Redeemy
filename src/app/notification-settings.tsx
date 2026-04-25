@@ -19,6 +19,7 @@ import { useCreditsStore } from '@/stores/creditsStore';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { REMINDER_PRESETS } from '@/constants/reminders';
 import { SUBSCRIPTION_REMINDER_PRESETS } from '@/constants/subscriptionReminders';
+import { OCCASION_REMINDER_PRESETS } from '@/constants/occasionReminders';
 import { useAppTheme } from '@/hooks/useAppTheme';
 import i18n from '@/lib/i18n';
 import type { AppColors } from '@/constants/colors';
@@ -133,10 +134,16 @@ export default function NotificationSettingsScreen() {
   const subscriptionLastDayAlert = useSettingsStore((s) => s.subscriptionLastDayAlert);
   const setSubscriptionLastDayAlert = useSettingsStore((s) => s.setSubscriptionLastDayAlert);
 
+  const occasionEarlyReminderDays = useSettingsStore((s) => s.occasionEarlyReminderDays);
+  const setOccasionEarlyReminderDays = useSettingsStore((s) => s.setOccasionEarlyReminderDays);
+  const occasionOnDayAlert = useSettingsStore((s) => s.occasionOnDayAlert);
+  const setOccasionOnDayAlert = useSettingsStore((s) => s.setOccasionOnDayAlert);
+
   const [showNotifTimeSheet, setShowNotifTimeSheet] = useState(false);
   const [showCreditSheet, setShowCreditSheet] = useState(false);
   const [showWarrantySheet, setShowWarrantySheet] = useState(false);
   const [showSubscriptionSheet, setShowSubscriptionSheet] = useState(false);
+  const [showOccasionSheet, setShowOccasionSheet] = useState(false);
 
   const notifTimeDate = new Date();
   notifTimeDate.setHours(notificationHour, notificationMinute, 0, 0);
@@ -150,6 +157,7 @@ export default function NotificationSettingsScreen() {
   }
 
   function reminderLabel(days: number): string {
+    if (days === 0) return t('notificationSettings.none');
     if (days === 1) return t('reminder.1day');
     if (days === 7) return t('reminder.1week');
     if (days === 30) return t('reminder.1month');
@@ -157,10 +165,19 @@ export default function NotificationSettingsScreen() {
   }
 
   function subscriptionReminderLabel(days: number): string {
+    if (days === 0) return t('notificationSettings.none');
     if (days === 3) return t('addSubscription.reminder.3days');
     if (days === 7) return t('addSubscription.reminder.1week');
     if (days === 14) return t('addSubscription.reminder.2weeks');
     return t('addSubscription.reminder.1month');
+  }
+
+  function occasionReminderLabel(days: number): string {
+    if (days === 0) return t('notificationSettings.none');
+    if (days === 1) return t('reminder.1day');
+    if (days === 3) return t('reminder.3days');
+    if (days === 7) return t('reminder.1week');
+    return t('reminder.1month');
   }
 
   async function handleMasterToggle(enabled: boolean) {
@@ -336,6 +353,42 @@ export default function NotificationSettingsScreen() {
               thumbColor="#FFFFFF"
             />
           </View>
+
+          <View style={styles.sectionSeparator} />
+
+          {/* Occasions */}
+          <Text style={styles.typeLabel}>{t('notificationSettings.occasions').toUpperCase()}</Text>
+          <TouchableOpacity
+            style={styles.row}
+            onPress={() => notificationsEnabled && setShowOccasionSheet(true)}
+            accessibilityRole="button"
+          >
+            <Ionicons name="heart-outline" size={20} color={colors.textSecondary} />
+            <View style={{ flex: 1 }}>
+              <Text style={[styles.rowLabel, !notificationsEnabled && styles.rowLabelDisabled]}>
+                {t('notificationSettings.reminderBeforeOccasion')}
+              </Text>
+            </View>
+            <Text style={styles.rowSubtitle}>{occasionReminderLabel(occasionEarlyReminderDays)}</Text>
+            <Ionicons name={isRTL ? 'chevron-back' : 'chevron-forward'} size={16} color={colors.textTertiary} />
+          </TouchableOpacity>
+          <View style={styles.separator} />
+          <View style={styles.row}>
+            <Ionicons name="calendar-outline" size={20} color={colors.textSecondary} />
+            <View style={{ flex: 1 }}>
+              <Text style={[styles.rowLabel, !notificationsEnabled && styles.rowLabelDisabled]}>
+                {t('notificationSettings.onDayAlert')}
+              </Text>
+            </View>
+            <Switch
+              style={{ transform: [{ scaleX: isRTL ? -1 : 1 }] }}
+              value={occasionOnDayAlert}
+              onValueChange={setOccasionOnDayAlert}
+              disabled={!notificationsEnabled}
+              trackColor={{ false: colors.separator, true: colors.primary }}
+              thumbColor="#FFFFFF"
+            />
+          </View>
         </View>
       </ScrollView>
 
@@ -426,6 +479,31 @@ export default function NotificationSettingsScreen() {
                 {subscriptionReminderDays === preset.days && <Ionicons name="checkmark" size={20} color={colors.primary} />}
               </TouchableOpacity>
               {index < SUBSCRIPTION_REMINDER_PRESETS.length - 1 && <View style={styles.optionSeparator} />}
+            </View>
+          ))}
+        </View>
+      </Modal>
+
+      {/* Occasion Early Reminder bottom sheet */}
+      <Modal visible={showOccasionSheet} transparent animationType="slide" onRequestClose={() => setShowOccasionSheet(false)}>
+        <TouchableOpacity style={styles.overlay} activeOpacity={1} onPress={() => setShowOccasionSheet(false)} />
+        <View style={styles.sheet}>
+          <View style={styles.sheetHandle} />
+          <Text style={styles.sheetTitle}>{t('notificationSettings.sheetTitleOccasion')}</Text>
+          {OCCASION_REMINDER_PRESETS.map((preset, index) => (
+            <View key={preset.days}>
+              <TouchableOpacity
+                style={styles.option}
+                onPress={() => { setOccasionEarlyReminderDays(preset.days); setShowOccasionSheet(false); }}
+                accessibilityRole="radio"
+                accessibilityState={{ checked: occasionEarlyReminderDays === preset.days }}
+              >
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.optionLabel}>{occasionReminderLabel(preset.days)}</Text>
+                </View>
+                {occasionEarlyReminderDays === preset.days && <Ionicons name="checkmark" size={20} color={colors.primary} />}
+              </TouchableOpacity>
+              {index < OCCASION_REMINDER_PRESETS.length - 1 && <View style={styles.optionSeparator} />}
             </View>
           ))}
         </View>
