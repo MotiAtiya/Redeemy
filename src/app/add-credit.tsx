@@ -815,6 +815,7 @@ export default function AddCreditScreen() {
         <View style={styles.noExpiryRow}>
           <Text style={styles.noExpiryLabel}>{t('addCredit.noExpiry')}</Text>
           <Switch
+            style={{ transform: [{ scaleX: isRTL ? -1 : 1 }] }}
             value={noExpiry}
             onValueChange={(v) => {
               setNoExpiry(v);

@@ -1224,6 +1224,7 @@ export default function AddSubscriptionScreen() {
             <View style={styles.toggleRow}>
               <Text style={styles.toggleLabel}>{t('addSubscription.reminder.specialPeriodToggle')}</Text>
               <Switch
+                style={{ transform: [{ scaleX: isRTL ? -1 : 1 }] }}
                 value={reminderSpecialPeriod}
                 onValueChange={setReminderSpecialPeriod}
                 trackColor={{ false: colors.separator, true: colors.primary }}
