@@ -122,9 +122,8 @@ export function OccasionCard({ occasion, onPress }: Props) {
       <View style={styles.center}>
         <Text style={styles.title} numberOfLines={2}>{title}</Text>
         {!!subtitle && <Text style={styles.subtitle}>{subtitle}</Text>}
+        <DaysBadge days={days} />
       </View>
-
-      <DaysBadge days={days} />
     </BaseCard>
   );
 }
