@@ -984,9 +984,19 @@
       "yahrzeit": "{{name}}'s Yahrzeit",
       "other": "{{label}} — {{name}}"
     },
+    "search": "Search events...",
+    "filter": {
+      "all": "All"
+    },
+    "sort": {
+      "daysUntil": "Soonest",
+      "name": "Name",
+      "year": "Year"
+    },
+    "noResults": "No events found",
     "empty": {
-      "title": "No special days yet",
-      "subtitle": "Add a special day and get a reminder every year",
+      "title": "No events yet",
+      "subtitle": "Add an event and get a reminder every year",
       "action": "Add Event"
     }
   },
