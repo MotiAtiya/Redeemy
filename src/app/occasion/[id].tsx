@@ -237,6 +237,14 @@ export default function OccasionDetailScreen() {
               icon="star-outline"
               label={t('occasion.detail.hebrewDate')}
               value={occasion.hebrewDateStr}
+              showSeparator={!!occasion.notes}
+            />
+          )}
+          {!!occasion.notes && (
+            <DetailRow
+              icon="document-text-outline"
+              label={t('occasion.detail.notes')}
+              value={occasion.notes}
             />
           )}
         </View>

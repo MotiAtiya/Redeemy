@@ -1017,6 +1017,7 @@
     "continue": "Continue",
     "save": "Save",
     "offline": "Cannot save in offline mode",
+    "notesPlaceholder": "Notes, additional details…",
     "namePlaceholder": "Name",
     "customLabelPlaceholder": "Event description (e.g. Aliyah Anniversary)",
     "calendarGregorian": "Gregorian",
@@ -1038,7 +1039,8 @@
       "date": "Date",
       "reminder": "Reminder",
       "hebrewReminder": "{{date}} (Hebrew)",
-      "gregorianReminder": "Gregorian calendar"
+      "gregorianReminder": "Gregorian calendar",
+      "notes": "Notes"
     },
     "error": {
       "save": "Save failed. Please try again."
@@ -1049,7 +1051,8 @@
     "detail": {
       "type": "Type",
       "eventDate": "Date",
-      "hebrewDate": "Hebrew date"
+      "hebrewDate": "Hebrew date",
+      "notes": "Notes"
     },
     "delete": {
       "title": "Delete Event",

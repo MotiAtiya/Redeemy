@@ -1016,6 +1016,7 @@
     "continue": "המשך",
     "save": "שמירה",
     "offline": "לא ניתן לשמור במצב לא מקוון",
+    "notesPlaceholder": "הערות, פרטים נוספים…",
     "namePlaceholder": "שם",
     "customLabelPlaceholder": "לדוגמה: יום העלייה לארץ",
     "calendarGregorian": "לועזי",
@@ -1037,7 +1038,8 @@
       "date": "תאריך",
       "reminder": "תזכורת",
       "hebrewReminder": "{{date}} (עברי)",
-      "gregorianReminder": "לפי לוח לועזי"
+      "gregorianReminder": "לפי לוח לועזי",
+      "notes": "הערות"
     },
     "error": {
       "save": "השמירה נכשלה. נסה שוב."
@@ -1048,7 +1050,8 @@
     "detail": {
       "type": "סוג",
       "eventDate": "תאריך",
-      "hebrewDate": "תאריך עברי"
+      "hebrewDate": "תאריך עברי",
+      "notes": "הערות"
     },
     "delete": {
       "title": "מחיקת אירוע",

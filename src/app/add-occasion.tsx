@@ -236,6 +236,7 @@ export default function AddOccasionScreen() {
   const [eventDate, setEventDate] = useState(new Date(new Date().getFullYear() - 1, 0, 1));
   const [afterSunset, setAfterSunset] = useState(false);
   const [useHebrewDate, setUseHebrewDate] = useState(false);
+  const [notes, setNotes] = useState('');
   const [saving, setSaving] = useState(false);
 
   // Step state
@@ -256,6 +257,7 @@ export default function AddOccasionScreen() {
     setEventDate(d);
     setAfterSunset(existingOccasion.afterSunset);
     setUseHebrewDate(existingOccasion.useHebrewDate);
+    if (existingOccasion.notes) setNotes(existingOccasion.notes);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -339,6 +341,7 @@ export default function AddOccasionScreen() {
       ...(occasionType === 'other' && customLabel.trim() ? { customLabel: customLabel.trim() } : {}),
       ...(hebrewDateDisplay ? { hebrewDateStr: hebrewDateDisplay } : {}),
       ...(hebrewDate ? { hebrewDay: hebrewDate.getDate(), hebrewMonth: hebrewDate.getMonth() } : {}),
+      ...(notes.trim() ? { notes: notes.trim() } : {}),
       ...(familyId ? { familyId, createdBy: currentUser.uid, createdByName: displayName } : {}),
     };
 
@@ -542,13 +545,24 @@ export default function AddOccasionScreen() {
             <Text style={styles.summaryLabel}>{t('addOccasion.summary.date')}</Text>
             <Text style={styles.summaryValue}>{formatDate(eventDate, dateFormat)}</Text>
           </View>
-          <View style={[styles.summaryRow, styles.summaryRowLast]}>
+          <View style={styles.summaryRow}>
             <Text style={styles.summaryLabel}>{t('addOccasion.summary.reminder')}</Text>
             <Text style={styles.summaryValue}>
               {useHebrewDate && hebrewDateDisplay
                 ? t('addOccasion.summary.hebrewReminder', { date: hebrewDateDisplay })
                 : t('addOccasion.summary.gregorianReminder')}
             </Text>
+          </View>
+          <View style={[styles.summaryRow, styles.summaryRowLast, { alignItems: 'flex-start' }]}>
+            <Text style={[styles.summaryLabel, { paddingTop: 2 }]}>{t('addOccasion.summary.notes')}</Text>
+            <TextInput
+              style={[styles.summaryValue, { textAlignVertical: 'top', minHeight: 36 }]}
+              placeholder={t('addOccasion.notesPlaceholder')}
+              placeholderTextColor={colors.textTertiary}
+              multiline
+              value={notes}
+              onChangeText={setNotes}
+            />
           </View>
         </View>
       </ScrollView>
