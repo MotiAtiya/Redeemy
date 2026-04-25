@@ -4,7 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import { BaseCard } from './BaseCard';
 import { useAppTheme } from '@/hooks/useAppTheme';
-import { daysUntilNextOccurrence } from '@/lib/hebrewDate';
+import { daysUntilNextOccurrence, nextOccurrenceDate } from '@/lib/hebrewDate';
 import { type Occasion, type OccasionType } from '@/types/occasionTypes';
 import type { AppColors } from '@/constants/colors';
 
@@ -105,9 +105,11 @@ export function OccasionCard({ occasion, onPress }: Props) {
     }
   })();
 
-  const currentYear = new Date().getFullYear();
-  const eventYear = eventDate.getFullYear();
-  const yearsCount = currentYear - eventYear;
+  const nextDate = useMemo(
+    () => nextOccurrenceDate(eventDate, occasion.useHebrewDate, occasion.hebrewDay, occasion.hebrewMonth),
+    [eventDate, occasion.useHebrewDate, occasion.hebrewDay, occasion.hebrewMonth]
+  );
+  const yearsCount = nextDate.getFullYear() - eventDate.getFullYear();
 
   const subtitle = yearsCount > 0
     ? t('occasions.yearsCount', { count: yearsCount })
