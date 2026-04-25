@@ -59,7 +59,13 @@ function makeStyles(colors: AppColors, isRTL: boolean) {
       fontSize: 15,
       color: colors.textSecondary,
       alignSelf: 'flex-start',
-      marginBottom: 24,
+      marginBottom: 4,
+    },
+    hebrewPreview: {
+      fontSize: 13,
+      color: colors.textTertiary,
+      alignSelf: 'flex-start',
+      marginBottom: 20,
     },
     continueBtn: {
       height: 54,
@@ -232,7 +238,7 @@ export default function AddOccasionScreen() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Computed Hebrew date
+  // Computed Hebrew date (for saving/summary — respects useHebrewDate + afterSunset)
   const hebrewDate = useMemo(() => {
     if (!useHebrewDate) return null;
     try { return toHebrewDate(eventDate, afterSunset); } catch { return null; }
@@ -242,6 +248,11 @@ export default function AddOccasionScreen() {
     if (!hebrewDate) return null;
     try { return formatHebrewDate(hebrewDate); } catch { return null; }
   }, [hebrewDate]);
+
+  // Always-on Hebrew date for the date picker step (no sunset shift — just for reference)
+  const hebrewDatePreview = useMemo(() => {
+    try { return formatHebrewDate(toHebrewDate(eventDate, false)); } catch { return null; }
+  }, [eventDate]);
 
   // ---------------------------------------------------------------------------
   // Navigation
@@ -271,6 +282,8 @@ export default function AddOccasionScreen() {
 
   const canContinue = useMemo(() => {
     switch (currentStepId) {
+      case 'type':
+        return true;
       case 'name':
         return name.trim().length > 0 &&
           (occasionType !== 'other' || customLabel.trim().length > 0);
@@ -376,10 +389,7 @@ export default function AddOccasionScreen() {
               <Pressable
                 key={c.type}
                 style={[styles.choiceCard, selected && styles.choiceCardSelected]}
-                onPress={() => {
-                  setOccasionType(c.type);
-                  animateTransition('forward', () => setCurrentStepId('name'));
-                }}
+                onPress={() => setOccasionType(c.type)}
                 accessibilityRole="radio"
                 accessibilityState={{ checked: selected }}
               >
@@ -431,6 +441,9 @@ export default function AddOccasionScreen() {
       <ScrollView style={styles.stepScroll} contentContainerStyle={styles.stepContent} keyboardShouldPersistTaps="handled">
         <Text style={styles.stepTitle}>{t('addOccasion.step.date')}</Text>
         <Text style={styles.stepSub}>{formatDate(eventDate, dateFormat)}</Text>
+        {hebrewDatePreview && (
+          <Text style={styles.hebrewPreview}>{hebrewDatePreview}</Text>
+        )}
         <DateTimePicker
           value={eventDate}
           mode="date"
@@ -539,7 +552,6 @@ export default function AddOccasionScreen() {
   // ---------------------------------------------------------------------------
 
   function renderFooterButton() {
-    if (currentStepId === 'type') return null;
 
     if (currentStepId === 'summary') {
       return (
