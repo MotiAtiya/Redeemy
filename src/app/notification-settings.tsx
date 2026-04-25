@@ -18,6 +18,7 @@ import { cancelAllNotifications, rescheduleAllNotifications } from '@/lib/notifi
 import { useCreditsStore } from '@/stores/creditsStore';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { REMINDER_PRESETS } from '@/constants/reminders';
+import { SUBSCRIPTION_REMINDER_PRESETS } from '@/constants/subscriptionReminders';
 import { useAppTheme } from '@/hooks/useAppTheme';
 import i18n from '@/lib/i18n';
 import type { AppColors } from '@/constants/colors';
@@ -47,6 +48,16 @@ function makeStyles(colors: AppColors, isRTL: boolean) {
       marginStart: 4,
       alignSelf: 'flex-start',
     },
+    typeLabel: {
+      fontSize: 11,
+      fontWeight: '600',
+      color: colors.textTertiary,
+      letterSpacing: 0.6,
+      paddingHorizontal: 16,
+      paddingTop: 14,
+      paddingBottom: 6,
+      alignSelf: 'flex-start',
+    },
     card: {
       backgroundColor: colors.surface,
       borderRadius: 12,
@@ -54,6 +65,7 @@ function makeStyles(colors: AppColors, isRTL: boolean) {
       marginBottom: 20,
     },
     separator: { height: 1, backgroundColor: colors.separator, marginStart: 16 },
+    sectionSeparator: { height: 1, backgroundColor: colors.separator },
     row: {
       flexDirection: 'row',
       alignItems: 'center',
@@ -102,16 +114,29 @@ export default function NotificationSettingsScreen() {
   const credits = useCreditsStore((s) => s.credits);
   const notificationsEnabled = useSettingsStore((s) => s.notificationsEnabled);
   const setNotificationsEnabled = useSettingsStore((s) => s.setNotificationsEnabled);
-  const expiryNotificationEnabled = useSettingsStore((s) => s.expiryNotificationEnabled);
-  const setExpiryNotificationEnabled = useSettingsStore((s) => s.setExpiryNotificationEnabled);
   const notificationHour = useSettingsStore((s) => s.notificationHour);
   const notificationMinute = useSettingsStore((s) => s.notificationMinute);
   const setNotificationTime = useSettingsStore((s) => s.setNotificationTime);
-  const defaultReminderDays = useSettingsStore((s) => s.defaultReminderDays);
-  const setDefaultReminderDays = useSettingsStore((s) => s.setDefaultReminderDays);
+
+  const creditReminderDays = useSettingsStore((s) => s.creditReminderDays);
+  const setCreditReminderDays = useSettingsStore((s) => s.setCreditReminderDays);
+  const creditLastDayAlert = useSettingsStore((s) => s.creditLastDayAlert);
+  const setCreditLastDayAlert = useSettingsStore((s) => s.setCreditLastDayAlert);
+
+  const warrantyReminderDays = useSettingsStore((s) => s.warrantyReminderDays);
+  const setWarrantyReminderDays = useSettingsStore((s) => s.setWarrantyReminderDays);
+  const warrantyLastDayAlert = useSettingsStore((s) => s.warrantyLastDayAlert);
+  const setWarrantyLastDayAlert = useSettingsStore((s) => s.setWarrantyLastDayAlert);
+
+  const subscriptionReminderDays = useSettingsStore((s) => s.subscriptionReminderDays);
+  const setSubscriptionReminderDays = useSettingsStore((s) => s.setSubscriptionReminderDays);
+  const subscriptionLastDayAlert = useSettingsStore((s) => s.subscriptionLastDayAlert);
+  const setSubscriptionLastDayAlert = useSettingsStore((s) => s.setSubscriptionLastDayAlert);
 
   const [showNotifTimeSheet, setShowNotifTimeSheet] = useState(false);
-  const [showReminderSheet, setShowReminderSheet] = useState(false);
+  const [showCreditSheet, setShowCreditSheet] = useState(false);
+  const [showWarrantySheet, setShowWarrantySheet] = useState(false);
+  const [showSubscriptionSheet, setShowSubscriptionSheet] = useState(false);
 
   const notifTimeDate = new Date();
   notifTimeDate.setHours(notificationHour, notificationMinute, 0, 0);
@@ -131,6 +156,13 @@ export default function NotificationSettingsScreen() {
     return t('reminder.3months');
   }
 
+  function subscriptionReminderLabel(days: number): string {
+    if (days === 3) return t('addSubscription.reminder.3days');
+    if (days === 7) return t('addSubscription.reminder.1week');
+    if (days === 14) return t('addSubscription.reminder.2weeks');
+    return t('addSubscription.reminder.1month');
+  }
+
   async function handleMasterToggle(enabled: boolean) {
     setNotificationsEnabled(enabled);
     if (!enabled) {
@@ -139,12 +171,6 @@ export default function NotificationSettingsScreen() {
       const activeCredits = credits.filter((c) => c.status === 'active');
       await rescheduleAllNotifications(activeCredits);
     }
-  }
-
-  async function handleExpiryToggle(enabled: boolean) {
-    setExpiryNotificationEnabled(enabled);
-    const activeCredits = credits.filter((c) => c.status === 'active');
-    await rescheduleAllNotifications(activeCredits);
   }
 
   async function handleNotifTimeChange(_: DateTimePickerEvent, date?: Date) {
@@ -165,6 +191,7 @@ export default function NotificationSettingsScreen() {
           <Text style={styles.headerTitle}>{t('notificationSettings.title')}</Text>
         </View>
 
+        {/* General card */}
         <View style={styles.card}>
           {/* Master toggle */}
           <View style={styles.row}>
@@ -175,25 +202,6 @@ export default function NotificationSettingsScreen() {
             <Switch
               value={notificationsEnabled}
               onValueChange={handleMasterToggle}
-              trackColor={{ false: colors.separator, true: colors.primary }}
-              thumbColor="#FFFFFF"
-            />
-          </View>
-
-          <View style={styles.separator} />
-
-          {/* Expiry day toggle */}
-          <View style={[styles.row, !notificationsEnabled && { opacity: 0.4 }]}>
-            <Ionicons name="calendar-clear-outline" size={20} color={colors.textSecondary} />
-            <View style={{ flex: 1 }}>
-              <Text style={[styles.rowLabel, !notificationsEnabled && styles.rowLabelDisabled]}>
-                {t('notificationSettings.expiryDay')}
-              </Text>
-            </View>
-            <Switch
-              value={expiryNotificationEnabled}
-              onValueChange={handleExpiryToggle}
-              disabled={!notificationsEnabled}
               trackColor={{ false: colors.separator, true: colors.primary }}
               thumbColor="#FFFFFF"
             />
@@ -216,24 +224,114 @@ export default function NotificationSettingsScreen() {
             <Text style={styles.rowSubtitle}>{formatNotifTime(notificationHour, notificationMinute)}</Text>
             <Ionicons name={isRTL ? 'chevron-back' : 'chevron-forward'} size={16} color={colors.textTertiary} />
           </TouchableOpacity>
+        </View>
 
-          <View style={styles.separator} />
+        {/* Auto reminders card */}
+        <Text style={styles.sectionLabel}>{t('notificationSettings.autoReminders')}</Text>
+        <View style={[styles.card, !notificationsEnabled && { opacity: 0.4 }]}>
 
-          {/* Default reminder */}
+          {/* Credits */}
+          <Text style={styles.typeLabel}>{t('notificationSettings.credits').toUpperCase()}</Text>
           <TouchableOpacity
-            style={[styles.row, !notificationsEnabled && { opacity: 0.4 }]}
-            onPress={() => notificationsEnabled && setShowReminderSheet(true)}
+            style={styles.row}
+            onPress={() => notificationsEnabled && setShowCreditSheet(true)}
             accessibilityRole="button"
           >
-            <Ionicons name="alarm-outline" size={20} color={colors.textSecondary} />
+            <Ionicons name="card-outline" size={20} color={colors.textSecondary} />
             <View style={{ flex: 1 }}>
               <Text style={[styles.rowLabel, !notificationsEnabled && styles.rowLabelDisabled]}>
-                {t('notificationSettings.defaultReminder')}
+                {t('notificationSettings.reminderBefore')}
               </Text>
             </View>
-            <Text style={styles.rowSubtitle}>{reminderLabel(defaultReminderDays)}</Text>
+            <Text style={styles.rowSubtitle}>{reminderLabel(creditReminderDays)}</Text>
             <Ionicons name={isRTL ? 'chevron-back' : 'chevron-forward'} size={16} color={colors.textTertiary} />
           </TouchableOpacity>
+          <View style={styles.separator} />
+          <View style={styles.row}>
+            <Ionicons name="calendar-clear-outline" size={20} color={colors.textSecondary} />
+            <View style={{ flex: 1 }}>
+              <Text style={[styles.rowLabel, !notificationsEnabled && styles.rowLabelDisabled]}>
+                {t('notificationSettings.lastDayAlert')}
+              </Text>
+            </View>
+            <Switch
+              value={creditLastDayAlert}
+              onValueChange={setCreditLastDayAlert}
+              disabled={!notificationsEnabled}
+              trackColor={{ false: colors.separator, true: colors.primary }}
+              thumbColor="#FFFFFF"
+            />
+          </View>
+
+          <View style={styles.sectionSeparator} />
+
+          {/* Warranties */}
+          <Text style={styles.typeLabel}>{t('notificationSettings.warranties').toUpperCase()}</Text>
+          <TouchableOpacity
+            style={styles.row}
+            onPress={() => notificationsEnabled && setShowWarrantySheet(true)}
+            accessibilityRole="button"
+          >
+            <Ionicons name="shield-checkmark-outline" size={20} color={colors.textSecondary} />
+            <View style={{ flex: 1 }}>
+              <Text style={[styles.rowLabel, !notificationsEnabled && styles.rowLabelDisabled]}>
+                {t('notificationSettings.reminderBefore')}
+              </Text>
+            </View>
+            <Text style={styles.rowSubtitle}>{reminderLabel(warrantyReminderDays)}</Text>
+            <Ionicons name={isRTL ? 'chevron-back' : 'chevron-forward'} size={16} color={colors.textTertiary} />
+          </TouchableOpacity>
+          <View style={styles.separator} />
+          <View style={styles.row}>
+            <Ionicons name="calendar-clear-outline" size={20} color={colors.textSecondary} />
+            <View style={{ flex: 1 }}>
+              <Text style={[styles.rowLabel, !notificationsEnabled && styles.rowLabelDisabled]}>
+                {t('notificationSettings.lastDayAlert')}
+              </Text>
+            </View>
+            <Switch
+              value={warrantyLastDayAlert}
+              onValueChange={setWarrantyLastDayAlert}
+              disabled={!notificationsEnabled}
+              trackColor={{ false: colors.separator, true: colors.primary }}
+              thumbColor="#FFFFFF"
+            />
+          </View>
+
+          <View style={styles.sectionSeparator} />
+
+          {/* Subscriptions */}
+          <Text style={styles.typeLabel}>{t('notificationSettings.subscriptions').toUpperCase()}</Text>
+          <TouchableOpacity
+            style={styles.row}
+            onPress={() => notificationsEnabled && setShowSubscriptionSheet(true)}
+            accessibilityRole="button"
+          >
+            <Ionicons name="repeat-outline" size={20} color={colors.textSecondary} />
+            <View style={{ flex: 1 }}>
+              <Text style={[styles.rowLabel, !notificationsEnabled && styles.rowLabelDisabled]}>
+                {t('notificationSettings.reminderBeforeBilling')}
+              </Text>
+            </View>
+            <Text style={styles.rowSubtitle}>{subscriptionReminderLabel(subscriptionReminderDays)}</Text>
+            <Ionicons name={isRTL ? 'chevron-back' : 'chevron-forward'} size={16} color={colors.textTertiary} />
+          </TouchableOpacity>
+          <View style={styles.separator} />
+          <View style={styles.row}>
+            <Ionicons name="calendar-clear-outline" size={20} color={colors.textSecondary} />
+            <View style={{ flex: 1 }}>
+              <Text style={[styles.rowLabel, !notificationsEnabled && styles.rowLabelDisabled]}>
+                {t('notificationSettings.lastDayBeforeBilling')}
+              </Text>
+            </View>
+            <Switch
+              value={subscriptionLastDayAlert}
+              onValueChange={setSubscriptionLastDayAlert}
+              disabled={!notificationsEnabled}
+              trackColor={{ false: colors.separator, true: colors.primary }}
+              thumbColor="#FFFFFF"
+            />
+          </View>
         </View>
       </ScrollView>
 
@@ -254,26 +352,76 @@ export default function NotificationSettingsScreen() {
         </View>
       </Modal>
 
-      {/* Default Reminder bottom sheet */}
-      <Modal visible={showReminderSheet} transparent animationType="slide" onRequestClose={() => setShowReminderSheet(false)}>
-        <TouchableOpacity style={styles.overlay} activeOpacity={1} onPress={() => setShowReminderSheet(false)} />
+      {/* Credit Reminder bottom sheet */}
+      <Modal visible={showCreditSheet} transparent animationType="slide" onRequestClose={() => setShowCreditSheet(false)}>
+        <TouchableOpacity style={styles.overlay} activeOpacity={1} onPress={() => setShowCreditSheet(false)} />
         <View style={styles.sheet}>
           <View style={styles.sheetHandle} />
-          <Text style={styles.sheetTitle}>{t('more.defaultReminder.title')}</Text>
+          <Text style={styles.sheetTitle}>{t('notificationSettings.sheetTitleCredit')}</Text>
           {REMINDER_PRESETS.map((preset, index) => (
             <View key={preset.days}>
               <TouchableOpacity
                 style={styles.option}
-                onPress={() => { setDefaultReminderDays(preset.days); setShowReminderSheet(false); }}
+                onPress={() => { setCreditReminderDays(preset.days); setShowCreditSheet(false); }}
                 accessibilityRole="radio"
-                accessibilityState={{ checked: defaultReminderDays === preset.days }}
+                accessibilityState={{ checked: creditReminderDays === preset.days }}
               >
                 <View style={{ flex: 1 }}>
                   <Text style={styles.optionLabel}>{reminderLabel(preset.days)}</Text>
                 </View>
-                {defaultReminderDays === preset.days && <Ionicons name="checkmark" size={20} color={colors.primary} />}
+                {creditReminderDays === preset.days && <Ionicons name="checkmark" size={20} color={colors.primary} />}
               </TouchableOpacity>
               {index < REMINDER_PRESETS.length - 1 && <View style={styles.optionSeparator} />}
+            </View>
+          ))}
+        </View>
+      </Modal>
+
+      {/* Warranty Reminder bottom sheet */}
+      <Modal visible={showWarrantySheet} transparent animationType="slide" onRequestClose={() => setShowWarrantySheet(false)}>
+        <TouchableOpacity style={styles.overlay} activeOpacity={1} onPress={() => setShowWarrantySheet(false)} />
+        <View style={styles.sheet}>
+          <View style={styles.sheetHandle} />
+          <Text style={styles.sheetTitle}>{t('notificationSettings.sheetTitleWarranty')}</Text>
+          {REMINDER_PRESETS.map((preset, index) => (
+            <View key={preset.days}>
+              <TouchableOpacity
+                style={styles.option}
+                onPress={() => { setWarrantyReminderDays(preset.days); setShowWarrantySheet(false); }}
+                accessibilityRole="radio"
+                accessibilityState={{ checked: warrantyReminderDays === preset.days }}
+              >
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.optionLabel}>{reminderLabel(preset.days)}</Text>
+                </View>
+                {warrantyReminderDays === preset.days && <Ionicons name="checkmark" size={20} color={colors.primary} />}
+              </TouchableOpacity>
+              {index < REMINDER_PRESETS.length - 1 && <View style={styles.optionSeparator} />}
+            </View>
+          ))}
+        </View>
+      </Modal>
+
+      {/* Subscription Reminder bottom sheet */}
+      <Modal visible={showSubscriptionSheet} transparent animationType="slide" onRequestClose={() => setShowSubscriptionSheet(false)}>
+        <TouchableOpacity style={styles.overlay} activeOpacity={1} onPress={() => setShowSubscriptionSheet(false)} />
+        <View style={styles.sheet}>
+          <View style={styles.sheetHandle} />
+          <Text style={styles.sheetTitle}>{t('notificationSettings.sheetTitleSubscription')}</Text>
+          {SUBSCRIPTION_REMINDER_PRESETS.map((preset, index) => (
+            <View key={preset.days}>
+              <TouchableOpacity
+                style={styles.option}
+                onPress={() => { setSubscriptionReminderDays(preset.days); setShowSubscriptionSheet(false); }}
+                accessibilityRole="radio"
+                accessibilityState={{ checked: subscriptionReminderDays === preset.days }}
+              >
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.optionLabel}>{subscriptionReminderLabel(preset.days)}</Text>
+                </View>
+                {subscriptionReminderDays === preset.days && <Ionicons name="checkmark" size={20} color={colors.primary} />}
+              </TouchableOpacity>
+              {index < SUBSCRIPTION_REMINDER_PRESETS.length - 1 && <View style={styles.optionSeparator} />}
             </View>
           ))}
         </View>

@@ -21,14 +21,22 @@ interface SettingsStore {
   setLanguage: (lang: AppLanguage) => void;
   notificationsEnabled: boolean;
   setNotificationsEnabled: (enabled: boolean) => void;
-  expiryNotificationEnabled: boolean;
-  setExpiryNotificationEnabled: (enabled: boolean) => void;
+  creditReminderDays: number;
+  setCreditReminderDays: (days: number) => void;
+  warrantyReminderDays: number;
+  setWarrantyReminderDays: (days: number) => void;
+  subscriptionReminderDays: number;
+  setSubscriptionReminderDays: (days: number) => void;
+  creditLastDayAlert: boolean;
+  setCreditLastDayAlert: (enabled: boolean) => void;
+  warrantyLastDayAlert: boolean;
+  setWarrantyLastDayAlert: (enabled: boolean) => void;
+  subscriptionLastDayAlert: boolean;
+  setSubscriptionLastDayAlert: (enabled: boolean) => void;
   currency: CurrencyCode;
   setCurrency: (code: CurrencyCode) => void;
   dateFormat: DateFormat;
   setDateFormat: (format: DateFormat) => void;
-  defaultReminderDays: number;
-  setDefaultReminderDays: (days: number) => void;
   notificationHour: number;
   notificationMinute: number;
   setNotificationTime: (hour: number, minute: number) => void;
@@ -49,14 +57,22 @@ export const useSettingsStore = create<SettingsStore>()(
       setLanguage: (language) => set({ language }),
       notificationsEnabled: true,
       setNotificationsEnabled: (notificationsEnabled) => set({ notificationsEnabled }),
-      expiryNotificationEnabled: true,
-      setExpiryNotificationEnabled: (expiryNotificationEnabled) => set({ expiryNotificationEnabled }),
+      creditReminderDays: 7,
+      setCreditReminderDays: (creditReminderDays) => set({ creditReminderDays }),
+      warrantyReminderDays: 7,
+      setWarrantyReminderDays: (warrantyReminderDays) => set({ warrantyReminderDays }),
+      subscriptionReminderDays: 3,
+      setSubscriptionReminderDays: (subscriptionReminderDays) => set({ subscriptionReminderDays }),
+      creditLastDayAlert: true,
+      setCreditLastDayAlert: (creditLastDayAlert) => set({ creditLastDayAlert }),
+      warrantyLastDayAlert: true,
+      setWarrantyLastDayAlert: (warrantyLastDayAlert) => set({ warrantyLastDayAlert }),
+      subscriptionLastDayAlert: true,
+      setSubscriptionLastDayAlert: (subscriptionLastDayAlert) => set({ subscriptionLastDayAlert }),
       currency: 'ILS',
       setCurrency: (currency) => set({ currency }),
       dateFormat: 'DD/MM/YYYY',
       setDateFormat: (dateFormat) => set({ dateFormat }),
-      defaultReminderDays: 7,
-      setDefaultReminderDays: (defaultReminderDays) => set({ defaultReminderDays }),
       notificationHour: 9,
       notificationMinute: 0,
       setNotificationTime: (notificationHour, notificationMinute) => set({ notificationHour, notificationMinute }),

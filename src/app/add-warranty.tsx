@@ -32,7 +32,6 @@ import { useAppTheme } from '@/hooks/useAppTheme';
 import { WarrantyStatus, type Warranty } from '@/types/warrantyTypes';
 import { DEFAULT_CATEGORY_ID, CATEGORIES } from '@/constants/categories';
 import { getCategoryForStore } from '@/data/israeliStores';
-import { REMINDER_PRESETS } from '@/constants/reminders';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { formatDate } from '@/lib/formatDate';
 import type { AppColors } from '@/constants/colors';
@@ -46,16 +45,15 @@ type StepId =
   | 'category'
   | 'productName'
   | 'expiryDate'
-  | 'reminder'
   | 'photo'
   | 'notesQuestion'
   | 'notesInput'
   | 'summary';
 
-function getSteps(noExpiry: boolean, wantsNotes: boolean | null, skipNotesQuestion = false): StepId[] {
-  const steps: StepId[] = ['storeName', 'category', 'productName', 'expiryDate'];
-  if (!noExpiry) steps.push('reminder');
-  steps.push('photo');
+function getSteps(noExpiry: boolean, wantsNotes: boolean | null, skipNotesQuestion = false, categoryChosen = false): StepId[] {
+  const steps: StepId[] = ['storeName'];
+  if (categoryChosen) steps.push('category');
+  steps.push('productName', 'expiryDate', 'photo');
   if (!skipNotesQuestion) steps.push('notesQuestion');
   if (skipNotesQuestion || wantsNotes === true) steps.push('notesInput');
   steps.push('summary');
@@ -131,24 +129,6 @@ function makeStyles(colors: AppColors, isRTL: boolean) {
     dateButtonText: { flex: 1, fontSize: 16, color: colors.textPrimary },
     datePlaceholder: { color: colors.textTertiary },
     dateError: { fontSize: 12, color: colors.danger, marginTop: 6, alignSelf: 'flex-start' },
-    // Reminder step
-    reminderGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 12 },
-    reminderChip: {
-      paddingVertical: 14,
-      paddingHorizontal: 20,
-      borderRadius: 14,
-      borderWidth: 1.5,
-      borderColor: colors.separator,
-      backgroundColor: colors.background,
-      minWidth: '45%',
-      alignItems: 'center',
-    },
-    reminderChipSelected: {
-      backgroundColor: colors.primary,
-      borderColor: colors.primary,
-    },
-    reminderChipText: { fontSize: 15, fontWeight: '500', color: colors.textSecondary },
-    reminderChipTextSelected: { color: '#FFFFFF', fontWeight: '700' },
     // Photo step
     photoStepCenter: {
       flex: 1,
@@ -306,6 +286,28 @@ function makeStyles(colors: AppColors, isRTL: boolean) {
       fontWeight: '700',
       color: colors.primary,
     },
+    categoryRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      marginTop: 20,
+      padding: 14,
+      backgroundColor: colors.card,
+      borderRadius: 12,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: colors.separator,
+    },
+    categoryRowContent: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 10,
+      flex: 1,
+    },
+    categoryRowLabel: {
+      fontSize: 15,
+      color: colors.textPrimary,
+      fontWeight: '500',
+    },
   });
 }
 
@@ -339,9 +341,6 @@ export default function AddWarrantyScreen() {
   const [noExpiry, setNoExpiry] = useState(false);
   const [expirationDate, setExpirationDate] = useState<Date | null>(null);
   const [showDatePicker, setShowDatePicker] = useState(false);
-  const [reminderDays, setReminderDays] = useState(
-    () => useSettingsStore.getState().defaultReminderDays
-  );
   const [imageUri, setImageUri] = useState<string | null>(null);
   const [cropUri, setCropUri] = useState<string | null>(null);
   const [wantsNotes, setWantsNotes] = useState<boolean | null>(null);
@@ -352,9 +351,10 @@ export default function AddWarrantyScreen() {
 
   // Step state
   const [currentStepId, setCurrentStepId] = useState<StepId>('storeName');
+  const [categoryChosen, setCategoryChosen] = useState(false);
   const { fadeAnim, slideAnim, animateTransition } = useStepAnimation();
 
-  const steps = useMemo(() => getSteps(noExpiry, wantsNotes, skipNotesQuestion), [noExpiry, wantsNotes, skipNotesQuestion]);
+  const steps = useMemo(() => getSteps(noExpiry, wantsNotes, skipNotesQuestion, categoryChosen), [noExpiry, wantsNotes, skipNotesQuestion, categoryChosen]);
   const currentStepIndex = steps.indexOf(currentStepId);
 
   // Pre-fill for edit mode
@@ -373,7 +373,6 @@ export default function AddWarrantyScreen() {
     } else {
       setNoExpiry(true);
     }
-    setReminderDays(existingWarranty.reminderDays);
     if (existingWarranty.notes) {
       setNotes(existingWarranty.notes);
       setWantsNotes(true);
@@ -395,6 +394,13 @@ export default function AddWarrantyScreen() {
     if (category !== DEFAULT_CATEGORY_ID) return;
     const mapped = getCategoryForStore(name);
     if (mapped) setCategory(mapped);
+  }
+
+  function handleTapCategoryRow() {
+    animateTransition('forward', () => {
+      setCategoryChosen(true);
+      setCurrentStepId('category');
+    });
   }
 
   // ---------------------------------------------------------------------------
@@ -458,7 +464,6 @@ export default function AddWarrantyScreen() {
       case 'category': return true;
       case 'productName': return productName.trim().length > 0;
       case 'expiryDate': return noExpiry || expirationDate !== null;
-      case 'reminder': return true;
       case 'photo': return imageUri !== null;
       case 'notesInput': return true;
       default: return false;
@@ -498,6 +503,7 @@ export default function AddWarrantyScreen() {
       return;
     }
 
+    const { warrantyReminderDays, warrantyLastDayAlert } = useSettingsStore.getState();
     setSaving(true);
 
     if (isEditing && existingWarranty) {
@@ -509,7 +515,7 @@ export default function AddWarrantyScreen() {
           category,
           expirationDate: finalExpiry,
           noExpiry,
-          reminderDays,
+          reminderDays: warrantyReminderDays,
           notes: notes.trim(),
           updatedAt: new Date(),
         };
@@ -525,8 +531,9 @@ export default function AddWarrantyScreen() {
               storeName: storeName.trim(),
               amount: 0,
               expirationDate: finalExpiry,
-              reminderDays,
-            }
+            },
+            warrantyReminderDays,
+            warrantyLastDayAlert,
           );
           if (reminderId) {
             changes.notificationId = reminderId;
@@ -563,7 +570,7 @@ export default function AddWarrantyScreen() {
       category,
       expirationDate: noExpiry ? undefined : expirationDate ?? undefined,
       noExpiry,
-      reminderDays,
+      reminderDays: warrantyReminderDays,
       notes: notes.trim(),
       status: WarrantyStatus.ACTIVE,
       imageUri: imageUri ?? undefined,
@@ -582,20 +589,23 @@ export default function AddWarrantyScreen() {
         category,
         expirationDate: finalExpiry,
         noExpiry,
-        reminderDays,
+        reminderDays: warrantyReminderDays,
         notes: notes.trim(),
         status: WarrantyStatus.ACTIVE,
         ...(familyId ? { familyId, createdBy: currentUser.uid, createdByName: displayName } : {}),
       });
 
       if (finalExpiry) {
-        const { reminderId, expiryId } = await scheduleReminderNotification({
-          id: newWarrantyId,
-          storeName: storeName.trim(),
-          amount: 0,
-          expirationDate: finalExpiry,
-          reminderDays,
-        });
+        const { reminderId, expiryId } = await scheduleReminderNotification(
+          {
+            id: newWarrantyId,
+            storeName: storeName.trim(),
+            amount: 0,
+            expirationDate: finalExpiry,
+          },
+          warrantyReminderDays,
+          warrantyLastDayAlert,
+        );
         if (reminderId || expiryId) {
           await updateWarranty(newWarrantyId, {
             ...(reminderId ? { notificationId: reminderId } : {}),
@@ -640,6 +650,7 @@ export default function AddWarrantyScreen() {
   // ---------------------------------------------------------------------------
 
   function renderStoreNameStep() {
+    const categoryObj = CATEGORIES.find((c) => c.id === category);
     return (
       <ScrollView
         style={styles.stepScroll}
@@ -653,6 +664,13 @@ export default function AddWarrantyScreen() {
           onSelectSuggestion={handleSelectStoreSuggestion}
           autoFocus
         />
+        <TouchableOpacity style={styles.categoryRow} onPress={handleTapCategoryRow}>
+          <View style={styles.categoryRowContent}>
+            {categoryObj && <Ionicons name={categoryObj.icon} size={20} color={colors.primary} />}
+            <Text style={styles.categoryRowLabel}>{t('category.' + category)}</Text>
+          </View>
+          <Ionicons name={isRTL ? 'chevron-back' : 'chevron-forward'} size={16} color={colors.textTertiary} />
+        </TouchableOpacity>
       </ScrollView>
     );
   }
@@ -753,46 +771,6 @@ export default function AddWarrantyScreen() {
             trackColor={{ false: colors.separator, true: colors.primary }}
             thumbColor="#FFFFFF"
           />
-        </View>
-      </ScrollView>
-    );
-  }
-
-  function renderReminderStep() {
-    return (
-      <ScrollView
-        style={styles.stepScroll}
-        contentContainerStyle={styles.stepContent}
-      >
-        <Text style={styles.stepTitle}>{t('addWarranty.step.reminder')}</Text>
-        <View style={styles.reminderGrid}>
-          {REMINDER_PRESETS.map((preset) => {
-            const isSelected = reminderDays === preset.days;
-            const key =
-              preset.days === 1
-                ? 'reminder.1day'
-                : preset.days === 7
-                ? 'reminder.1week'
-                : preset.days === 30
-                ? 'reminder.1month'
-                : 'reminder.3months';
-            return (
-              <TouchableOpacity
-                key={preset.days}
-                style={[styles.reminderChip, isSelected && styles.reminderChipSelected]}
-                onPress={() => setReminderDays(preset.days)}
-              >
-                <Text
-                  style={[
-                    styles.reminderChipText,
-                    isSelected && styles.reminderChipTextSelected,
-                  ]}
-                >
-                  {t(key)}
-                </Text>
-              </TouchableOpacity>
-            );
-          })}
         </View>
       </ScrollView>
     );
@@ -904,14 +882,6 @@ export default function AddWarrantyScreen() {
 
   function renderSummaryStep() {
     const categoryObj = CATEGORIES.find((c) => c.id === category);
-    const reminderKey =
-      reminderDays === 1
-        ? 'reminder.1day'
-        : reminderDays === 7
-        ? 'reminder.1week'
-        : reminderDays === 30
-        ? 'reminder.1month'
-        : 'reminder.3months';
 
     return (
       <ScrollView
@@ -961,13 +931,6 @@ export default function AddWarrantyScreen() {
             </Text>
           </View>
 
-          {!noExpiry && (
-            <View style={styles.summaryRow}>
-              <Text style={styles.summaryLabel}>{t('addWarranty.summary.reminder')}</Text>
-              <Text style={styles.summaryValue}>{t(reminderKey)}</Text>
-            </View>
-          )}
-
           {notes.trim().length > 0 && (
             <View style={[styles.summaryRow, styles.summaryRowLast]}>
               <Text style={styles.summaryLabel}>{t('addWarranty.summary.notes')}</Text>
@@ -985,7 +948,6 @@ export default function AddWarrantyScreen() {
       case 'category': return renderCategoryStep();
       case 'productName': return renderProductNameStep();
       case 'expiryDate': return renderExpiryDateStep();
-      case 'reminder': return renderReminderStep();
       case 'photo': return renderPhotoStep();
       case 'notesQuestion': return renderNotesQuestionStep();
       case 'notesInput': return renderNotesInputStep();

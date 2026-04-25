@@ -66,13 +66,15 @@ export async function scheduleNotificationAt(
 // ---------------------------------------------------------------------------
 
 /**
- * Schedules a local notification for a credit reminder.
+ * Schedules a local notification for a credit/warranty reminder.
  * If `existingNotificationId` is provided, cancels it first.
  *
  * Returns { reminderId, expiryId } — both may be null if disabled/past.
  */
 export async function scheduleReminderNotification(
-  credit: Pick<Credit, 'id' | 'storeName' | 'amount' | 'expirationDate' | 'reminderDays'>,
+  credit: Pick<Credit, 'id' | 'storeName' | 'amount' | 'expirationDate'>,
+  reminderDays: number,
+  lastDayEnabled: boolean,
   existingNotificationId?: string,
   existingExpirationNotificationId?: string,
 ): Promise<{ reminderId: string | null; expiryId: string | null }> {
@@ -83,8 +85,7 @@ export async function scheduleReminderNotification(
   if (!granted) return { reminderId: null, expiryId: null };
 
   const t = i18n.t.bind(i18n);
-  const now = new Date();
-  const { notificationHour, notificationMinute, expiryNotificationEnabled, currency } = useSettingsStore.getState();
+  const { notificationHour, notificationMinute, currency } = useSettingsStore.getState();
   const currencySymbol = CURRENCY_SYMBOLS[currency];
 
   // Cancel existing notifications before re-scheduling
@@ -93,7 +94,7 @@ export async function scheduleReminderNotification(
 
   // --- Reminder notification (X days before expiration, at user's preferred time) ---
   const triggerDate = new Date(credit.expirationDate);
-  triggerDate.setDate(triggerDate.getDate() - credit.reminderDays);
+  triggerDate.setDate(triggerDate.getDate() - reminderDays);
   triggerDate.setHours(notificationHour, notificationMinute, 0, 0);
 
   const reminderId = await scheduleNotificationAt(
@@ -102,7 +103,7 @@ export async function scheduleReminderNotification(
     t('notifications.reminder.body', {
       storeName: credit.storeName,
       amount: formatCurrency(credit.amount, currencySymbol),
-      days: credit.reminderDays,
+      days: reminderDays,
     }),
     { creditId: credit.id },
   );
@@ -111,7 +112,7 @@ export async function scheduleReminderNotification(
   const expiryTrigger = new Date(credit.expirationDate);
   expiryTrigger.setHours(notificationHour, notificationMinute, 0, 0);
 
-  const expiryId = expiryNotificationEnabled
+  const expiryId = lastDayEnabled
     ? await scheduleNotificationAt(
         expiryTrigger,
         t('notifications.expiry.title'),
@@ -158,12 +159,14 @@ export async function cancelAllNotifications(): Promise<void> {
 
 /**
  * Re-schedules notifications for all active credits (used when user re-enables notifications).
+ * Uses global credit reminder settings from the settings store.
  */
 export async function rescheduleAllNotifications(
-  credits: Pick<Credit, 'id' | 'storeName' | 'amount' | 'expirationDate' | 'reminderDays' | 'notificationId' | 'expirationNotificationId'>[]
+  credits: Pick<Credit, 'id' | 'storeName' | 'amount' | 'expirationDate' | 'notificationId' | 'expirationNotificationId'>[]
 ): Promise<void> {
+  const { creditReminderDays, creditLastDayAlert } = useSettingsStore.getState();
   for (const credit of credits) {
-    await scheduleReminderNotification(credit, credit.notificationId, credit.expirationNotificationId);
+    await scheduleReminderNotification(credit, creditReminderDays, creditLastDayAlert, credit.notificationId, credit.expirationNotificationId);
   }
 }
 

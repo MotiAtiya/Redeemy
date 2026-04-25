@@ -42,7 +42,6 @@ import {
   type Subscription,
 } from '@/types/subscriptionTypes';
 import { SUBSCRIPTION_CATEGORIES } from '@/constants/subscriptionCategories';
-import { SUBSCRIPTION_REMINDER_PRESETS } from '@/constants/subscriptionReminders';
 import { formatDate } from '@/lib/formatDate';
 import type { AppColors } from '@/constants/colors';
 
@@ -124,7 +123,6 @@ type StepId =
   | 'monthlyStructure'
   | 'commitmentMonths'
   | 'renewalType'
-  | 'reminder'
   | 'notesQuestion'
   | 'notesInput'
   | 'summary';
@@ -137,10 +135,12 @@ type FlowState = {
   wantsNotes: boolean | null;
 };
 
-function getSteps(state: FlowState): StepId[] {
+function getSteps(state: FlowState, categoryChosen = false): StepId[] {
   const { accessType, hasSpecialPeriod, billingCycle, monthlyStructure, wantsNotes } = state;
 
-  const steps: StepId[] = ['serviceName', 'category', 'registrationDate', 'accessType'];
+  const steps: StepId[] = ['serviceName'];
+  if (categoryChosen) steps.push('category');
+  steps.push('registrationDate', 'accessType');
 
   if (accessType === 'free') {
     steps.push('periodicReminderInterval', 'notesQuestion');
@@ -174,14 +174,14 @@ function getSteps(state: FlowState): StepId[] {
     if (monthlyStructure === null) return steps;
     if (monthlyStructure === 'fixed') {
       // Billing day derived from registrationDate — no separate billingDay step
-      steps.push('commitmentMonths', 'renewalType', 'reminder');
+      steps.push('commitmentMonths', 'renewalType');
     } else {
       // No fixed period → periodic review reminder (like free), not a billing countdown
       steps.push('periodicReminderInterval');
     }
   } else {
     // Annual date derived from registrationDate — no separate annualBillingDate step
-    steps.push('renewalType', 'reminder');
+    steps.push('renewalType');
   }
 
   steps.push('notesQuestion');
@@ -482,6 +482,28 @@ function makeStyles(colors: AppColors, isRTL: boolean) {
       paddingVertical: 10,
     },
     toastText: { color: '#FFFFFF', fontSize: 14, fontWeight: '500' },
+    categoryRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      marginTop: 20,
+      padding: 14,
+      backgroundColor: colors.card,
+      borderRadius: 12,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: colors.separator,
+    },
+    categoryRowContent: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 10,
+      flex: 1,
+    },
+    categoryRowLabel: {
+      fontSize: 15,
+      color: colors.textPrimary,
+      fontWeight: '500',
+    },
   });
 }
 
@@ -567,7 +589,6 @@ export default function AddSubscriptionScreen() {
   const [pendingRenewalType, setPendingRenewalType] = useState<'auto' | 'manual' | null>(null);
 
   // Reminder
-  const [reminderDays, setReminderDays] = useState(7);
   const [reminderSpecialPeriod, setReminderSpecialPeriod] = useState(true);
 
   // Notes
@@ -602,6 +623,7 @@ export default function AddSubscriptionScreen() {
 
   // Step navigation
   const [currentStepId, setCurrentStepId] = useState<StepId>('serviceName');
+  const [categoryChosen, setCategoryChosen] = useState(false);
   const { fadeAnim, slideAnim, animateTransition } = useStepAnimation();
 
   const flowState: FlowState = useMemo(() => ({
@@ -612,7 +634,7 @@ export default function AddSubscriptionScreen() {
     wantsNotes,
   }), [accessType, hasSpecialPeriod, billingCycle, monthlyStructure, wantsNotes]);
 
-  const steps = useMemo(() => getSteps(flowState), [flowState]);
+  const steps = useMemo(() => getSteps(flowState, categoryChosen), [flowState, categoryChosen]);
   const currentStepIndex = steps.indexOf(currentStepId);
 
   // Pre-fill for edit mode
@@ -623,7 +645,6 @@ export default function AddSubscriptionScreen() {
     setServiceName(s.serviceName);
     setCategory(s.category);
     if (s.currency) setCurrency(s.currency);
-    setReminderDays(s.reminderDays);
     setReminderSpecialPeriod(s.reminderSpecialPeriodEnabled ?? true);
     if (s.notes) { setNotes(s.notes); setWantsNotes(true); }
 
@@ -710,6 +731,13 @@ export default function AddSubscriptionScreen() {
     } else {
       router.back();
     }
+  }
+
+  function handleTapCategoryRow() {
+    animateTransition('forward', () => {
+      setCategoryChosen(true);
+      setCurrentStepId('category');
+    });
   }
 
   // ---------------------------------------------------------------------------
@@ -817,7 +845,6 @@ export default function AddSubscriptionScreen() {
         return !isNaN(a) && a > 0;
       }
       case 'commitmentMonths': return true;
-      case 'reminder':      return true;
       case 'notesInput':    return true;
       default:              return false;
     }
@@ -913,7 +940,7 @@ export default function AddSubscriptionScreen() {
       }
       case 'renewalType': {
         setRenewalType(pendingRenewalType);
-        animateTransition('forward', () => setCurrentStepId('reminder'));
+        goNext();
         return;
       }
       default:
@@ -1022,7 +1049,7 @@ export default function AddSubscriptionScreen() {
           : undefined,
       category,
       status: SubscriptionStatus.ACTIVE,
-      reminderDays,
+      reminderDays: useSettingsStore.getState().subscriptionReminderDays,
       reminderSpecialPeriodEnabled: hasSpecialPeriod ? reminderSpecialPeriod : undefined,
       notificationIds: [],
       notes: notes.trim() || undefined,
@@ -1100,6 +1127,7 @@ export default function AddSubscriptionScreen() {
   // ---------------------------------------------------------------------------
 
   function renderServiceNameStep() {
+    const categoryObj = SUBSCRIPTION_CATEGORIES.find((c) => c.id === category);
     return (
       <ScrollView style={styles.stepScroll} contentContainerStyle={styles.stepContent} keyboardShouldPersistTaps="handled">
         <Text style={styles.stepTitle}>{t('addSubscription.step.serviceName')}</Text>
@@ -1109,6 +1137,13 @@ export default function AddSubscriptionScreen() {
           onSelectSuggestion={(_name, categoryId) => { if (categoryId) setCategory(categoryId); }}
           autoFocus
         />
+        <TouchableOpacity style={styles.categoryRow} onPress={handleTapCategoryRow}>
+          <View style={styles.categoryRowContent}>
+            {categoryObj && <Ionicons name={categoryObj.icon} size={20} color={colors.primary} />}
+            <Text style={styles.categoryRowLabel}>{t('subscriptions.category.' + category)}</Text>
+          </View>
+          <Ionicons name={isRTL ? 'chevron-back' : 'chevron-forward'} size={16} color={colors.textTertiary} />
+        </TouchableOpacity>
       </ScrollView>
     );
   }
@@ -1531,58 +1566,6 @@ export default function AddSubscriptionScreen() {
     );
   }
 
-  function renderReminderStep() {
-    const showSpecialPeriodToggle = hasSpecialPeriod === true;
-    const showManualNote = renewalType === 'manual';
-
-    return (
-      <ScrollView style={styles.stepScroll} contentContainerStyle={styles.stepContent} keyboardShouldPersistTaps="handled">
-        <Text style={styles.stepTitle}>{t('addSubscription.step.reminder')}</Text>
-        <View style={styles.reminderGrid}>
-          {SUBSCRIPTION_REMINDER_PRESETS.map((preset) => {
-            const isSelected = reminderDays === preset.days;
-            return (
-              <TouchableOpacity
-                key={preset.days}
-                style={[styles.reminderChip, isSelected && styles.reminderChipSelected]}
-                onPress={() => setReminderDays(preset.days)}
-              >
-                <Text style={[styles.reminderChipText, isSelected && styles.reminderChipTextSelected]}>
-                  {t(preset.labelKey)}
-                </Text>
-              </TouchableOpacity>
-            );
-          })}
-        </View>
-
-        {/* Special period end reminder toggle */}
-        {showSpecialPeriodToggle && (
-          <View style={styles.toggleRow}>
-            <Text style={styles.toggleLabel}>{t('addSubscription.reminder.specialPeriodToggle')}</Text>
-            <Switch
-              value={reminderSpecialPeriod}
-              onValueChange={setReminderSpecialPeriod}
-              trackColor={{ false: colors.separator, true: colors.primary }}
-              thumbColor="#FFFFFF"
-            />
-          </View>
-        )}
-
-        {showSpecialPeriodToggle && reminderSpecialPeriod && (
-          <View style={styles.reminderNote}>
-            <Text style={styles.reminderNoteText}>{t('addSubscription.reminder.specialPeriodNote')}</Text>
-          </View>
-        )}
-
-        {showManualNote && (
-          <View style={[styles.reminderNote, { marginTop: showSpecialPeriodToggle ? 8 : 16 }]}>
-            <Text style={styles.reminderNoteText}>{t('addSubscription.reminder.manualNote')}</Text>
-          </View>
-        )}
-      </ScrollView>
-    );
-  }
-
   function renderNotesQuestionStep() {
     return (
       <View style={[styles.stepContent, styles.questionCenter]}>
@@ -1671,8 +1654,6 @@ export default function AddSubscriptionScreen() {
       ? t('addSubscription.summary.dayOfMonth', { day: registrationDate.getDate() })
       : formatDate(advanceToFuture(registrationDate), dateFormat);
 
-    const reminderDisplay = t('addSubscription.summary.reminderDays', { count: reminderDays });
-
     const isPeriodic = isFree || (billingCycle === SubscriptionBillingCycle.MONTHLY && monthlyStructure === 'noFixed');
     const renewalDisplay = isPeriodic
       ? t('addSubscription.summary.periodicReview', { months: periodicReminderMonths })
@@ -1750,13 +1731,6 @@ export default function AddSubscriptionScreen() {
             </View>
           </View>
 
-          {!isFree && (
-            <View style={styles.summaryRow}>
-              <Text style={styles.summaryLabel}>{t('addSubscription.summary.reminder')}</Text>
-              <Text style={styles.summaryValue}>{reminderDisplay}</Text>
-            </View>
-          )}
-
           {notes.trim().length > 0 ? (
             <View style={[styles.summaryRow, styles.summaryRowLast]}>
               <Text style={styles.summaryLabel}>{t('addSubscription.summary.notes')}</Text>
@@ -1786,7 +1760,6 @@ export default function AddSubscriptionScreen() {
       case 'monthlyStructure':      return renderMonthlyStructureStep();
       case 'commitmentMonths':      return renderCommitmentMonthsStep();
       case 'renewalType':           return renderRenewalTypeStep();
-      case 'reminder':              return renderReminderStep();
       case 'notesQuestion':         return renderNotesQuestionStep();
       case 'notesInput':            return renderNotesInputStep();
       case 'summary':               return renderSummaryStep();

@@ -19,7 +19,6 @@ type SchedulableSub = Pick<
   Subscription,
   | 'id'
   | 'serviceName'
-  | 'reminderDays'
   | 'billingCycle'
   | 'billingDayOfMonth'
   | 'nextBillingDate'
@@ -67,7 +66,7 @@ export async function scheduleSubscriptionNotifications(
   if (!granted) return empty;
 
   const t = i18n.t.bind(i18n);
-  const { notificationHour, notificationMinute } = useSettingsStore.getState();
+  const { notificationHour, notificationMinute, subscriptionReminderDays, subscriptionLastDayAlert } = useSettingsStore.getState();
   const result: ScheduledSubscriptionNotifications = { notificationIds: [] };
 
   // Periodic review reminder: free subscriptions + monthly with no fixed period
@@ -133,7 +132,7 @@ export async function scheduleSubscriptionNotifications(
   dayBefore.setDate(dayBefore.getDate() - 1);
 
   const reminderBefore = new Date(billingTriggerDate);
-  reminderBefore.setDate(reminderBefore.getDate() - Math.max(1, sub.reminderDays));
+  reminderBefore.setDate(reminderBefore.getDate() - Math.max(1, subscriptionReminderDays));
 
   const isManual = sub.renewalType === 'manual';
 
@@ -142,7 +141,7 @@ export async function scheduleSubscriptionNotifications(
     const firstId = await scheduleNotificationAt(
       reminderBefore,
       t('notifications.subscription.manual.title'),
-      t('notifications.subscription.manual.body', { serviceName: sub.serviceName, days: sub.reminderDays }),
+      t('notifications.subscription.manual.body', { serviceName: sub.serviceName, days: subscriptionReminderDays }),
       { subscriptionId: sub.id, type: 'subscription' },
     );
     if (firstId) result.notificationIds.push(firstId);
@@ -155,22 +154,24 @@ export async function scheduleSubscriptionNotifications(
     );
     if (secondId) result.notificationIds.push(secondId);
   } else {
-    // Auto renewal: remind N days before + on-day notification
+    // Auto renewal: remind N days before + (optionally) 1 day before renewal
     const reminderId = await scheduleNotificationAt(
       reminderBefore,
       t('notifications.subscription.auto.reminder.title'),
-      t('notifications.subscription.auto.reminder.body', { serviceName: sub.serviceName, days: sub.reminderDays }),
+      t('notifications.subscription.auto.reminder.body', { serviceName: sub.serviceName, days: subscriptionReminderDays }),
       { subscriptionId: sub.id, type: 'subscription' },
     );
     if (reminderId) result.notificationIds.push(reminderId);
 
-    const renewalId = await scheduleNotificationAt(
-      billingTriggerDate,
-      t('notifications.subscription.auto.renewal.title'),
-      t('notifications.subscription.auto.renewal.body', { serviceName: sub.serviceName }),
-      { subscriptionId: sub.id, type: 'subscription', notificationType: 'renewal' },
-    );
-    if (renewalId) result.renewalNotificationId = renewalId;
+    if (subscriptionLastDayAlert) {
+      const renewalId = await scheduleNotificationAt(
+        dayBefore,
+        t('notifications.subscription.auto.renewal.title'),
+        t('notifications.subscription.auto.renewal.body', { serviceName: sub.serviceName }),
+        { subscriptionId: sub.id, type: 'subscription', notificationType: 'renewal' },
+      );
+      if (renewalId) result.renewalNotificationId = renewalId;
+    }
   }
 
   return result;

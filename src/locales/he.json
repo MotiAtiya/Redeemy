@@ -526,9 +526,18 @@
   "notificationSettings": {
     "title": "התראות",
     "enable": "אפשר התראות",
-    "expiryDay": "התראה ביום הפקיעה",
     "notifTime": "שעת התראה",
-    "defaultReminder": "תזכורת ברירת מחדל"
+    "autoReminders": "תזכורות אוטומטיות",
+    "credits": "זיכויים",
+    "warranties": "אחריויות",
+    "subscriptions": "מנויים",
+    "reminderBefore": "תזכורת לפני תפוגה",
+    "reminderBeforeBilling": "תזכורת לפני חיוב",
+    "lastDayAlert": "התראה ביום האחרון",
+    "lastDayBeforeBilling": "התראה יום לפני החיוב",
+    "sheetTitleCredit": "תזכורת לזיכויים",
+    "sheetTitleWarranty": "תזכורת לאחריויות",
+    "sheetTitleSubscription": "תזכורת למנויים"
   },
   "reminder": {
     "1day": "יום אחד",
