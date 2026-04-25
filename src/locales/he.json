@@ -1007,6 +1007,8 @@
     "offline": "לא ניתן לשמור במצב לא מקוון",
     "namePlaceholder": "שם",
     "customLabelPlaceholder": "תיאור האירוע (למשל: יום העלייה לארץ)",
+    "calendarGregorian": "לועזי",
+    "calendarHebrew": "עברי",
     "useHebrewDate": "תזכורת בתאריך העברי",
     "afterSunset": "האירוע היה אחרי השקיעה",
     "hebrewDateConfirm": "התאריך העברי של האירוע:",

@@ -1008,6 +1008,8 @@
     "offline": "Cannot save in offline mode",
     "namePlaceholder": "Name",
     "customLabelPlaceholder": "Event description (e.g. Aliyah Anniversary)",
+    "calendarGregorian": "Gregorian",
+    "calendarHebrew": "Hebrew",
     "useHebrewDate": "Remind on Hebrew calendar date",
     "afterSunset": "The event occurred after sunset",
     "hebrewDateConfirm": "Hebrew date of this event:",

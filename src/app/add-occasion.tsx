@@ -34,10 +34,10 @@ import type { AppColors } from '@/constants/colors';
 // Steps
 // ---------------------------------------------------------------------------
 
-type StepId = 'type' | 'name' | 'date' | 'hebrewDate' | 'summary';
+type StepId = 'type' | 'name' | 'date' | 'summary';
 
 function getSteps(): StepId[] {
-  return ['type', 'name', 'date', 'hebrewDate', 'summary'];
+  return ['type', 'name', 'date', 'summary'];
 }
 
 // ---------------------------------------------------------------------------
@@ -59,14 +59,34 @@ function makeStyles(colors: AppColors, isRTL: boolean) {
       fontSize: 15,
       color: colors.textSecondary,
       alignSelf: 'flex-start',
-      marginBottom: 4,
+      marginBottom: 2,
     },
     hebrewPreview: {
       fontSize: 13,
       color: colors.textTertiary,
       alignSelf: 'flex-start',
-      marginBottom: 20,
+      marginBottom: 12,
     },
+    calendarChips: {
+      flexDirection: 'row',
+      gap: 10,
+      marginTop: 8,
+    },
+    calendarChip: {
+      flex: 1,
+      paddingVertical: 10,
+      borderRadius: 14,
+      borderWidth: 2,
+      borderColor: colors.separator,
+      backgroundColor: colors.surface,
+      alignItems: 'center',
+    },
+    calendarChipActive: {
+      borderColor: colors.primary,
+      backgroundColor: colors.primarySurface,
+    },
+    calendarChipText: { fontSize: 15, fontWeight: '600', color: colors.textSecondary },
+    calendarChipTextActive: { color: colors.primary },
     continueBtn: {
       height: 54,
       borderRadius: 14,
@@ -288,7 +308,6 @@ export default function AddOccasionScreen() {
         return name.trim().length > 0 &&
           (occasionType !== 'other' || customLabel.trim().length > 0);
       case 'date':
-      case 'hebrewDate':
         return true;
       default:
         return false;
@@ -444,6 +463,7 @@ export default function AddOccasionScreen() {
         {hebrewDatePreview && (
           <Text style={styles.hebrewPreview}>{hebrewDatePreview}</Text>
         )}
+
         <DateTimePicker
           value={eventDate}
           mode="date"
@@ -452,28 +472,25 @@ export default function AddOccasionScreen() {
           onChange={(_: DateTimePickerEvent, date?: Date) => date && setEventDate(date)}
           locale="en-GB"
         />
-      </ScrollView>
-    );
-  }
 
-  function renderHebrewDateStep() {
-    return (
-      <ScrollView style={styles.stepScroll} contentContainerStyle={styles.stepContent} keyboardShouldPersistTaps="handled">
-        <Text style={styles.stepTitle}>{t('addOccasion.step.hebrewDate')}</Text>
-
-        <View style={styles.toggleRow}>
-          <View style={{ flex: 1 }}>
-            <Text style={{ fontSize: 15, color: colors.textPrimary, alignSelf: 'flex-start' }}>
-              {t('addOccasion.useHebrewDate')}
+        {/* Calendar type selector */}
+        <View style={styles.calendarChips}>
+          <TouchableOpacity
+            style={[styles.calendarChip, !useHebrewDate && styles.calendarChipActive]}
+            onPress={() => setUseHebrewDate(false)}
+          >
+            <Text style={[styles.calendarChipText, !useHebrewDate && styles.calendarChipTextActive]}>
+              {t('addOccasion.calendarGregorian')}
             </Text>
-          </View>
-          <Switch
-            style={{ transform: [{ scaleX: isRTL ? -1 : 1 }] }}
-            value={useHebrewDate}
-            onValueChange={setUseHebrewDate}
-            trackColor={{ false: colors.separator, true: colors.primary }}
-            thumbColor="#FFFFFF"
-          />
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.calendarChip, useHebrewDate && styles.calendarChipActive]}
+            onPress={() => setUseHebrewDate(true)}
+          >
+            <Text style={[styles.calendarChipText, useHebrewDate && styles.calendarChipTextActive]}>
+              {t('addOccasion.calendarHebrew')}
+            </Text>
+          </TouchableOpacity>
         </View>
 
         {useHebrewDate && (
@@ -542,7 +559,6 @@ export default function AddOccasionScreen() {
       case 'type': return renderTypeStep();
       case 'name': return renderNameStep();
       case 'date': return renderDateStep();
-      case 'hebrewDate': return renderHebrewDateStep();
       case 'summary': return renderSummaryStep();
     }
   }
