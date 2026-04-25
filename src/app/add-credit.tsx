@@ -323,13 +323,17 @@ function makeStyles(colors: AppColors, isRTL: boolean) {
     categoryRowContent: {
       flexDirection: 'row',
       alignItems: 'center',
-      gap: 10,
-      flex: 1,
+      gap: 6,
     },
-    categoryRowLabel: {
+    categoryRowTitle: {
       fontSize: 15,
       color: colors.textPrimary,
       fontWeight: '500',
+    },
+    categoryRowLabel: {
+      fontSize: 15,
+      color: colors.textSecondary,
+      fontWeight: '400',
     },
   });
 }
@@ -715,11 +719,12 @@ export default function AddCreditScreen() {
           autoFocus
         />
         <TouchableOpacity style={styles.categoryRow} onPress={handleTapCategoryRow}>
+          <Text style={styles.categoryRowTitle}>{t('addCredit.category')}</Text>
           <View style={styles.categoryRowContent}>
-            {categoryObj && <Ionicons name={categoryObj.icon} size={20} color={colors.primary} />}
+            {categoryObj && <Ionicons name={categoryObj.icon} size={18} color={colors.textSecondary} />}
             <Text style={styles.categoryRowLabel}>{t('category.' + category)}</Text>
+            <Ionicons name={isRTL ? 'chevron-back' : 'chevron-forward'} size={16} color={colors.textTertiary} />
           </View>
-          <Ionicons name={isRTL ? 'chevron-back' : 'chevron-forward'} size={16} color={colors.textTertiary} />
         </TouchableOpacity>
       </ScrollView>
     );
