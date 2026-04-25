@@ -324,16 +324,8 @@ export default function CreditDetailScreen() {
             icon="calendar-outline"
             label={t('credit.detail.expires')}
             value={expirationDate ? formatDate(expirationDate, dateFormat) : t('credit.detail.noExpiry')}
-            showSeparator={!!expirationDate}
+            showSeparator={!!credit.notes}
           />
-          {expirationDate && (
-            <DetailRow
-              icon="notifications-outline"
-              label={t('credit.detail.reminder')}
-              value={t('credit.detail.reminderDays', { count: credit.reminderDays })}
-              showSeparator={!!credit.notes}
-            />
-          )}
           {!!credit.notes && (
             <DetailRow
               icon="document-text-outline"

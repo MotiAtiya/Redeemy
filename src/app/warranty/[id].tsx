@@ -320,16 +320,8 @@ export default function WarrantyDetailScreen() {
                 ? formatDate(expirationDate, dateFormat)
                 : t('warranty.detail.noExpiry')
             }
-            showSeparator={!!(expirationDate && !warranty.noExpiry)}
+            showSeparator={!!warranty.notes}
           />
-          {expirationDate && !warranty.noExpiry && (
-            <DetailRow
-              icon="notifications-outline"
-              label={t('warranty.detail.reminder')}
-              value={t('credit.detail.reminderDays', { count: warranty.reminderDays })}
-              showSeparator={!!warranty.notes}
-            />
-          )}
           {!!warranty.notes && (
             <DetailRow
               icon="document-text-outline"
