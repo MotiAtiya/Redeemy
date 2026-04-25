@@ -829,7 +829,8 @@
       "title": "Is there a special period at the start?",
       "sub": "E.g. free trial, introductory discounted price",
       "yes": "Yes, there's a special period",
-      "no": "No, starts at the regular price"
+      "no": "No",
+      "noDesc": "Starts at the regular price"
     },
     "specialPeriod": {
       "typeTrial": "Free trial",

@@ -56,13 +56,14 @@ interface MonthWheelPickerProps {
   value: number;
   onChange: (month: number) => void;
   max?: number;
+  visibleItems?: number;
   colors: AppColors;
   labelFn: (n: number) => string;
 }
 
-function MonthWheelPicker({ value, onChange, max = 36, colors, labelFn }: MonthWheelPickerProps) {
+function MonthWheelPicker({ value, onChange, max = 36, visibleItems = DAY_VISIBLE, colors, labelFn }: MonthWheelPickerProps) {
   const months = Array.from({ length: max }, (_, i) => i + 1);
-  const center = Math.floor(DAY_VISIBLE / 2);
+  const center = Math.floor(visibleItems / 2);
 
   function handleScrollEnd(e: { nativeEvent: { contentOffset: { y: number } } }) {
     const index = Math.round(e.nativeEvent.contentOffset.y / DAY_ITEM_H);
@@ -71,7 +72,7 @@ function MonthWheelPicker({ value, onChange, max = 36, colors, labelFn }: MonthW
   }
 
   return (
-    <View style={{ height: DAY_ITEM_H * DAY_VISIBLE, overflow: 'hidden', borderRadius: 14, backgroundColor: colors.surface }}>
+    <View style={{ height: DAY_ITEM_H * visibleItems, overflow: 'hidden', borderRadius: 14, backgroundColor: colors.surface }}>
       <View
         style={{
           position: 'absolute', left: 32, right: 32,
@@ -123,8 +124,6 @@ type StepId =
   | 'monthlyStructure'
   | 'commitmentMonths'
   | 'renewalType'
-  | 'notesQuestion'
-  | 'notesInput'
   | 'summary';
 
 type FlowState = {
@@ -132,20 +131,17 @@ type FlowState = {
   hasSpecialPeriod: boolean | null;
   billingCycle: SubscriptionBillingCycle | null;
   monthlyStructure: 'fixed' | 'noFixed' | null;
-  wantsNotes: boolean | null;
 };
 
 function getSteps(state: FlowState, categoryChosen = false): StepId[] {
-  const { accessType, hasSpecialPeriod, billingCycle, monthlyStructure, wantsNotes } = state;
+  const { accessType, hasSpecialPeriod, billingCycle, monthlyStructure } = state;
 
   const steps: StepId[] = ['serviceName'];
   if (categoryChosen) steps.push('category');
   steps.push('registrationDate', 'accessType');
 
   if (accessType === 'free') {
-    steps.push('periodicReminderInterval', 'notesQuestion');
-    if (wantsNotes === true) steps.push('notesInput');
-    steps.push('summary');
+    steps.push('periodicReminderInterval', 'summary');
     return steps;
   }
 
@@ -184,8 +180,6 @@ function getSteps(state: FlowState, categoryChosen = false): StepId[] {
     steps.push('renewalType');
   }
 
-  steps.push('notesQuestion');
-  if (wantsNotes === true) steps.push('notesInput');
   steps.push('summary');
 
   return steps;
@@ -204,7 +198,6 @@ function makeStyles(colors: AppColors, isRTL: boolean) {
       fontWeight: '700',
       color: colors.textPrimary,
       alignSelf: 'flex-start',
-      textAlign: isRTL ? 'right' : 'left',
       marginBottom: 16,
     },
     stepSub: {
@@ -416,22 +409,6 @@ function makeStyles(colors: AppColors, isRTL: boolean) {
     },
     toggleLabel: { fontSize: 15, color: colors.textPrimary, flex: 1, paddingEnd: 12, textAlign: isRTL ? 'right' : 'left' },
 
-    // Notes input
-    notesInput: {
-      borderWidth: 1,
-      borderColor: colors.separator,
-      borderRadius: 12,
-      paddingHorizontal: 16,
-      paddingTop: 14,
-      paddingBottom: 14,
-      fontSize: 15,
-      color: colors.textPrimary,
-      backgroundColor: colors.background,
-      minHeight: 120,
-      textAlignVertical: 'top',
-      textAlign: isRTL ? 'right' : 'left',
-    },
-
     // Summary step
     summaryCard: {
       borderRadius: 16,
@@ -579,7 +556,6 @@ export default function AddSubscriptionScreen() {
 
   // Registration date (anchor for billing day, annual renewal, and review reminders)
   const [registrationDate, setRegistrationDate] = useState<Date>(new Date());
-  const [showDatePicker, setShowDatePicker] = useState(false);
 
   // Billing
   const [billingCycle, setBillingCycle] = useState<SubscriptionBillingCycle | null>(null);
@@ -596,7 +572,6 @@ export default function AddSubscriptionScreen() {
   const [reminderSpecialPeriod, setReminderSpecialPeriod] = useState(true);
 
   // Notes
-  const [wantsNotes, setWantsNotes] = useState<boolean | null>(null);
   const [notes, setNotes] = useState('');
 
   const [saving, setSaving] = useState(false);
@@ -635,8 +610,7 @@ export default function AddSubscriptionScreen() {
     hasSpecialPeriod,
     billingCycle,
     monthlyStructure,
-    wantsNotes,
-  }), [accessType, hasSpecialPeriod, billingCycle, monthlyStructure, wantsNotes]);
+  }), [accessType, hasSpecialPeriod, billingCycle, monthlyStructure]);
 
   const steps = useMemo(() => getSteps(flowState, categoryChosen), [flowState, categoryChosen]);
   const currentStepIndex = steps.indexOf(currentStepId);
@@ -650,7 +624,7 @@ export default function AddSubscriptionScreen() {
     setCategory(s.category);
     if (s.currency) setCurrency(s.currency);
     setReminderSpecialPeriod(s.reminderSpecialPeriodEnabled ?? true);
-    if (s.notes) { setNotes(s.notes); setWantsNotes(true); }
+    if (s.notes) setNotes(s.notes);
 
     // Access type
     if (s.isFree) {
@@ -849,7 +823,6 @@ export default function AddSubscriptionScreen() {
         return !isNaN(a) && a > 0;
       }
       case 'commitmentMonths': return true;
-      case 'notesInput':    return true;
       default:              return false;
     }
   }, [currentStepId, serviceName,
@@ -907,7 +880,6 @@ export default function AddSubscriptionScreen() {
   }
 
   function onDateChange(_event: DateTimePickerEvent, date?: Date) {
-    if (Platform.OS === 'android') setShowDatePicker(false);
     if (date) setRegistrationDate(date);
   }
 
@@ -1205,12 +1177,11 @@ export default function AddSubscriptionScreen() {
 
   function renderPeriodicReminderIntervalStep() {
     const isFreeCtx = accessType === 'free';
-    const showSpecialPeriodToggle = hasSpecialPeriod === true;
 
     return (
       <ScrollView style={styles.stepScroll} contentContainerStyle={styles.stepContent} keyboardShouldPersistTaps="handled">
         <Text style={styles.stepTitle}>{t('addSubscription.step.periodicReminderInterval')}</Text>
-        <Text style={styles.stepSub}>
+        <Text style={[styles.stepSub, { textAlign: 'left' }]}>
           {isFreeCtx
             ? t('addSubscription.periodicReminder.subFree')
             : t('addSubscription.periodicReminder.subPaid')}
@@ -1222,27 +1193,6 @@ export default function AddSubscriptionScreen() {
           colors={colors}
           labelFn={(n) => t('addSubscription.periodicReminder.option', { count: n })}
         />
-
-        {/* Special period end reminder toggle — shown when there's a trial/discounted period */}
-        {showSpecialPeriodToggle && (
-          <>
-            <View style={styles.toggleRow}>
-              <Text style={styles.toggleLabel}>{t('addSubscription.reminder.specialPeriodToggle')}</Text>
-              <Switch
-                style={{ transform: [{ scaleX: isRTL ? -1 : 1 }] }}
-                value={reminderSpecialPeriod}
-                onValueChange={setReminderSpecialPeriod}
-                trackColor={{ false: colors.separator, true: colors.primary }}
-                thumbColor="#FFFFFF"
-              />
-            </View>
-            {reminderSpecialPeriod && (
-              <View style={styles.reminderNote}>
-                <Text style={styles.reminderNoteText}>{t('addSubscription.reminder.specialPeriodNote')}</Text>
-              </View>
-            )}
-          </>
-        )}
       </ScrollView>
     );
   }
@@ -1250,7 +1200,7 @@ export default function AddSubscriptionScreen() {
   function renderSpecialPeriodQuestionStep() {
     return (
       <ScrollView style={styles.stepScroll} contentContainerStyle={styles.stepContent} keyboardShouldPersistTaps="handled">
-        <Text style={styles.stepTitle}>{t('addSubscription.specialPeriodQuestion.title')}</Text>
+        <Text style={[styles.stepTitle, { textAlign: 'left' }]}>{t('addSubscription.specialPeriodQuestion.title')}</Text>
         <View style={styles.choiceCards}>
           <Pressable
             style={[styles.choiceCard, pendingHasSpecialPeriod === true && styles.choiceCardSelected]}
@@ -1275,6 +1225,7 @@ export default function AddSubscriptionScreen() {
               <Text style={[styles.choiceCardTitle, pendingHasSpecialPeriod === false && styles.choiceCardTitleSelected]}>
                 {t('addSubscription.specialPeriodQuestion.no')}
               </Text>
+              <Text style={styles.choiceCardDesc}>{t('addSubscription.specialPeriodQuestion.noDesc')}</Text>
             </View>
           </Pressable>
         </View>
@@ -1336,6 +1287,7 @@ export default function AddSubscriptionScreen() {
             value={specialPeriodMonths}
             onChange={setSpecialPeriodMonths}
             max={24}
+            visibleItems={3}
             colors={colors}
             labelFn={(n) => t('addSubscription.commitmentMonths.option', { count: n })}
           />
@@ -1344,6 +1296,7 @@ export default function AddSubscriptionScreen() {
             value={specialPeriodDays}
             onChange={setSpecialPeriodDays}
             max={90}
+            visibleItems={3}
             colors={colors}
             labelFn={(n) => t('addSubscription.specialPeriod.daysOption', { count: n })}
           />
@@ -1367,6 +1320,22 @@ export default function AddSubscriptionScreen() {
             <CurrencyPicker value={currency} onChange={setCurrency} />
           </>
         )}
+
+        {/* End-of-special-period reminder toggle */}
+        <View style={[styles.toggleRow, { marginTop: 24 }]}>
+          <View style={{ flex: 1 }}>
+            <Text style={{ fontSize: 15, color: colors.textPrimary, alignSelf: 'flex-start' }}>
+              {t('addSubscription.reminder.specialPeriodToggle')}
+            </Text>
+          </View>
+          <Switch
+            style={{ transform: [{ scaleX: isRTL ? -1 : 1 }] }}
+            value={reminderSpecialPeriod}
+            onValueChange={setReminderSpecialPeriod}
+            trackColor={{ false: colors.separator, true: colors.primary }}
+            thumbColor="#FFFFFF"
+          />
+        </View>
       </ScrollView>
     );
   }
@@ -1493,45 +1462,20 @@ export default function AddSubscriptionScreen() {
     return (
       <ScrollView
         style={styles.stepScroll}
-        contentContainerStyle={[styles.stepContent, { paddingBottom: showDatePicker ? 320 : 16 }]}
+        contentContainerStyle={styles.stepContent}
         keyboardShouldPersistTaps="handled"
       >
         <Text style={styles.stepTitle}>{t('addSubscription.step.registrationDate')}</Text>
         <Text style={styles.stepSub}>{t('addSubscription.registrationDate.sub')}</Text>
 
-        {/* Quick "today" option */}
-        <TouchableOpacity
-          style={[styles.choiceCard, isToday(registrationDate) && styles.choiceCardSelected, { marginBottom: 16 }]}
-          onPress={() => { setRegistrationDate(new Date()); setShowDatePicker(false); }}
-        >
-          <View style={styles.choiceCardContent}>
-            <Text style={[styles.choiceCardTitle, isToday(registrationDate) && styles.choiceCardTitleSelected]}>
-              {t('addSubscription.registrationDate.today')}
-            </Text>
-          </View>
-        </TouchableOpacity>
-
-        {/* Manual date picker for past date */}
-        <TouchableOpacity
-          style={[styles.dateButton, !isToday(registrationDate) && { borderColor: colors.primary }]}
-          onPress={() => setShowDatePicker((v) => !v)}
-        >
-          <Ionicons name="calendar-outline" size={20} color={colors.textSecondary} />
-          <Text style={[styles.dateButtonText, isToday(registrationDate) && styles.datePlaceholder]}>
-            {!isToday(registrationDate) ? formatDate(registrationDate, dateFormat) : t('addSubscription.registrationDate.orChooseDate')}
-          </Text>
-        </TouchableOpacity>
-
-        {showDatePicker && (
-          <DateTimePicker
-            value={registrationDate}
-            mode="date"
-            display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-            maximumDate={new Date()}
-            onChange={onDateChange}
-            locale="en-GB"
-          />
-        )}
+        <DateTimePicker
+          value={registrationDate}
+          mode="date"
+          display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+          maximumDate={new Date()}
+          onChange={onDateChange}
+          locale="en-GB"
+        />
       </ScrollView>
     );
   }
@@ -1568,56 +1512,6 @@ export default function AddSubscriptionScreen() {
             </View>
           </Pressable>
         </View>
-      </ScrollView>
-    );
-  }
-
-  function renderNotesQuestionStep() {
-    return (
-      <View style={[styles.stepContent, styles.questionCenter]}>
-        <View style={styles.questionIcon}>
-          <Ionicons name="chatbubble-ellipses-outline" size={40} color={colors.primary} />
-        </View>
-        <Text style={styles.questionTitle}>{t('addSubscription.step.notesQuestion')}</Text>
-        <Text style={styles.questionSub}>{t('addSubscription.stepSub.notesQuestion')}</Text>
-        <TouchableOpacity
-          style={styles.questionBtn}
-          onPress={() => {
-            setWantsNotes(true);
-            animateTransition('forward', () => setCurrentStepId('notesInput'));
-          }}
-        >
-          <Text style={styles.questionBtnText}>{t('addSubscription.notesYes')}</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[styles.questionBtn, styles.questionBtnSecondary]}
-          onPress={() => {
-            setWantsNotes(false);
-            animateTransition('forward', () => setCurrentStepId('summary'));
-          }}
-        >
-          <Text style={[styles.questionBtnText, styles.questionBtnTextSecondary]}>
-            {t('addSubscription.notesNo')}
-          </Text>
-        </TouchableOpacity>
-      </View>
-    );
-  }
-
-  function renderNotesInputStep() {
-    return (
-      <ScrollView style={styles.stepScroll} contentContainerStyle={styles.stepContent} keyboardShouldPersistTaps="handled">
-        <Text style={styles.stepTitle}>{t('addSubscription.step.notesInput')}</Text>
-        <TextInput
-          style={styles.notesInput}
-          placeholder={t('addSubscription.notesPlaceholder')}
-          placeholderTextColor={colors.textTertiary}
-          multiline
-          numberOfLines={5}
-          value={notes}
-          onChangeText={setNotes}
-          autoFocus
-        />
       </ScrollView>
     );
   }
@@ -1737,14 +1631,17 @@ export default function AddSubscriptionScreen() {
             </View>
           </View>
 
-          {notes.trim().length > 0 ? (
-            <View style={[styles.summaryRow, styles.summaryRowLast]}>
-              <Text style={styles.summaryLabel}>{t('addSubscription.summary.notes')}</Text>
-              <Text style={styles.summaryValue} numberOfLines={3}>{notes}</Text>
-            </View>
-          ) : (
-            <View style={[styles.summaryRow, styles.summaryRowLast]} />
-          )}
+          <View style={[styles.summaryRow, styles.summaryRowLast, { alignItems: 'flex-start' }]}>
+            <Text style={[styles.summaryLabel, { paddingTop: 2 }]}>{t('addSubscription.summary.notes')}</Text>
+            <TextInput
+              style={[styles.summaryValue, { textAlignVertical: 'top', minHeight: 36 }]}
+              placeholder={t('addSubscription.notesPlaceholder')}
+              placeholderTextColor={colors.textTertiary}
+              multiline
+              value={notes}
+              onChangeText={setNotes}
+            />
+          </View>
         </View>
       </ScrollView>
     );
@@ -1766,8 +1663,6 @@ export default function AddSubscriptionScreen() {
       case 'monthlyStructure':      return renderMonthlyStructureStep();
       case 'commitmentMonths':      return renderCommitmentMonthsStep();
       case 'renewalType':           return renderRenewalTypeStep();
-      case 'notesQuestion':         return renderNotesQuestionStep();
-      case 'notesInput':            return renderNotesInputStep();
       case 'summary':               return renderSummaryStep();
     }
   }
@@ -1777,9 +1672,6 @@ export default function AddSubscriptionScreen() {
   // ---------------------------------------------------------------------------
 
   function renderFooterButton() {
-    // notesQuestion handles its own navigation (auto-advance on tap)
-    if (currentStepId === 'notesQuestion') return null;
-
     if (currentStepId === 'summary') {
       return (
         <TouchableOpacity style={styles.continueBtn} onPress={handleSave} disabled={saving}>

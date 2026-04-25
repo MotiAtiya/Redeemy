@@ -254,7 +254,7 @@
     "notes": "הערות",
     "notesPlaceholder": "קוד הנחה, הוראות מימוש, שם החנות…",
     "notesYes": "כן, אוסיף הערה",
-    "notesNo": "דלגו",
+    "notesNo": "דילוג",
     "noPhotoYet": "טרם צולמה תמונה",
     "step": {
       "storeName": "שם החנות",
@@ -329,7 +329,7 @@
     "chooseGallery": "בחר מהגלריה",
     "takePhoto": "צילום תמונה",
     "notesYes": "הוספת הערות",
-    "notesNo": "דלגו",
+    "notesNo": "דילוג",
     "notesPlaceholder": "פרטי אחריות, מספר סידורי...",
     "summary": {
       "store": "חנות",
@@ -752,8 +752,8 @@
     "cancelledBanner": "בוטל ב-{{date}}"
   },
   "onboarding": {
-    "skip": "דלגו",
-    "continue": "המשיכו",
+    "skip": "דילוג",
+    "continue": "המשך",
     "viewTour": "צפו בהדרכה מחדש",
     "welcome": {
       "title": "ברוכים הבאים ל-Redeemy",
@@ -828,7 +828,8 @@
       "title": "האם יש תקופה מיוחדת בהתחלה?",
       "sub": "לדוגמה: ניסיון חינמי, מחיר מוזל לתקופה",
       "yes": "כן, יש תקופה מיוחדת",
-      "no": "לא, מתחיל מייד במחיר הרגיל"
+      "no": "לא",
+      "noDesc": "מתחיל מיד במחיר הרגיל"
     },
     "specialPeriod": {
       "typeTrial": "ניסיון חינמי",
@@ -943,7 +944,7 @@
       "notesInput": "כתוב כל מידע שתרצה לזכור"
     },
     "notesYes": "כן, אוסיף הערה",
-    "notesNo": "דלגו",
+    "notesNo": "דילוג",
     "notesPlaceholder": "פרטי המנוי, פרטי חשבון…"
   }
 }

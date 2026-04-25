@@ -65,6 +65,7 @@ function makeStyles(colors: AppColors) {
     storeName: { fontSize: 22, fontWeight: '700', color: colors.textPrimary, alignSelf: 'flex-start' },
     productName: { fontSize: 28, fontWeight: '800', color: colors.textPrimary, letterSpacing: -0.5, alignSelf: 'flex-start' },
     detailsCard: { backgroundColor: colors.surface, borderRadius: 14, overflow: 'hidden' },
+    addedFooterText: { fontSize: 12, color: colors.textTertiary, alignSelf: 'flex-start' },
     footer: {
       padding: 16,
       paddingBottom: 8,
@@ -327,16 +328,13 @@ export default function WarrantyDetailScreen() {
               icon="document-text-outline"
               label={t('warranty.detail.notes')}
               value={warranty.notes}
-              showSeparator
               multiline
             />
           )}
-          <DetailRow
-            icon="time-outline"
-            label={t('warranty.detail.added')}
-            value={formatDate(new Date(warranty.createdAt as Date), dateFormat)}
-          />
         </View>
+        <Text style={styles.addedFooterText}>
+          {t('warranty.detail.added')}: {formatDate(new Date(warranty.createdAt as Date), dateFormat)}
+        </Text>
       </ScrollView>
 
       <View style={styles.footer}>

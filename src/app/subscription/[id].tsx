@@ -76,6 +76,7 @@ function makeStyles(colors: AppColors) {
     },
     // Details card
     detailsCard: { backgroundColor: colors.surface, borderRadius: 14, overflow: 'hidden' },
+    addedFooterText: { fontSize: 12, color: colors.textTertiary, alignSelf: 'flex-start' },
     // Footer
     footer: {
       padding: 16,
@@ -420,7 +421,7 @@ export default function SubscriptionDetailScreen() {
             value={sub.renewalType === 'manual'
               ? t('subscription.detail.manualRenewal')
               : t('subscription.detail.autoRenewal')}
-            showSeparator
+            showSeparator={!!sub.reminderSpecialPeriodEnabled || !!sub.notes || !!familyCreatorName}
           />
 
           {/* Special period reminder */}
@@ -444,17 +445,6 @@ export default function SubscriptionDetailScreen() {
             />
           )}
 
-          {/* Added date */}
-          <DetailRow
-            icon="time-outline"
-            label={t('subscription.detail.added')}
-            value={formatDate(
-              sub.createdAt instanceof Date ? sub.createdAt : new Date(sub.createdAt as unknown as string),
-              dateFormat
-            )}
-            showSeparator={!!familyCreatorName}
-          />
-
           {/* Added by (family member) */}
           {!!familyCreatorName && (
             <DetailRow
@@ -464,6 +454,12 @@ export default function SubscriptionDetailScreen() {
             />
           )}
         </View>
+        <Text style={styles.addedFooterText}>
+          {t('subscription.detail.added')}: {formatDate(
+            sub.createdAt instanceof Date ? sub.createdAt : new Date(sub.createdAt as unknown as string),
+            dateFormat
+          )}
+        </Text>
       </ScrollView>
 
       {/* Footer */}

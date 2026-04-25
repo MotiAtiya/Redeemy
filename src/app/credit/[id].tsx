@@ -66,6 +66,7 @@ function makeStyles(colors: AppColors) {
     storeName: { fontSize: 22, fontWeight: '700', color: colors.textPrimary, alignSelf: 'flex-start' },
     amount: { fontSize: 36, fontWeight: '800', color: colors.textPrimary, letterSpacing: -1, alignSelf: 'flex-start' },
     detailsCard: { backgroundColor: colors.surface, borderRadius: 14, overflow: 'hidden' },
+    addedFooterText: { fontSize: 12, color: colors.textTertiary, alignSelf: 'flex-start' },
     footer: {
       padding: 16,
       paddingBottom: 8,
@@ -331,16 +332,13 @@ export default function CreditDetailScreen() {
               icon="document-text-outline"
               label={t('credit.detail.notes')}
               value={credit.notes}
-              showSeparator
               multiline
             />
           )}
-          <DetailRow
-            icon="time-outline"
-            label={t('credit.detail.added')}
-            value={formatDate(new Date(credit.createdAt as Date), dateFormat)}
-          />
         </View>
+        <Text style={styles.addedFooterText}>
+          {t('credit.detail.added')}: {formatDate(new Date(credit.createdAt as Date), dateFormat)}
+        </Text>
       </ScrollView>
 
       <View style={styles.footer}>

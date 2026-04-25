@@ -50,17 +50,12 @@ type StepId =
   | 'amount'
   | 'expiryDate'
   | 'photo'
-  | 'notesQuestion'
-  | 'notesInput'
   | 'summary';
 
-function getSteps(noExpiry: boolean, wantsNotes: boolean | null, skipNotesQuestion = false, categoryChosen = false): StepId[] {
+function getSteps(categoryChosen = false): StepId[] {
   const steps: StepId[] = ['storeName'];
   if (categoryChosen) steps.push('category');
-  steps.push('amount', 'expiryDate', 'photo');
-  if (!skipNotesQuestion) steps.push('notesQuestion');
-  if (skipNotesQuestion || wantsNotes === true) steps.push('notesInput');
-  steps.push('summary');
+  steps.push('amount', 'expiryDate', 'photo', 'summary');
   return steps;
 }
 
@@ -200,66 +195,6 @@ function makeStyles(colors: AppColors, isRTL: boolean) {
       paddingHorizontal: 16,
     },
     retakeBtnText: { fontSize: 14, color: colors.primary, fontWeight: '500' },
-    // Notes question step
-    notesQCenter: {
-      flex: 1,
-      justifyContent: 'center',
-      alignItems: 'center',
-      paddingHorizontal: 24,
-      gap: 16,
-    },
-    notesQIcon: {
-      width: 90,
-      height: 90,
-      borderRadius: 45,
-      backgroundColor: colors.primarySurface,
-      justifyContent: 'center',
-      alignItems: 'center',
-      marginBottom: 8,
-    },
-    notesQTitle: {
-      fontSize: 24,
-      fontWeight: '700',
-      color: colors.textPrimary,
-      textAlign: 'center',
-    },
-    notesQSub: {
-      fontSize: 15,
-      color: colors.textSecondary,
-      textAlign: 'center',
-      lineHeight: 22,
-      marginBottom: 16,
-    },
-    notesQBtn: {
-      width: '100%',
-      height: 54,
-      borderRadius: 14,
-      backgroundColor: colors.primary,
-      justifyContent: 'center',
-      alignItems: 'center',
-    },
-    notesQBtnSecondary: {
-      backgroundColor: 'transparent',
-      borderWidth: 1.5,
-      borderColor: colors.separator,
-    },
-    notesQBtnText: { fontSize: 16, fontWeight: '700', color: '#FFFFFF' },
-    notesQBtnTextSecondary: { color: colors.textSecondary, fontWeight: '500' },
-    // Notes input step
-    notesInput: {
-      borderWidth: 1,
-      borderColor: colors.separator,
-      borderRadius: 12,
-      paddingHorizontal: 16,
-      paddingTop: 14,
-      paddingBottom: 14,
-      fontSize: 15,
-      color: colors.textPrimary,
-      backgroundColor: colors.background,
-      textAlignVertical: 'top',
-      textAlign: isRTL ? 'right' : 'left',
-      minHeight: 120,
-    },
     // Summary step
     summaryPhoto: {
       width: '100%',
@@ -374,8 +309,6 @@ export default function AddCreditScreen() {
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [imageUri, setImageUri] = useState<string | null>(null);
   const [cropUri, setCropUri] = useState<string | null>(null);
-  const [wantsNotes, setWantsNotes] = useState<boolean | null>(null);
-  const [skipNotesQuestion, setSkipNotesQuestion] = useState(false);
   const [notes, setNotes] = useState('');
   const [saving, setSaving] = useState(false);
   const [amountError, setAmountError] = useState('');
@@ -386,7 +319,7 @@ export default function AddCreditScreen() {
   const [categoryChosen, setCategoryChosen] = useState(false);
   const { fadeAnim, slideAnim, animateTransition } = useStepAnimation();
 
-  const steps = useMemo(() => getSteps(noExpiry, wantsNotes, skipNotesQuestion, categoryChosen), [noExpiry, wantsNotes, skipNotesQuestion, categoryChosen]);
+  const steps = useMemo(() => getSteps(categoryChosen), [categoryChosen]);
   const currentStepIndex = steps.indexOf(currentStepId);
 
   // Pre-fill for edit mode
@@ -406,13 +339,7 @@ export default function AddCreditScreen() {
     } else {
       setNoExpiry(true);
     }
-    if (existingCredit.notes) {
-      setNotes(existingCredit.notes);
-      setWantsNotes(true);
-      setSkipNotesQuestion(true);
-    } else {
-      setWantsNotes(false);
-    }
+    if (existingCredit.notes) setNotes(existingCredit.notes);
     if (existingCredit.imageUrl) setImageUri(existingCredit.imageUrl);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -527,7 +454,6 @@ export default function AddCreditScreen() {
       }
       case 'expiryDate': return noExpiry || expirationDate !== null;
       case 'photo': return imageUri !== null;
-      case 'notesInput': return true;
       default: return false;
     }
   }, [currentStepId, storeName, amountInput, noExpiry, expirationDate, imageUri]);
@@ -884,65 +810,6 @@ export default function AddCreditScreen() {
     );
   }
 
-  function renderNotesQuestionStep() {
-    return (
-      <View style={[styles.stepContent, styles.notesQCenter]}>
-        <View style={styles.notesQIcon}>
-          <Ionicons name="chatbubble-ellipses-outline" size={40} color={colors.primary} />
-        </View>
-        <Text style={styles.notesQTitle}>{t('addCredit.step.notesQuestion')}</Text>
-        <Text style={styles.notesQSub}>{t('addCredit.stepSub.notesQuestion')}</Text>
-        <TouchableOpacity
-          style={styles.notesQBtn}
-          onPress={() => {
-            setWantsNotes(true);
-            // steps will recompute to include notesInput
-            animateTransition('forward', () => {
-              const updatedSteps = getSteps(noExpiry, true);
-              const nextIdx = updatedSteps.indexOf('notesInput');
-              if (nextIdx !== -1) setCurrentStepId('notesInput');
-            });
-          }}
-        >
-          <Text style={styles.notesQBtnText}>{t('addCredit.notesYes')}</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[styles.notesQBtn, styles.notesQBtnSecondary]}
-          onPress={() => {
-            setWantsNotes(false);
-            animateTransition('forward', () => setCurrentStepId('summary'));
-          }}
-        >
-          <Text style={[styles.notesQBtnText, styles.notesQBtnTextSecondary]}>
-            {t('addCredit.notesNo')}
-          </Text>
-        </TouchableOpacity>
-      </View>
-    );
-  }
-
-  function renderNotesInputStep() {
-    return (
-      <ScrollView
-        style={styles.stepScroll}
-        contentContainerStyle={styles.stepContent}
-        keyboardShouldPersistTaps="handled"
-      >
-        <Text style={styles.stepTitle}>{t('addCredit.step.notesInput')}</Text>
-        <TextInput
-          style={styles.notesInput}
-          placeholder={t('addCredit.notesPlaceholder')}
-          placeholderTextColor={colors.textTertiary}
-          multiline
-          numberOfLines={5}
-          value={notes}
-          onChangeText={setNotes}
-          autoFocus
-        />
-      </ScrollView>
-    );
-  }
-
   function renderSummaryStep() {
     const agot = parseAmountToAgot(amountInput);
     const categoryObj = CATEGORIES.find((c) => c.id === category);
@@ -998,18 +865,17 @@ export default function AddCreditScreen() {
             </Text>
           </View>
 
-          {notes.trim().length > 0 && (
-            <View style={[styles.summaryRow, styles.summaryRowLast]}>
-              <Text style={styles.summaryLabel}>{t('addCredit.summary.notes')}</Text>
-              <Text style={styles.summaryValue} numberOfLines={3}>{notes}</Text>
-            </View>
-          )}
-
-          {!notes.trim() && noExpiry && (
-            <View style={[styles.summaryRow, styles.summaryRowLast]}>
-              {/* keeps border bottom clean when last row */}
-            </View>
-          )}
+          <View style={[styles.summaryRow, styles.summaryRowLast, { alignItems: 'flex-start' }]}>
+            <Text style={[styles.summaryLabel, { paddingTop: 2 }]}>{t('addCredit.summary.notes')}</Text>
+            <TextInput
+              style={[styles.summaryValue, { textAlignVertical: 'top', minHeight: 36 }]}
+              placeholder={t('addCredit.notesPlaceholder')}
+              placeholderTextColor={colors.textTertiary}
+              multiline
+              value={notes}
+              onChangeText={setNotes}
+            />
+          </View>
         </View>
       </ScrollView>
     );
@@ -1022,8 +888,6 @@ export default function AddCreditScreen() {
       case 'amount': return renderAmountStep();
       case 'expiryDate': return renderExpiryDateStep();
       case 'photo': return renderPhotoStep();
-      case 'notesQuestion': return renderNotesQuestionStep();
-      case 'notesInput': return renderNotesInputStep();
       case 'summary': return renderSummaryStep();
     }
   }
@@ -1033,7 +897,6 @@ export default function AddCreditScreen() {
   // ---------------------------------------------------------------------------
 
   function renderFooterButton() {
-    if (currentStepId === 'notesQuestion') return null;
     if (currentStepId === 'summary') {
       return (
         <TouchableOpacity
