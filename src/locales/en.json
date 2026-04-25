@@ -4,6 +4,7 @@
     "stores": "Stores",
     "warranties": "Warranties",
     "subscriptions": "Subscriptions",
+    "occasions": "Special Days",
     "history": "History",
     "more": "More"
   },
@@ -947,5 +948,95 @@
     "notesYes": "Yes, add a note",
     "notesNo": "Skip",
     "notesPlaceholder": "Subscription details, account info…"
+  },
+  "occasions": {
+    "title": "Special Days",
+    "today": "Today!",
+    "daysUntil_one": "Tomorrow",
+    "daysUntil_other": "{{count}} days",
+    "yearsCount_one": "1 year",
+    "yearsCount_other": "{{count}} years",
+    "nextOn": "Next: {{date}}",
+    "types": {
+      "birthday": "Birthday",
+      "anniversary": "Anniversary",
+      "yahrzeit": "Yahrzeit",
+      "other": "Other"
+    },
+    "cardTitle": {
+      "birthday": "{{name}}'s Birthday",
+      "anniversary": "{{name}}'s Anniversary",
+      "yahrzeit": "{{name}}'s Yahrzeit"
+    },
+    "heroTitle": {
+      "birthday": "{{name}}'s Birthday",
+      "birthdayFirst": "{{name}}'s First Birthday",
+      "anniversary": "{{name}}'s Anniversary",
+      "anniversaryFirst": "{{name}}'s First Anniversary",
+      "yahrzeit": "{{name}}'s Yahrzeit",
+      "yahrzeitFirst": "{{name}}'s First Yahrzeit",
+      "other": "{{label}} — {{name}}",
+      "otherFirst": "First {{label}} — {{name}}"
+    },
+    "notification": {
+      "birthday": "{{name}}'s Birthday",
+      "anniversary": "{{name}}'s Anniversary",
+      "yahrzeit": "{{name}}'s Yahrzeit",
+      "other": "{{label}} — {{name}}"
+    },
+    "empty": {
+      "title": "No special days yet",
+      "subtitle": "Add a special day and get a reminder every year",
+      "action": "Add Special Day"
+    }
+  },
+  "addOccasion": {
+    "title": "New Special Day",
+    "titleEdit": "Edit Special Day",
+    "continue": "Continue",
+    "save": "Save",
+    "offline": "Cannot save in offline mode",
+    "namePlaceholder": "Name",
+    "customLabelPlaceholder": "Event description (e.g. Aliyah Anniversary)",
+    "useHebrewDate": "Remind on Hebrew calendar date",
+    "afterSunset": "The event occurred after sunset",
+    "hebrewDateConfirm": "Hebrew date of this event:",
+    "step": {
+      "type": "What kind of event?",
+      "name": "Who is it for?",
+      "date": "When did it happen?",
+      "hebrewDate": "Hebrew calendar reminder",
+      "summary": "Everything look good?"
+    },
+    "summary": {
+      "type": "Type",
+      "name": "Name",
+      "date": "Date",
+      "reminder": "Reminder",
+      "hebrewReminder": "{{date}} (Hebrew)",
+      "gregorianReminder": "Gregorian calendar"
+    },
+    "error": {
+      "save": "Save failed. Please try again."
+    }
+  },
+  "occasion": {
+    "notFound": "Special day not found",
+    "detail": {
+      "type": "Type",
+      "eventDate": "Date",
+      "hebrewDate": "Hebrew date"
+    },
+    "delete": {
+      "title": "Delete Special Day",
+      "message": "Delete {{name}}?",
+      "button": "Delete",
+      "offlineMessage": "Cannot delete in offline mode",
+      "error": "Delete failed. Please try again."
+    },
+    "action": {
+      "edit": "Edit",
+      "delete": "Delete"
+    }
   }
 }

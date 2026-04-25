@@ -4,6 +4,7 @@
     "stores": "חנויות",
     "warranties": "אחריויות",
     "subscriptions": "מנויים",
+    "occasions": "ימים מיוחדים",
     "history": "היסטוריה",
     "more": "עוד"
   },
@@ -946,5 +947,95 @@
     "notesYes": "כן, אוסיף הערה",
     "notesNo": "דילוג",
     "notesPlaceholder": "פרטי המנוי, פרטי חשבון…"
+  },
+  "occasions": {
+    "title": "ימים מיוחדים",
+    "today": "היום!",
+    "daysUntil_one": "עוד יום",
+    "daysUntil_other": "עוד {{count}} ימים",
+    "yearsCount_one": "שנה אחת",
+    "yearsCount_other": "{{count}} שנים",
+    "nextOn": "הבא: {{date}}",
+    "types": {
+      "birthday": "יום הולדת",
+      "anniversary": "יום נישואין",
+      "yahrzeit": "יום אזכרה",
+      "other": "אחר"
+    },
+    "cardTitle": {
+      "birthday": "יום ההולדת של {{name}}",
+      "anniversary": "יום הנישואין של {{name}}",
+      "yahrzeit": "יום הזיכרון של {{name}}"
+    },
+    "heroTitle": {
+      "birthday": "יום ההולדת של {{name}}",
+      "birthdayFirst": "יום ההולדת הראשון של {{name}}",
+      "anniversary": "יום הנישואין של {{name}}",
+      "anniversaryFirst": "יום הנישואין הראשון של {{name}}",
+      "yahrzeit": "יום הזיכרון של {{name}}",
+      "yahrzeitFirst": "יום הזיכרון הראשון של {{name}}",
+      "other": "{{label}} של {{name}}",
+      "otherFirst": "{{label}} הראשון של {{name}}"
+    },
+    "notification": {
+      "birthday": "יום ההולדת של {{name}}",
+      "anniversary": "יום הנישואין של {{name}}",
+      "yahrzeit": "יום הזיכרון של {{name}}",
+      "other": "{{label}} של {{name}}"
+    },
+    "empty": {
+      "title": "אין ימים מיוחדים עדיין",
+      "subtitle": "הוסיפו יום מיוחד ותקבלו תזכורת כל שנה",
+      "action": "הוספת יום מיוחד"
+    }
+  },
+  "addOccasion": {
+    "title": "יום מיוחד חדש",
+    "titleEdit": "עריכת יום מיוחד",
+    "continue": "המשך",
+    "save": "שמירה",
+    "offline": "לא ניתן לשמור במצב לא מקוון",
+    "namePlaceholder": "שם",
+    "customLabelPlaceholder": "תיאור האירוע (למשל: יום העלייה לארץ)",
+    "useHebrewDate": "תזכורת בתאריך העברי",
+    "afterSunset": "האירוע היה אחרי השקיעה",
+    "hebrewDateConfirm": "התאריך העברי של האירוע:",
+    "step": {
+      "type": "איזה סוג אירוע?",
+      "name": "של מי?",
+      "date": "מתי היה האירוע?",
+      "hebrewDate": "תזכורת לפי לוח עברי",
+      "summary": "הכל נראה טוב?"
+    },
+    "summary": {
+      "type": "סוג",
+      "name": "שם",
+      "date": "תאריך",
+      "reminder": "תזכורת",
+      "hebrewReminder": "{{date}} (עברי)",
+      "gregorianReminder": "לפי לוח לועזי"
+    },
+    "error": {
+      "save": "השמירה נכשלה. נסה שוב."
+    }
+  },
+  "occasion": {
+    "notFound": "היום המיוחד לא נמצא",
+    "detail": {
+      "type": "סוג",
+      "eventDate": "תאריך",
+      "hebrewDate": "תאריך עברי"
+    },
+    "delete": {
+      "title": "מחיקת יום מיוחד",
+      "message": "האם למחוק את {{name}}?",
+      "button": "מחיקה",
+      "offlineMessage": "לא ניתן למחוק במצב לא מקוון",
+      "error": "המחיקה נכשלה. נסה שוב."
+    },
+    "action": {
+      "edit": "עריכה",
+      "delete": "מחיקה"
+    }
   }
 }

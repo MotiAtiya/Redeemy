@@ -53,6 +53,13 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
+        name="occasions"
+        options={{
+          title: t('tabs.occasions'),
+          tabBarIcon: tabIcon('heart-outline'),
+        }}
+      />
+      <Tabs.Screen
         name="history"
         options={{
           title: t('tabs.history'),
