@@ -176,6 +176,11 @@ export default function OccasionsScreen() {
     return unsub;
   }, [currentUser, familyId]);
 
+  const availableTypes = useMemo(
+    () => TYPE_FILTERS.filter((type) => occasions.some((o) => o.type === type)),
+    [occasions]
+  );
+
   const filteredOccasions = useMemo(() => {
     let list = occasions;
 
@@ -275,12 +280,13 @@ export default function OccasionsScreen() {
           />
         </View>
 
+        {availableTypes.length > 1 && (
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={styles.filterChips}
         >
-          {([null, ...TYPE_FILTERS] as (OccasionType | null)[]).map((type) => {
+          {([null, ...availableTypes] as (OccasionType | null)[]).map((type) => {
             const isActive = type === selectedType;
             return (
               <TouchableOpacity
@@ -295,6 +301,7 @@ export default function OccasionsScreen() {
             );
           })}
         </ScrollView>
+        )}
       </View>
 
       <FlatList
