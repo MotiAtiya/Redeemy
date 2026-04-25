@@ -423,14 +423,6 @@ export default function SubscriptionDetailScreen() {
             showSeparator
           />
 
-          {/* Reminder before billing */}
-          <DetailRow
-            icon="notifications-outline"
-            label={t('subscription.detail.reminder')}
-            value={t('subscription.detail.reminderDays', { count: sub.reminderDays })}
-            showSeparator={!!sub.reminderSpecialPeriodEnabled || !!sub.notes || !!familyCreatorName}
-          />
-
           {/* Special period reminder */}
           {!!sub.reminderSpecialPeriodEnabled && !!trialEndsDate && (
             <DetailRow
