@@ -1,6 +1,51 @@
 import { HDate } from '@hebcal/core';
 
 // ---------------------------------------------------------------------------
+// Hebrew numerals (gematria)
+// ---------------------------------------------------------------------------
+
+const ONES = ['', 'א', 'ב', 'ג', 'ד', 'ה', 'ו', 'ז', 'ח', 'ט'];
+const TENS = ['', 'י', 'כ', 'ל', 'מ', 'נ', 'ס', 'ע', 'פ', 'צ'];
+const HUNDREDS = ['', 'ק', 'ר', 'ש', 'ת', 'תק', 'תר', 'תש', 'תת', 'תתק'];
+
+/**
+ * Converts an integer to Hebrew letter numerals (gematria).
+ * Handles special cases 15=טו, 16=טז to avoid writing God's name.
+ * Supports values up to 9999.
+ */
+export function toHebrewNumerals(num: number): string {
+  let result = '';
+  let n = num;
+
+  // Thousands (1–9)
+  if (n >= 1000) {
+    result += ONES[Math.floor(n / 1000)];
+    n = n % 1000;
+  }
+
+  // Hundreds
+  if (n >= 100) {
+    result += HUNDREDS[Math.floor(n / 100)];
+    n = n % 100;
+  }
+
+  // Special cases to avoid writing divine names
+  if (n === 15) return result + 'טו';
+  if (n === 16) return result + 'טז';
+
+  // Tens
+  if (n >= 10) {
+    result += TENS[Math.floor(n / 10)];
+    n = n % 10;
+  }
+
+  // Ones
+  result += ONES[n];
+
+  return result;
+}
+
+// ---------------------------------------------------------------------------
 // Hebrew month names
 // ---------------------------------------------------------------------------
 
@@ -48,7 +93,8 @@ export function toHebrewDate(gregorianDate: Date, afterSunset: boolean): HDate {
 }
 
 /**
- * Returns a human-readable Hebrew date string, e.g. "14 בניסן 5784".
+ * Returns a human-readable Hebrew date string, e.g. "יד בניסן התשפד".
+ * Day and year are rendered as Hebrew letter numerals.
  */
 export function formatHebrewDate(hdate: HDate): string {
   const day = hdate.getDate();
@@ -56,7 +102,9 @@ export function formatHebrewDate(hdate: HDate): string {
   const year = hdate.getFullYear();
   const isLeap = HDate.isLeapYear(year);
   const monthName = hebrewMonthName(month, isLeap);
-  return `${day} ב${monthName} ${year}`;
+  const dayStr = toHebrewNumerals(day);
+  const yearStr = toHebrewNumerals(year);
+  return `${dayStr} ב${monthName} ${yearStr}`;
 }
 
 // ---------------------------------------------------------------------------

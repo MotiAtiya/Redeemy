@@ -55,8 +55,10 @@ export function subscribeToOccasions(userId: string, familyId?: string | null): 
 export async function createOccasion(
   data: Omit<Occasion, 'id' | 'createdAt' | 'updatedAt'>
 ): Promise<string> {
+  // Strip undefined — Firestore rejects undefined field values
+  const clean = Object.fromEntries(Object.entries(data).filter(([, v]) => v !== undefined));
   const ref = await addDoc(collection(db, OCCASIONS_COLLECTION), {
-    ...data,
+    ...clean,
     createdAt: serverTimestamp(),
     updatedAt: serverTimestamp(),
   });
