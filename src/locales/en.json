@@ -4,7 +4,7 @@
     "stores": "Stores",
     "warranties": "Warranties",
     "subscriptions": "Subscriptions",
-    "occasions": "Special Days",
+    "occasions": "Events",
     "history": "History",
     "more": "More"
   },
@@ -950,7 +950,7 @@
     "notesPlaceholder": "Subscription details, account info…"
   },
   "occasions": {
-    "title": "Special Days",
+    "title": "Events",
     "today": "Today!",
     "daysUntil_one": "Tomorrow",
     "daysUntil_other": "{{count}} days",
@@ -987,12 +987,12 @@
     "empty": {
       "title": "No special days yet",
       "subtitle": "Add a special day and get a reminder every year",
-      "action": "Add Special Day"
+      "action": "Add Event"
     }
   },
   "addOccasion": {
-    "title": "New Special Day",
-    "titleEdit": "Edit Special Day",
+    "title": "New Event",
+    "titleEdit": "Edit Event",
     "continue": "Continue",
     "save": "Save",
     "offline": "Cannot save in offline mode",
@@ -1028,7 +1028,7 @@
       "hebrewDate": "Hebrew date"
     },
     "delete": {
-      "title": "Delete Special Day",
+      "title": "Delete Event",
       "message": "Delete {{name}}?",
       "button": "Delete",
       "offlineMessage": "Cannot delete in offline mode",

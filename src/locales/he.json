@@ -4,7 +4,7 @@
     "stores": "חנויות",
     "warranties": "אחריויות",
     "subscriptions": "מנויים",
-    "occasions": "ימים מיוחדים",
+    "occasions": "אירועים",
     "history": "היסטוריה",
     "more": "עוד"
   },
@@ -949,7 +949,7 @@
     "notesPlaceholder": "פרטי המנוי, פרטי חשבון…"
   },
   "occasions": {
-    "title": "ימים מיוחדים",
+    "title": "אירועים",
     "today": "היום!",
     "daysUntil_one": "עוד יום",
     "daysUntil_other": "עוד {{count}} ימים",
@@ -985,13 +985,13 @@
     },
     "empty": {
       "title": "אין ימים מיוחדים עדיין",
-      "subtitle": "הוסיפו יום מיוחד ותקבלו תזכורת כל שנה",
-      "action": "הוספת יום מיוחד"
+      "subtitle": "הוסיפו אירוע ותקבלו תזכורת כל שנה",
+      "action": "הוספת אירוע"
     }
   },
   "addOccasion": {
-    "title": "יום מיוחד חדש",
-    "titleEdit": "עריכת יום מיוחד",
+    "title": "אירוע חדש",
+    "titleEdit": "עריכת אירוע",
     "continue": "המשך",
     "save": "שמירה",
     "offline": "לא ניתן לשמור במצב לא מקוון",
@@ -1027,7 +1027,7 @@
       "hebrewDate": "תאריך עברי"
     },
     "delete": {
-      "title": "מחיקת יום מיוחד",
+      "title": "מחיקת אירוע",
       "message": "האם למחוק את {{name}}?",
       "button": "מחיקה",
       "offlineMessage": "לא ניתן למחוק במצב לא מקוון",
