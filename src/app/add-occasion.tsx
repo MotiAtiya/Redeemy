@@ -34,9 +34,10 @@ import type { AppColors } from '@/constants/colors';
 // Steps
 // ---------------------------------------------------------------------------
 
-type StepId = 'type' | 'name' | 'date' | 'summary';
+type StepId = 'type' | 'name' | 'label' | 'date' | 'summary';
 
-function getSteps(): StepId[] {
+function getSteps(type: OccasionType): StepId[] {
+  if (type === 'other') return ['type', 'name', 'label', 'date', 'summary'];
   return ['type', 'name', 'date', 'summary'];
 }
 
@@ -238,7 +239,7 @@ export default function AddOccasionScreen() {
   const [saving, setSaving] = useState(false);
 
   // Step state
-  const steps = useMemo(() => getSteps(), []);
+  const steps = useMemo(() => getSteps(occasionType), [occasionType]);
   const [currentStepId, setCurrentStepId] = useState<StepId>('type');
   const currentStepIndex = steps.indexOf(currentStepId);
   const { fadeAnim, slideAnim, animateTransition } = useStepAnimation();
@@ -305,8 +306,9 @@ export default function AddOccasionScreen() {
       case 'type':
         return true;
       case 'name':
-        return name.trim().length > 0 &&
-          (occasionType !== 'other' || customLabel.trim().length > 0);
+        return name.trim().length > 0;
+      case 'label':
+        return customLabel.trim().length > 0;
       case 'date':
         return true;
       default:
@@ -438,19 +440,26 @@ export default function AddOccasionScreen() {
           onChangeText={setName}
           autoFocus
           autoCapitalize="words"
-          returnKeyType={occasionType === 'other' ? 'next' : 'done'}
+          returnKeyType="done"
         />
-        {occasionType === 'other' && (
-          <TextInput
-            style={styles.nameInput}
-            placeholder={t('addOccasion.customLabelPlaceholder')}
-            placeholderTextColor={colors.textTertiary}
-            value={customLabel}
-            onChangeText={setCustomLabel}
-            autoCapitalize="sentences"
-            returnKeyType="done"
-          />
-        )}
+      </ScrollView>
+    );
+  }
+
+  function renderLabelStep() {
+    return (
+      <ScrollView style={styles.stepScroll} contentContainerStyle={styles.stepContent} keyboardShouldPersistTaps="handled">
+        <Text style={styles.stepTitle}>{t('addOccasion.step.label')}</Text>
+        <TextInput
+          style={styles.nameInput}
+          placeholder={t('addOccasion.customLabelPlaceholder')}
+          placeholderTextColor={colors.textTertiary}
+          value={customLabel}
+          onChangeText={setCustomLabel}
+          autoFocus
+          autoCapitalize="sentences"
+          returnKeyType="done"
+        />
       </ScrollView>
     );
   }
@@ -550,6 +559,7 @@ export default function AddOccasionScreen() {
     switch (currentStepId) {
       case 'type': return renderTypeStep();
       case 'name': return renderNameStep();
+      case 'label': return renderLabelStep();
       case 'date': return renderDateStep();
       case 'summary': return renderSummaryStep();
     }

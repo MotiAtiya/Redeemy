@@ -1027,6 +1027,7 @@
     "step": {
       "type": "What kind of event?",
       "name": "Who is it for?",
+      "label": "What is the event?",
       "date": "When did it happen?",
       "hebrewDate": "Hebrew calendar reminder",
       "summary": "Everything look good?"
