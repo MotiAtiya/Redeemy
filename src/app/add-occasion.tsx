@@ -460,9 +460,6 @@ export default function AddOccasionScreen() {
       <ScrollView style={styles.stepScroll} contentContainerStyle={styles.stepContent} keyboardShouldPersistTaps="handled">
         <Text style={styles.stepTitle}>{t('addOccasion.step.date')}</Text>
         <Text style={styles.stepSub}>{formatDate(eventDate, dateFormat)}</Text>
-        {hebrewDatePreview && (
-          <Text style={styles.hebrewPreview}>{hebrewDatePreview}</Text>
-        )}
 
         <DateTimePicker
           value={eventDate}
@@ -473,24 +470,19 @@ export default function AddOccasionScreen() {
           locale="en-GB"
         />
 
-        {/* Calendar type selector */}
-        <View style={styles.calendarChips}>
-          <TouchableOpacity
-            style={[styles.calendarChip, !useHebrewDate && styles.calendarChipActive]}
-            onPress={() => setUseHebrewDate(false)}
-          >
-            <Text style={[styles.calendarChipText, !useHebrewDate && styles.calendarChipTextActive]}>
-              {t('addOccasion.calendarGregorian')}
+        <View style={styles.toggleRow}>
+          <View style={{ flex: 1 }}>
+            <Text style={{ fontSize: 15, color: colors.textPrimary, alignSelf: 'flex-start' }}>
+              {t('addOccasion.useHebrewDate')}
             </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.calendarChip, useHebrewDate && styles.calendarChipActive]}
-            onPress={() => setUseHebrewDate(true)}
-          >
-            <Text style={[styles.calendarChipText, useHebrewDate && styles.calendarChipTextActive]}>
-              {t('addOccasion.calendarHebrew')}
-            </Text>
-          </TouchableOpacity>
+          </View>
+          <Switch
+            style={{ transform: [{ scaleX: isRTL ? -1 : 1 }] }}
+            value={useHebrewDate}
+            onValueChange={setUseHebrewDate}
+            trackColor={{ false: colors.separator, true: colors.primary }}
+            thumbColor="#FFFFFF"
+          />
         </View>
 
         {useHebrewDate && (
