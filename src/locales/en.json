@@ -759,7 +759,7 @@
     "viewTour": "View Tour Again",
     "welcome": {
       "title": "Welcome to Redeemy",
-      "subtitle": "Credits, warranties and subscriptions — everything you need to remember, in one place"
+      "subtitle": "Credits, warranties, subscriptions and events — everything you need to remember, in one place"
     },
     "credits": {
       "title": "Credits you won't forget",
@@ -772,6 +772,10 @@
     "subscriptions": {
       "title": "Subscriptions under control",
       "subtitle": "Track every recurring charge — get reminded before auto-renewal"
+    },
+    "occasions": {
+      "title": "Events you won't forget",
+      "subtitle": "Add birthdays, yahrzeits and special occasions — get a reminder every year, by Gregorian or Hebrew calendar"
     },
     "family": {
       "title": "Share with family",
@@ -789,6 +793,7 @@
       "addCredit": "Add first credit",
       "addWarranty": "Add warranty",
       "addSubscription": "Add subscription",
+      "addOccasion": "Add event",
       "goToApp": "Go to app"
     }
   },
