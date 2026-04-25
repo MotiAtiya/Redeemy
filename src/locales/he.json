@@ -1017,7 +1017,7 @@
     "save": "שמירה",
     "offline": "לא ניתן לשמור במצב לא מקוון",
     "namePlaceholder": "שם",
-    "customLabelPlaceholder": "תיאור האירוע (למשל: יום העלייה לארץ)",
+    "customLabelPlaceholder": "לדוגמה: יום העלייה לארץ",
     "calendarGregorian": "לועזי",
     "calendarHebrew": "עברי",
     "useHebrewDate": "תזכורת בתאריך העברי",
@@ -1026,7 +1026,7 @@
     "step": {
       "type": "איזה סוג אירוע?",
       "name": "של מי?",
-      "label": "מה הוא האירוע?",
+      "label": "תיאור האירוע",
       "date": "מתי היה האירוע?",
       "hebrewDate": "תזכורת לפי לוח עברי",
       "summary": "הכל נראה טוב?"
