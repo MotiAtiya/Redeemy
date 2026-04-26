@@ -612,7 +612,7 @@ export default function AddDocumentScreen() {
       title={isEditing ? t('addDocument.titleEdit') : t('addDocument.title')}
       onBack={goBack}
       isFirstStep={currentStepIndex === 0}
-      totalSteps={STEPS.length}
+      totalSteps={steps.length}
       currentStepIndex={currentStepIndex}
       fadeAnim={fadeAnim}
       slideAnim={slideAnim}
