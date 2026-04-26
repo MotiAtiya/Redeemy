@@ -377,6 +377,7 @@ export default function AddCreditScreen() {
 
   function goBack() {
     if (currentStepIndex > 0) {
+      if (currentStepId === 'category') setCategoryChosen(false);
       animateTransition('back', () => setCurrentStepId(steps[currentStepIndex - 1]));
     } else {
       router.back();
