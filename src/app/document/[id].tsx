@@ -206,7 +206,8 @@ export default function DocumentDetailScreen() {
                 showsHorizontalScrollIndicator={false}
                 keyExtractor={(_, i) => String(i)}
                 onMomentumScrollEnd={(e) => {
-                  const idx = Math.round(e.nativeEvent.contentOffset.x / (Dimensions.get('window').width - 32));
+                  const rawIdx = Math.round(e.nativeEvent.contentOffset.x / (Dimensions.get('window').width - 32));
+                  const idx = isRTL ? (images.length - 1 - rawIdx) : rawIdx;
                   setCarouselIndex(idx);
                 }}
                 renderItem={({ item, index }) => (
@@ -267,12 +268,10 @@ export default function DocumentDetailScreen() {
 
       <FullscreenImageViewer
         visible={showFullscreenImage}
-        images={images}
-        initialIndex={fullscreenIndex}
+        image={images[fullscreenIndex] ?? null}
         downloading={downloading}
         onClose={() => setShowFullscreenImage(false)}
         onDownload={handleDownloadImage}
-        onIndexChange={setFullscreenIndex}
       />
 
       <ActionModal
