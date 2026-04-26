@@ -107,15 +107,6 @@ function makeStyles(colors: AppColors, isRTL: boolean) {
       padding: 32,
       gap: 12,
     },
-    emptyIcon: {
-      width: 80,
-      height: 80,
-      borderRadius: 40,
-      backgroundColor: colors.primarySurface,
-      justifyContent: 'center',
-      alignItems: 'center',
-      marginBottom: 8,
-    },
     emptyTitle: { fontSize: 18, fontWeight: '700', color: colors.textPrimary, textAlign: 'center' },
     emptySubtitle: { fontSize: 14, color: colors.textTertiary, textAlign: 'center', lineHeight: 20 },
     emptyAction: {
@@ -214,9 +205,7 @@ export default function DocumentsScreen() {
     if (documents.length === 0) {
       return (
         <View style={styles.emptyContainer}>
-          <View style={styles.emptyIcon}>
-            <Ionicons name="documents-outline" size={38} color={colors.primary} />
-          </View>
+          <Ionicons name="documents-outline" size={56} color={colors.textTertiary} />
           <Text style={styles.emptyTitle}>{t('documents.empty.title')}</Text>
           <Text style={styles.emptySubtitle}>{t('documents.empty.subtitle')}</Text>
           <TouchableOpacity style={styles.emptyAction} onPress={() => router.push('/add-document')}>
