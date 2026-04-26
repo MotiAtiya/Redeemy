@@ -452,6 +452,18 @@ export default function MoreScreen() {
               </View>
               <Ionicons name={isRTL ? 'chevron-back' : 'chevron-forward'} size={16} color={colors.textTertiary} />
             </TouchableOpacity>
+            <View style={styles.separator} />
+            <TouchableOpacity
+              style={styles.settingsRow}
+              onPress={() => router.push('/(tabs)/history')}
+              accessibilityRole="button"
+            >
+              <Ionicons name="time-outline" size={20} color={colors.textSecondary} />
+              <View style={{ flex: 1 }}>
+                <Text style={styles.settingsLabel}>{t('more.historyRow')}</Text>
+              </View>
+              <Ionicons name={isRTL ? 'chevron-back' : 'chevron-forward'} size={16} color={colors.textTertiary} />
+            </TouchableOpacity>
           </View>
         </View>
 

@@ -5,6 +5,7 @@
     "warranties": "אחריויות",
     "subscriptions": "מנויים",
     "occasions": "אירועים",
+    "documents": "מסמכים",
     "history": "היסטוריה",
     "more": "עוד"
   },
@@ -74,6 +75,7 @@
   },
   "more": {
     "title": "עוד",
+    "historyRow": "היסטוריה",
     "sections": {
       "account": "חשבון",
       "settings": "הגדרות",
@@ -522,7 +524,9 @@
     "error": "שגיאה",
     "ok": "אישור",
     "on": "פעיל",
-    "off": "כבוי"
+    "off": "כבוי",
+    "continue": "המשך",
+    "save": "שמירה"
   },
   "notificationSettings": {
     "title": "התראות",
@@ -543,12 +547,17 @@
     "sheetTitleOccasion": "תזכורת לפני האירוע",
     "occasions": "אירועים",
     "reminderBeforeOccasion": "תזכורת לפני האירוע",
-    "onDayAlert": "התראה ביום האירוע"
+    "onDayAlert": "התראה ביום האירוע",
+    "documents": "מסמכים",
+    "reminderBeforeExpiry": "תזכורת לפני תפוגה",
+    "expiryDayAlert": "התראה ביום התפוגה",
+    "sheetTitleDocument": "תזכורת לתפוגת מסמכים"
   },
   "reminder": {
     "1day": "יום אחד",
     "3days": "שלושה ימים",
     "1week": "שבוע",
+    "2weeks": "שבועיים",
     "1month": "חודש",
     "3months": "3 חודשים"
   },
@@ -1055,6 +1064,83 @@
     },
     "delete": {
       "title": "מחיקת אירוע",
+      "message": "האם למחוק את {{name}}?",
+      "button": "מחיקה",
+      "offlineMessage": "לא ניתן למחוק במצב לא מקוון",
+      "error": "המחיקה נכשלה. נסה שוב."
+    },
+    "action": {
+      "edit": "עריכה",
+      "delete": "מחיקה"
+    }
+  },
+  "documents": {
+    "title": "מסמכים",
+    "search": "חיפוש לפי שם או סוג…",
+    "filter": { "all": "הכל" },
+    "sort": {
+      "expiration": "תוקף",
+      "name": "שם",
+      "type": "סוג"
+    },
+    "empty": {
+      "title": "אין מסמכים עדיין",
+      "subtitle": "הוסיפו מסמכים חשובים ועקבו אחרי תוקפם",
+      "action": "הוספת מסמך"
+    },
+    "noResults": "לא נמצאו מסמכים",
+    "types": {
+      "id_card": "תעודת זהות",
+      "license": "רישיון",
+      "passport": "דרכון",
+      "insurance": "ביטוח",
+      "other": "אחר"
+    },
+    "expired": "פג תוקף",
+    "daysUntil": "{{count}} ימים",
+    "today": "היום"
+  },
+  "addDocument": {
+    "title": "הוספת מסמך",
+    "titleEdit": "עריכת מסמך",
+    "saveButton": "שמירה",
+    "offline": "לא ניתן להוסיף מסמך במצב לא מקוון",
+    "step": {
+      "type": "איזה מסמך?",
+      "owner": "של מי?",
+      "expiration": "מתי פג התוקף?",
+      "photo": "צלמו את המסמך",
+      "summary": "הכל נראה טוב?"
+    },
+    "ownerPlaceholder": "שם בעל המסמך",
+    "notesPlaceholder": "הערות…",
+    "photoHint": "לחצו לצילום המסמך",
+    "takePhoto": "צלמו",
+    "chooseGallery": "גלריה",
+    "retakePhoto": "צלמו שוב",
+    "photoCurrentKept": "תמונה קיימת תישמר אם לא תבחרו חדשה",
+    "summary": {
+      "type": "סוג",
+      "owner": "בעלים",
+      "expiration": "תוקף עד",
+      "photo": "תמונה",
+      "notes": "הערות"
+    },
+    "error": {
+      "save": "השמירה נכשלה. נסה שוב.",
+      "photoRequired": "יש לצרף תמונה של המסמך"
+    }
+  },
+  "document": {
+    "notFound": "המסמך לא נמצא",
+    "detail": {
+      "type": "סוג",
+      "owner": "בעלים",
+      "expiration": "תוקף עד",
+      "notes": "הערות"
+    },
+    "delete": {
+      "title": "מחיקת מסמך",
       "message": "האם למחוק את {{name}}?",
       "button": "מחיקה",
       "offlineMessage": "לא ניתן למחוק במצב לא מקוון",

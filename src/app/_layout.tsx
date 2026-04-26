@@ -162,6 +162,8 @@ export default function RootLayout() {
         <Stack.Screen name="onboarding" options={{ headerShown: false }} />
         <Stack.Screen name="add-occasion" options={{ headerShown: false, presentation: 'modal' }} />
         <Stack.Screen name="occasion/[id]" options={{ headerShown: false }} />
+        <Stack.Screen name="add-document" options={{ headerShown: false, presentation: 'modal' }} />
+        <Stack.Screen name="document/[id]" options={{ headerShown: false }} />
       </Stack>
     </AuthGate>
   );

@@ -139,11 +139,17 @@ export default function NotificationSettingsScreen() {
   const occasionOnDayAlert = useSettingsStore((s) => s.occasionOnDayAlert);
   const setOccasionOnDayAlert = useSettingsStore((s) => s.setOccasionOnDayAlert);
 
+  const documentReminderDays = useSettingsStore((s) => s.documentReminderDays);
+  const setDocumentReminderDays = useSettingsStore((s) => s.setDocumentReminderDays);
+  const documentExpiryAlert = useSettingsStore((s) => s.documentExpiryAlert);
+  const setDocumentExpiryAlert = useSettingsStore((s) => s.setDocumentExpiryAlert);
+
   const [showNotifTimeSheet, setShowNotifTimeSheet] = useState(false);
   const [showCreditSheet, setShowCreditSheet] = useState(false);
   const [showWarrantySheet, setShowWarrantySheet] = useState(false);
   const [showSubscriptionSheet, setShowSubscriptionSheet] = useState(false);
   const [showOccasionSheet, setShowOccasionSheet] = useState(false);
+  const [showDocumentSheet, setShowDocumentSheet] = useState(false);
 
   const notifTimeDate = new Date();
   notifTimeDate.setHours(notificationHour, notificationMinute, 0, 0);
@@ -170,6 +176,14 @@ export default function NotificationSettingsScreen() {
     if (days === 7) return t('addSubscription.reminder.1week');
     if (days === 14) return t('addSubscription.reminder.2weeks');
     return t('addSubscription.reminder.1month');
+  }
+
+  function documentReminderLabel(days: number): string {
+    if (days === 0) return t('notificationSettings.none');
+    if (days === 7) return t('reminder.1week');
+    if (days === 14) return t('reminder.2weeks');
+    if (days === 30) return t('reminder.1month');
+    return t('reminder.3months');
   }
 
   function occasionReminderLabel(days: number): string {
@@ -389,6 +403,42 @@ export default function NotificationSettingsScreen() {
               thumbColor="#FFFFFF"
             />
           </View>
+
+          <View style={styles.sectionSeparator} />
+
+          {/* Documents */}
+          <Text style={styles.typeLabel}>{t('notificationSettings.documents').toUpperCase()}</Text>
+          <TouchableOpacity
+            style={styles.row}
+            onPress={() => notificationsEnabled && setShowDocumentSheet(true)}
+            accessibilityRole="button"
+          >
+            <Ionicons name="documents-outline" size={20} color={colors.textSecondary} />
+            <View style={{ flex: 1 }}>
+              <Text style={[styles.rowLabel, !notificationsEnabled && styles.rowLabelDisabled]}>
+                {t('notificationSettings.reminderBeforeExpiry')}
+              </Text>
+            </View>
+            <Text style={styles.rowSubtitle}>{documentReminderLabel(documentReminderDays)}</Text>
+            <Ionicons name={isRTL ? 'chevron-back' : 'chevron-forward'} size={16} color={colors.textTertiary} />
+          </TouchableOpacity>
+          <View style={styles.separator} />
+          <View style={styles.row}>
+            <Ionicons name="calendar-clear-outline" size={20} color={colors.textSecondary} />
+            <View style={{ flex: 1 }}>
+              <Text style={[styles.rowLabel, !notificationsEnabled && styles.rowLabelDisabled]}>
+                {t('notificationSettings.expiryDayAlert')}
+              </Text>
+            </View>
+            <Switch
+              style={{ transform: [{ scaleX: isRTL ? -1 : 1 }] }}
+              value={documentExpiryAlert}
+              onValueChange={setDocumentExpiryAlert}
+              disabled={!notificationsEnabled}
+              trackColor={{ false: colors.separator, true: colors.primary }}
+              thumbColor="#FFFFFF"
+            />
+          </View>
         </View>
       </ScrollView>
 
@@ -479,6 +529,31 @@ export default function NotificationSettingsScreen() {
                 {subscriptionReminderDays === preset.days && <Ionicons name="checkmark" size={20} color={colors.primary} />}
               </TouchableOpacity>
               {index < SUBSCRIPTION_REMINDER_PRESETS.length - 1 && <View style={styles.optionSeparator} />}
+            </View>
+          ))}
+        </View>
+      </Modal>
+
+      {/* Document Reminder bottom sheet */}
+      <Modal visible={showDocumentSheet} transparent animationType="slide" onRequestClose={() => setShowDocumentSheet(false)}>
+        <TouchableOpacity style={styles.overlay} activeOpacity={1} onPress={() => setShowDocumentSheet(false)} />
+        <View style={styles.sheet}>
+          <View style={styles.sheetHandle} />
+          <Text style={styles.sheetTitle}>{t('notificationSettings.sheetTitleDocument')}</Text>
+          {[0, 7, 14, 30, 90].map((days, index, arr) => (
+            <View key={days}>
+              <TouchableOpacity
+                style={styles.option}
+                onPress={() => { setDocumentReminderDays(days); setShowDocumentSheet(false); }}
+                accessibilityRole="radio"
+                accessibilityState={{ checked: documentReminderDays === days }}
+              >
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.optionLabel}>{documentReminderLabel(days)}</Text>
+                </View>
+                {documentReminderDays === days && <Ionicons name="checkmark" size={20} color={colors.primary} />}
+              </TouchableOpacity>
+              {index < arr.length - 1 && <View style={styles.optionSeparator} />}
             </View>
           ))}
         </View>

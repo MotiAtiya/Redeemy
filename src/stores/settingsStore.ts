@@ -37,6 +37,10 @@ interface SettingsStore {
   setOccasionEarlyReminderDays: (days: number) => void;
   occasionOnDayAlert: boolean;
   setOccasionOnDayAlert: (enabled: boolean) => void;
+  documentReminderDays: number;
+  setDocumentReminderDays: (days: number) => void;
+  documentExpiryAlert: boolean;
+  setDocumentExpiryAlert: (enabled: boolean) => void;
   currency: CurrencyCode;
   setCurrency: (code: CurrencyCode) => void;
   dateFormat: DateFormat;
@@ -77,6 +81,10 @@ export const useSettingsStore = create<SettingsStore>()(
       setOccasionEarlyReminderDays: (occasionEarlyReminderDays) => set({ occasionEarlyReminderDays }),
       occasionOnDayAlert: true,
       setOccasionOnDayAlert: (occasionOnDayAlert) => set({ occasionOnDayAlert }),
+      documentReminderDays: 30,
+      setDocumentReminderDays: (documentReminderDays) => set({ documentReminderDays }),
+      documentExpiryAlert: true,
+      setDocumentExpiryAlert: (documentExpiryAlert) => set({ documentExpiryAlert }),
       currency: 'ILS',
       setCurrency: (currency) => set({ currency }),
       dateFormat: 'DD/MM/YYYY',

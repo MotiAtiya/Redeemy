@@ -196,3 +196,51 @@ export async function deleteCreditImages(creditId: string): Promise<void> {
     // folder may not exist if no image was uploaded
   }
 }
+
+/**
+ * Compresses `localUri` and uploads both sizes to Firebase Storage.
+ *
+ * Storage paths:
+ *   documents/{documentId}/full.jpg
+ *   documents/{documentId}/thumb.jpg
+ */
+export async function uploadDocumentImage(
+  localUri: string,
+  documentId: string
+): Promise<UploadedImages> {
+  const { fullUri, thumbUri } = await compressImage(localUri);
+
+  const [fullBlob, thumbBlob] = await Promise.all([
+    uriToBlob(fullUri),
+    uriToBlob(thumbUri),
+  ]);
+
+  const fullRef = ref(storage, `documents/${documentId}/full.jpg`);
+  const thumbRef = ref(storage, `documents/${documentId}/thumb.jpg`);
+
+  await Promise.all([
+    uploadBytes(fullRef, fullBlob, { contentType: 'image/jpeg' }),
+    uploadBytes(thumbRef, thumbBlob, { contentType: 'image/jpeg' }),
+  ]);
+
+  const [imageUrl, thumbnailUrl] = await Promise.all([
+    getDownloadURL(fullRef),
+    getDownloadURL(thumbRef),
+  ]);
+
+  return { imageUrl, thumbnailUrl };
+}
+
+/**
+ * Deletes both the full and thumbnail images for a document from Firebase Storage.
+ * Silently ignores errors.
+ */
+export async function deleteDocumentImages(documentId: string): Promise<void> {
+  const folderRef = ref(storage, `documents/${documentId}`);
+  try {
+    const { items } = await listAll(folderRef);
+    await Promise.allSettled(items.map((item) => deleteObject(item)));
+  } catch {
+    // folder may not exist if no image was uploaded
+  }
+}

@@ -5,6 +5,7 @@
     "warranties": "Warranties",
     "subscriptions": "Subscriptions",
     "occasions": "Events",
+    "documents": "Documents",
     "history": "History",
     "more": "More"
   },
@@ -74,6 +75,7 @@
   },
   "more": {
     "title": "More",
+    "historyRow": "History",
     "sections": {
       "account": "ACCOUNT",
       "settings": "SETTINGS",
@@ -523,7 +525,9 @@
     "error": "Error",
     "ok": "OK",
     "on": "On",
-    "off": "Off"
+    "off": "Off",
+    "continue": "Continue",
+    "save": "Save"
   },
   "notificationSettings": {
     "title": "Notifications",
@@ -544,12 +548,17 @@
     "sheetTitleOccasion": "Reminder before event",
     "occasions": "Events",
     "reminderBeforeOccasion": "Reminder before event",
-    "onDayAlert": "Alert on event day"
+    "onDayAlert": "Alert on event day",
+    "documents": "Documents",
+    "reminderBeforeExpiry": "Reminder before expiry",
+    "expiryDayAlert": "Alert on expiry day",
+    "sheetTitleDocument": "Document expiry reminder"
   },
   "reminder": {
     "1day": "1 Day",
     "3days": "3 Days",
     "1week": "1 Week",
+    "2weeks": "2 Weeks",
     "1month": "1 Month",
     "3months": "3 Months"
   },
@@ -1056,6 +1065,83 @@
     },
     "delete": {
       "title": "Delete Event",
+      "message": "Delete {{name}}?",
+      "button": "Delete",
+      "offlineMessage": "Cannot delete in offline mode",
+      "error": "Delete failed. Please try again."
+    },
+    "action": {
+      "edit": "Edit",
+      "delete": "Delete"
+    }
+  },
+  "documents": {
+    "title": "Documents",
+    "search": "Search by name or type…",
+    "filter": { "all": "All" },
+    "sort": {
+      "expiration": "Expiry",
+      "name": "Name",
+      "type": "Type"
+    },
+    "empty": {
+      "title": "No documents yet",
+      "subtitle": "Add important documents and track their expiry",
+      "action": "Add Document"
+    },
+    "noResults": "No documents found",
+    "types": {
+      "id_card": "ID Card",
+      "license": "License",
+      "passport": "Passport",
+      "insurance": "Insurance",
+      "other": "Other"
+    },
+    "expired": "Expired",
+    "daysUntil": "{{count}} days",
+    "today": "Today"
+  },
+  "addDocument": {
+    "title": "Add Document",
+    "titleEdit": "Edit Document",
+    "saveButton": "Save",
+    "offline": "Cannot add document in offline mode",
+    "step": {
+      "type": "What type of document?",
+      "owner": "Whose document?",
+      "expiration": "When does it expire?",
+      "photo": "Photograph the document",
+      "summary": "Everything look good?"
+    },
+    "ownerPlaceholder": "Owner's name",
+    "notesPlaceholder": "Notes…",
+    "photoHint": "Tap to photograph the document",
+    "takePhoto": "Camera",
+    "chooseGallery": "Gallery",
+    "retakePhoto": "Retake",
+    "photoCurrentKept": "Existing photo will be kept if you don't choose a new one",
+    "summary": {
+      "type": "Type",
+      "owner": "Owner",
+      "expiration": "Expires",
+      "photo": "Photo",
+      "notes": "Notes"
+    },
+    "error": {
+      "save": "Save failed. Please try again.",
+      "photoRequired": "Please attach a photo of the document"
+    }
+  },
+  "document": {
+    "notFound": "Document not found",
+    "detail": {
+      "type": "Type",
+      "owner": "Owner",
+      "expiration": "Expires",
+      "notes": "Notes"
+    },
+    "delete": {
+      "title": "Delete Document",
       "message": "Delete {{name}}?",
       "button": "Delete",
       "offlineMessage": "Cannot delete in offline mode",

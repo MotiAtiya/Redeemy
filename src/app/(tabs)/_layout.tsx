@@ -60,10 +60,17 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
+        name="documents"
+        options={{
+          title: t('tabs.documents'),
+          tabBarIcon: tabIcon('documents-outline'),
+        }}
+      />
+      <Tabs.Screen
         name="history"
         options={{
+          href: null,
           title: t('tabs.history'),
-          tabBarIcon: tabIcon('time-outline'),
         }}
       />
       <Tabs.Screen
