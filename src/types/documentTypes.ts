@@ -8,6 +8,7 @@ export interface Document {
   userId: string;
   familyId?: string;
   type: DocumentType;
+  customTypeName?: string;
   ownerName: string;
   expirationDate: Date | Timestamp;
   /** @deprecated Use images instead */

@@ -1111,12 +1111,14 @@
     "offline": "Cannot add document in offline mode",
     "step": {
       "type": "What type of document?",
+      "customType": "What would you like to call it?",
       "owner": "Whose document?",
       "expiration": "When does it expire?",
       "photo": "Photograph the document",
       "summary": "Everything look good?",
       "summarySub": "Review all details before saving"
     },
+    "customTypePlaceholder": "Document name",
     "ownerPlaceholder": "Owner's name",
     "notesPlaceholder": "Notes…",
     "photoHint": "Tap to photograph the document",

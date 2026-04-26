@@ -1110,12 +1110,14 @@
     "offline": "לא ניתן להוסיף מסמך במצב לא מקוון",
     "step": {
       "type": "איזה מסמך?",
+      "customType": "איך תרצה לקרוא לו?",
       "owner": "של מי?",
       "expiration": "מתי פג התוקף?",
       "photo": "צלמו את המסמך",
       "summary": "הכל נראה טוב?",
       "summarySub": "בדוק את כל הפרטים לפני השמירה"
     },
+    "customTypePlaceholder": "שם המסמך",
     "ownerPlaceholder": "שם בעל המסמך",
     "notesPlaceholder": "הערות…",
     "photoHint": "לחצו לצילום המסמך",

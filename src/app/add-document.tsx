@@ -35,8 +35,13 @@ import type { AppColors } from '@/constants/colors';
 // Steps
 // ---------------------------------------------------------------------------
 
-type StepId = 'type' | 'owner' | 'expiration' | 'photo' | 'summary';
-const STEPS: StepId[] = ['type', 'owner', 'expiration', 'photo', 'summary'];
+type StepId = 'type' | 'customType' | 'owner' | 'expiration' | 'photo' | 'summary';
+
+function getSteps(isOther: boolean): StepId[] {
+  const base: StepId[] = ['type'];
+  if (isOther) base.push('customType');
+  return [...base, 'owner', 'expiration', 'photo', 'summary'];
+}
 
 // ---------------------------------------------------------------------------
 // Styles
@@ -235,13 +240,16 @@ export default function AddDocumentScreen() {
 
   // Step state
   const [currentStepId, setCurrentStepId] = useState<StepId>('type');
-  const currentStepIndex = STEPS.indexOf(currentStepId);
+  const [customTypeName, setCustomTypeName] = useState('');
+  const steps = useMemo(() => getSteps(docType === 'other'), [docType]);
+  const currentStepIndex = steps.indexOf(currentStepId);
   const { fadeAnim, slideAnim, animateTransition } = useStepAnimation();
 
   // Pre-fill for edit mode
   useEffect(() => {
     if (!isEditing || !existingDocument) return;
     setDocType(existingDocument.type);
+    if (existingDocument.customTypeName) setCustomTypeName(existingDocument.customTypeName);
     setOwnerName(existingDocument.ownerName);
     const d = existingDocument.expirationDate instanceof Date
       ? existingDocument.expirationDate
@@ -261,15 +269,15 @@ export default function AddDocumentScreen() {
 
   const goNext = useCallback(() => {
     const nextIndex = currentStepIndex + 1;
-    if (nextIndex < STEPS.length) {
-      animateTransition('forward', () => setCurrentStepId(STEPS[nextIndex]));
+    if (nextIndex < steps.length) {
+      animateTransition('forward', () => setCurrentStepId(steps[nextIndex]));
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentStepIndex]);
+  }, [currentStepIndex, steps]);
 
   function goBack() {
     if (currentStepIndex > 0) {
-      animateTransition('back', () => setCurrentStepId(STEPS[currentStepIndex - 1]));
+      animateTransition('back', () => setCurrentStepId(steps[currentStepIndex - 1]));
     } else {
       router.back();
     }
@@ -282,12 +290,13 @@ export default function AddDocumentScreen() {
   const canContinue = useMemo(() => {
     switch (currentStepId) {
       case 'type': return true;
+      case 'customType': return customTypeName.trim().length > 0;
       case 'owner': return ownerName.trim().length > 0;
       case 'expiration': return true;
       case 'photo': return photoItems.length > 0;
       default: return false;
     }
-  }, [currentStepId, ownerName, photoItems]);
+  }, [currentStepId, customTypeName, ownerName, photoItems]);
 
   // ---------------------------------------------------------------------------
   // Photo actions
@@ -347,6 +356,7 @@ export default function AddDocumentScreen() {
       userId: currentUser.uid,
       ...(familyId ? { familyId } : {}),
       type: docType,
+      ...(docType === 'other' && customTypeName.trim() ? { customTypeName: customTypeName.trim() } : {}),
       ownerName: ownerName.trim(),
       expirationDate,
       ...(notes.trim() ? { notes: notes.trim() } : {}),
@@ -443,6 +453,25 @@ export default function AddDocumentScreen() {
     );
   }
 
+  function renderCustomTypeStep() {
+    return (
+      <ScrollView style={styles.stepScroll} contentContainerStyle={styles.stepContent} keyboardShouldPersistTaps="handled">
+        <Text style={styles.stepTitle}>{t('addDocument.step.customType')}</Text>
+        <TextInput
+          style={styles.nameInput}
+          placeholder={t('addDocument.customTypePlaceholder')}
+          placeholderTextColor={colors.textTertiary}
+          value={customTypeName}
+          onChangeText={setCustomTypeName}
+          autoFocus
+          autoCapitalize="sentences"
+          returnKeyType="next"
+          onSubmitEditing={customTypeName.trim() ? goNext : undefined}
+        />
+      </ScrollView>
+    );
+  }
+
   function renderOwnerStep() {
     return (
       <ScrollView style={styles.stepScroll} contentContainerStyle={styles.stepContent} keyboardShouldPersistTaps="handled">
@@ -491,7 +520,9 @@ export default function AddDocumentScreen() {
   }
 
   function renderSummaryStep() {
-    const typeLabel = t(`documents.types.${docType}`);
+    const typeLabel = docType === 'other' && customTypeName.trim()
+      ? customTypeName.trim()
+      : t(`documents.types.${docType}`);
     return (
       <ScrollView style={styles.stepScroll} contentContainerStyle={styles.stepContent} keyboardShouldPersistTaps="handled">
         <Text style={styles.stepTitle}>{t('addDocument.step.summary')}</Text>
@@ -545,6 +576,7 @@ export default function AddDocumentScreen() {
   function renderStep() {
     switch (currentStepId) {
       case 'type':       return renderTypeStep();
+      case 'customType': return renderCustomTypeStep();
       case 'owner':      return renderOwnerStep();
       case 'expiration': return renderExpirationStep();
       case 'photo':      return renderPhotoStep();
