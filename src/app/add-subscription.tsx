@@ -14,6 +14,7 @@ import {
   Switch,
   Pressable,
   I18nManager,
+  Keyboard,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useRouter, useLocalSearchParams } from 'expo-router';
@@ -627,6 +628,7 @@ export default function AddSubscriptionScreen() {
   const [currentStepId, setCurrentStepId] = useState<StepId>('serviceName');
   const [categoryChosen, setCategoryChosen] = useState(false);
   const { fadeAnim, slideAnim, animateTransition } = useStepAnimation();
+  const summaryScrollRef = useRef<ScrollView>(null);
 
   const flowState: FlowState = useMemo(() => ({
     accessType,
@@ -1586,7 +1588,7 @@ export default function AddSubscriptionScreen() {
       : t('addSubscription.summary.renewalAuto');
 
     return (
-      <ScrollView style={styles.stepScroll} contentContainerStyle={styles.stepContent}>
+      <ScrollView ref={summaryScrollRef} style={styles.stepScroll} contentContainerStyle={styles.stepContent}>
         <Text style={styles.stepTitle}>{t('addSubscription.step.summary')}</Text>
         <View style={styles.summaryCard}>
           <View style={styles.summaryRow}>
@@ -1665,6 +1667,12 @@ export default function AddSubscriptionScreen() {
           value={notes}
           onChangeText={setNotes}
           returnKeyType="done"
+          onFocus={() => {
+            const sub = Keyboard.addListener('keyboardDidShow', () => {
+              summaryScrollRef.current?.scrollToEnd({ animated: true });
+              sub.remove();
+            });
+          }}
         />
       </ScrollView>
     );

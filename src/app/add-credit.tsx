@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { useStepAnimation } from '@/hooks/useStepAnimation';
 import {
   View,
@@ -12,6 +12,7 @@ import {
   Alert,
   Switch,
   I18nManager,
+  Keyboard,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { Image } from 'expo-image';
@@ -302,6 +303,7 @@ export default function AddCreditScreen() {
   const [currentStepId, setCurrentStepId] = useState<StepId>('storeName');
   const [categoryChosen, setCategoryChosen] = useState(false);
   const { fadeAnim, slideAnim, animateTransition } = useStepAnimation();
+  const summaryScrollRef = useRef<ScrollView>(null);
 
   const steps = useMemo(() => getSteps(categoryChosen), [categoryChosen]);
   const currentStepIndex = steps.indexOf(currentStepId);
@@ -802,6 +804,7 @@ export default function AddCreditScreen() {
 
     return (
       <ScrollView
+        ref={summaryScrollRef}
         style={styles.stepScroll}
         contentContainerStyle={styles.stepContent}
       >
@@ -868,6 +871,12 @@ export default function AddCreditScreen() {
           value={notes}
           onChangeText={setNotes}
           returnKeyType="done"
+          onFocus={() => {
+            const sub = Keyboard.addListener('keyboardDidShow', () => {
+              summaryScrollRef.current?.scrollToEnd({ animated: true });
+              sub.remove();
+            });
+          }}
         />
       </ScrollView>
     );

@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { useStepAnimation } from '@/hooks/useStepAnimation';
 import {
   View,
@@ -10,6 +10,7 @@ import {
   ActivityIndicator,
   Alert,
   I18nManager,
+  Keyboard,
 } from 'react-native';
 import { Image } from 'expo-image';
 import { useTranslation } from 'react-i18next';
@@ -244,6 +245,7 @@ export default function AddDocumentScreen() {
   const steps = useMemo(() => getSteps(docType === 'other'), [docType]);
   const currentStepIndex = steps.indexOf(currentStepId);
   const { fadeAnim, slideAnim, animateTransition } = useStepAnimation();
+  const summaryScrollRef = useRef<ScrollView>(null);
 
   // Pre-fill for edit mode
   useEffect(() => {
@@ -524,7 +526,7 @@ export default function AddDocumentScreen() {
       ? customTypeName.trim()
       : t(`documents.types.${docType}`);
     return (
-      <ScrollView style={styles.stepScroll} contentContainerStyle={styles.stepContent} keyboardShouldPersistTaps="handled">
+      <ScrollView ref={summaryScrollRef} style={styles.stepScroll} contentContainerStyle={styles.stepContent} keyboardShouldPersistTaps="handled">
         <Text style={styles.stepTitle}>{t('addDocument.step.summary')}</Text>
         <Text style={styles.stepSubtitle}>{t('addDocument.step.summarySub')}</Text>
 
@@ -568,6 +570,12 @@ export default function AddDocumentScreen() {
           onChangeText={setNotes}
           multiline
           returnKeyType="done"
+          onFocus={() => {
+            const sub = Keyboard.addListener('keyboardDidShow', () => {
+              summaryScrollRef.current?.scrollToEnd({ animated: true });
+              sub.remove();
+            });
+          }}
         />
       </ScrollView>
     );

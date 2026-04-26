@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { useStepAnimation } from '@/hooks/useStepAnimation';
 import {
   View,
@@ -12,6 +12,7 @@ import {
   Switch,
   Pressable,
   I18nManager,
+  Keyboard,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useRouter, useLocalSearchParams } from 'expo-router';
@@ -37,7 +38,7 @@ import type { AppColors } from '@/constants/colors';
 type StepId = 'type' | 'name' | 'label' | 'date' | 'summary';
 
 function getSteps(type: OccasionType): StepId[] {
-  if (type === 'other') return ['type', 'name', 'label', 'date', 'summary'];
+  if (type === 'other') return ['type', 'label', 'name', 'date', 'summary'];
   return ['type', 'name', 'date', 'summary'];
 }
 
@@ -266,6 +267,7 @@ export default function AddOccasionScreen() {
   const [currentStepId, setCurrentStepId] = useState<StepId>('type');
   const currentStepIndex = steps.indexOf(currentStepId);
   const { fadeAnim, slideAnim, animateTransition } = useStepAnimation();
+  const summaryScrollRef = useRef<ScrollView>(null);
 
   // Pre-fill for edit mode
   useEffect(() => {
@@ -552,7 +554,7 @@ export default function AddOccasionScreen() {
   function renderSummaryStep() {
     const typeLabel = t(`occasions.types.${occasionType}`);
     return (
-      <ScrollView style={styles.stepScroll} contentContainerStyle={styles.stepContent}>
+      <ScrollView ref={summaryScrollRef} style={styles.stepScroll} contentContainerStyle={styles.stepContent}>
         <Text style={styles.stepTitle}>{t('addOccasion.step.summary')}</Text>
         <View style={styles.summaryCard}>
           <View style={styles.summaryRow}>
@@ -586,6 +588,12 @@ export default function AddOccasionScreen() {
           value={notes}
           onChangeText={setNotes}
           returnKeyType="done"
+          onFocus={() => {
+            const sub = Keyboard.addListener('keyboardDidShow', () => {
+              summaryScrollRef.current?.scrollToEnd({ animated: true });
+              sub.remove();
+            });
+          }}
         />
       </ScrollView>
     );
