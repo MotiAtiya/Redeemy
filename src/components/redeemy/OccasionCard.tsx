@@ -63,8 +63,8 @@ function DaysBadge({ days }: { days: number }) {
     textColor = colors.urgencyGreen;
     label = t('occasions.daysUntil', { count: days });
   } else {
-    bgColor = colors.separator;
-    textColor = colors.textTertiary;
+    bgColor = colors.urgencyGreenSurface;
+    textColor = colors.urgencyGreen;
     label = t('occasions.daysUntil', { count: days });
   }
 
