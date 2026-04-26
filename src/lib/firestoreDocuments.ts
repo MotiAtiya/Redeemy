@@ -3,6 +3,7 @@ import {
   addDoc,
   updateDoc,
   deleteDoc,
+  deleteField,
   doc,
   serverTimestamp,
   query,
@@ -63,25 +64,25 @@ export function subscribeToDocuments(userId: string, familyId?: string | null): 
 export async function createDocument(
   data: Omit<Document, 'id' | 'createdAt' | 'updatedAt'>
 ): Promise<string> {
-  // Strip undefined — Firestore rejects undefined field values
-  const clean = Object.fromEntries(Object.entries(data).filter(([, v]) => v !== undefined));
-  const ref = await addDoc(collection(db, DOCUMENTS_COLLECTION), {
-    ...clean,
-    createdAt: serverTimestamp(),
-    updatedAt: serverTimestamp(),
-  });
-  return ref.id;
+  const clean = Object.fromEntries(
+    Object.entries({ ...data, createdAt: serverTimestamp(), updatedAt: serverTimestamp() })
+      .filter(([, v]) => v !== undefined)
+  );
+  const docRef = await addDoc(collection(db, DOCUMENTS_COLLECTION), clean);
+  await updateDoc(docRef, { id: docRef.id });
+  return docRef.id;
 }
 
 export async function updateDocument(
   id: string,
   changes: Partial<Document>
 ): Promise<void> {
-  const clean = Object.fromEntries(Object.entries(changes).filter(([, v]) => v !== undefined));
-  await updateDoc(doc(db, DOCUMENTS_COLLECTION, id), {
-    ...clean,
-    updatedAt: serverTimestamp(),
-  });
+  const docRef = doc(db, DOCUMENTS_COLLECTION, id);
+  const payload: Record<string, unknown> = { updatedAt: serverTimestamp() };
+  for (const [k, v] of Object.entries(changes as Record<string, unknown>)) {
+    payload[k] = v === undefined ? deleteField() : v;
+  }
+  await updateDoc(docRef, payload);
 }
 
 export async function deleteDocument(id: string): Promise<void> {

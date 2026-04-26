@@ -8,6 +8,8 @@ import { useBadgeUpdater } from '@/hooks/useBadgeUpdater';
 import { useNetworkMonitor } from '@/hooks/useNetworkMonitor';
 import { useFamilyListener } from '@/hooks/useFamilyListener';
 import { useWarrantiesListener } from '@/hooks/useWarrantiesListener';
+import { useCreditsListener } from '@/hooks/useCreditsListener';
+import { useDocumentsListener } from '@/hooks/useDocumentsListener';
 import { useSubscriptionsListener } from '@/hooks/useSubscriptionsListener';
 import { useAppTheme, useIsDark } from '@/hooks/useAppTheme';
 import { OfflineToast } from '@/components/redeemy/OfflineToast';
@@ -36,6 +38,8 @@ function AuthGate({ children }: { children: React.ReactNode }) {
 
   const currentUser = useAuthStore((s) => s.currentUser);
   useWarrantiesListener(currentUser?.uid ?? null, familyId ?? null);
+  useCreditsListener(currentUser?.uid ?? null, familyId ?? null);
+  useDocumentsListener(currentUser?.uid ?? null, familyId ?? null);
   useSubscriptionsListener(currentUser?.uid ?? null, familyId ?? null);
   useEffect(() => {
     if (!familyId || !currentUser?.uid || familyCreditsMigrated) return;

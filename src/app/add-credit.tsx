@@ -23,6 +23,7 @@ import { CategorySelector } from '@/components/redeemy/CategorySelector';
 import { CurrencyPicker } from '@/components/redeemy/CurrencyPicker';
 import { StepFormScreen } from '@/components/redeemy/StepFormScreen';
 import { openCamera, openGallery, uploadEntityImage, type DocumentImage } from '@/lib/imageUpload';
+import { PhotoPickerStep, type PhotoItem } from '@/components/redeemy/PhotoPickerStep';
 import { CropModal } from '@/components/redeemy/CropModal';
 import { createCredit, updateCredit } from '@/lib/firestoreCredits';
 import { scheduleReminderNotification } from '@/lib/notifications';
@@ -142,57 +143,6 @@ function makeStyles(colors: AppColors, isRTL: boolean) {
     dateButtonText: { flex: 1, fontSize: 16, color: colors.textPrimary },
     datePlaceholder: { color: colors.textTertiary },
     dateError: { fontSize: 12, color: colors.danger, marginTop: 6, alignSelf: 'flex-start' },
-    // Photo step
-    photoPlaceholderCard: {
-      width: '100%',
-      height: 180,
-      borderRadius: 16,
-      borderWidth: 1.5,
-      borderStyle: 'dashed',
-      borderColor: colors.separator,
-      justifyContent: 'center',
-      alignItems: 'center',
-      gap: 12,
-      marginBottom: 20,
-      backgroundColor: colors.surface,
-    },
-    photoPlaceholderCardText: {
-      fontSize: 14,
-      color: colors.textTertiary,
-      textAlign: 'center',
-      paddingHorizontal: 32,
-    },
-    photoRow: {
-      flexDirection: 'row',
-      gap: 8,
-      marginBottom: 20,
-    },
-    photoSlotFilled: {
-      flex: 1,
-      aspectRatio: 1,
-      borderRadius: 12,
-      overflow: 'hidden',
-      backgroundColor: colors.separator,
-    },
-    slotImage: { width: '100%', height: '100%' },
-    removePhotoBtn: {
-      position: 'absolute',
-      top: 4,
-      right: 4,
-      backgroundColor: 'rgba(0,0,0,0.55)',
-      borderRadius: 11,
-      padding: 1,
-    },
-    photoSlotAdd: {
-      flex: 1,
-      aspectRatio: 1,
-      borderRadius: 12,
-      borderWidth: 1.5,
-      borderColor: colors.primary,
-      backgroundColor: colors.primarySurface,
-      justifyContent: 'center',
-      alignItems: 'center',
-    },
     summaryPhotoBadge: {
       position: 'absolute',
       bottom: 8,
@@ -330,7 +280,6 @@ export default function AddCreditScreen() {
   );
   const allCredits = useCreditsStore((s) => s.credits);
 
-  type PhotoItem = { type: 'local'; uri: string } | { type: 'existing'; image: DocumentImage };
 
   // Form state
   const [storeName, setStoreName] = useState('');
@@ -835,39 +784,14 @@ export default function AddCreditScreen() {
   }
 
   function renderPhotoStep() {
-    const hasPhotos = photoItems.length > 0;
-    const canAddMore = photoItems.length < MAX_PHOTOS;
     return (
-      <ScrollView style={styles.stepScroll} contentContainerStyle={styles.stepContent}>
-        <Text style={styles.stepTitle}>{t('addCredit.step.photo')}</Text>
-
-        {!hasPhotos ? (
-          <TouchableOpacity style={styles.photoPlaceholderCard} onPress={handleAddPhoto} activeOpacity={0.7}>
-            <Ionicons name="camera-outline" size={40} color={colors.textTertiary} />
-            <Text style={styles.photoPlaceholderCardText}>{t('addCredit.photosHint')}</Text>
-          </TouchableOpacity>
-        ) : (
-          <View style={styles.photoRow}>
-            {photoItems.map((item, index) => {
-              const uri = item.type === 'local' ? item.uri : item.image.thumbnailUrl;
-              return (
-                <View key={index} style={styles.photoSlotFilled}>
-                  <Image source={{ uri }} style={styles.slotImage} contentFit="cover" transition={200} />
-                  <TouchableOpacity style={styles.removePhotoBtn} onPress={() => handleRemovePhoto(index)} hitSlop={8}>
-                    <Ionicons name="close-circle" size={20} color="#FFFFFF" />
-                  </TouchableOpacity>
-                </View>
-              );
-            })}
-            {canAddMore && (
-              <TouchableOpacity style={styles.photoSlotAdd} onPress={handleAddPhoto} activeOpacity={0.7}>
-                <Ionicons name="add" size={28} color={colors.primary} />
-              </TouchableOpacity>
-            )}
-          </View>
-        )}
-
-      </ScrollView>
+      <PhotoPickerStep
+        title={t('addCredit.step.photo')}
+        photosHint={t('addCredit.photosHint')}
+        photoItems={photoItems}
+        onAddPhoto={handleAddPhoto}
+        onRemovePhoto={handleRemovePhoto}
+      />
     );
   }
 

@@ -6,18 +6,9 @@ import { useTranslation } from 'react-i18next';
 import { BaseCard } from './BaseCard';
 import { ExpirationBadge } from './ExpirationBadge';
 import { useAppTheme } from '@/hooks/useAppTheme';
-import { type Document, type DocumentType } from '@/types/documentTypes';
+import { type Document } from '@/types/documentTypes';
+import { DOCUMENT_TYPE_ICONS } from '@/constants/documentTypeIcons';
 import type { AppColors } from '@/constants/colors';
-
-type IoniconsName = React.ComponentProps<typeof Ionicons>['name'];
-
-const TYPE_ICONS: Record<DocumentType, IoniconsName> = {
-  id_card: 'person-circle-outline',
-  license: 'car-outline',
-  passport: 'airplane-outline',
-  insurance: 'shield-checkmark-outline',
-  other: 'document-outline',
-};
 
 function makeStyles(colors: AppColors) {
   return StyleSheet.create({
@@ -83,7 +74,7 @@ export function DocumentCard({ document, onPress }: Props) {
       </View>
 
       <View style={styles.iconCircle}>
-        <Ionicons name={TYPE_ICONS[document.type]} size={20} color={colors.primary} />
+        <Ionicons name={DOCUMENT_TYPE_ICONS[document.type]} size={20} color={colors.primary} />
       </View>
     </BaseCard>
   );

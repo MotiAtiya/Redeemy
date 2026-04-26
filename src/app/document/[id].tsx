@@ -1,4 +1,4 @@
-import { useState, useMemo, useRef, useEffect } from 'react';
+import { useState, useMemo, useRef } from 'react';
 import {
   View,
   Text,
@@ -7,10 +7,7 @@ import {
   TouchableOpacity,
   StyleSheet,
   Alert,
-  Modal,
-  ActivityIndicator,
   Dimensions,
-  StatusBar,
   I18nManager,
 } from 'react-native';
 import { Image } from 'expo-image';
@@ -21,6 +18,7 @@ import { useTranslation } from 'react-i18next';
 import { DetailRow } from '@/components/redeemy/DetailRow';
 import { ExpirationBadge } from '@/components/redeemy/ExpirationBadge';
 import { ActionModal } from '@/components/redeemy/ActionModal';
+import { FullscreenImageViewer } from '@/components/redeemy/FullscreenImageViewer';
 import { useDocumentsStore } from '@/stores/documentsStore';
 import { useAuthStore } from '@/stores/authStore';
 import { useFamilyStore } from '@/stores/familyStore';
@@ -34,15 +32,6 @@ import * as MediaLibrary from 'expo-media-library';
 import * as FileSystem from 'expo-file-system/legacy';
 import type { AppColors } from '@/constants/colors';
 
-type IoniconsName = React.ComponentProps<typeof Ionicons>['name'];
-
-const TYPE_ICONS: Record<DocumentType, IoniconsName> = {
-  id_card: 'person-circle-outline',
-  license: 'car-outline',
-  passport: 'airplane-outline',
-  insurance: 'shield-checkmark-outline',
-  other: 'document-outline',
-};
 
 function makeStyles(colors: AppColors) {
   return StyleSheet.create({
@@ -85,59 +74,6 @@ function makeStyles(colors: AppColors) {
     dotActive: { backgroundColor: colors.primary, width: 18 },
     notFound: { flex: 1, justifyContent: 'center', alignItems: 'center' },
     notFoundText: { fontSize: 16, color: colors.textTertiary },
-    // Full-screen image viewer — always LTR regardless of app language
-    fullscreenModal: { flex: 1, backgroundColor: '#000000', direction: 'ltr' },
-    fullscreenClose: {
-      position: 'absolute',
-      top: 56,
-      right: 16,
-      zIndex: 10,
-      backgroundColor: 'rgba(0,0,0,0.5)',
-      borderRadius: 20,
-      padding: 8,
-    },
-    fullscreenDownload: {
-      position: 'absolute',
-      top: 56,
-      left: 16,
-      zIndex: 10,
-      backgroundColor: 'rgba(0,0,0,0.5)',
-      borderRadius: 20,
-      padding: 8,
-    },
-    fullscreenList: { flex: 1 },
-    fullscreenItemScroll: {
-      width: Dimensions.get('window').width,
-      height: Dimensions.get('window').height,
-    },
-    fullscreenItemScrollContent: {
-      flex: 1,
-      justifyContent: 'center',
-      alignItems: 'center',
-    },
-    fullscreenImage: {
-      width: Dimensions.get('window').width,
-      height: Dimensions.get('window').height,
-    },
-    fullscreenDots: {
-      position: 'absolute',
-      bottom: 40,
-      left: 0,
-      right: 0,
-      flexDirection: 'row',
-      justifyContent: 'center',
-      gap: 6,
-    },
-    fullscreenDot: {
-      width: 6,
-      height: 6,
-      borderRadius: 3,
-      backgroundColor: 'rgba(255,255,255,0.35)',
-    },
-    fullscreenDotActive: {
-      backgroundColor: '#FFFFFF',
-      width: 18,
-    },
   });
 }
 
@@ -164,16 +100,6 @@ export default function DocumentDetailScreen() {
   const [carouselIndex, setCarouselIndex] = useState(0);
   const [downloading, setDownloading] = useState(false);
   const afterDismissRef = useRef<(() => void) | null>(null);
-  const fullscreenListRef = useRef<FlatList>(null);
-
-  useEffect(() => {
-    if (showFullscreenImage) {
-      const timer = setTimeout(() => {
-        fullscreenListRef.current?.scrollToIndex({ index: fullscreenIndex, animated: false });
-      }, 0);
-      return () => clearTimeout(timer);
-    }
-  }, [showFullscreenImage]);
 
   // Normalize images
   const images = document.images ?? (document.imageUrl ? [{ url: document.imageUrl, thumbnailUrl: document.thumbnailUrl ?? document.imageUrl }] : []);
@@ -339,81 +265,15 @@ export default function DocumentDetailScreen() {
         </Text>
       </ScrollView>
 
-      {/* Full-screen image viewer */}
-      {images.length > 0 && (
-        <Modal
-          visible={showFullscreenImage}
-          transparent={false}
-          animationType="fade"
-          onRequestClose={() => setShowFullscreenImage(false)}
-          statusBarTranslucent
-        >
-          <View style={styles.fullscreenModal}>
-            <StatusBar hidden />
-            <FlatList
-              ref={fullscreenListRef}
-              data={images}
-              horizontal
-              pagingEnabled
-              showsHorizontalScrollIndicator={false}
-              keyExtractor={(_, i) => String(i)}
-              style={styles.fullscreenList}
-              getItemLayout={(_, index) => ({
-                length: Dimensions.get('window').width,
-                offset: Dimensions.get('window').width * index,
-                index,
-              })}
-              onMomentumScrollEnd={(e) => {
-                const idx = Math.round(e.nativeEvent.contentOffset.x / Dimensions.get('window').width);
-                setFullscreenIndex(idx);
-              }}
-              renderItem={({ item }) => (
-                <ScrollView
-                  style={styles.fullscreenItemScroll}
-                  contentContainerStyle={styles.fullscreenItemScrollContent}
-                  maximumZoomScale={5}
-                  minimumZoomScale={1}
-                  showsHorizontalScrollIndicator={false}
-                  showsVerticalScrollIndicator={false}
-                  centerContent
-                  bouncesZoom
-                >
-                  <Image
-                    source={{ uri: item.url }}
-                    style={styles.fullscreenImage}
-                    contentFit="contain"
-                    transition={200}
-                  />
-                </ScrollView>
-              )}
-            />
-            {images.length > 1 && (
-              <View style={styles.fullscreenDots}>
-                {images.map((_, i) => (
-                  <View key={i} style={[styles.fullscreenDot, i === fullscreenIndex && styles.fullscreenDotActive]} />
-                ))}
-              </View>
-            )}
-            <TouchableOpacity
-              style={styles.fullscreenClose}
-              onPress={() => setShowFullscreenImage(false)}
-              hitSlop={12}
-            >
-              <Ionicons name="close" size={22} color="#FFFFFF" />
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.fullscreenDownload}
-              onPress={handleDownloadImage}
-              disabled={downloading}
-              hitSlop={12}
-            >
-              {downloading
-                ? <ActivityIndicator size="small" color="#FFFFFF" />
-                : <Ionicons name="download-outline" size={22} color="#FFFFFF" />}
-            </TouchableOpacity>
-          </View>
-        </Modal>
-      )}
+      <FullscreenImageViewer
+        visible={showFullscreenImage}
+        images={images}
+        initialIndex={fullscreenIndex}
+        downloading={downloading}
+        onClose={() => setShowFullscreenImage(false)}
+        onDownload={handleDownloadImage}
+        onIndexChange={setFullscreenIndex}
+      />
 
       <ActionModal
         visible={showActionSheet}
