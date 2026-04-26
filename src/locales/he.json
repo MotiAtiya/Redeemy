@@ -528,7 +528,8 @@
     "on": "פעיל",
     "off": "כבוי",
     "continue": "המשך",
-    "save": "שמירה"
+    "save": "שמירה",
+    "choosePhotoSource": "בחר מקור תמונה"
   },
   "notificationSettings": {
     "title": "התראות",
@@ -1119,7 +1120,7 @@
     "notesPlaceholder": "הערות…",
     "photoHint": "לחצו לצילום המסמך",
     "photosHint": "ניתן להוסיף עד 3 תמונות",
-    "takePhoto": "צלמו",
+    "takePhoto": "מצלמה",
     "chooseGallery": "גלריה",
     "retakePhoto": "צלמו שוב",
     "photoCurrentKept": "תמונה קיימת תישמר אם לא תבחרו חדשה",

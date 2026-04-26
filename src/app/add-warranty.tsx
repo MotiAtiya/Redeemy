@@ -125,13 +125,26 @@ function makeStyles(colors: AppColors, isRTL: boolean) {
     datePlaceholder: { color: colors.textTertiary },
     dateError: { fontSize: 12, color: colors.danger, marginTop: 6, alignSelf: 'flex-start' },
     // Photo step
-    photoHint: {
-      fontSize: 14,
-      color: colors.textSecondary,
-      alignSelf: 'flex-start',
-      marginBottom: 16,
+    photoPlaceholderCard: {
+      width: '100%',
+      height: 180,
+      borderRadius: 16,
+      borderWidth: 1.5,
+      borderStyle: 'dashed',
+      borderColor: colors.separator,
+      justifyContent: 'center',
+      alignItems: 'center',
+      gap: 12,
+      marginBottom: 20,
+      backgroundColor: colors.surface,
     },
-    photoGrid: {
+    photoPlaceholderCardText: {
+      fontSize: 14,
+      color: colors.textTertiary,
+      textAlign: 'center',
+      paddingHorizontal: 32,
+    },
+    photoRow: {
       flexDirection: 'row',
       gap: 8,
       marginBottom: 20,
@@ -152,38 +165,16 @@ function makeStyles(colors: AppColors, isRTL: boolean) {
       borderRadius: 11,
       padding: 1,
     },
-    photoSlotEmpty: {
+    photoSlotAdd: {
       flex: 1,
       aspectRatio: 1,
       borderRadius: 12,
       borderWidth: 1.5,
-      borderColor: colors.separator,
-      justifyContent: 'center',
-      alignItems: 'center',
-      gap: 4,
-    },
-    photoSlotEmptyFirst: {
       borderColor: colors.primary,
       backgroundColor: colors.primarySurface,
-    },
-    photoSlotEmptyLabel: { fontSize: 11, color: colors.primary, fontWeight: '500' },
-    photoButtons: { gap: 12 },
-    photoBtn: {
-      height: 52,
-      borderRadius: 14,
-      backgroundColor: colors.primary,
-      flexDirection: 'row',
       justifyContent: 'center',
       alignItems: 'center',
-      gap: 10,
     },
-    photoBtnSecondary: {
-      backgroundColor: 'transparent',
-      borderWidth: 1.5,
-      borderColor: colors.primary,
-    },
-    photoBtnText: { fontSize: 16, fontWeight: '600', color: '#FFFFFF' },
-    photoBtnTextSecondary: { color: colors.primary },
     summaryPhotoBadge: {
       position: 'absolute',
       bottom: 8,
@@ -476,7 +467,7 @@ export default function AddWarrantyScreen() {
   function handleAddPhoto() {
     if (photoItems.length >= MAX_PHOTOS) return;
     Alert.alert(
-      t('addWarranty.step.photo'),
+      t('common.choosePhotoSource'),
       undefined,
       [
         { text: t('addWarranty.takePhoto'), onPress: handleCamera },
@@ -789,51 +780,38 @@ export default function AddWarrantyScreen() {
   }
 
   function renderPhotoStep() {
+    const hasPhotos = photoItems.length > 0;
+    const canAddMore = photoItems.length < MAX_PHOTOS;
     return (
       <ScrollView style={styles.stepScroll} contentContainerStyle={styles.stepContent}>
         <Text style={styles.stepTitle}>{t('addWarranty.step.photo')}</Text>
-        <Text style={styles.photoHint}>{t('addWarranty.photosHint')}</Text>
 
-        <View style={styles.photoGrid}>
-          {[0, 1, 2].map((index) => {
-            const item = photoItems[index];
-            const isFirstEmpty = !item && index === photoItems.length;
-            const uri = item
-              ? (item.type === 'local' ? item.uri : item.image.thumbnailUrl)
-              : null;
-            return item ? (
-              <View key={index} style={styles.photoSlotFilled}>
-                <Image source={{ uri: uri! }} style={styles.slotImage} contentFit="cover" transition={200} />
-                <TouchableOpacity style={styles.removePhotoBtn} onPress={() => handleRemovePhoto(index)} hitSlop={8}>
-                  <Ionicons name="close-circle" size={20} color="#FFFFFF" />
-                </TouchableOpacity>
-              </View>
-            ) : (
-              <TouchableOpacity
-                key={index}
-                style={[styles.photoSlotEmpty, isFirstEmpty && styles.photoSlotEmptyFirst]}
-                onPress={isFirstEmpty ? handleAddPhoto : undefined}
-                activeOpacity={isFirstEmpty ? 0.7 : 1}
-              >
-                <Ionicons name="add" size={26} color={isFirstEmpty ? colors.primary : colors.textTertiary} />
-                {isFirstEmpty && <Text style={styles.photoSlotEmptyLabel}>{t('addWarranty.takePhoto')}</Text>}
+        {!hasPhotos ? (
+          <TouchableOpacity style={styles.photoPlaceholderCard} onPress={handleAddPhoto} activeOpacity={0.7}>
+            <Ionicons name="camera-outline" size={40} color={colors.textTertiary} />
+            <Text style={styles.photoPlaceholderCardText}>{t('addWarranty.photosHint')}</Text>
+          </TouchableOpacity>
+        ) : (
+          <View style={styles.photoRow}>
+            {photoItems.map((item, index) => {
+              const uri = item.type === 'local' ? item.uri : item.image.thumbnailUrl;
+              return (
+                <View key={index} style={styles.photoSlotFilled}>
+                  <Image source={{ uri }} style={styles.slotImage} contentFit="cover" transition={200} />
+                  <TouchableOpacity style={styles.removePhotoBtn} onPress={() => handleRemovePhoto(index)} hitSlop={8}>
+                    <Ionicons name="close-circle" size={20} color="#FFFFFF" />
+                  </TouchableOpacity>
+                </View>
+              );
+            })}
+            {canAddMore && (
+              <TouchableOpacity style={styles.photoSlotAdd} onPress={handleAddPhoto} activeOpacity={0.7}>
+                <Ionicons name="add" size={28} color={colors.primary} />
               </TouchableOpacity>
-            );
-          })}
-        </View>
-
-        {photoItems.length < MAX_PHOTOS && (
-          <View style={styles.photoButtons}>
-            <TouchableOpacity style={styles.photoBtn} onPress={handleCamera}>
-              <Ionicons name="camera-outline" size={20} color="#FFFFFF" />
-              <Text style={styles.photoBtnText}>{t('addWarranty.takePhoto')}</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={[styles.photoBtn, styles.photoBtnSecondary]} onPress={handleGallery}>
-              <Ionicons name="images-outline" size={20} color={colors.primary} />
-              <Text style={[styles.photoBtnText, styles.photoBtnTextSecondary]}>{t('addWarranty.chooseGallery')}</Text>
-            </TouchableOpacity>
+            )}
           </View>
         )}
+
       </ScrollView>
     );
   }

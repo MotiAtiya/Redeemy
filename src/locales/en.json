@@ -529,7 +529,8 @@
     "on": "On",
     "off": "Off",
     "continue": "Continue",
-    "save": "Save"
+    "save": "Save",
+    "choosePhotoSource": "Choose Photo Source"
   },
   "notificationSettings": {
     "title": "Notifications",

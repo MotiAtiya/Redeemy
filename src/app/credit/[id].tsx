@@ -1,4 +1,4 @@
-import { useState, useRef, useMemo } from 'react';
+import { useState, useRef, useEffect, useMemo } from 'react';
 import {
   View,
   Text,
@@ -120,8 +120,12 @@ function makeStyles(colors: AppColors) {
       borderRadius: 20,
       padding: 8,
     },
-    fullscreenScrollView: { flex: 1 },
-    fullscreenScrollContent: {
+    fullscreenList: { flex: 1 },
+    fullscreenItemScroll: {
+      width: Dimensions.get('window').width,
+      height: Dimensions.get('window').height,
+    },
+    fullscreenItemScrollContent: {
       flex: 1,
       justifyContent: 'center',
       alignItems: 'center',
@@ -129,6 +133,25 @@ function makeStyles(colors: AppColors) {
     fullscreenImage: {
       width: Dimensions.get('window').width,
       height: Dimensions.get('window').height,
+    },
+    fullscreenDots: {
+      position: 'absolute',
+      bottom: 40,
+      left: 0,
+      right: 0,
+      flexDirection: 'row',
+      justifyContent: 'center',
+      gap: 6,
+    },
+    fullscreenDot: {
+      width: 6,
+      height: 6,
+      borderRadius: 3,
+      backgroundColor: 'rgba(255,255,255,0.35)',
+    },
+    fullscreenDotActive: {
+      backgroundColor: '#FFFFFF',
+      width: 18,
     },
   });
 }
@@ -158,6 +181,16 @@ export default function CreditDetailScreen() {
   const [downloading, setDownloading] = useState(false);
   const [loading, setLoading] = useState(false);
   const afterDismissRef = useRef<(() => void) | null>(null);
+  const fullscreenListRef = useRef<FlatList>(null);
+
+  useEffect(() => {
+    if (showFullscreenImage) {
+      const timer = setTimeout(() => {
+        fullscreenListRef.current?.scrollToIndex({ index: fullscreenIndex, animated: false });
+      }, 0);
+      return () => clearTimeout(timer);
+    }
+  }, [showFullscreenImage]);
 
   // Normalize images: use new images array, fall back to legacy imageUrl
   const images = credit?.images ?? (credit?.imageUrl ? [{ url: credit.imageUrl, thumbnailUrl: credit.thumbnailUrl ?? credit.imageUrl }] : []);
@@ -419,23 +452,50 @@ export default function CreditDetailScreen() {
       >
         <View style={styles.fullscreenModal}>
           <StatusBar hidden />
-          <ScrollView
-            style={styles.fullscreenScrollView}
-            contentContainerStyle={styles.fullscreenScrollContent}
-            maximumZoomScale={5}
-            minimumZoomScale={1}
+          <FlatList
+            ref={fullscreenListRef}
+            data={images}
+            horizontal
+            pagingEnabled
             showsHorizontalScrollIndicator={false}
-            showsVerticalScrollIndicator={false}
-            centerContent
-            bouncesZoom
-          >
-            <Image
-              source={{ uri: images[fullscreenIndex]?.url }}
-              style={styles.fullscreenImage}
-              contentFit="contain"
-              transition={200}
-            />
-          </ScrollView>
+            keyExtractor={(_, i) => String(i)}
+            style={styles.fullscreenList}
+            getItemLayout={(_, index) => ({
+              length: Dimensions.get('window').width,
+              offset: Dimensions.get('window').width * index,
+              index,
+            })}
+            onMomentumScrollEnd={(e) => {
+              const idx = Math.round(e.nativeEvent.contentOffset.x / Dimensions.get('window').width);
+              setFullscreenIndex(idx);
+            }}
+            renderItem={({ item }) => (
+              <ScrollView
+                style={styles.fullscreenItemScroll}
+                contentContainerStyle={styles.fullscreenItemScrollContent}
+                maximumZoomScale={5}
+                minimumZoomScale={1}
+                showsHorizontalScrollIndicator={false}
+                showsVerticalScrollIndicator={false}
+                centerContent
+                bouncesZoom
+              >
+                <Image
+                  source={{ uri: item.url }}
+                  style={styles.fullscreenImage}
+                  contentFit="contain"
+                  transition={200}
+                />
+              </ScrollView>
+            )}
+          />
+          {images.length > 1 && (
+            <View style={styles.fullscreenDots}>
+              {images.map((_, i) => (
+                <View key={i} style={[styles.fullscreenDot, i === fullscreenIndex && styles.fullscreenDotActive]} />
+              ))}
+            </View>
+          )}
           <TouchableOpacity
             style={styles.fullscreenClose}
             onPress={() => setShowFullscreenImage(false)}
