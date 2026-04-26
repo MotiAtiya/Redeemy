@@ -19,7 +19,7 @@ import DateTimePicker, { type DateTimePickerEvent } from '@react-native-communit
 import { StepFormScreen } from '@/components/redeemy/StepFormScreen';
 import { CropModal } from '@/components/redeemy/CropModal';
 import { createDocument, updateDocument } from '@/lib/firestoreDocuments';
-import { uploadDocumentImage, openCamera, openGallery } from '@/lib/imageUpload';
+import { openCamera, openGallery, uploadEntityImage, type DocumentImage } from '@/lib/imageUpload';
 import { useAuthStore } from '@/stores/authStore';
 import { useDocumentsStore } from '@/stores/documentsStore';
 import { useSettingsStore } from '@/stores/settingsStore';
@@ -104,27 +104,50 @@ function makeStyles(colors: AppColors, isRTL: boolean) {
       textAlign: isRTL ? 'right' : 'left',
     },
 
-    // Photo step — same as add-credit
-    photoStepCenter: {
-      flex: 1,
-      justifyContent: 'center',
-      alignItems: 'center',
-      gap: 24,
-    },
-    photoPlaceholderIcon: {
-      width: 100,
-      height: 100,
-      borderRadius: 50,
-      backgroundColor: colors.primarySurface,
-      justifyContent: 'center',
-      alignItems: 'center',
-    },
-    photoPlaceholderLabel: {
-      fontSize: 15,
+    // Photo step
+    photoHint: {
+      fontSize: 14,
       color: colors.textSecondary,
-      textAlign: 'center',
+      alignSelf: 'flex-start',
+      marginBottom: 16,
     },
-    photoButtons: { gap: 12, width: '100%', paddingHorizontal: 24 },
+    photoGrid: {
+      flexDirection: 'row',
+      gap: 8,
+      marginBottom: 20,
+    },
+    photoSlotFilled: {
+      flex: 1,
+      aspectRatio: 1,
+      borderRadius: 12,
+      overflow: 'hidden',
+      backgroundColor: colors.separator,
+    },
+    slotImage: { width: '100%', height: '100%' },
+    removePhotoBtn: {
+      position: 'absolute',
+      top: 4,
+      right: 4,
+      backgroundColor: 'rgba(0,0,0,0.55)',
+      borderRadius: 11,
+      padding: 1,
+    },
+    photoSlotEmpty: {
+      flex: 1,
+      aspectRatio: 1,
+      borderRadius: 12,
+      borderWidth: 1.5,
+      borderColor: colors.separator,
+      justifyContent: 'center',
+      alignItems: 'center',
+      gap: 4,
+    },
+    photoSlotEmptyFirst: {
+      borderColor: colors.primary,
+      backgroundColor: colors.primarySurface,
+    },
+    photoSlotEmptyLabel: { fontSize: 11, color: colors.primary, fontWeight: '500' },
+    photoButtons: { gap: 12 },
     photoBtn: {
       height: 52,
       borderRadius: 14,
@@ -141,21 +164,19 @@ function makeStyles(colors: AppColors, isRTL: boolean) {
     },
     photoBtnText: { fontSize: 16, fontWeight: '600', color: '#FFFFFF' },
     photoBtnTextSecondary: { color: colors.primary },
-    photoPreview: {
-      width: '100%',
-      height: 240,
-      borderRadius: 16,
-      backgroundColor: colors.separator,
-    },
-    retakeBtn: {
+    summaryPhotoBadge: {
+      position: 'absolute',
+      bottom: 8,
+      right: 8,
+      backgroundColor: 'rgba(0,0,0,0.6)',
+      borderRadius: 12,
+      paddingHorizontal: 8,
+      paddingVertical: 4,
       flexDirection: 'row',
       alignItems: 'center',
-      gap: 6,
-      alignSelf: 'center',
-      paddingVertical: 8,
-      paddingHorizontal: 16,
+      gap: 4,
     },
-    retakeBtnText: { fontSize: 14, color: colors.primary, fontWeight: '500' },
+    summaryPhotoBadgeText: { fontSize: 13, color: '#FFFFFF', fontWeight: '600' },
 
     // Summary
     stepSubtitle: {
@@ -265,6 +286,9 @@ export default function AddDocumentScreen() {
     documentId ? s.documents.find((d) => d.id === documentId) : undefined
   );
 
+  type PhotoItem = { type: 'local'; uri: string } | { type: 'existing'; image: DocumentImage };
+  const MAX_PHOTOS = 3;
+
   // Form state
   const [docType, setDocType] = useState<DocumentType>('id_card');
   const [ownerName, setOwnerName] = useState('');
@@ -273,7 +297,7 @@ export default function AddDocumentScreen() {
     d.setFullYear(d.getFullYear() + 1);
     return d;
   });
-  const [photoUri, setPhotoUri] = useState<string | null>(null);
+  const [photoItems, setPhotoItems] = useState<PhotoItem[]>([]);
   const [cropUri, setCropUri] = useState<string | null>(null);
   const [notes, setNotes] = useState('');
   const [saving, setSaving] = useState(false);
@@ -293,7 +317,10 @@ export default function AddDocumentScreen() {
       : new Date(existingDocument.expirationDate as unknown as string);
     setExpirationDate(d);
     if (existingDocument.notes) setNotes(existingDocument.notes);
-    if (existingDocument.imageUrl) setPhotoUri(existingDocument.imageUrl);
+    const existingImages = existingDocument.images ?? (existingDocument.imageUrl ? [{ url: existingDocument.imageUrl, thumbnailUrl: existingDocument.thumbnailUrl ?? existingDocument.imageUrl }] : []);
+    if (existingImages.length > 0) {
+      setPhotoItems(existingImages.map((img) => ({ type: 'existing' as const, image: img })));
+    }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -326,16 +353,17 @@ export default function AddDocumentScreen() {
       case 'type': return true;
       case 'owner': return ownerName.trim().length > 0;
       case 'expiration': return true;
-      case 'photo': return !!photoUri;
+      case 'photo': return photoItems.length > 0;
       default: return false;
     }
-  }, [currentStepId, ownerName, photoUri]);
+  }, [currentStepId, ownerName, photoItems]);
 
   // ---------------------------------------------------------------------------
   // Photo actions
   // ---------------------------------------------------------------------------
 
   async function handleCamera() {
+    if (photoItems.length >= MAX_PHOTOS) return;
     try {
       const picked = await openCamera();
       if (picked) setCropUri(picked.localUri);
@@ -345,8 +373,26 @@ export default function AddDocumentScreen() {
   }
 
   async function handleGallery() {
+    if (photoItems.length >= MAX_PHOTOS) return;
     const picked = await openGallery();
     if (picked) setCropUri(picked.localUri);
+  }
+
+  function handleRemovePhoto(index: number) {
+    setPhotoItems((prev) => prev.filter((_, i) => i !== index));
+  }
+
+  function handleAddPhoto() {
+    if (photoItems.length >= MAX_PHOTOS) return;
+    Alert.alert(
+      t('addDocument.step.photo'),
+      undefined,
+      [
+        { text: t('addDocument.takePhoto'), onPress: handleCamera },
+        { text: t('addDocument.chooseGallery'), onPress: handleGallery },
+        { text: t('common.cancel'), style: 'cancel' },
+      ]
+    );
   }
 
   // ---------------------------------------------------------------------------
@@ -359,7 +405,7 @@ export default function AddDocumentScreen() {
       Alert.alert(t('offline.title'), t('addDocument.offline'));
       return;
     }
-    if (!photoUri && !isEditing) {
+    if (photoItems.length === 0 && !isEditing) {
       Alert.alert(t('common.error'), t('addDocument.error.photoRequired'));
       return;
     }
@@ -380,11 +426,18 @@ export default function AddDocumentScreen() {
         updateDocumentInStore(documentId, data);
         await updateDocument(documentId, data);
 
-        // Upload new photo if changed (not a remote URL)
-        if (photoUri && !photoUri.startsWith('http')) {
-          const { imageUrl, thumbnailUrl } = await uploadDocumentImage(photoUri, documentId);
-          updateDocumentInStore(documentId, { imageUrl, thumbnailUrl });
-          await updateDocument(documentId, { imageUrl, thumbnailUrl });
+        const hasLocalPhotos = photoItems.some((item) => item.type === 'local');
+        const existingImgCount = existingDocument?.images?.length ?? (existingDocument?.imageUrl ? 1 : 0);
+        if (hasLocalPhotos || photoItems.length !== existingImgCount) {
+          const uploadedImages = await Promise.all(
+            photoItems.map((item, i) =>
+              item.type === 'existing'
+                ? Promise.resolve(item.image)
+                : uploadEntityImage(item.uri, 'documents', documentId, i)
+            )
+          );
+          updateDocumentInStore(documentId, { images: uploadedImages });
+          await updateDocument(documentId, { images: uploadedImages });
         }
 
         router.back();
@@ -407,9 +460,15 @@ export default function AddDocumentScreen() {
     try {
       const docId = await createDocument(data);
 
-      if (photoUri) {
-        const { imageUrl, thumbnailUrl } = await uploadDocumentImage(photoUri, docId);
-        await updateDocument(docId, { imageUrl, thumbnailUrl });
+      if (photoItems.length > 0) {
+        const uploadedImages = await Promise.all(
+          photoItems.map((item, i) =>
+            item.type === 'existing'
+              ? Promise.resolve(item.image)
+              : uploadEntityImage(item.uri, 'documents', docId, i)
+          )
+        );
+        await updateDocument(docId, { images: uploadedImages });
       }
 
       removeDocumentFromStore(tempId);
@@ -490,45 +549,51 @@ export default function AddDocumentScreen() {
 
   function renderPhotoStep() {
     return (
-      <View style={[styles.stepContent, styles.photoStepCenter]}>
-        {photoUri ? (
-          <>
-            <Image
-              source={{ uri: photoUri }}
-              style={styles.photoPreview}
-              contentFit="cover"
-              placeholder={{ blurhash: 'L6PZfSi_.AyE_3t7t7R**0o#DgR4' }}
-            />
-            <TouchableOpacity style={styles.retakeBtn} onPress={handleCamera}>
-              <Ionicons name="camera-outline" size={16} color={colors.primary} />
-              <Text style={styles.retakeBtnText}>{t('addDocument.retakePhoto')}</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.retakeBtn} onPress={handleGallery}>
-              <Ionicons name="images-outline" size={16} color={colors.primary} />
-              <Text style={styles.retakeBtnText}>{t('addDocument.chooseGallery')}</Text>
-            </TouchableOpacity>
-          </>
-        ) : (
-          <>
-            <View style={styles.photoPlaceholderIcon}>
-              <Ionicons name="camera-outline" size={44} color={colors.primary} />
-            </View>
-            <Text style={styles.photoPlaceholderLabel}>{t('addDocument.photoHint')}</Text>
-            <View style={styles.photoButtons}>
-              <TouchableOpacity style={styles.photoBtn} onPress={handleCamera}>
-                <Ionicons name="camera-outline" size={20} color="#FFFFFF" />
-                <Text style={styles.photoBtnText}>{t('addDocument.takePhoto')}</Text>
+      <ScrollView style={styles.stepScroll} contentContainerStyle={styles.stepContent}>
+        <Text style={styles.stepTitle}>{t('addDocument.step.photo')}</Text>
+        <Text style={styles.photoHint}>{t('addDocument.photosHint')}</Text>
+
+        <View style={styles.photoGrid}>
+          {[0, 1, 2].map((index) => {
+            const item = photoItems[index];
+            const isFirstEmpty = !item && index === photoItems.length;
+            const uri = item
+              ? (item.type === 'local' ? item.uri : item.image.thumbnailUrl)
+              : null;
+            return item ? (
+              <View key={index} style={styles.photoSlotFilled}>
+                <Image source={{ uri: uri! }} style={styles.slotImage} contentFit="cover" transition={200} />
+                <TouchableOpacity style={styles.removePhotoBtn} onPress={() => handleRemovePhoto(index)} hitSlop={8}>
+                  <Ionicons name="close-circle" size={20} color="#FFFFFF" />
+                </TouchableOpacity>
+              </View>
+            ) : (
+              <TouchableOpacity
+                key={index}
+                style={[styles.photoSlotEmpty, isFirstEmpty && styles.photoSlotEmptyFirst]}
+                onPress={isFirstEmpty ? handleAddPhoto : undefined}
+                activeOpacity={isFirstEmpty ? 0.7 : 1}
+              >
+                <Ionicons name="add" size={26} color={isFirstEmpty ? colors.primary : colors.textTertiary} />
+                {isFirstEmpty && <Text style={styles.photoSlotEmptyLabel}>{t('addDocument.takePhoto')}</Text>}
               </TouchableOpacity>
-              <TouchableOpacity style={[styles.photoBtn, styles.photoBtnSecondary]} onPress={handleGallery}>
-                <Ionicons name="images-outline" size={20} color={colors.primary} />
-                <Text style={[styles.photoBtnText, styles.photoBtnTextSecondary]}>
-                  {t('addDocument.chooseGallery')}
-                </Text>
-              </TouchableOpacity>
-            </View>
-          </>
+            );
+          })}
+        </View>
+
+        {photoItems.length < MAX_PHOTOS && (
+          <View style={styles.photoButtons}>
+            <TouchableOpacity style={styles.photoBtn} onPress={handleCamera}>
+              <Ionicons name="camera-outline" size={20} color="#FFFFFF" />
+              <Text style={styles.photoBtnText}>{t('addDocument.takePhoto')}</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={[styles.photoBtn, styles.photoBtnSecondary]} onPress={handleGallery}>
+              <Ionicons name="images-outline" size={20} color={colors.primary} />
+              <Text style={[styles.photoBtnText, styles.photoBtnTextSecondary]}>{t('addDocument.chooseGallery')}</Text>
+            </TouchableOpacity>
+          </View>
         )}
-      </View>
+      </ScrollView>
     );
   }
 
@@ -539,14 +604,21 @@ export default function AddDocumentScreen() {
         <Text style={styles.stepTitle}>{t('addDocument.step.summary')}</Text>
         <Text style={styles.stepSubtitle}>{t('addDocument.step.summarySub')}</Text>
 
-        {!!photoUri && (
-          <Image
-            source={{ uri: photoUri }}
-            style={styles.summaryPhoto}
-            contentFit="cover"
-            placeholder={{ blurhash: 'L6PZfSi_.AyE_3t7t7R**0o#DgR4' }}
-          />
-        )}
+        {photoItems.length > 0 && (() => {
+          const first = photoItems[0];
+          const uri = first.type === 'local' ? first.uri : first.image.url;
+          return (
+            <View style={{ marginBottom: 24 }}>
+              <Image source={{ uri }} style={styles.summaryPhoto} contentFit="cover" placeholder={{ blurhash: 'L6PZfSi_.AyE_3t7t7R**0o#DgR4' }} />
+              {photoItems.length > 1 && (
+                <View style={styles.summaryPhotoBadge}>
+                  <Ionicons name="images-outline" size={13} color="#FFFFFF" />
+                  <Text style={styles.summaryPhotoBadgeText}>{photoItems.length}</Text>
+                </View>
+              )}
+            </View>
+          );
+        })()}
 
         <View style={styles.summaryCard}>
           <View style={styles.summaryRow}>
@@ -623,7 +695,10 @@ export default function AddDocumentScreen() {
       extras={cropUri ? (
         <CropModal
           uri={cropUri}
-          onCrop={(uri) => { setPhotoUri(uri); setCropUri(null); }}
+          onCrop={(uri) => {
+            setPhotoItems((prev) => prev.length < MAX_PHOTOS ? [...prev, { type: 'local', uri }] : prev);
+            setCropUri(null);
+          }}
           onCancel={() => setCropUri(null)}
         />
       ) : undefined}

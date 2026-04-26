@@ -62,9 +62,9 @@ export function DocumentCard({ document, onPress }: Props) {
 
   return (
     <BaseCard onPress={onPress} accessibilityLabel={`${typeLabel} — ${document.ownerName}`}>
-      {document.thumbnailUrl ? (
+      {(document.images?.[0]?.thumbnailUrl ?? document.thumbnailUrl) ? (
         <Image
-          source={{ uri: document.thumbnailUrl }}
+          source={{ uri: document.images?.[0]?.thumbnailUrl ?? document.thumbnailUrl! }}
           style={styles.thumbnail}
           contentFit="cover"
           placeholder={{ blurhash: 'L6PZfSi_.AyE_3t7t7R**0o#DgR4' }}

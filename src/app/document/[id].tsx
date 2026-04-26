@@ -3,6 +3,7 @@ import {
   View,
   Text,
   ScrollView,
+  FlatList,
   TouchableOpacity,
   StyleSheet,
   Alert,
@@ -26,7 +27,6 @@ import { useFamilyStore } from '@/stores/familyStore';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { useUIStore } from '@/stores/uiStore';
 import { deleteDocument } from '@/lib/firestoreDocuments';
-import { deleteDocumentImages } from '@/lib/imageUpload';
 import { formatDate } from '@/lib/formatDate';
 import { useAppTheme } from '@/hooks/useAppTheme';
 import { type DocumentType } from '@/types/documentTypes';
@@ -79,7 +79,10 @@ function makeStyles(colors: AppColors) {
       overflow: 'hidden',
       backgroundColor: colors.surface,
     },
-    photo: { width: '100%', aspectRatio: 4 / 3 },
+    photo: { width: Dimensions.get('window').width - 32, aspectRatio: 4 / 3 },
+    dotRow: { flexDirection: 'row', justifyContent: 'center', gap: 6, marginTop: 8 },
+    dot: { width: 6, height: 6, borderRadius: 3, backgroundColor: colors.separator },
+    dotActive: { backgroundColor: colors.primary, width: 18 },
     notFound: { flex: 1, justifyContent: 'center', alignItems: 'center' },
     notFoundText: { fontSize: 16, color: colors.textTertiary },
     // Full-screen image viewer — always LTR regardless of app language
@@ -134,8 +137,13 @@ export default function DocumentDetailScreen() {
 
   const [showActionSheet, setShowActionSheet] = useState(false);
   const [showFullscreenImage, setShowFullscreenImage] = useState(false);
+  const [fullscreenIndex, setFullscreenIndex] = useState(0);
+  const [carouselIndex, setCarouselIndex] = useState(0);
   const [downloading, setDownloading] = useState(false);
   const afterDismissRef = useRef<(() => void) | null>(null);
+
+  // Normalize images
+  const images = document.images ?? (document.imageUrl ? [{ url: document.imageUrl, thumbnailUrl: document.thumbnailUrl ?? document.imageUrl }] : []);
 
   if (!document) {
     return (
@@ -172,10 +180,7 @@ export default function DocumentDetailScreen() {
           onPress: async () => {
             try {
               removeDocument(document!.id);
-              await Promise.all([
-                deleteDocument(document!.id),
-                deleteDocumentImages(document!.id),
-              ]);
+              await deleteDocument(document!.id);
               router.back();
             } catch {
               Alert.alert(t('common.error'), t('document.delete.error'));
@@ -187,7 +192,8 @@ export default function DocumentDetailScreen() {
   }
 
   async function handleDownloadImage() {
-    if (!document?.imageUrl) return;
+    const imageUrl = images[fullscreenIndex]?.url;
+    if (!imageUrl) return;
     setDownloading(true);
     try {
       const { status } = await MediaLibrary.requestPermissionsAsync();
@@ -197,7 +203,7 @@ export default function DocumentDetailScreen() {
       }
       const filename = `redeemy-doc-${Date.now()}.jpg`;
       const localUri = FileSystem.cacheDirectory + filename;
-      const { uri } = await FileSystem.downloadAsync(document.imageUrl, localUri);
+      const { uri } = await FileSystem.downloadAsync(imageUrl, localUri);
       await MediaLibrary.saveToLibraryAsync(uri);
       Alert.alert(t('document.image.savedTitle'), t('document.image.savedMessage'));
     } catch (e) {
@@ -230,17 +236,44 @@ export default function DocumentDetailScreen() {
       </View>
 
       <ScrollView style={styles.scroll} contentContainerStyle={styles.scrollContent}>
-        {/* Photo */}
-        {!!document.imageUrl && (
-          <TouchableOpacity style={styles.photoCard} onPress={() => setShowFullscreenImage(true)} activeOpacity={0.9}>
-            <Image
-              source={{ uri: document.imageUrl }}
-              style={styles.photo}
-              contentFit="cover"
-              placeholder={{ blurhash: 'L6PZfSi_.AyE_3t7t7R**0o#DgR4' }}
-              transition={300}
-            />
-          </TouchableOpacity>
+        {/* Photo carousel */}
+        {images.length > 0 && (
+          <View style={{ marginHorizontal: 16 }}>
+            <View style={{ borderRadius: 14, overflow: 'hidden' }}>
+              <FlatList
+                data={images}
+                horizontal
+                pagingEnabled
+                showsHorizontalScrollIndicator={false}
+                keyExtractor={(_, i) => String(i)}
+                onMomentumScrollEnd={(e) => {
+                  const idx = Math.round(e.nativeEvent.contentOffset.x / (Dimensions.get('window').width - 32));
+                  setCarouselIndex(idx);
+                }}
+                renderItem={({ item, index }) => (
+                  <TouchableOpacity
+                    onPress={() => { setFullscreenIndex(index); setShowFullscreenImage(true); }}
+                    activeOpacity={0.9}
+                  >
+                    <Image
+                      source={{ uri: item.url }}
+                      style={styles.photo}
+                      contentFit="cover"
+                      placeholder={{ blurhash: 'L6PZfSi_.AyE_3t7t7R**0o#DgR4' }}
+                      transition={300}
+                    />
+                  </TouchableOpacity>
+                )}
+              />
+            </View>
+            {images.length > 1 && (
+              <View style={styles.dotRow}>
+                {images.map((_, i) => (
+                  <View key={i} style={[styles.dot, i === carouselIndex && styles.dotActive]} />
+                ))}
+              </View>
+            )}
+          </View>
         )}
 
         {/* Main card */}
@@ -274,7 +307,7 @@ export default function DocumentDetailScreen() {
       </ScrollView>
 
       {/* Full-screen image viewer */}
-      {!!document.imageUrl && (
+      {images.length > 0 && (
         <Modal
           visible={showFullscreenImage}
           transparent={false}
@@ -295,7 +328,7 @@ export default function DocumentDetailScreen() {
               bouncesZoom
             >
               <Image
-                source={{ uri: document.imageUrl }}
+                source={{ uri: images[fullscreenIndex]?.url }}
                 style={styles.fullscreenImage}
                 contentFit="contain"
                 transition={200}

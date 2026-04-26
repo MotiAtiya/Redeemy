@@ -41,9 +41,16 @@ export function subscribeToCredits(userId: string, familyId?: string | null): Un
     (snapshot) => {
       const credits: Credit[] = snapshot.docs.map((d) => {
         const data = d.data();
+        // Normalize legacy imageUrl/thumbnailUrl into images array
+        const images = data.images ?? (
+          data.imageUrl
+            ? [{ url: data.imageUrl, thumbnailUrl: data.thumbnailUrl ?? data.imageUrl }]
+            : undefined
+        );
         return {
           ...(data as Omit<Credit, 'id' | 'expirationDate' | 'createdAt' | 'updatedAt'>),
           id: d.id,
+          images,
           // Convert Firestore Timestamps to JS Dates
           expirationDate: data.expirationDate
             ? (data.expirationDate?.toDate?.() ?? new Date(data.expirationDate))

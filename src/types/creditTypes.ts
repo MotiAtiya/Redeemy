@@ -1,5 +1,6 @@
 import type { Timestamp } from 'firebase/firestore';
 import type { CurrencyCode } from '@/stores/settingsStore';
+import type { DocumentImage } from '@/lib/imageUpload';
 
 export enum CreditStatus {
   ACTIVE = 'active',
@@ -29,8 +30,12 @@ export interface Credit {
   reminderDays: number;
   notes?: string;
   status: CreditStatus;
+  /** @deprecated Use images instead */
   imageUrl?: string;
+  /** @deprecated Use images instead */
   thumbnailUrl?: string;
+  /** Array of uploaded images (max 3). Newer records use this; legacy records use imageUrl/thumbnailUrl. */
+  images?: DocumentImage[];
   /** expo-notifications scheduled notification ID — used to cancel on redeem/edit/delete */
   notificationId?: string;
   /** Notification scheduled for the expiration day itself */

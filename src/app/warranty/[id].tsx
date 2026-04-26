@@ -3,6 +3,7 @@ import {
   View,
   Text,
   ScrollView,
+  FlatList,
   TouchableOpacity,
   StyleSheet,
   Alert,
@@ -52,7 +53,7 @@ function makeStyles(colors: AppColors) {
     headerTitle: { fontSize: 17, fontWeight: '600', color: colors.textPrimary, alignSelf: 'flex-start' },
     scroll: { flex: 1 },
     scrollContent: { padding: 16, gap: 12, paddingBottom: 32 },
-    image: { width: '100%', height: 220, borderRadius: 14, backgroundColor: colors.separator },
+    image: { width: Dimensions.get('window').width - 32, height: 220, borderRadius: 14, backgroundColor: colors.separator },
     imagePlaceholder: {
       width: '100%',
       height: 220,
@@ -61,6 +62,10 @@ function makeStyles(colors: AppColors) {
       justifyContent: 'center',
       alignItems: 'center',
     },
+    carouselContainer: { borderRadius: 14, overflow: 'hidden' },
+    dotRow: { flexDirection: 'row', justifyContent: 'center', gap: 6, marginTop: 8 },
+    dot: { width: 6, height: 6, borderRadius: 3, backgroundColor: colors.separator },
+    dotActive: { backgroundColor: colors.primary, width: 18 },
     card: { backgroundColor: colors.surface, borderRadius: 14, padding: 16, gap: 8 },
     storeName: { fontSize: 22, fontWeight: '700', color: colors.textPrimary, alignSelf: 'flex-start' },
     productName: { fontSize: 28, fontWeight: '800', color: colors.textPrimary, letterSpacing: -0.5, alignSelf: 'flex-start' },
@@ -146,10 +151,15 @@ export default function WarrantyDetailScreen() {
 
   const [showActionSheet, setShowActionSheet] = useState(false);
   const [showFullscreenImage, setShowFullscreenImage] = useState(false);
+  const [fullscreenIndex, setFullscreenIndex] = useState(0);
+  const [carouselIndex, setCarouselIndex] = useState(0);
   const [downloading, setDownloading] = useState(false);
   const [loading, setLoading] = useState(false);
   const afterDismissRef = useRef<(() => void) | null>(null);
   const isClosed = warranty?.status === WarrantyStatus.CLOSED;
+
+  // Normalize images
+  const images = warranty?.images ?? (warranty?.imageUrl ? [{ url: warranty.imageUrl, thumbnailUrl: warranty.thumbnailUrl ?? warranty.imageUrl }] : []);
 
   const categoryMeta = useMemo(
     () => CATEGORIES.find((c) => c.id === warranty?.category),
@@ -235,7 +245,8 @@ export default function WarrantyDetailScreen() {
   }
 
   async function handleDownloadImage() {
-    if (!warranty?.imageUrl) return;
+    const imageUrl = images[fullscreenIndex]?.url;
+    if (!imageUrl) return;
     setDownloading(true);
     try {
       const { status } = await MediaLibrary.requestPermissionsAsync();
@@ -245,7 +256,7 @@ export default function WarrantyDetailScreen() {
       }
       const filename = `redeemy-warranty-${Date.now()}.jpg`;
       const localUri = FileSystem.cacheDirectory + filename;
-      const { uri } = await FileSystem.downloadAsync(warranty.imageUrl, localUri);
+      const { uri } = await FileSystem.downloadAsync(imageUrl, localUri);
       await MediaLibrary.saveToLibraryAsync(uri);
       Alert.alert(t('credit.image.savedTitle'), t('credit.image.savedMessage'));
     } catch (e) {
@@ -282,16 +293,43 @@ export default function WarrantyDetailScreen() {
       </View>
 
       <ScrollView style={styles.scroll} contentContainerStyle={styles.scrollContent}>
-        {warranty.imageUrl ? (
-          <TouchableOpacity onPress={() => setShowFullscreenImage(true)} activeOpacity={0.9}>
-            <Image
-              source={{ uri: warranty.imageUrl }}
-              style={styles.image}
-              contentFit="cover"
-              placeholder={{ blurhash: 'L6PZfSi_.AyE_3t7t7R**0o#DgR4' }}
-              transition={300}
-            />
-          </TouchableOpacity>
+        {images.length > 0 ? (
+          <View>
+            <View style={styles.carouselContainer}>
+              <FlatList
+                data={images}
+                horizontal
+                pagingEnabled
+                showsHorizontalScrollIndicator={false}
+                keyExtractor={(_, i) => String(i)}
+                onMomentumScrollEnd={(e) => {
+                  const idx = Math.round(e.nativeEvent.contentOffset.x / (Dimensions.get('window').width - 32));
+                  setCarouselIndex(idx);
+                }}
+                renderItem={({ item, index }) => (
+                  <TouchableOpacity
+                    onPress={() => { setFullscreenIndex(index); setShowFullscreenImage(true); }}
+                    activeOpacity={0.9}
+                  >
+                    <Image
+                      source={{ uri: item.url }}
+                      style={styles.image}
+                      contentFit="cover"
+                      placeholder={{ blurhash: 'L6PZfSi_.AyE_3t7t7R**0o#DgR4' }}
+                      transition={300}
+                    />
+                  </TouchableOpacity>
+                )}
+              />
+            </View>
+            {images.length > 1 && (
+              <View style={styles.dotRow}>
+                {images.map((_, i) => (
+                  <View key={i} style={[styles.dot, i === carouselIndex && styles.dotActive]} />
+                ))}
+              </View>
+            )}
+          </View>
         ) : (
           <View style={styles.imagePlaceholder}>
             <Ionicons name="shield-checkmark-outline" size={40} color={colors.textTertiary} />
@@ -388,7 +426,7 @@ export default function WarrantyDetailScreen() {
             bouncesZoom
           >
             <Image
-              source={{ uri: warranty.imageUrl! }}
+              source={{ uri: images[fullscreenIndex]?.url }}
               style={styles.fullscreenImage}
               contentFit="contain"
               transition={200}

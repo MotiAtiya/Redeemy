@@ -12,6 +12,13 @@ export interface PickedImage {
   localUri: string;
 }
 
+/** A single uploaded image (full resolution + thumbnail). */
+export interface DocumentImage {
+  url: string;
+  thumbnailUrl: string;
+}
+
+/** @deprecated Use DocumentImage instead */
 export interface UploadedImages {
   imageUrl: string;
   thumbnailUrl: string;
@@ -188,13 +195,7 @@ export async function uploadCreditImage(
  * Silently ignores errors (e.g. if no image was ever uploaded).
  */
 export async function deleteCreditImages(creditId: string): Promise<void> {
-  const folderRef = ref(storage, `credits/${creditId}`);
-  try {
-    const { items } = await listAll(folderRef);
-    await Promise.allSettled(items.map((item) => deleteObject(item)));
-  } catch {
-    // folder may not exist if no image was uploaded
-  }
+  return deleteEntityImages('credits', creditId);
 }
 
 /**
@@ -236,7 +237,60 @@ export async function uploadDocumentImage(
  * Silently ignores errors.
  */
 export async function deleteDocumentImages(documentId: string): Promise<void> {
-  const folderRef = ref(storage, `documents/${documentId}`);
+  return deleteEntityImages('documents', documentId);
+}
+
+// ---------------------------------------------------------------------------
+// Generic multi-image upload / delete
+// ---------------------------------------------------------------------------
+
+type EntityType = 'credits' | 'warranties' | 'documents';
+
+/**
+ * Compresses `localUri` and uploads both sizes to Firebase Storage.
+ *
+ * Storage paths:
+ *   {entityType}/{entityId}/{index}_full.jpg
+ *   {entityType}/{entityId}/{index}_thumb.jpg
+ */
+export async function uploadEntityImage(
+  localUri: string,
+  entityType: EntityType,
+  entityId: string,
+  index: number,
+): Promise<DocumentImage> {
+  const { fullUri, thumbUri } = await compressImage(localUri);
+
+  const [fullBlob, thumbBlob] = await Promise.all([
+    uriToBlob(fullUri),
+    uriToBlob(thumbUri),
+  ]);
+
+  const fullRef = ref(storage, `${entityType}/${entityId}/${index}_full.jpg`);
+  const thumbRef = ref(storage, `${entityType}/${entityId}/${index}_thumb.jpg`);
+
+  await Promise.all([
+    uploadBytes(fullRef, fullBlob, { contentType: 'image/jpeg' }),
+    uploadBytes(thumbRef, thumbBlob, { contentType: 'image/jpeg' }),
+  ]);
+
+  const [url, thumbnailUrl] = await Promise.all([
+    getDownloadURL(fullRef),
+    getDownloadURL(thumbRef),
+  ]);
+
+  return { url, thumbnailUrl };
+}
+
+/**
+ * Deletes all images for an entity from Firebase Storage.
+ * Silently ignores errors (e.g. if no images were uploaded).
+ */
+export async function deleteEntityImages(
+  entityType: EntityType,
+  entityId: string,
+): Promise<void> {
+  const folderRef = ref(storage, `${entityType}/${entityId}`);
   try {
     const { items } = await listAll(folderRef);
     await Promise.allSettled(items.map((item) => deleteObject(item)));

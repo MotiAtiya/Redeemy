@@ -11,6 +11,7 @@ import {
   type Unsubscribe,
 } from 'firebase/firestore';
 import { db } from './firebase';
+import { deleteEntityImages } from './imageUpload';
 import { type Document } from '@/types/documentTypes';
 import { useDocumentsStore } from '@/stores/documentsStore';
 
@@ -30,9 +31,16 @@ export function subscribeToDocuments(userId: string, familyId?: string | null): 
     (snapshot) => {
       const documents: Document[] = snapshot.docs.map((d) => {
         const data = d.data();
+        // Normalize legacy imageUrl/thumbnailUrl into images array
+        const images = data.images ?? (
+          data.imageUrl
+            ? [{ url: data.imageUrl, thumbnailUrl: data.thumbnailUrl ?? data.imageUrl }]
+            : undefined
+        );
         return {
           ...(data as Omit<Document, 'id' | 'expirationDate' | 'createdAt' | 'updatedAt'>),
           id: d.id,
+          images,
           expirationDate: data.expirationDate?.toDate?.() ?? new Date(data.expirationDate),
           createdAt: data.createdAt?.toDate?.() ?? new Date(data.createdAt),
           updatedAt: data.updatedAt?.toDate?.() ?? new Date(data.updatedAt),
@@ -77,5 +85,8 @@ export async function updateDocument(
 }
 
 export async function deleteDocument(id: string): Promise<void> {
-  await deleteDoc(doc(db, DOCUMENTS_COLLECTION, id));
+  await Promise.all([
+    deleteDoc(doc(db, DOCUMENTS_COLLECTION, id)),
+    deleteEntityImages('documents', id),
+  ]);
 }

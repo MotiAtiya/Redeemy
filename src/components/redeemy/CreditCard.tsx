@@ -85,9 +85,9 @@ export function CreditCard({ credit, onPress, variant = 'active' }: Props) {
       accessibilityLabel={`${credit.storeName} credit, ${formatCurrency(credit.amount, currencySymbol)}`}
     >
       <View>
-        {credit.thumbnailUrl ? (
+        {(credit.images?.[0]?.thumbnailUrl ?? credit.thumbnailUrl) ? (
           <Image
-            source={{ uri: credit.thumbnailUrl }}
+            source={{ uri: credit.images?.[0]?.thumbnailUrl ?? credit.thumbnailUrl! }}
             style={[styles.thumbnail, dimmed && styles.thumbnailDimmed]}
             contentFit="cover"
             placeholder={{ blurhash: 'L6PZfSi_.AyE_3t7t7R**0o#DgR4' }}

@@ -87,9 +87,9 @@ export function WarrantyCard({ warranty, onPress, variant = 'active' }: Props) {
       accessibilityLabel={`${warranty.storeName} — ${warranty.productName}`}
     >
       <View>
-        {warranty.thumbnailUrl ? (
+        {(warranty.images?.[0]?.thumbnailUrl ?? warranty.thumbnailUrl) ? (
           <Image
-            source={{ uri: warranty.thumbnailUrl }}
+            source={{ uri: warranty.images?.[0]?.thumbnailUrl ?? warranty.thumbnailUrl! }}
             style={[styles.thumbnail, dimmed && styles.thumbnailDimmed]}
             contentFit="cover"
             placeholder={{ blurhash: 'L6PZfSi_.AyE_3t7t7R**0o#DgR4' }}

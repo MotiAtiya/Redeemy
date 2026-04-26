@@ -14,6 +14,7 @@ import {
   type DocumentSnapshot,
 } from 'firebase/firestore';
 import { db } from './firebase';
+import { deleteEntityImages } from './imageUpload';
 import { WarrantyStatus, type Warranty } from '@/types/warrantyTypes';
 import { useWarrantiesStore } from '@/stores/warrantiesStore';
 
@@ -25,9 +26,16 @@ const WARRANTIES_COLLECTION = 'warranties';
 
 function docToWarranty(d: DocumentSnapshot): Warranty {
   const data = d.data()!;
+  // Normalize legacy imageUrl/thumbnailUrl into images array
+  const images = data.images ?? (
+    data.imageUrl
+      ? [{ url: data.imageUrl, thumbnailUrl: data.thumbnailUrl ?? data.imageUrl }]
+      : undefined
+  );
   return {
     ...(data as Omit<Warranty, 'id' | 'expirationDate' | 'closedAt' | 'createdAt' | 'updatedAt'>),
     id: d.id,
+    images,
     expirationDate: data.expirationDate?.toDate?.() ?? undefined,
     closedAt: data.closedAt?.toDate?.() ?? undefined,
     createdAt: data.createdAt?.toDate?.() ?? new Date(),
@@ -103,10 +111,13 @@ export async function updateWarranty(
 }
 
 /**
- * Permanently deletes a warranty document.
+ * Permanently deletes a warranty document and its images.
  */
 export async function deleteWarranty(warrantyId: string): Promise<void> {
-  await deleteDoc(doc(db, WARRANTIES_COLLECTION, warrantyId));
+  await Promise.all([
+    deleteDoc(doc(db, WARRANTIES_COLLECTION, warrantyId)),
+    deleteEntityImages('warranties', warrantyId),
+  ]);
 }
 
 /**

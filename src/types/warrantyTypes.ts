@@ -1,3 +1,5 @@
+import type { DocumentImage } from '@/lib/imageUpload';
+
 export enum WarrantyStatus {
   ACTIVE  = 'active',
   CLOSED  = 'closed',   // manually closed by user
@@ -15,8 +17,12 @@ export interface Warranty {
   reminderDays: number;
   notes: string;
   imageUri?: string;
+  /** @deprecated Use images instead */
   imageUrl?: string;
+  /** @deprecated Use images instead */
   thumbnailUrl?: string;
+  /** Array of uploaded images (max 3). */
+  images?: DocumentImage[];
   status: WarrantyStatus;
   notificationId?: string;
   expirationNotificationId?: string;

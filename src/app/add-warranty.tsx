@@ -21,7 +21,7 @@ import DateTimePicker, { type DateTimePickerEvent } from '@react-native-communit
 import { StoreAutocomplete } from '@/components/redeemy/StoreAutocomplete';
 import { CategorySelector } from '@/components/redeemy/CategorySelector';
 import { StepFormScreen } from '@/components/redeemy/StepFormScreen';
-import { openCamera, openGallery, uploadCreditImage } from '@/lib/imageUpload';
+import { openCamera, openGallery, uploadEntityImage, type DocumentImage } from '@/lib/imageUpload';
 import { CropModal } from '@/components/redeemy/CropModal';
 import { createWarranty, updateWarranty } from '@/lib/firestoreWarranties';
 import { scheduleReminderNotification, cancelNotification } from '@/lib/notifications';
@@ -125,26 +125,49 @@ function makeStyles(colors: AppColors, isRTL: boolean) {
     datePlaceholder: { color: colors.textTertiary },
     dateError: { fontSize: 12, color: colors.danger, marginTop: 6, alignSelf: 'flex-start' },
     // Photo step
-    photoStepCenter: {
-      flex: 1,
-      justifyContent: 'center',
-      alignItems: 'center',
-      gap: 24,
-    },
-    photoPlaceholderIcon: {
-      width: 100,
-      height: 100,
-      borderRadius: 50,
-      backgroundColor: colors.primarySurface,
-      justifyContent: 'center',
-      alignItems: 'center',
-    },
-    photoPlaceholderLabel: {
-      fontSize: 15,
+    photoHint: {
+      fontSize: 14,
       color: colors.textSecondary,
-      textAlign: 'center',
+      alignSelf: 'flex-start',
+      marginBottom: 16,
     },
-    photoButtons: { gap: 12, width: '100%', paddingHorizontal: 24 },
+    photoGrid: {
+      flexDirection: 'row',
+      gap: 8,
+      marginBottom: 20,
+    },
+    photoSlotFilled: {
+      flex: 1,
+      aspectRatio: 1,
+      borderRadius: 12,
+      overflow: 'hidden',
+      backgroundColor: colors.separator,
+    },
+    slotImage: { width: '100%', height: '100%' },
+    removePhotoBtn: {
+      position: 'absolute',
+      top: 4,
+      right: 4,
+      backgroundColor: 'rgba(0,0,0,0.55)',
+      borderRadius: 11,
+      padding: 1,
+    },
+    photoSlotEmpty: {
+      flex: 1,
+      aspectRatio: 1,
+      borderRadius: 12,
+      borderWidth: 1.5,
+      borderColor: colors.separator,
+      justifyContent: 'center',
+      alignItems: 'center',
+      gap: 4,
+    },
+    photoSlotEmptyFirst: {
+      borderColor: colors.primary,
+      backgroundColor: colors.primarySurface,
+    },
+    photoSlotEmptyLabel: { fontSize: 11, color: colors.primary, fontWeight: '500' },
+    photoButtons: { gap: 12 },
     photoBtn: {
       height: 52,
       borderRadius: 14,
@@ -161,21 +184,19 @@ function makeStyles(colors: AppColors, isRTL: boolean) {
     },
     photoBtnText: { fontSize: 16, fontWeight: '600', color: '#FFFFFF' },
     photoBtnTextSecondary: { color: colors.primary },
-    photoPreview: {
-      width: '100%',
-      height: 240,
-      borderRadius: 16,
-      backgroundColor: colors.separator,
-    },
-    retakeBtn: {
+    summaryPhotoBadge: {
+      position: 'absolute',
+      bottom: 8,
+      right: 8,
+      backgroundColor: 'rgba(0,0,0,0.6)',
+      borderRadius: 12,
+      paddingHorizontal: 8,
+      paddingVertical: 4,
       flexDirection: 'row',
       alignItems: 'center',
-      gap: 6,
-      alignSelf: 'center',
-      paddingVertical: 8,
-      paddingHorizontal: 16,
+      gap: 4,
     },
-    retakeBtnText: { fontSize: 14, color: colors.primary, fontWeight: '500' },
+    summaryPhotoBadgeText: { fontSize: 13, color: '#FFFFFF', fontWeight: '600' },
     // Summary step
     summaryPhoto: {
       width: '100%',
@@ -295,6 +316,9 @@ export default function AddWarrantyScreen() {
     warrantyId ? s.warranties.find((w) => w.id === warrantyId) : undefined
   );
 
+  type PhotoItem = { type: 'local'; uri: string } | { type: 'existing'; image: DocumentImage };
+  const MAX_PHOTOS = 3;
+
   // Form state
   const [storeName, setStoreName] = useState('');
   const [category, setCategory] = useState(DEFAULT_CATEGORY_ID);
@@ -302,7 +326,7 @@ export default function AddWarrantyScreen() {
   const [noExpiry, setNoExpiry] = useState(false);
   const [expirationDate, setExpirationDate] = useState<Date | null>(null);
   const [showDatePicker, setShowDatePicker] = useState(false);
-  const [imageUri, setImageUri] = useState<string | null>(null);
+  const [photoItems, setPhotoItems] = useState<PhotoItem[]>([]);
   const [cropUri, setCropUri] = useState<string | null>(null);
   const [notes, setNotes] = useState('');
   const [saving, setSaving] = useState(false);
@@ -333,7 +357,10 @@ export default function AddWarrantyScreen() {
       setNoExpiry(true);
     }
     if (existingWarranty.notes) setNotes(existingWarranty.notes);
-    if (existingWarranty.imageUrl) setImageUri(existingWarranty.imageUrl);
+    const existingImages = existingWarranty.images ?? (existingWarranty.imageUrl ? [{ url: existingWarranty.imageUrl, thumbnailUrl: existingWarranty.thumbnailUrl ?? existingWarranty.imageUrl }] : []);
+    if (existingImages.length > 0) {
+      setPhotoItems(existingImages.map((img) => ({ type: 'existing' as const, image: img })));
+    }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -417,16 +444,17 @@ export default function AddWarrantyScreen() {
       case 'category': return true;
       case 'productName': return productName.trim().length > 0;
       case 'expiryDate': return noExpiry || expirationDate !== null;
-      case 'photo': return imageUri !== null;
+      case 'photo': return photoItems.length > 0;
       default: return false;
     }
-  }, [currentStepId, storeName, productName, noExpiry, expirationDate, imageUri]);
+  }, [currentStepId, storeName, productName, noExpiry, expirationDate, photoItems]);
 
   // ---------------------------------------------------------------------------
   // Photo helpers
   // ---------------------------------------------------------------------------
 
   async function handleCamera() {
+    if (photoItems.length >= MAX_PHOTOS) return;
     try {
       const picked = await openCamera();
       if (picked) setCropUri(picked.localUri);
@@ -436,8 +464,26 @@ export default function AddWarrantyScreen() {
   }
 
   async function handleGallery() {
+    if (photoItems.length >= MAX_PHOTOS) return;
     const picked = await openGallery();
     if (picked) setCropUri(picked.localUri);
+  }
+
+  function handleRemovePhoto(index: number) {
+    setPhotoItems((prev) => prev.filter((_, i) => i !== index));
+  }
+
+  function handleAddPhoto() {
+    if (photoItems.length >= MAX_PHOTOS) return;
+    Alert.alert(
+      t('addWarranty.step.photo'),
+      undefined,
+      [
+        { text: t('addWarranty.takePhoto'), onPress: handleCamera },
+        { text: t('addWarranty.chooseGallery'), onPress: handleGallery },
+        { text: t('common.cancel'), style: 'cancel' },
+      ]
+    );
   }
 
   // ---------------------------------------------------------------------------
@@ -496,11 +542,18 @@ export default function AddWarrantyScreen() {
             updateWarrantyInStore(existingWarranty.id, { expirationNotificationId: expiryId });
           }
         }
-        if (imageUri && imageUri !== existingWarranty.imageUrl) {
-          const { imageUrl, thumbnailUrl } = await uploadCreditImage(imageUri, existingWarranty.id);
-          changes.imageUrl = imageUrl;
-          changes.thumbnailUrl = thumbnailUrl;
-          updateWarrantyInStore(existingWarranty.id, { imageUrl, thumbnailUrl });
+        const hasLocalPhotos = photoItems.some((item) => item.type === 'local');
+        const existingImgCount = existingWarranty.images?.length ?? (existingWarranty.imageUrl ? 1 : 0);
+        if (hasLocalPhotos || photoItems.length !== existingImgCount) {
+          const uploadedImages = await Promise.all(
+            photoItems.map((item, i) =>
+              item.type === 'existing'
+                ? Promise.resolve(item.image)
+                : uploadEntityImage(item.uri, 'warranties', existingWarranty.id, i)
+            )
+          );
+          changes.images = uploadedImages;
+          updateWarrantyInStore(existingWarranty.id, { images: uploadedImages });
         }
         await updateWarranty(existingWarranty.id, changes);
         router.back();
@@ -525,7 +578,6 @@ export default function AddWarrantyScreen() {
       reminderDays: warrantyReminderDays,
       notes: notes.trim(),
       status: WarrantyStatus.ACTIVE,
-      imageUri: imageUri ?? undefined,
       createdAt: new Date(),
       updatedAt: new Date(),
     };
@@ -566,10 +618,16 @@ export default function AddWarrantyScreen() {
         }
       }
 
-      if (imageUri) {
+      if (photoItems.length > 0) {
         try {
-          const { imageUrl, thumbnailUrl } = await uploadCreditImage(imageUri, newWarrantyId);
-          await updateWarranty(newWarrantyId, { imageUrl, thumbnailUrl });
+          const uploadedImages = await Promise.all(
+            photoItems.map((item, i) =>
+              item.type === 'existing'
+                ? Promise.resolve(item.image)
+                : uploadEntityImage(item.uri, 'warranties', newWarrantyId, i)
+            )
+          );
+          await updateWarranty(newWarrantyId, { images: uploadedImages });
         } catch {
           Alert.alert(t('addWarranty.error.photo'));
         }
@@ -732,48 +790,51 @@ export default function AddWarrantyScreen() {
 
   function renderPhotoStep() {
     return (
-      <View style={[styles.stepContent, styles.photoStepCenter]}>
-        {imageUri ? (
-          <>
-            <Image
-              source={{ uri: imageUri }}
-              style={styles.photoPreview}
-              contentFit="cover"
-              placeholder={{ blurhash: 'L6PZfSi_.AyE_3t7t7R**0o#DgR4' }}
-            />
-            <TouchableOpacity style={styles.retakeBtn} onPress={handleCamera}>
-              <Ionicons name="camera-outline" size={16} color={colors.primary} />
-              <Text style={styles.retakeBtnText}>{t('addWarranty.retakePhoto')}</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.retakeBtn} onPress={handleGallery}>
-              <Ionicons name="images-outline" size={16} color={colors.primary} />
-              <Text style={styles.retakeBtnText}>{t('addWarranty.chooseGallery')}</Text>
-            </TouchableOpacity>
-          </>
-        ) : (
-          <>
-            <View style={styles.photoPlaceholderIcon}>
-              <Ionicons name="camera-outline" size={44} color={colors.primary} />
-            </View>
-            <Text style={styles.photoPlaceholderLabel}>{t('addWarranty.step.photo')}</Text>
-            <View style={styles.photoButtons}>
-              <TouchableOpacity style={styles.photoBtn} onPress={handleCamera}>
-                <Ionicons name="camera-outline" size={20} color="#FFFFFF" />
-                <Text style={styles.photoBtnText}>{t('addWarranty.takePhoto')}</Text>
-              </TouchableOpacity>
+      <ScrollView style={styles.stepScroll} contentContainerStyle={styles.stepContent}>
+        <Text style={styles.stepTitle}>{t('addWarranty.step.photo')}</Text>
+        <Text style={styles.photoHint}>{t('addWarranty.photosHint')}</Text>
+
+        <View style={styles.photoGrid}>
+          {[0, 1, 2].map((index) => {
+            const item = photoItems[index];
+            const isFirstEmpty = !item && index === photoItems.length;
+            const uri = item
+              ? (item.type === 'local' ? item.uri : item.image.thumbnailUrl)
+              : null;
+            return item ? (
+              <View key={index} style={styles.photoSlotFilled}>
+                <Image source={{ uri: uri! }} style={styles.slotImage} contentFit="cover" transition={200} />
+                <TouchableOpacity style={styles.removePhotoBtn} onPress={() => handleRemovePhoto(index)} hitSlop={8}>
+                  <Ionicons name="close-circle" size={20} color="#FFFFFF" />
+                </TouchableOpacity>
+              </View>
+            ) : (
               <TouchableOpacity
-                style={[styles.photoBtn, styles.photoBtnSecondary]}
-                onPress={handleGallery}
+                key={index}
+                style={[styles.photoSlotEmpty, isFirstEmpty && styles.photoSlotEmptyFirst]}
+                onPress={isFirstEmpty ? handleAddPhoto : undefined}
+                activeOpacity={isFirstEmpty ? 0.7 : 1}
               >
-                <Ionicons name="images-outline" size={20} color={colors.primary} />
-                <Text style={[styles.photoBtnText, styles.photoBtnTextSecondary]}>
-                  {t('addWarranty.chooseGallery')}
-                </Text>
+                <Ionicons name="add" size={26} color={isFirstEmpty ? colors.primary : colors.textTertiary} />
+                {isFirstEmpty && <Text style={styles.photoSlotEmptyLabel}>{t('addWarranty.takePhoto')}</Text>}
               </TouchableOpacity>
-            </View>
-          </>
+            );
+          })}
+        </View>
+
+        {photoItems.length < MAX_PHOTOS && (
+          <View style={styles.photoButtons}>
+            <TouchableOpacity style={styles.photoBtn} onPress={handleCamera}>
+              <Ionicons name="camera-outline" size={20} color="#FFFFFF" />
+              <Text style={styles.photoBtnText}>{t('addWarranty.takePhoto')}</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={[styles.photoBtn, styles.photoBtnSecondary]} onPress={handleGallery}>
+              <Ionicons name="images-outline" size={20} color={colors.primary} />
+              <Text style={[styles.photoBtnText, styles.photoBtnTextSecondary]}>{t('addWarranty.chooseGallery')}</Text>
+            </TouchableOpacity>
+          </View>
         )}
-      </View>
+      </ScrollView>
     );
   }
 
@@ -787,14 +848,21 @@ export default function AddWarrantyScreen() {
       >
         <Text style={styles.stepTitle}>{t('addWarranty.step.summary')}</Text>
 
-        {imageUri && (
-          <Image
-            source={{ uri: imageUri }}
-            style={styles.summaryPhoto}
-            contentFit="cover"
-            placeholder={{ blurhash: 'L6PZfSi_.AyE_3t7t7R**0o#DgR4' }}
-          />
-        )}
+        {photoItems.length > 0 && (() => {
+          const first = photoItems[0];
+          const uri = first.type === 'local' ? first.uri : first.image.url;
+          return (
+            <View style={{ marginBottom: 24 }}>
+              <Image source={{ uri }} style={styles.summaryPhoto} contentFit="cover" placeholder={{ blurhash: 'L6PZfSi_.AyE_3t7t7R**0o#DgR4' }} />
+              {photoItems.length > 1 && (
+                <View style={styles.summaryPhotoBadge}>
+                  <Ionicons name="images-outline" size={13} color="#FFFFFF" />
+                  <Text style={styles.summaryPhotoBadgeText}>{photoItems.length}</Text>
+                </View>
+              )}
+            </View>
+          );
+        })()}
 
         <View style={styles.summaryCard}>
           <View style={styles.summaryRow}>
@@ -907,7 +975,10 @@ export default function AddWarrantyScreen() {
       extras={cropUri ? (
         <CropModal
           uri={cropUri}
-          onCrop={(uri) => { setImageUri(uri); setCropUri(null); }}
+          onCrop={(uri) => {
+            setPhotoItems((prev) => prev.length < MAX_PHOTOS ? [...prev, { type: 'local', uri }] : prev);
+            setCropUri(null);
+          }}
           onCancel={() => setCropUri(null)}
         />
       ) : undefined}
