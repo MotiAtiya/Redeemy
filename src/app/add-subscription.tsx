@@ -448,6 +448,29 @@ function makeStyles(colors: AppColors, isRTL: boolean) {
       color: colors.primary,
     },
 
+    notesLabel: {
+      fontSize: 13,
+      fontWeight: '600',
+      color: colors.textTertiary,
+      alignSelf: 'flex-start',
+      marginTop: 20,
+      marginBottom: 4,
+    },
+    notesInput: {
+      borderWidth: 1,
+      borderColor: colors.separator,
+      borderRadius: 12,
+      paddingHorizontal: 16,
+      paddingVertical: 12,
+      fontSize: 15,
+      color: colors.textPrimary,
+      backgroundColor: colors.background,
+      textAlign: isRTL ? 'right' : 'left',
+      minHeight: 80,
+      textAlignVertical: 'top',
+      marginTop: 12,
+    },
+
     // Toast
     toast: {
       position: 'absolute',
@@ -1621,7 +1644,7 @@ export default function AddSubscriptionScreen() {
             <Text style={styles.summaryValue}>{renewalDisplay}</Text>
           </View>
 
-          <View style={styles.summaryRow}>
+          <View style={[styles.summaryRow, styles.summaryRowLast]}>
             <Text style={styles.summaryLabel}>{t('addSubscription.summary.category')}</Text>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, flex: 1 }}>
               {SUBSCRIPTION_CATEGORIES.find((c) => c.id === category) && (
@@ -1630,19 +1653,18 @@ export default function AddSubscriptionScreen() {
               <Text style={styles.summaryValue}>{t('subscriptions.category.' + category)}</Text>
             </View>
           </View>
-
-          <View style={[styles.summaryRow, styles.summaryRowLast, { alignItems: 'flex-start' }]}>
-            <Text style={[styles.summaryLabel, { paddingTop: 2 }]}>{t('addSubscription.summary.notes')}</Text>
-            <TextInput
-              style={[styles.summaryValue, { textAlignVertical: 'top', minHeight: 36 }]}
-              placeholder={t('addSubscription.notesPlaceholder')}
-              placeholderTextColor={colors.textTertiary}
-              multiline
-              value={notes}
-              onChangeText={setNotes}
-            />
-          </View>
         </View>
+
+        <Text style={styles.notesLabel}>{t('addSubscription.summary.notes')}</Text>
+        <TextInput
+          style={styles.notesInput}
+          placeholder={t('addSubscription.notesPlaceholder')}
+          placeholderTextColor={colors.textTertiary}
+          multiline
+          value={notes}
+          onChangeText={setNotes}
+          returnKeyType="done"
+        />
       </ScrollView>
     );
   }

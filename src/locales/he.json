@@ -1110,7 +1110,8 @@
       "owner": "של מי?",
       "expiration": "מתי פג התוקף?",
       "photo": "צלמו את המסמך",
-      "summary": "הכל נראה טוב?"
+      "summary": "הכל נראה טוב?",
+      "summarySub": "בדוק את כל הפרטים לפני השמירה"
     },
     "ownerPlaceholder": "שם בעל המסמך",
     "notesPlaceholder": "הערות…",
@@ -1137,7 +1138,8 @@
       "type": "סוג",
       "owner": "בעלים",
       "expiration": "תוקף עד",
-      "notes": "הערות"
+      "notes": "הערות",
+      "added": "נוסף"
     },
     "delete": {
       "title": "מחיקת מסמך",
@@ -1149,6 +1151,12 @@
     "action": {
       "edit": "עריכה",
       "delete": "מחיקה"
+    },
+    "image": {
+      "permissionDenied": "נדרשת הרשאה לגישה לגלריה",
+      "savedTitle": "נשמר בהצלחה",
+      "savedMessage": "התמונה נשמרה לגלריה",
+      "saveError": "שמירת התמונה נכשלה. נסה שוב."
     }
   }
 }

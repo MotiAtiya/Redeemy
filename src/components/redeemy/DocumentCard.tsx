@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
+import { Image } from 'expo-image';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import { BaseCard } from './BaseCard';
@@ -20,17 +21,26 @@ const TYPE_ICONS: Record<DocumentType, IoniconsName> = {
 
 function makeStyles(colors: AppColors) {
   return StyleSheet.create({
-    iconCircle: {
-      width: 44,
-      height: 44,
-      borderRadius: 22,
-      backgroundColor: colors.primarySurface,
+    thumbnail: { width: 72, height: 72, borderRadius: 10, backgroundColor: colors.separator },
+    thumbnailPlaceholder: {
+      width: 72,
+      height: 72,
+      borderRadius: 10,
+      backgroundColor: colors.separator,
       justifyContent: 'center',
       alignItems: 'center',
     },
     center: { flex: 1, gap: 4, alignItems: 'flex-start' },
     title: { fontSize: 16, fontWeight: '700', color: colors.textPrimary },
     subtitle: { fontSize: 13, color: colors.textSecondary },
+    iconCircle: {
+      width: 40,
+      height: 40,
+      borderRadius: 20,
+      backgroundColor: colors.primarySurface,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
   });
 }
 
@@ -52,14 +62,28 @@ export function DocumentCard({ document, onPress }: Props) {
 
   return (
     <BaseCard onPress={onPress} accessibilityLabel={`${typeLabel} — ${document.ownerName}`}>
-      <View style={styles.iconCircle}>
-        <Ionicons name={TYPE_ICONS[document.type]} size={22} color={colors.primary} />
-      </View>
+      {document.thumbnailUrl ? (
+        <Image
+          source={{ uri: document.thumbnailUrl }}
+          style={styles.thumbnail}
+          contentFit="cover"
+          placeholder={{ blurhash: 'L6PZfSi_.AyE_3t7t7R**0o#DgR4' }}
+          transition={200}
+        />
+      ) : (
+        <View style={styles.thumbnailPlaceholder}>
+          <Ionicons name="image-outline" size={24} color={colors.textTertiary} />
+        </View>
+      )}
 
       <View style={styles.center}>
         <Text style={styles.title} numberOfLines={1}>{typeLabel}</Text>
         <Text style={styles.subtitle} numberOfLines={1}>{document.ownerName}</Text>
         <ExpirationBadge expirationDate={expirationDate} />
+      </View>
+
+      <View style={styles.iconCircle}>
+        <Ionicons name={TYPE_ICONS[document.type]} size={20} color={colors.primary} />
       </View>
     </BaseCard>
   );

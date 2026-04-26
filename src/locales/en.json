@@ -1111,7 +1111,8 @@
       "owner": "Whose document?",
       "expiration": "When does it expire?",
       "photo": "Photograph the document",
-      "summary": "Everything look good?"
+      "summary": "Everything look good?",
+      "summarySub": "Review all details before saving"
     },
     "ownerPlaceholder": "Owner's name",
     "notesPlaceholder": "Notes…",
@@ -1138,7 +1139,8 @@
       "type": "Type",
       "owner": "Owner",
       "expiration": "Expires",
-      "notes": "Notes"
+      "notes": "Notes",
+      "added": "Saved"
     },
     "delete": {
       "title": "Delete Document",
@@ -1150,6 +1152,12 @@
     "action": {
       "edit": "Edit",
       "delete": "Delete"
+    },
+    "image": {
+      "permissionDenied": "Gallery permission is required",
+      "savedTitle": "Saved",
+      "savedMessage": "Image saved to your library",
+      "saveError": "Failed to save image. Please try again."
     }
   }
 }

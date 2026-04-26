@@ -203,6 +203,28 @@ function makeStyles(colors: AppColors, isRTL: boolean) {
       fontWeight: '500',
       textAlign: 'left',
     },
+    notesLabel: {
+      fontSize: 13,
+      fontWeight: '600',
+      color: colors.textTertiary,
+      alignSelf: 'flex-start',
+      marginTop: 20,
+      marginBottom: 4,
+    },
+    notesInput: {
+      borderWidth: 1,
+      borderColor: colors.separator,
+      borderRadius: 12,
+      paddingHorizontal: 16,
+      paddingVertical: 12,
+      fontSize: 15,
+      color: colors.textPrimary,
+      backgroundColor: colors.background,
+      textAlign: isRTL ? 'right' : 'left',
+      minHeight: 80,
+      textAlignVertical: 'top',
+      marginTop: 12,
+    },
   });
 }
 
@@ -545,7 +567,7 @@ export default function AddOccasionScreen() {
             <Text style={styles.summaryLabel}>{t('addOccasion.summary.date')}</Text>
             <Text style={styles.summaryValue}>{formatDate(eventDate, dateFormat)}</Text>
           </View>
-          <View style={styles.summaryRow}>
+          <View style={[styles.summaryRow, styles.summaryRowLast]}>
             <Text style={styles.summaryLabel}>{t('addOccasion.summary.reminder')}</Text>
             <Text style={styles.summaryValue}>
               {useHebrewDate && hebrewDateDisplay
@@ -553,18 +575,18 @@ export default function AddOccasionScreen() {
                 : t('addOccasion.summary.gregorianReminder')}
             </Text>
           </View>
-          <View style={[styles.summaryRow, styles.summaryRowLast, { alignItems: 'flex-start' }]}>
-            <Text style={[styles.summaryLabel, { paddingTop: 2 }]}>{t('addOccasion.summary.notes')}</Text>
-            <TextInput
-              style={[styles.summaryValue, { textAlignVertical: 'top', minHeight: 36 }]}
-              placeholder={t('addOccasion.notesPlaceholder')}
-              placeholderTextColor={colors.textTertiary}
-              multiline
-              value={notes}
-              onChangeText={setNotes}
-            />
-          </View>
         </View>
+
+        <Text style={styles.notesLabel}>{t('addOccasion.summary.notes')}</Text>
+        <TextInput
+          style={styles.notesInput}
+          placeholder={t('addOccasion.notesPlaceholder')}
+          placeholderTextColor={colors.textTertiary}
+          multiline
+          value={notes}
+          onChangeText={setNotes}
+          returnKeyType="done"
+        />
       </ScrollView>
     );
   }

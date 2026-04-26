@@ -247,6 +247,28 @@ function makeStyles(colors: AppColors, isRTL: boolean) {
       color: colors.textSecondary,
       fontWeight: '400',
     },
+    notesLabel: {
+      fontSize: 13,
+      fontWeight: '600',
+      color: colors.textTertiary,
+      alignSelf: 'flex-start',
+      marginTop: 20,
+      marginBottom: 4,
+    },
+    notesInput: {
+      borderWidth: 1,
+      borderColor: colors.separator,
+      borderRadius: 12,
+      paddingHorizontal: 16,
+      paddingVertical: 12,
+      fontSize: 15,
+      color: colors.textPrimary,
+      backgroundColor: colors.background,
+      textAlign: isRTL ? 'right' : 'left',
+      minHeight: 80,
+      textAlignVertical: 'top',
+      marginTop: 12,
+    },
   });
 }
 
@@ -795,7 +817,7 @@ export default function AddWarrantyScreen() {
             </View>
           </View>
 
-          <View style={styles.summaryRow}>
+          <View style={[styles.summaryRow, styles.summaryRowLast]}>
             <Text style={styles.summaryLabel}>{t('addWarranty.summary.expiry')}</Text>
             <Text style={styles.summaryValue}>
               {noExpiry
@@ -805,19 +827,18 @@ export default function AddWarrantyScreen() {
                 : '—'}
             </Text>
           </View>
-
-          <View style={[styles.summaryRow, styles.summaryRowLast, { alignItems: 'flex-start' }]}>
-            <Text style={[styles.summaryLabel, { paddingTop: 2 }]}>{t('addWarranty.summary.notes')}</Text>
-            <TextInput
-              style={[styles.summaryValue, { textAlignVertical: 'top', minHeight: 36 }]}
-              placeholder={t('addWarranty.notesPlaceholder')}
-              placeholderTextColor={colors.textTertiary}
-              multiline
-              value={notes}
-              onChangeText={setNotes}
-            />
-          </View>
         </View>
+
+        <Text style={styles.notesLabel}>{t('addWarranty.summary.notes')}</Text>
+        <TextInput
+          style={styles.notesInput}
+          placeholder={t('addWarranty.notesPlaceholder')}
+          placeholderTextColor={colors.textTertiary}
+          multiline
+          value={notes}
+          onChangeText={setNotes}
+          returnKeyType="done"
+        />
       </ScrollView>
     );
   }

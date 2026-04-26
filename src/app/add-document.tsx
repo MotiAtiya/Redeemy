@@ -158,6 +158,19 @@ function makeStyles(colors: AppColors, isRTL: boolean) {
     retakeBtnText: { fontSize: 14, color: colors.primary, fontWeight: '500' },
 
     // Summary
+    stepSubtitle: {
+      fontSize: 15,
+      color: colors.textSecondary,
+      alignSelf: 'flex-start',
+      marginBottom: 32,
+    },
+    summaryPhoto: {
+      width: '100%',
+      height: 200,
+      borderRadius: 16,
+      backgroundColor: colors.separator,
+      marginBottom: 24,
+    },
     summaryCard: {
       borderRadius: 16,
       backgroundColor: colors.background,
@@ -189,12 +202,6 @@ function makeStyles(colors: AppColors, isRTL: boolean) {
       color: colors.textPrimary,
       fontWeight: '500',
       textAlign: 'left',
-    },
-    summaryPhotoThumb: {
-      width: 48,
-      height: 36,
-      borderRadius: 6,
-      overflow: 'hidden',
     },
     notesInput: {
       borderWidth: 1,
@@ -438,7 +445,6 @@ export default function AddDocumentScreen() {
                 <Text style={[styles.choiceCardLabel, selected && styles.choiceCardLabelSelected]}>
                   {t(`documents.types.${type}`)}
                 </Text>
-                {selected && <Ionicons name="checkmark-circle" size={22} color={colors.primary} style={{ marginStart: 'auto' }} />}
               </TouchableOpacity>
             );
           })}
@@ -531,6 +537,17 @@ export default function AddDocumentScreen() {
     return (
       <ScrollView style={styles.stepScroll} contentContainerStyle={styles.stepContent} keyboardShouldPersistTaps="handled">
         <Text style={styles.stepTitle}>{t('addDocument.step.summary')}</Text>
+        <Text style={styles.stepSubtitle}>{t('addDocument.step.summarySub')}</Text>
+
+        {!!photoUri && (
+          <Image
+            source={{ uri: photoUri }}
+            style={styles.summaryPhoto}
+            contentFit="cover"
+            placeholder={{ blurhash: 'L6PZfSi_.AyE_3t7t7R**0o#DgR4' }}
+          />
+        )}
+
         <View style={styles.summaryCard}>
           <View style={styles.summaryRow}>
             <Text style={styles.summaryLabel}>{t('addDocument.summary.type')}</Text>
@@ -540,18 +557,10 @@ export default function AddDocumentScreen() {
             <Text style={styles.summaryLabel}>{t('addDocument.summary.owner')}</Text>
             <Text style={styles.summaryValue}>{ownerName}</Text>
           </View>
-          <View style={styles.summaryRow}>
+          <View style={[styles.summaryRow, styles.summaryRowLast]}>
             <Text style={styles.summaryLabel}>{t('addDocument.summary.expiration')}</Text>
             <Text style={styles.summaryValue}>{formatDate(expirationDate, dateFormat)}</Text>
           </View>
-          {!!photoUri && (
-            <View style={[styles.summaryRow, styles.summaryRowLast]}>
-              <Text style={styles.summaryLabel}>{t('addDocument.summary.photo')}</Text>
-              <View style={styles.summaryPhotoThumb}>
-                <Image source={{ uri: photoUri }} style={{ flex: 1 }} contentFit="cover" />
-              </View>
-            </View>
-          )}
         </View>
 
         <Text style={styles.notesLabel}>{t('addDocument.summary.notes')}</Text>
@@ -582,7 +591,7 @@ export default function AddDocumentScreen() {
 
   const footerButton = isSummary ? (
     <TouchableOpacity
-      style={[styles.continueBtn, saving && styles.continueBtnDisabled]}
+      style={styles.continueBtn}
       onPress={handleSave}
       disabled={saving}
     >
