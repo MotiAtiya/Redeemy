@@ -3,6 +3,7 @@ import {
   addDoc,
   updateDoc,
   deleteDoc,
+  getDocs,
   doc,
   serverTimestamp,
   query,
@@ -78,3 +79,10 @@ export async function updateOccasion(
 export async function deleteOccasion(id: string): Promise<void> {
   await deleteDoc(doc(db, OCCASIONS_COLLECTION, id));
 }
+
+export async function deleteAllUserOccasions(userId: string): Promise<void> {
+  const q = query(collection(db, OCCASIONS_COLLECTION), where('userId', '==', userId));
+  const snapshot = await getDocs(q);
+  await Promise.all(snapshot.docs.map((d) => deleteDoc(d.ref)));
+}
+

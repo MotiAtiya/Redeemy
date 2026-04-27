@@ -4,6 +4,7 @@ import {
   updateDoc,
   deleteDoc,
   deleteField,
+  getDocs,
   doc,
   serverTimestamp,
   query,
@@ -90,4 +91,10 @@ export async function deleteDocument(id: string): Promise<void> {
     deleteDoc(doc(db, DOCUMENTS_COLLECTION, id)),
     deleteEntityImages('documents', id),
   ]);
+}
+
+export async function deleteAllUserDocuments(userId: string): Promise<void> {
+  const q = query(collection(db, DOCUMENTS_COLLECTION), where('userId', '==', userId));
+  const snapshot = await getDocs(q);
+  await Promise.all(snapshot.docs.map((d) => deleteDoc(d.ref)));
 }

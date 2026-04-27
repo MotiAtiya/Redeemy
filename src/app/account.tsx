@@ -20,11 +20,18 @@ import { useTranslation } from 'react-i18next';
 import { isEmailUser, updateDisplayName, changePassword, reauthenticateForDeletion, deleteAccount, signOut } from '@/lib/auth';
 import { useAuthStore } from '@/stores/authStore';
 import { useCreditsStore } from '@/stores/creditsStore';
+import { useWarrantiesStore } from '@/stores/warrantiesStore';
+import { useSubscriptionsStore } from '@/stores/subscriptionsStore';
+import { useOccasionsStore } from '@/stores/occasionsStore';
+import { useDocumentsStore } from '@/stores/documentsStore';
 import { useUIStore } from '@/stores/uiStore';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { useFamilyStore } from '@/stores/familyStore';
 import { deleteAllUserCredits } from '@/lib/firestoreCredits';
 import { deleteAllUserWarranties } from '@/lib/firestoreWarranties';
+import { deleteAllUserSubscriptions } from '@/lib/firestoreSubscriptions';
+import { deleteAllUserOccasions } from '@/lib/firestoreOccasions';
+import { deleteAllUserDocuments } from '@/lib/firestoreDocuments';
 import { leaveFamily } from '@/lib/firestoreFamilies';
 import { useAppTheme } from '@/hooks/useAppTheme';
 import type { AppColors } from '@/constants/colors';
@@ -192,6 +199,22 @@ export default function AccountScreen() {
   const [confirmPasswordError, setConfirmPasswordError] = useState('');
   const [savingPassword, setSavingPassword] = useState(false);
 
+  function clearAllLocalStores() {
+    useCreditsStore.getState().setCredits([]);
+    useCreditsStore.getState().setSearchQuery('');
+    useCreditsStore.getState().setError(null);
+    useCreditsStore.getState().setLoading(false);
+    useWarrantiesStore.getState().setWarranties([]);
+    useSubscriptionsStore.getState().setSubscriptions([]);
+    useOccasionsStore.getState().setOccasions([]);
+    useDocumentsStore.getState().setDocuments([]);
+    useUIStore.getState().setActiveTab('credits');
+    useUIStore.getState().setOfflineMode(false);
+    useFamilyStore.getState().setFamily(null);
+    useSettingsStore.getState().setFamilyId(null);
+    useSettingsStore.getState().setFamilyCreditsMigrated(false);
+  }
+
   function openDeleteAccountSheet() {
     setDeletePassword('');
     setDeletePasswordError('');
@@ -214,22 +237,19 @@ export default function AccountScreen() {
       if (familyId) {
         await leaveFamily(familyId, uid).catch(() => { /* silent */ });
       }
-      await deleteAllUserCredits(uid);
-      await deleteAllUserWarranties(uid);
+      await Promise.all([
+        deleteAllUserCredits(uid),
+        deleteAllUserWarranties(uid),
+        deleteAllUserSubscriptions(uid),
+        deleteAllUserOccasions(uid),
+        deleteAllUserDocuments(uid),
+      ]);
 
       // Step 3: Delete Firebase Auth user + Firestore user doc.
       await deleteAccount();
 
       // Step 4: Clear all local stores.
-      useCreditsStore.getState().setCredits([]);
-      useCreditsStore.getState().setSearchQuery('');
-      useCreditsStore.getState().setError(null);
-      useCreditsStore.getState().setLoading(false);
-      useUIStore.getState().setActiveTab('credits');
-      useUIStore.getState().setOfflineMode(false);
-      useFamilyStore.getState().setFamily(null);
-      useSettingsStore.getState().setFamilyId(null);
-      useSettingsStore.getState().setFamilyCreditsMigrated(false);
+      clearAllLocalStores();
     } catch (err: any) {
       setDeletingAccount(false);
       const code = err?.code ?? '';
@@ -278,15 +298,7 @@ export default function AccountScreen() {
         onPress: async () => {
           setSigningOut(true);
           try {
-            useCreditsStore.getState().setCredits([]);
-            useCreditsStore.getState().setSearchQuery('');
-            useCreditsStore.getState().setError(null);
-            useCreditsStore.getState().setLoading(false);
-            useUIStore.getState().setActiveTab('credits');
-            useUIStore.getState().setOfflineMode(false);
-            useFamilyStore.getState().setFamily(null);
-            useSettingsStore.getState().setFamilyId(null);
-            useSettingsStore.getState().setFamilyCreditsMigrated(false);
+            clearAllLocalStores();
             await signOut();
           } catch {
             setSigningOut(false);
