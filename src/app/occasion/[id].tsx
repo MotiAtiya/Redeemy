@@ -14,6 +14,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import { DetailRow } from '@/components/redeemy/DetailRow';
 import { ActionModal } from '@/components/redeemy/ActionModal';
+import { HeroCard } from '@/components/redeemy/HeroCard';
+import { HeroBadge } from '@/components/redeemy/HeroBadge';
 import { useOccasionsStore } from '@/stores/occasionsStore';
 import { useAuthStore } from '@/stores/authStore';
 import { useFamilyStore } from '@/stores/familyStore';
@@ -51,32 +53,8 @@ function makeStyles(colors: AppColors) {
     headerTitle: { fontSize: 17, fontWeight: '600', color: colors.textPrimary, alignSelf: 'flex-start' },
     scroll: { flex: 1 },
     scrollContent: { padding: 16, gap: 12, paddingBottom: 32 },
-    heroCard: {
-      backgroundColor: colors.surface,
-      borderRadius: 14,
-      padding: 20,
-      alignItems: 'center',
-      gap: 12,
-    },
-    iconCircle: {
-      width: 72,
-      height: 72,
-      borderRadius: 36,
-      backgroundColor: colors.primarySurface,
-      justifyContent: 'center',
-      alignItems: 'center',
-    },
-    heroTitle: { fontSize: 22, fontWeight: '800', color: colors.textPrimary, textAlign: 'center' },
+    heroTitle: { fontSize: 26, fontWeight: '700', color: colors.textPrimary, textAlign: 'center' },
     heroYears: { fontSize: 15, color: colors.primary, fontWeight: '600', textAlign: 'center' },
-    nextBadge: {
-      paddingHorizontal: 14,
-      paddingVertical: 6,
-      borderRadius: 14,
-      backgroundColor: colors.primarySurface,
-      borderWidth: 1,
-      borderColor: colors.primary,
-    },
-    nextBadgeText: { fontSize: 14, color: colors.primary, fontWeight: '600', textAlign: 'center' },
     detailsCard: { backgroundColor: colors.surface, borderRadius: 14, overflow: 'hidden' },
     notFound: { flex: 1, justifyContent: 'center', alignItems: 'center' },
     notFoundText: { fontSize: 16, color: colors.textTertiary },
@@ -141,6 +119,12 @@ export default function OccasionDetailScreen() {
     ? t('occasions.today')
     : t('occasions.nextOn', { date: formatDate(nextDate, dateFormat) });
 
+  const nextBadgeColor = days === 0 || days <= 7
+    ? { color: colors.urgencyRed, bgColor: colors.urgencyRedSurface }
+    : days <= 30
+    ? { color: colors.urgencyAmber, bgColor: colors.urgencyAmberSurface }
+    : { color: colors.urgencyGreen, bgColor: colors.urgencyGreenSurface };
+
   async function handleDelete() {
     if (useUIStore.getState().offlineMode) {
       setShowActionSheet(false);
@@ -193,16 +177,11 @@ export default function OccasionDetailScreen() {
       </View>
 
       <ScrollView style={styles.scroll} contentContainerStyle={styles.scrollContent}>
-        <View style={styles.heroCard}>
-          <View style={styles.iconCircle}>
-            <Ionicons name={TYPE_ICONS[occasion.type]} size={34} color={colors.primary} />
-          </View>
+        <HeroCard iconName={TYPE_ICONS[occasion.type]}>
           <Text style={styles.heroTitle}>{heroTitle}</Text>
           {!!yearsLabel && <Text style={styles.heroYears}>{yearsLabel}</Text>}
-          <View style={styles.nextBadge}>
-            <Text style={styles.nextBadgeText}>{nextLabel}</Text>
-          </View>
-        </View>
+          <HeroBadge text={nextLabel} color={nextBadgeColor.color} bgColor={nextBadgeColor.bgColor} />
+        </HeroCard>
 
         <View style={styles.detailsCard}>
           <DetailRow

@@ -1,6 +1,8 @@
 import { View, Text, StyleSheet } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useAppTheme } from '@/hooks/useAppTheme';
+import type { AppColors } from '@/constants/colors';
+import type { TFunction } from 'i18next';
 
 interface Props {
   expirationDate?: Date;
@@ -12,55 +14,59 @@ function getDaysRemaining(expirationDate: Date): number {
   return Math.ceil((expirationDate.getTime() - now.getTime()) / msPerDay);
 }
 
-export function ExpirationBadge({ expirationDate }: Props) {
-  const colors = useAppTheme();
-  const { t } = useTranslation();
+export function computeExpiryBadge(
+  expirationDate: Date | undefined,
+  t: TFunction,
+  colors: AppColors
+): { text: string; color: string; bgColor: string } {
   if (!expirationDate) {
-    return (
-      <View style={[styles.badge, { backgroundColor: colors.urgencyGreenSurface, borderColor: colors.urgencyGreen }]}>
-        <Text style={[styles.text, { color: colors.urgencyGreen }]}>{t('badge.noExpiry')}</Text>
-      </View>
-    );
+    return { text: t('badge.noExpiry'), color: colors.urgencyGreen, bgColor: colors.urgencyGreenSurface };
   }
   const days = getDaysRemaining(expirationDate);
 
-  let textColor: string;
+  let color: string;
   let bgColor: string;
-
   if (days < 7) {
-    textColor = colors.urgencyRed;
+    color = colors.urgencyRed;
     bgColor = colors.urgencyRedSurface;
   } else if (days <= 30) {
-    textColor = colors.urgencyAmber;
+    color = colors.urgencyAmber;
     bgColor = colors.urgencyAmberSurface;
   } else {
-    textColor = colors.urgencyGreen;
+    color = colors.urgencyGreen;
     bgColor = colors.urgencyGreenSurface;
   }
 
-  let label: string;
+  let text: string;
   if (days < 0) {
-    label = t('badge.expired');
+    text = t('badge.expired');
   } else if (days === 0) {
-    label = t('badge.today');
+    text = t('badge.today');
   } else if (days === 1) {
-    label = t('badge.oneDay');
+    text = t('badge.oneDay');
   } else if (days < 7) {
-    label = t('badge.days', { days });
+    text = t('badge.days', { days });
   } else if (days < 30) {
     const weeks = Math.ceil(days / 7);
-    label = weeks === 1 ? t('badge.oneWeek') : t('badge.weeks', { weeks });
+    text = weeks === 1 ? t('badge.oneWeek') : t('badge.weeks', { weeks });
   } else if (days < 365) {
     const months = Math.ceil(days / 30);
-    label = months === 1 ? t('badge.oneMonth') : t('badge.months', { months });
+    text = months === 1 ? t('badge.oneMonth') : t('badge.months', { months });
   } else {
     const years = Math.ceil(days / 365);
-    label = years === 1 ? t('badge.oneYear') : t('badge.years', { years });
+    text = years === 1 ? t('badge.oneYear') : t('badge.years', { years });
   }
 
+  return { text, color, bgColor };
+}
+
+export function ExpirationBadge({ expirationDate }: Props) {
+  const colors = useAppTheme();
+  const { t } = useTranslation();
+  const { text, color, bgColor } = computeExpiryBadge(expirationDate, t, colors);
   return (
-    <View style={[styles.badge, { backgroundColor: bgColor, borderColor: textColor }]}>
-      <Text style={[styles.text, { color: textColor }]}>{label}</Text>
+    <View style={[styles.badge, { backgroundColor: bgColor, borderColor: color }]}>
+      <Text style={[styles.text, { color }]}>{text}</Text>
     </View>
   );
 }

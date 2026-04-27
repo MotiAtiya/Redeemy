@@ -26,6 +26,8 @@ import { useUIStore } from '@/stores/uiStore';
 import { useAppTheme } from '@/hooks/useAppTheme';
 import { DetailRow } from '@/components/redeemy/DetailRow';
 import { ActionModal } from '@/components/redeemy/ActionModal';
+import { HeroCard } from '@/components/redeemy/HeroCard';
+import { HeroBadge } from '@/components/redeemy/HeroBadge';
 import { SubscriptionBillingCycle, SubscriptionStatus } from '@/types/subscriptionTypes';
 import { SUBSCRIPTION_CATEGORIES } from '@/constants/subscriptionCategories';
 import { getNextBillingDate, daysUntilBilling, normalizeToMonthlyAgorot } from '@/lib/subscriptionUtils';
@@ -53,21 +55,6 @@ function makeStyles(colors: AppColors) {
     scroll: { flex: 1 },
     scrollContent: { padding: 16, gap: 12, paddingBottom: 32 },
     // Hero card
-    heroCard: {
-      backgroundColor: colors.surface,
-      borderRadius: 14,
-      padding: 20,
-      alignItems: 'center',
-      gap: 12,
-    },
-    heroIconCircle: {
-      width: 64,
-      height: 64,
-      borderRadius: 32,
-      backgroundColor: colors.primarySurface,
-      justifyContent: 'center',
-      alignItems: 'center',
-    },
     heroServiceName: {
       fontSize: 26,
       fontWeight: '700',
@@ -278,6 +265,15 @@ export default function SubscriptionDetailScreen() {
 
   const familyCreatorName = sub?.familyId && sub.createdBy !== currentUid ? (sub.createdByName ?? null) : null;
 
+  function getHeroBadgeProps(): { text: string; color: string; bgColor: string } | null {
+    if (isCancelled) return null;
+    if (sub.isFree) return { text: t('subscription.detail.free'), color: colors.urgencyGreen, bgColor: colors.urgencyGreenSurface };
+    const text = getNextBillingText();
+    if (daysLeft === 0 || daysLeft <= 7) return { text, color: colors.urgencyRed, bgColor: colors.urgencyRedSurface };
+    if (daysLeft <= 30) return { text, color: colors.urgencyAmber, bgColor: colors.urgencyAmberSurface };
+    return { text, color: colors.urgencyGreen, bgColor: colors.urgencyGreenSurface };
+  }
+
   function getBillingText(): string {
     const s = sub!;
     if (s.isFree) return t('subscription.detail.free');
@@ -315,6 +311,8 @@ export default function SubscriptionDetailScreen() {
   // Render
   // -------------------------------------------------------------------------
 
+  const heroBadgeProps = getHeroBadgeProps();
+
   return (
     <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
       {/* Header */}
@@ -332,16 +330,12 @@ export default function SubscriptionDetailScreen() {
 
       <ScrollView style={styles.scroll} contentContainerStyle={styles.scrollContent}>
         {/* Hero card */}
-        <View style={styles.heroCard}>
-          <View style={styles.heroIconCircle}>
-            <Ionicons
-              name={categoryMeta?.icon ?? 'grid-outline'}
-              size={32}
-              color={colors.primary}
-            />
-          </View>
+        <HeroCard iconName={categoryMeta?.icon ?? 'grid-outline'}>
           <Text style={styles.heroServiceName}>{sub.serviceName}</Text>
-        </View>
+          {heroBadgeProps && (
+            <HeroBadge text={heroBadgeProps.text} color={heroBadgeProps.color} bgColor={heroBadgeProps.bgColor} />
+          )}
+        </HeroCard>
 
         {/* Details card */}
         <View style={styles.detailsCard}>

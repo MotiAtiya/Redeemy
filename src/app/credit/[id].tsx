@@ -15,7 +15,9 @@ import { Image } from 'expo-image';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { ExpirationBadge } from '@/components/redeemy/ExpirationBadge';
+import { computeExpiryBadge } from '@/components/redeemy/ExpirationBadge';
+import { HeroCard } from '@/components/redeemy/HeroCard';
+import { HeroBadge } from '@/components/redeemy/HeroBadge';
 import { DetailRow } from '@/components/redeemy/DetailRow';
 import { ActionModal } from '@/components/redeemy/ActionModal';
 import { FullscreenImageViewer } from '@/components/redeemy/FullscreenImageViewer';
@@ -65,9 +67,8 @@ function makeStyles(colors: AppColors) {
     dotRow: { flexDirection: 'row', justifyContent: 'center', gap: 6, marginTop: 8 },
     dot: { width: 6, height: 6, borderRadius: 3, backgroundColor: colors.separator },
     dotActive: { backgroundColor: colors.primary, width: 18 },
-    card: { backgroundColor: colors.surface, borderRadius: 14, padding: 16, gap: 8 },
-    storeName: { fontSize: 22, fontWeight: '700', color: colors.textPrimary, alignSelf: 'flex-start' },
-    amount: { fontSize: 36, fontWeight: '800', color: colors.textPrimary, letterSpacing: -1, alignSelf: 'flex-start' },
+    heroStoreName: { fontSize: 15, fontWeight: '600', color: colors.textSecondary, textAlign: 'center' },
+    heroAmount: { fontSize: 36, fontWeight: '800', color: colors.textPrimary, letterSpacing: -1, textAlign: 'center' },
     detailsCard: { backgroundColor: colors.surface, borderRadius: 14, overflow: 'hidden' },
     addedFooterText: { fontSize: 12, color: colors.textTertiary, alignSelf: 'flex-start' },
     footer: {
@@ -315,11 +316,14 @@ export default function CreditDetailScreen() {
           </View>
         )}
 
-        <View style={styles.card}>
-          <Text style={styles.storeName}>{credit.storeName}</Text>
-          <Text style={styles.amount}>{formatCurrency(credit.amount, CURRENCY_SYMBOLS[credit.currency ?? 'ILS'])}</Text>
-          <ExpirationBadge expirationDate={expirationDate ?? undefined} />
-        </View>
+        <HeroCard>
+          <Text style={styles.heroStoreName}>{credit.storeName}</Text>
+          <Text style={styles.heroAmount}>{formatCurrency(credit.amount, CURRENCY_SYMBOLS[credit.currency ?? 'ILS'])}</Text>
+          {(() => {
+            const badge = computeExpiryBadge(expirationDate ?? undefined, t, colors);
+            return <HeroBadge text={badge.text} color={badge.color} bgColor={badge.bgColor} />;
+          })()}
+        </HeroCard>
 
         <View style={styles.detailsCard}>
           <DetailRow

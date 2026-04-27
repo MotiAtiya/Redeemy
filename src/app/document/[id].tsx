@@ -16,7 +16,9 @@ import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import { DetailRow } from '@/components/redeemy/DetailRow';
-import { ExpirationBadge } from '@/components/redeemy/ExpirationBadge';
+import { computeExpiryBadge } from '@/components/redeemy/ExpirationBadge';
+import { HeroCard } from '@/components/redeemy/HeroCard';
+import { HeroBadge } from '@/components/redeemy/HeroBadge';
 import { ActionModal } from '@/components/redeemy/ActionModal';
 import { FullscreenImageViewer } from '@/components/redeemy/FullscreenImageViewer';
 import { useDocumentsStore } from '@/stores/documentsStore';
@@ -48,18 +50,8 @@ function makeStyles(colors: AppColors) {
     headerTitle: { fontSize: 17, fontWeight: '600', color: colors.textPrimary, alignSelf: 'flex-start' },
     scroll: { flex: 1 },
     scrollContent: { gap: 12, paddingBottom: 32 },
-    card: { backgroundColor: colors.surface, borderRadius: 14, padding: 16, gap: 8, marginHorizontal: 16 },
-    cardRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
-    iconCircle: {
-      width: 44,
-      height: 44,
-      borderRadius: 22,
-      backgroundColor: colors.primarySurface,
-      justifyContent: 'center',
-      alignItems: 'center',
-    },
-    cardTitle: { fontSize: 22, fontWeight: '700', color: colors.textPrimary, alignSelf: 'flex-start' },
-    cardOwner: { fontSize: 15, color: colors.textSecondary, alignSelf: 'flex-start' },
+    heroTitle: { fontSize: 26, fontWeight: '700', color: colors.textPrimary, textAlign: 'center' },
+    heroOwner: { fontSize: 15, fontWeight: '600', color: colors.textSecondary, textAlign: 'center' },
     detailsCard: { backgroundColor: colors.surface, borderRadius: 14, overflow: 'hidden', marginHorizontal: 16 },
     addedFooterText: { fontSize: 12, color: colors.textTertiary, alignSelf: 'flex-start', marginHorizontal: 16 },
     photoCard: {
@@ -239,11 +231,14 @@ export default function DocumentDetailScreen() {
         )}
 
         {/* Main card */}
-        <View style={styles.card}>
-          <Text style={styles.cardTitle}>{typeLabel}</Text>
-          <Text style={styles.cardOwner}>{document.ownerName}</Text>
-          <ExpirationBadge expirationDate={expirationDate} />
-        </View>
+        <HeroCard style={{ marginHorizontal: 16 }}>
+          <Text style={styles.heroTitle}>{typeLabel}</Text>
+          <Text style={styles.heroOwner}>{document.ownerName}</Text>
+          {(() => {
+            const badge = computeExpiryBadge(expirationDate, t, colors);
+            return <HeroBadge text={badge.text} color={badge.color} bgColor={badge.bgColor} />;
+          })()}
+        </HeroCard>
 
         {/* Details */}
         <View style={styles.detailsCard}>
