@@ -1,5 +1,95 @@
 # Redeemy — Claude Instructions
 
+## App Overview
+
+Redeemy is a Hebrew-first (RTL) iOS/Android app for managing personal financial records. It has **5 core features**, each with its own Firestore collection, Zustand store, onSnapshot listener, full CRUD screens, local notifications, multi-image support, and family sharing.
+
+| Feature | Hebrew | Tab | Add Screen | Detail Screen |
+|---------|--------|-----|-----------|---------------|
+| Credits (store vouchers / gift cards) | זיכויים | `(tabs)/index.tsx` | `add-credit.tsx` | `credit/[id].tsx` |
+| Warranties | אחריויות | `(tabs)/warranties.tsx` | `add-warranty.tsx` | `warranty/[id].tsx` |
+| Subscriptions | מנויים | `(tabs)/subscriptions.tsx` | `add-subscription.tsx` | `subscription/[id].tsx` |
+| Occasions (birthdays, anniversaries, yahrzeit) | אירועים | `(tabs)/occasions.tsx` | `add-occasion.tsx` | `occasion/[id].tsx` |
+| Documents (ID, license, passport, insurance) | מסמכים | `(tabs)/documents.tsx` | `add-document.tsx` | `document/[id].tsx` |
+
+Additional screens: `history.tsx` (redeemed/expired credits), `more.tsx` (settings, family, account), `stores.tsx` (derived credit view), `notification-settings.tsx`, `onboarding.tsx`, `family/create|join|[id].tsx`, `account.tsx`.
+
+---
+
+## Tech Stack
+
+- **React Native + Expo Router v3** (file-based routing under `src/app/`)
+- **Firebase**: Firestore (optimistic updates + onSnapshot), Auth, Storage
+- **Zustand v5** stores: `authStore`, `creditsStore`, `warrantiesStore`, `subscriptionsStore`, `occasionsStore`, `documentsStore`, `familyStore`, `settingsStore` (persisted via AsyncStorage), `uiStore`
+- **expo-notifications** — all notification logic in `src/lib/notifications.ts` and `src/lib/subscriptionNotifications.ts` and `src/lib/occasionNotifications.ts`
+- **react-i18next** — `he.json` + `en.json` under `src/locales/`
+- **TypeScript strict mode**
+- **Colors**: always via `useAppTheme()` hook (supports dark mode). Never hardcode colors.
+- All async data operations live in `src/lib/` (e.g. `firestoreCredits.ts`, `firestoreSubscriptions.ts`). Screens never import Firebase SDK directly.
+
+---
+
+## Universal Patterns (apply to all 5 features)
+
+- **Amounts** stored as integer **agorot** (× 100). `formatCurrency(agorot)` for display only. Never store decimals.
+- **Images**: up to 3 per item. Stored as `images: string[]` (download URLs) + `thumbnails: string[]`. Old single-image fields (`imageUrl`, `thumbnailUrl`) kept for credit backward compat.
+- **Family sharing**: every item has optional `familyId`, `createdBy` (userId), `createdByName`. When user is in a family, all queries switch from `userId ==` to `familyId ==`.
+- **Optimistic UI**: Zustand store updated immediately, Firestore write in background.
+- **Multi-step forms**: `StepFormScreen` component + `StepProgressBar`. Each add screen has a typed `StepId` union and a `getSteps()` function. Steps animate with slide transitions. All values preserved on back navigation.
+- **Notifications**: old notification IDs are always cancelled before scheduling new ones. All `expo-notifications` calls are isolated in `src/lib/`.
+- **Status enums**: each feature has its own `*Status` enum. Never use raw strings.
+
+---
+
+## Subscription Data Model — Key Concepts
+
+The subscription model is more complex than the others. Key fields:
+
+```
+isFree: boolean                           → free vs paid
+renewalType: 'auto' | 'manual'            → auto-renews or requires user action
+billingCycle: MONTHLY | ANNUAL
+billingDayOfMonth: number (1–28)          → MONTHLY only; capped at 28
+registrationDate: Date                    → anchor for billing calculations
+nextBillingDate: Date                     → ANNUAL only; computed for MONTHLY
+
+specialPeriodType: 'trial' | 'discounted' → free trial or promotional price
+specialPeriodMonths / specialPeriodDays   → duration
+specialPeriodPriceAgorot                  → price during special period
+priceAfterTrialAgorot                     → paid price after trial ends
+trialEndsDate                             → computed from registrationDate + period
+
+hasFixedPeriod: boolean                   → e.g. 12-month commitment
+commitmentMonths: number
+commitmentEndDate: Date
+
+freeReviewReminderMonths: number          → for free subs: remind every N months to review
+notificationIds: string[]                 → array (up to 2: week + day before)
+renewalNotificationId: string             → on-day "did it renew?" notification
+specialPeriodNotificationId: string       → reminder before trial/discount ends
+```
+
+`subscriptionUtils.ts` has all date/billing logic: `getNextBillingDate()`, `daysUntilBilling()`, `getNextReminderInfo()` (returns `ReminderType`: `'trial' | 'discounted' | 'review' | 'renews' | 'expires'`), `normalizeToMonthlyAgorot()`, `computeMonthlyTotal()`, `advanceBillingCycle()`, `endFreeTrialIfDue()`.
+
+---
+
+## Occasions — Key Concepts
+
+Occasions support both **Gregorian and Hebrew calendar** dates. Key fields:
+
+```
+type: 'birthday' | 'anniversary' | 'yahrzeit' | 'other'
+date: Date                   → Gregorian date
+useHebrewDate: boolean        → if true, anniversary fires on Hebrew calendar date each year
+hebrewDay / hebrewMonth       → stored Hebrew date components
+label: string                 → custom name (for 'other' type)
+notificationIds: string[]
+```
+
+Hebrew date logic is in `src/lib/hebrewDate.ts`.
+
+---
+
 ## RTL / Hebrew Layout Rules
 
 The app runs in Hebrew (RTL) mode via `I18nManager.forceRTL(true)`. When `I18nManager.isRTL === true`, React Native's Yoga layout engine automatically mirrors flex layouts — `flexDirection: 'row'` flows right-to-left, and `flex-start` on the cross axis of a column container is the **right** side.
@@ -88,17 +178,6 @@ stepTitle: { fontSize: 26, fontWeight: '700', alignSelf: 'flex-start' },
 
 **Never use `textAlign: 'right'`** for right-alignment in this RTL app — it produces visual-left.
 
-### Pattern used in the rest of the app
+### Canonical RTL pattern
 
-`subscription/[id].tsx` uses `alignSelf: 'flex-start'` on `detailLabel` and `detailValue` — this is the canonical RTL pattern for the app.
-
----
-
-## Tech Stack
-
-- React Native + Expo Router
-- Firebase Firestore (optimistic updates + onSnapshot)
-- Zustand stores (`useSubscriptionsStore`, `useSettingsStore`, `useAuthStore`)
-- expo-notifications for local notifications
-- react-i18next with `he.json` + `en.json`
-- TypeScript strict mode
+`subscription/[id].tsx` uses `alignSelf: 'flex-start'` on `detailLabel` and `detailValue` — this is the reference RTL pattern for the app.

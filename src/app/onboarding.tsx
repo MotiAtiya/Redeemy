@@ -55,6 +55,12 @@ const SLIDES: Slide[] = [
     subtitleKey: 'onboarding.occasions.subtitle',
   },
   {
+    id: 'documents',
+    emoji: '🪪',
+    titleKey: 'onboarding.documents.title',
+    subtitleKey: 'onboarding.documents.subtitle',
+  },
+  {
     id: 'family',
     emoji: '👨‍👩‍👧',
     titleKey: 'onboarding.family.title',
@@ -125,7 +131,7 @@ export default function OnboardingScreen() {
     router.replace('/(tabs)');
   }
 
-  function completeAndNavigate(destination?: 'credit' | 'warranty' | 'subscription' | 'occasion') {
+  function completeAndNavigate(destination?: 'credit' | 'warranty' | 'subscription' | 'occasion' | 'document') {
     setHasOnboarded(true);
     router.replace('/(tabs)');
     if (destination) {
@@ -135,6 +141,7 @@ export default function OnboardingScreen() {
           else if (destination === 'warranty') router.push('/add-warranty');
           else if (destination === 'subscription') router.push('/add-subscription');
           else if (destination === 'occasion') router.push('/add-occasion');
+          else if (destination === 'document') router.push('/add-document');
         });
       });
     }
@@ -190,6 +197,14 @@ export default function OnboardingScreen() {
             >
               <Text style={[styles.secondaryButtonText, { color: colors.primary }]}>
                 {t('onboarding.complete.addOccasion')}
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.secondaryButton, { backgroundColor: colors.primarySurface, borderWidth: 0 }]}
+              onPress={() => completeAndNavigate('document')}
+            >
+              <Text style={[styles.secondaryButtonText, { color: colors.primary }]}>
+                {t('onboarding.complete.addDocument')}
               </Text>
             </TouchableOpacity>
             <TouchableOpacity

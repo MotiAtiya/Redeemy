@@ -869,3 +869,140 @@ npx expo install zustand zod
 npx expo install expo-notifications expo-image-picker expo-image-manipulator expo-image
 npx expo install @gluestack-ui/themed @gluestack-style/react
 ```
+
+---
+
+## As-Built Update — 2026-04-27
+
+> This section documents how the architecture evolved beyond the original MVP plan. The original document above remains accurate as a foundation; the additions below reflect the actual implementation.
+
+### Expanded Feature Set
+
+The original architecture planned 1 core feature (Credits). The actual implementation grew to **5 parallel features**, each following the same architectural pattern:
+
+| Feature | Firestore Collection | Store | Listener Hook | Lib Service |
+|---------|---------------------|-------|--------------|-------------|
+| Credits | `/credits` | `creditsStore` | `useCreditsListener` | `firestoreCredits.ts` |
+| Warranties | `/warranties` | `warrantiesStore` | `useWarrantiesListener` | `firestoreWarranties.ts` |
+| Subscriptions | `/subscriptions` | `subscriptionsStore` | `useSubscriptionsListener` | `firestoreSubscriptions.ts` |
+| Occasions | `/occasions` | `occasionsStore` | (inline in hook) | `firestoreOccasions.ts` |
+| Documents | `/documents` | `documentsStore` | `useDocumentsListener` | `firestoreDocuments.ts` |
+
+All 5 features follow the same pattern: optimistic Zustand update → Firestore write → onSnapshot confirms.
+
+### Actual Stores (9 total)
+
+`authStore`, `creditsStore`, `warrantiesStore`, `subscriptionsStore`, `occasionsStore`, `documentsStore`, `familyStore`, `uiStore`, `settingsStore` (persisted with Zustand `persist` middleware + AsyncStorage).
+
+### Actual Tab Navigation (7 tabs)
+
+Credits · Warranties · Subscriptions · Occasions · Documents · History · More
+
+### Multi-Image Support
+
+All 5 features support up to **3 images per item**. Storage paths follow: `{feature}/{itemId}/image_0.jpg`, `image_1.jpg`, `image_2.jpg`. Items have `images: string[]` and `thumbnails: string[]` fields. Credits keep backward-compat `imageUrl`/`thumbnailUrl` single-image fields.
+
+`src/lib/imageUpload.ts` exports `uploadItemImages(localUris: string[], itemId: string, prefix: string)` and `deleteItemImages(itemId: string, prefix: string)`.
+
+### Subscription Data Model — Evolved Design
+
+The subscription model grew significantly beyond the original epics spec:
+
+```typescript
+interface Subscription {
+  // Billing
+  billingCycle: 'monthly' | 'annual'
+  billingDayOfMonth?: number      // MONTHLY: 1–28 (capped, not 1-31)
+  registrationDate: Date          // anchor for all date calculations
+  nextBillingDate?: Date          // ANNUAL only; derived for MONTHLY
+  renewalType: 'auto' | 'manual'  // determines notification strategy
+
+  // Access / pricing
+  isFree: boolean
+  amountAgorot: number            // 0 if isFree
+  currency: string
+
+  // Special periods (trial or discounted)
+  specialPeriodType?: 'trial' | 'discounted'
+  specialPeriodMonths?: number
+  specialPeriodDays?: number
+  specialPeriodPriceAgorot?: number
+  priceAfterTrialAgorot?: number
+  trialEndsDate?: Date
+  reminderSpecialPeriodEnabled: boolean
+
+  // Commitment (fixed-term subscriptions)
+  hasFixedPeriod: boolean
+  commitmentMonths?: number
+  commitmentEndDate?: Date
+
+  // Review reminders (free subs only)
+  freeReviewReminderMonths?: number
+
+  // Notifications (up to 3 active IDs)
+  notificationIds: string[]
+  renewalNotificationId?: string
+  specialPeriodNotificationId?: string
+
+  // Family sharing
+  familyId?: string
+  createdBy?: string
+  createdByName?: string
+}
+```
+
+**Key utility functions** (`src/lib/subscriptionUtils.ts`):
+- `getNextBillingDate(sub)` — handles MONTHLY day-clamping and ANNUAL year-advance
+- `daysUntilBilling(sub)` — days until next billing event (rounds up)
+- `getNextReminderInfo(sub)` — returns `ReminderType: 'trial' | 'discounted' | 'review' | 'renews' | 'expires'`
+- `normalizeToMonthlyAgorot(sub)` — annual ÷ 12 for total calculation
+- `computeMonthlyTotal(subs)` / `computeMonthlyTotalByCurrency(subs)` — multi-currency support
+- `advanceBillingCycle(sub)` — moves billing date forward one cycle
+- `endFreeTrialIfDue(sub)` — converts trial → paid when `trialEndsDate` has passed
+
+**Notification strategy** (`src/lib/subscriptionNotifications.ts`):
+- Free subs → periodic review reminder every N months from `registrationDate`
+- Paid auto-renewal → reminder N days before + on-day "did it renew?" alert
+- Paid manual renewal → reminder N days before + 1 day before
+- Special period → optional advance reminder before trial/discount ends
+
+### Occasions — Hebrew Calendar
+
+Occasions (`occasionTypes.ts`) include Hebrew calendar support:
+- `useHebrewDate: boolean` — if true, reminder fires on Hebrew calendar anniversary each year
+- `hebrewDay / hebrewMonth` — stored Hebrew date components
+- `src/lib/hebrewDate.ts` — Gregorian↔Hebrew conversion and next-occurrence calculation
+
+### Notification Architecture (Expanded)
+
+Three notification service files:
+- `src/lib/notifications.ts` — credits, warranties, documents (generic reminder + on-day alert pattern)
+- `src/lib/subscriptionNotifications.ts` — subscriptions (complex multi-notification strategy)
+- `src/lib/occasionNotifications.ts` — occasions (annual recurrence with Hebrew calendar)
+
+Each item stores its notification IDs for deduplication (cancel-before-reschedule pattern unchanged).
+
+Unified notification settings UI: `src/app/notification-settings.tsx` — controls reminder timing for all 5 features.
+
+### Additional Lib Files
+
+| File | Purpose |
+|------|---------|
+| `src/lib/creditUtils.ts` | Sort/filter logic for home and history screens |
+| `src/lib/formatCurrency.ts` | agot → display string with currency symbol |
+| `src/lib/formatDate.ts` | Date formatting utilities |
+| `src/lib/hebrewDate.ts` | Hebrew calendar conversion |
+| `src/lib/i18n.ts` | i18n setup (he + en) |
+| `src/lib/auth.ts` | Full auth service (email, Google, Apple, phone, account deletion) |
+
+### Additional Data Files
+
+- `src/data/subscriptionServices.ts` — 150+ popular subscription services with auto-categorization
+- `src/data/israeliStores.ts` — common Israeli store names for autocomplete
+
+### Deferred (still deferred)
+
+- Web companion
+- Sentry error monitoring
+- OCR field extraction
+- Analytics dashboard

@@ -777,7 +777,7 @@
     "viewTour": "View Tour Again",
     "welcome": {
       "title": "Welcome to Redeemy",
-      "subtitle": "Credits, warranties, subscriptions and events — everything you need to remember, in one place"
+      "subtitle": "Credits, warranties, subscriptions, events and documents — everything you need to remember, in one place"
     },
     "credits": {
       "title": "Credits you won't forget",
@@ -812,7 +812,12 @@
       "addWarranty": "Add warranty",
       "addSubscription": "Add subscription",
       "addOccasion": "Add event",
-      "goToApp": "Go to app"
+      "goToApp": "Go to app",
+      "addDocument": "Add document"
+    },
+    "documents": {
+      "title": "Documents always at hand",
+      "subtitle": "Store your ID, driver's license, passport and insurance — with reminders before they expire"
     }
   },
   "addSubscription": {
@@ -1081,7 +1086,9 @@
   "documents": {
     "title": "Documents",
     "search": "Search by name or type…",
-    "filter": { "all": "All" },
+    "filter": {
+      "all": "All"
+    },
     "sort": {
       "expiration": "Expiry",
       "name": "Name",

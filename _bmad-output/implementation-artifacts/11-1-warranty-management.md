@@ -4,7 +4,7 @@
 **Story Key:** 11-1-warranty-management
 **Author:** Moti
 **Date:** 2026-04-20
-**Status:** review
+**Status:** done
 
 ---
 

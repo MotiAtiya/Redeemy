@@ -5,7 +5,7 @@
 **Story ID:** 12.4
 **Author:** Moti
 **Date:** 2026-04-21
-**Status:** review
+**Status:** done
 
 ---
 

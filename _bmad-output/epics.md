@@ -15,15 +15,25 @@ This document provides the complete epic and story breakdown for Redeemy, decomp
 
 ### Epic Summary
 
-| Epic | Title | Stories |
-|------|-------|---------|
-| Epic 1 | Foundation & Project Setup | 4 stories |
-| Epic 2 | User Authentication | 4 stories |
-| Epic 3 | Credit Management (Core) | 6 stories |
-| Epic 4 | Stores & Discovery | 2 stories |
-| Epic 5 | Reminders & Notifications | 3 stories |
-| Epic 6 | Redeem & History | 3 stories |
-| Epic 7 | Offline Support | 2 stories |
+| Epic | Title | Stories | Status |
+|------|-------|---------|--------|
+| Epic 1 | Foundation & Project Setup | 4 stories | ✅ done |
+| Epic 2 | User Authentication | 4 stories | ✅ done |
+| Epic 3 | Credit Management (Core) | 6 stories | ✅ done |
+| Epic 4 | Stores & Discovery | 2 stories | ✅ done |
+| Epic 5 | Reminders & Notifications | 3 stories | ✅ done |
+| Epic 6 | Redeem & History | 3 stories | ✅ done |
+| Epic 7 | Offline Support | 2 stories | ✅ done |
+| Epic 9 | Theme & Appearance (dark mode) | 2 stories | ✅ done |
+| Epic 10 | Family Sharing | 3 stories | ✅ done |
+| Epic 11 | Warranty Management | 1 story | ✅ done |
+| Epic 12 | Subscription Management | 6 stories | ✅ done |
+| Epic 13 | Onboarding Flow | 3 stories | ✅ done |
+| Epic 14 | Warranties (full rewrite with multi-image) | 1 story | ✅ done |
+| Epic 15 | Occasions (birthdays, anniversaries, yahrzeit) | 2 stories | ✅ done |
+| Epic 16 | Documents (ID, license, passport, insurance) | 1 story | ✅ done |
+
+> **Note:** Epics 9–16 were added after initial planning. Epics 14–16 are new features not in the original product brief.
 
 ---
 
@@ -1502,9 +1512,64 @@ So that reminders work from day one and I know how to get started.
 
 ---
 
+---
+
+## Epic 14: Warranties Management
+
+**Goal:** Users can track product warranties with photos, expiration dates, and reminders — never miss a warranty claim window.
+
+**Status:** ✅ Done (implemented as part of expanded MVP)
+
+**Features delivered:**
+- Full CRUD: add warranty (multi-step form with up to 3 photos), view detail, edit, delete
+- Fields: product name, store name, purchase date, expiration date (or "no expiry" toggle), category, reminder, notes
+- Notifications: reminder N days before expiration; on-day expiration alert
+- Family sharing: familyId, createdBy, createdByName
+- Real-time Firestore listener (`useWarrantiesListener`)
+- Store: `warrantiesStore.ts`
+- Types: `warrantyTypes.ts`
+
+---
+
+## Epic 15: Occasions
+
+**Goal:** Users can track recurring annual occasions (birthdays, anniversaries, yahrzeit) with both Gregorian and Hebrew calendar support.
+
+**Status:** ✅ Done (new feature, not in original product brief)
+
+**Features delivered:**
+- Full CRUD: add occasion (multi-step form), view detail, edit, delete
+- Types: `birthday | anniversary | yahrzeit | other` (custom label for 'other')
+- Hebrew calendar support: `useHebrewDate` toggle stores Hebrew day/month; anniversary fires on the correct Hebrew calendar day each year (`src/lib/hebrewDate.ts`)
+- Notifications: configurable reminder days before the annual occurrence; `notificationIds[]` array
+- Family sharing support
+- Tabs screen: `(tabs)/occasions.tsx`; detail screen: `occasion/[id].tsx`
+- Store: `occasionsStore.ts`; Types: `occasionTypes.ts`
+- Notification settings: dedicated section in `notification-settings.tsx`
+
+---
+
+## Epic 16: Documents
+
+**Goal:** Users can store expiring personal documents (ID, driver's license, passport, insurance) with photos and get renewal reminders before they expire.
+
+**Status:** ✅ Done (new feature, not in original product brief)
+
+**Features delivered:**
+- Full CRUD: add document (multi-step form), view detail, delete
+- Document types: `id_card | license | passport | insurance | other` (custom name for 'other')
+- Fields: document type, owner name, expiration date (or "no expiry"), photo (up to 3 images), notes
+- Notifications: reminder before expiration
+- Family sharing support
+- Tabs screen: `(tabs)/documents.tsx`; detail screen: `document/[id].tsx`
+- Store: `documentsStore.ts`; Types: `documentTypes.ts`
+- Constants: `documentTypeIcons.ts` with DOCUMENT_TYPE_ICONS and DOCUMENT_TYPE_OPTIONS
+
+---
+
 ## Summary
 
-**Total: 12 Epics · 37 Stories**
+**Total: 15 Epics · 40+ Stories** (all implemented and done)
 
 | Epic | Stories | Delivers |
 |------|---------|---------|
@@ -1517,14 +1582,19 @@ So that reminders work from day one and I know how to get started.
 | Epic 7: Offline Support | 2 | App works anywhere — no signal, no problem |
 | Epic 9: Theme & Appearance | 2 | Dark mode + settings improvements |
 | Epic 10: Family Sharing | 3 | Shared credit pool — household management |
+| Epic 11: Warranty Management (v1) | 1 | Basic warranty tracking |
 | Epic 12: Subscription Management | 6 | Track recurring subscriptions with intent-based reminders |
 | Epic 13: Onboarding Flow | 3 | First-run experience — feature tour, notification permission, first action CTA |
+| Epic 14: Warranties (full) | 1 | Warranties with multi-image, family sharing, notifications |
+| Epic 15: Occasions | 2 | Annual occasions with Hebrew calendar, reminder notifications |
+| Epic 16: Documents | 1 | Expiring personal documents with photos and renewal reminders |
 
 **Context incorporated:**
 - ✅ Product Brief requirements (all 14 FRs)
 - ✅ UX Design Specification (photo-first flow, Sage teal, card metaphor, swipe interactions, empty states, toast patterns, bottom sheets)
 - ✅ Architecture decisions (Firebase v12, Zustand v5, Expo SDK 55, Zod v3.25, integer agot amounts, camelCase Firestore fields, single Firebase import boundary, notification deduplication, image compression pipeline)
 - ✅ Epic 12: Subscriptions (step-based add flow, intent-based reminders, auto-renewal, family sharing, history archive)
+- ✅ Epics 14–16: Warranties, Occasions, Documents — new features added beyond original product brief
 
 ---
 

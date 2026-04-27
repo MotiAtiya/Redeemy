@@ -4,7 +4,7 @@
 **Story Key:** 12-2-add-subscription-flow
 **Author:** Moti
 **Date:** 2026-04-21
-**Status:** review
+**Status:** done
 
 ---
 

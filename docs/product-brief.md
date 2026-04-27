@@ -2,9 +2,9 @@
 
 ## 📋 Document Information
 - **Product Name:** Redeemy
-- **Version:** 1.0 (MVP)
-- **Date:** April 16, 2026
-- **Status:** Planning Phase
+- **Version:** 2.0 (Built)
+- **Date:** April 16, 2026 (updated April 27, 2026)
+- **Status:** ✅ Built & Implemented
 - **Document Owner:** Product Strategy
 
 ---
@@ -696,6 +696,64 @@ The MVP will be considered successful if:
 
 ---
 
+---
+
+## 🏗️ As Built — April 27, 2026
+
+> This section documents what was actually implemented. The original brief above covered **Credits** as the sole feature. The app grew to **5 parallel features**, each with the same architecture.
+
+### Implemented Features
+
+| Feature | Hebrew tab name | Description |
+|---------|----------------|-------------|
+| **Credits** (original) | זיכויים | Store vouchers, gift cards — photo + amount + expiry + reminder |
+| **Warranties** | אחריויות | Product warranties with receipts — expiry tracking + notifications |
+| **Subscriptions** | מנויים | Recurring subscriptions — billing cycle, auto/manual renewal, special periods (trial/discounted) |
+| **Occasions** | אירועים | Annual events: birthdays, anniversaries, yahrzeit — Hebrew calendar support |
+| **Documents** | מסמכים | Expiring personal documents: ID, license, passport, insurance |
+
+All 5 features share:
+- Up to **3 photos** per item (multi-image carousel)
+- **Family sharing** (familyId, createdBy tracking)
+- **Local push notifications** with user-configurable timing
+- **Full CRUD** with real-time Firestore sync
+- **Dark/light mode** support
+
+### Tech Stack (Finalized)
+
+- **React Native + Expo Router v3** (file-based routing)
+- **Firebase**: Firestore + Auth (email, Google, Apple) + Storage
+- **Zustand v5** (9 stores, settingsStore persisted with AsyncStorage)
+- **expo-notifications** for all local reminders
+- **Hebrew + English** localization (react-i18next)
+
+### Subscription Model (exceeds original brief)
+
+The subscription feature is significantly richer than a typical reminder app:
+- `renewalType: 'auto' | 'manual'` — determines notification strategy
+- `specialPeriodType: 'trial' | 'discounted'` — trial and promotional pricing periods
+- `hasFixedPeriod` — commitment tracking (e.g. 12-month contract)
+- `freeReviewReminderMonths` — periodic "should I keep this?" reminders for free subscriptions
+- Billing day capped at 28 (avoids month-length edge cases)
+
+### Original "Out of Scope" Items — Delivery Status
+
+| Item | Original Status | Actual Status |
+|------|----------------|---------------|
+| OCR / Auto-recognition | ❌ Out of scope | Still deferred |
+| GPS / Location features | ❌ Out of scope | Still deferred |
+| PIN / Biometric lock | ❌ Out of scope | Still deferred |
+| Multi-currency | ❌ Out of scope | ✅ **Implemented** (ILS, USD, EUR, GBP) |
+| Partial redemption | ❌ Out of scope | Still deferred |
+| Analytics dashboard | ❌ Out of scope | Still deferred |
+| Web companion | ❌ Out of scope | Still deferred |
+| Warranties | Not mentioned | ✅ **Implemented** |
+| Subscriptions | Not mentioned | ✅ **Implemented** |
+| Occasions (Hebrew calendar) | Not mentioned | ✅ **Implemented** |
+| Documents | Not mentioned | ✅ **Implemented** |
+
+---
+
 ## 📝 Appendix
 
 ### Terminology
@@ -726,7 +784,7 @@ The MVP will be considered successful if:
 
 This Product Brief serves as the foundation for all subsequent design, development, and launch activities for Redeemy MVP.
 
-**Status:** ✅ Ready for UX Design Phase
+**Status:** ✅ Built — v2.0 with 5 features
 
 ---
 

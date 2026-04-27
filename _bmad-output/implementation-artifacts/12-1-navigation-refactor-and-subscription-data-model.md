@@ -4,7 +4,7 @@
 **Story Key:** 12-1-navigation-refactor-and-subscription-data-model
 **Author:** Moti
 **Date:** 2026-04-21
-**Status:** review
+**Status:** done
 
 ---
 

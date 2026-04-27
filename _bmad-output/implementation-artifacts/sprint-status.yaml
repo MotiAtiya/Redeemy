@@ -39,7 +39,7 @@
 # NOTE: Epic 11 (Warranty Management) was implemented and tracked here but is not in epics.md.
 
 generated: 2026-04-21
-last_updated: 2026-04-24  # Epic 13 Onboarding implemented
+last_updated: 2026-04-27  # Epic 13 closed; Warranties/Occasions/Documents epics added
 project: Redeemy
 project_key: NOKEY
 tracking_system: file-system
@@ -117,11 +117,27 @@ development_status:
   epic-11-retrospective: optional
 
   # Epic 13: Onboarding Flow
-  epic-13: in-progress
+  epic-13: done
   13-1-onboarding-infrastructure-and-navigation-gate: done
   13-2-feature-slides-and-content: done
   13-3-notifications-permission-and-completion: done
   epic-13-retrospective: optional
+
+  # Epic 14: Warranties Management (implemented outside original epics.md)
+  epic-14: done
+  14-1-warranty-crud-and-notifications: done
+  epic-14-retrospective: optional
+
+  # Epic 15: Occasions (birthdays, anniversaries, yahrzeit) — Hebrew calendar support
+  epic-15: done
+  15-1-occasions-crud-and-notifications: done
+  15-2-hebrew-calendar-integration: done
+  epic-15-retrospective: optional
+
+  # Epic 16: Documents (ID, license, passport, insurance)
+  epic-16: done
+  16-1-documents-crud-with-photo-and-expiration: done
+  epic-16-retrospective: optional
 
   # Epic 12: Subscription Management
   epic-12: done

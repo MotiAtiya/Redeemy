@@ -4,7 +4,7 @@
 **Story Key:** 10-1-create-family-and-invite-code
 **Author:** Moti
 **Date:** 2026-04-20
-**Status:** review
+**Status:** done
 
 ---
 
