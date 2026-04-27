@@ -433,7 +433,7 @@ function makeStyles(colors: AppColors, isRTL: boolean) {
       fontSize: 13,
       color: colors.textTertiary,
       fontWeight: '500',
-      width: 90,
+      width: 110,
       textAlign: isRTL ? 'right' : 'left',
     },
     summaryValue: {

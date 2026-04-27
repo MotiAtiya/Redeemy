@@ -934,7 +934,7 @@
       "amountAnnual": "Annual amount",
       "amountAfterTrial": "Amount after trial",
       "specialPeriod": "Special Period",
-      "specialPeriodReminderLabel": "End-of-period reminder",
+      "specialPeriodReminderLabel": "End-of-period alert",
       "billingDay": "Billing Day",
       "renewalDate": "Renewal Date",
       "renewalType": "Renewal",
@@ -949,7 +949,7 @@
       "discountedDays_other": "Discounted — {{count}} days at {{price}}",
       "dayOfMonth": "{{day}}th of each month",
       "notes": "Notes",
-      "commitmentMonths": "Period",
+      "commitmentMonths": "Commitment",
       "renewalAuto": "Automatic",
       "renewalManual": "Manual",
       "periodicReview": "Every {{months}} months"

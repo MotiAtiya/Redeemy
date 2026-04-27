@@ -933,7 +933,7 @@
       "amountAnnual": "סכום שנתי",
       "amountAfterTrial": "סכום לאחר ניסיון",
       "specialPeriod": "תקופה מיוחדת",
-      "specialPeriodReminderLabel": "תזכורת לסיום תקופה",
+      "specialPeriodReminderLabel": "תזכורת לסיום",
       "billingDay": "יום חיוב",
       "renewalDate": "תאריך חידוש",
       "renewalType": "חידוש",
@@ -948,7 +948,7 @@
       "discountedDays_other": "מוזל — {{count}} ימים ב-{{price}}",
       "dayOfMonth": "{{day}} לכל חודש",
       "notes": "הערות",
-      "commitmentMonths": "תקופה",
+      "commitmentMonths": "התחייבות",
       "renewalAuto": "אוטומטי",
       "renewalManual": "ידני",
       "periodicReview": "כל {{months}} חודשים"
