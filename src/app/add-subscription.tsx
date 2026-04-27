@@ -590,7 +590,7 @@ export default function AddSubscriptionScreen() {
 
   // Renewal
   const [renewalType, setRenewalType] = useState<'auto' | 'manual' | null>(null);
-  const [pendingRenewalType, setPendingRenewalType] = useState<'auto' | 'manual' | null>(null);
+  const [pendingRenewalType, setPendingRenewalType] = useState<'auto' | 'manual' | null>('auto');
 
   // Reminder
   const [reminderSpecialPeriod, setReminderSpecialPeriod] = useState(true);
@@ -768,7 +768,7 @@ export default function AddSubscriptionScreen() {
         setHasSpecialPeriod(null); setPendingHasSpecialPeriod(true);
         setBillingCycle(null);     setPendingBillingCycle(SubscriptionBillingCycle.MONTHLY);
         setMonthlyStructure(null); setPendingMonthlyStructure('noFixed');
-        setRenewalType(null);      setPendingRenewalType(null);
+        setRenewalType(null);      setPendingRenewalType('auto');
         setAmountInput(''); setSpecialAmountInput('');
       } else {
         if (paidStateStash.current) {
@@ -781,7 +781,7 @@ export default function AddSubscriptionScreen() {
           setSpecialAmountInput(st.specialAmountInput);
           setBillingCycle(st.billingCycle); setPendingBillingCycle(st.billingCycle ?? SubscriptionBillingCycle.MONTHLY);
           setMonthlyStructure(st.monthlyStructure); setPendingMonthlyStructure(st.monthlyStructure ?? 'noFixed');
-          setRenewalType(st.renewalType);   setPendingRenewalType(st.renewalType);
+          setRenewalType(st.renewalType);   setPendingRenewalType(st.renewalType ?? 'auto');
           setCommitmentMonths(st.commitmentMonths);
           setAmountInput(st.amountInput);
           paidStateStash.current = null;
@@ -789,7 +789,7 @@ export default function AddSubscriptionScreen() {
           setHasSpecialPeriod(null); setPendingHasSpecialPeriod(true);
           setBillingCycle(null);     setPendingBillingCycle(SubscriptionBillingCycle.MONTHLY);
           setMonthlyStructure(null); setPendingMonthlyStructure('noFixed');
-          setRenewalType(null);      setPendingRenewalType(null);
+          setRenewalType(null);      setPendingRenewalType('auto');
         }
       }
     }
@@ -801,18 +801,18 @@ export default function AddSubscriptionScreen() {
       if (cycle === SubscriptionBillingCycle.ANNUAL) {
         monthlyStateStash.current = { monthlyStructure, renewalType, commitmentMonths, periodicReminderMonths };
         setMonthlyStructure(null); setPendingMonthlyStructure('noFixed');
-        setRenewalType(null);      setPendingRenewalType(null);
+        setRenewalType(null);      setPendingRenewalType('auto');
       } else {
         if (monthlyStateStash.current) {
           const st = monthlyStateStash.current;
           setMonthlyStructure(st.monthlyStructure); setPendingMonthlyStructure(st.monthlyStructure ?? 'noFixed');
-          setRenewalType(st.renewalType);           setPendingRenewalType(st.renewalType);
+          setRenewalType(st.renewalType);           setPendingRenewalType(st.renewalType ?? 'auto');
           setCommitmentMonths(st.commitmentMonths);
           setPeriodicReminderMonths(st.periodicReminderMonths);
           monthlyStateStash.current = null;
         } else {
           setMonthlyStructure(null); setPendingMonthlyStructure('noFixed');
-          setRenewalType(null);      setPendingRenewalType(null);
+          setRenewalType(null);      setPendingRenewalType('auto');
         }
       }
     }
