@@ -17,17 +17,8 @@ import { Image } from 'expo-image';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import { cancelAllNotifications } from '@/lib/notifications';
-import { deleteAllUserCredits } from '@/lib/firestoreCredits';
-import { deleteAllUserWarranties } from '@/lib/firestoreWarranties';
-import { deleteAllUserSubscriptions } from '@/lib/firestoreSubscriptions';
-import { deleteAllUserOccasions } from '@/lib/firestoreOccasions';
-import { deleteAllUserDocuments } from '@/lib/firestoreDocuments';
+import { deleteAllUserData, clearAllLocalStores } from '@/lib/userDataCleanup';
 import { useAuthStore } from '@/stores/authStore';
-import { useCreditsStore } from '@/stores/creditsStore';
-import { useWarrantiesStore } from '@/stores/warrantiesStore';
-import { useSubscriptionsStore } from '@/stores/subscriptionsStore';
-import { useOccasionsStore } from '@/stores/occasionsStore';
-import { useDocumentsStore } from '@/stores/documentsStore';
 import { useUIStore } from '@/stores/uiStore';
 import { useSettingsStore, type DateFormat, type CurrencyCode, CURRENCY_SYMBOLS } from '@/stores/settingsStore';
 import { useFamilyStore } from '@/stores/familyStore';
@@ -47,26 +38,6 @@ const DATE_FORMAT_OPTIONS: { value: DateFormat; label: string }[] = [
   { value: 'MM/DD/YYYY', label: 'MM/DD/YYYY' },
 ];
 
-function resetAllStores() {
-  const credits = useCreditsStore.getState();
-  credits.setCredits([]);
-  credits.setSearchQuery('');
-  credits.setError(null);
-  credits.setLoading(false);
-
-  const ui = useUIStore.getState();
-  ui.setActiveTab('credits');
-  ui.setOfflineMode(false);
-
-  useWarrantiesStore.getState().setWarranties([]);
-  useSubscriptionsStore.getState().setSubscriptions([]);
-  useOccasionsStore.getState().setOccasions([]);
-  useDocumentsStore.getState().setDocuments([]);
-
-  useFamilyStore.getState().setFamily(null);
-  useSettingsStore.getState().setFamilyId(null);
-  useSettingsStore.getState().setFamilyCreditsMigrated(false);
-}
 
 function makeStyles(colors: AppColors, isRTL: boolean) {
   return StyleSheet.create({
@@ -272,14 +243,8 @@ export default function MoreScreen() {
           setDeletingData(true);
           try {
             await cancelAllNotifications();
-            await Promise.all([
-              deleteAllUserCredits(currentUser.uid),
-              deleteAllUserWarranties(currentUser.uid),
-              deleteAllUserSubscriptions(currentUser.uid),
-              deleteAllUserOccasions(currentUser.uid),
-              deleteAllUserDocuments(currentUser.uid),
-            ]);
-            resetAllStores();
+            await deleteAllUserData(currentUser.uid);
+            clearAllLocalStores();
             setDeletingData(false);
             Alert.alert(t('more.deleteData.successTitle'), t('more.deleteData.successMessage'));
           } catch {
