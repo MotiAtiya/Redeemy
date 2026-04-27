@@ -20,10 +20,14 @@ import { cancelAllNotifications } from '@/lib/notifications';
 import { deleteAllUserCredits } from '@/lib/firestoreCredits';
 import { deleteAllUserWarranties } from '@/lib/firestoreWarranties';
 import { deleteAllUserSubscriptions } from '@/lib/firestoreSubscriptions';
+import { deleteAllUserOccasions } from '@/lib/firestoreOccasions';
+import { deleteAllUserDocuments } from '@/lib/firestoreDocuments';
 import { useAuthStore } from '@/stores/authStore';
 import { useCreditsStore } from '@/stores/creditsStore';
 import { useWarrantiesStore } from '@/stores/warrantiesStore';
 import { useSubscriptionsStore } from '@/stores/subscriptionsStore';
+import { useOccasionsStore } from '@/stores/occasionsStore';
+import { useDocumentsStore } from '@/stores/documentsStore';
 import { useUIStore } from '@/stores/uiStore';
 import { useSettingsStore, type DateFormat, type CurrencyCode, CURRENCY_SYMBOLS } from '@/stores/settingsStore';
 import { useFamilyStore } from '@/stores/familyStore';
@@ -56,6 +60,8 @@ function resetAllStores() {
 
   useWarrantiesStore.getState().setWarranties([]);
   useSubscriptionsStore.getState().setSubscriptions([]);
+  useOccasionsStore.getState().setOccasions([]);
+  useDocumentsStore.getState().setDocuments([]);
 
   useFamilyStore.getState().setFamily(null);
   useSettingsStore.getState().setFamilyId(null);
@@ -266,9 +272,13 @@ export default function MoreScreen() {
           setDeletingData(true);
           try {
             await cancelAllNotifications();
-            await deleteAllUserCredits(currentUser.uid);
-            await deleteAllUserWarranties(currentUser.uid);
-            await deleteAllUserSubscriptions(currentUser.uid);
+            await Promise.all([
+              deleteAllUserCredits(currentUser.uid),
+              deleteAllUserWarranties(currentUser.uid),
+              deleteAllUserSubscriptions(currentUser.uid),
+              deleteAllUserOccasions(currentUser.uid),
+              deleteAllUserDocuments(currentUser.uid),
+            ]);
             resetAllStores();
             setDeletingData(false);
             Alert.alert(t('more.deleteData.successTitle'), t('more.deleteData.successMessage'));
