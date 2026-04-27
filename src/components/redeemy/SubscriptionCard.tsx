@@ -147,8 +147,8 @@ export function SubscriptionCard({ subscription: sub, onPress, variant = 'active
 
   const nextBillingLabel = useMemo(() => {
     if (sub.isFree) return null;
-    const hasSpecialPeriod = sub.isFreeTrial || !!sub.specialPeriodType;
-    if (hasSpecialPeriod && specialPeriodActive) return null;
+    const isTrialActive = (sub.isFreeTrial || sub.specialPeriodType === 'trial') && specialPeriodActive;
+    if (isTrialActive) return null;
     const days = daysUntilNextBilling;
     if (days === 0) return t('subscriptionCard.renewsToday');
     if (days === 1) return t('subscriptionCard.renewsTomorrow');
