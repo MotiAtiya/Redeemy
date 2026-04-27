@@ -1548,11 +1548,13 @@ export default function AddSubscriptionScreen() {
     const isTrialPeriod = !isFree && hasSpecialPeriod && specialPeriodType === 'trial';
     const isDiscountedPeriod = !isFree && hasSpecialPeriod && specialPeriodType === 'discounted';
 
-    // Amount label embeds billing cycle — no separate "חיוב" row needed
+    // Amount label embeds billing cycle (and trial context) — no separate "חיוב" row needed
     const amountLabel = !isFree
-      ? (billingCycle === SubscriptionBillingCycle.MONTHLY
-          ? t('addSubscription.summary.amountMonthly')
-          : t('addSubscription.summary.amountAnnual'))
+      ? isTrialPeriod
+        ? t('addSubscription.summary.amountAfterTrial')
+        : (billingCycle === SubscriptionBillingCycle.MONTHLY
+            ? t('addSubscription.summary.amountMonthly')
+            : t('addSubscription.summary.amountAnnual'))
       : t('addSubscription.summary.amount');
 
     const amountDisplay = isFree
@@ -1610,11 +1612,19 @@ export default function AddSubscriptionScreen() {
             </View>
           )}
 
-          {/* תקופה מיוחדת */}
+          {/* תקופה מיוחדת + תזכורת לסיומה */}
           {specialPeriodDisplay && (
             <View style={styles.summaryRow}>
               <Text style={styles.summaryLabel}>{t('addSubscription.summary.specialPeriod')}</Text>
               <Text style={styles.summaryValue}>{specialPeriodDisplay}</Text>
+            </View>
+          )}
+          {hasSpecialPeriod && (
+            <View style={styles.summaryRow}>
+              <Text style={styles.summaryLabel}>{t('addSubscription.summary.specialPeriodReminderLabel')}</Text>
+              <Text style={styles.summaryValue}>
+                {reminderSpecialPeriod ? t('common.on') : t('common.off')}
+              </Text>
             </View>
           )}
 
