@@ -807,13 +807,13 @@
     "complete": {
       "title": "הכל מוכן!",
       "subtitle": "מאיפה תרצו להתחיל?",
-      "addCredit": "הוסיפו זיכוי",
-      "addWarranty": "הוסיפו אחריות",
-      "addSubscription": "הוסיפו מנוי",
-      "addOccasion": "הוסיפו אירוע",
-      "goToApp": "כניסה לאפליקציה",
-      "addDocument": "הוסיפו מסמך",
-      "orStartWith": "או התחילו עם:"
+      "orStartWith": "או התחילו עם:",
+      "addCredit": "הוספת זיכוי",
+      "addWarranty": "הוספת אחריות",
+      "addSubscription": "הוספת מנוי",
+      "addOccasion": "הוספת אירוע",
+      "addDocument": "הוספת מסמך",
+      "goToApp": "כניסה לאפליקציה"
     },
     "documents": {
       "title": "מסמכים תמיד בהישג יד",
