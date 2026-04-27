@@ -1548,6 +1548,13 @@ export default function AddSubscriptionScreen() {
     const isTrialPeriod = !isFree && hasSpecialPeriod && specialPeriodType === 'trial';
     const isDiscountedPeriod = !isFree && hasSpecialPeriod && specialPeriodType === 'discounted';
 
+    // Amount label embeds billing cycle — no separate "חיוב" row needed
+    const amountLabel = !isFree
+      ? (billingCycle === SubscriptionBillingCycle.MONTHLY
+          ? t('addSubscription.summary.amountMonthly')
+          : t('addSubscription.summary.amountAnnual'))
+      : t('addSubscription.summary.amount');
+
     const amountDisplay = isFree
       ? t('addSubscription.summary.free')
       : formatCurrency(parseAmountToAgot(amountInput), sym);
@@ -1568,19 +1575,17 @@ export default function AddSubscriptionScreen() {
             }))
       : null;
 
-    const billingDisplay = isFree
-      ? t('addSubscription.summary.free')
-      : billingCycle === SubscriptionBillingCycle.MONTHLY
-      ? t('addSubscription.summary.monthly')
-      : t('addSubscription.summary.annual');
-
-    const billingDateDisplay = isFree
-      ? '—'
-      : billingCycle === SubscriptionBillingCycle.MONTHLY
+    const billingDateDisplay = billingCycle === SubscriptionBillingCycle.MONTHLY
       ? t('addSubscription.summary.dayOfMonth', { day: registrationDate.getDate() })
       : formatDate(advanceToFuture(registrationDate), dateFormat);
 
     const isPeriodic = isFree || (billingCycle === SubscriptionBillingCycle.MONTHLY && monthlyStructure === 'noFixed');
+
+    // Label differs: periodic review vs. fixed renewal
+    const renewalLabel = isPeriodic
+      ? t('addSubscription.summary.reviewReminderLabel')
+      : t('addSubscription.summary.renewalType');
+
     const renewalDisplay = isPeriodic
       ? t('addSubscription.summary.periodicReview', { months: periodicReminderMonths })
       : renewalType === 'manual'
@@ -1591,23 +1596,21 @@ export default function AddSubscriptionScreen() {
       <ScrollView ref={summaryScrollRef} style={styles.stepScroll} contentContainerStyle={styles.stepContent}>
         <Text style={styles.stepTitle}>{t('addSubscription.step.summary')}</Text>
         <View style={styles.summaryCard}>
+          {/* שירות */}
           <View style={styles.summaryRow}>
             <Text style={styles.summaryLabel}>{t('addSubscription.summary.service')}</Text>
             <Text style={styles.summaryValue}>{serviceName}</Text>
           </View>
 
-          <View style={styles.summaryRow}>
-            <Text style={styles.summaryLabel}>{t('addSubscription.summary.registrationDate')}</Text>
-            <Text style={styles.summaryValue}>{formatDate(registrationDate, dateFormat)}</Text>
-          </View>
-
+          {/* סכום חודשי / סכום שנתי — billing cycle embedded in label */}
           {!isFree && (
             <View style={styles.summaryRow}>
-              <Text style={styles.summaryLabel}>{t('addSubscription.summary.amount')}</Text>
+              <Text style={styles.summaryLabel}>{amountLabel}</Text>
               <Text style={[styles.summaryValue, styles.summaryAmountValue]}>{amountDisplay}</Text>
             </View>
           )}
 
+          {/* תקופה מיוחדת */}
           {specialPeriodDisplay && (
             <View style={styles.summaryRow}>
               <Text style={styles.summaryLabel}>{t('addSubscription.summary.specialPeriod')}</Text>
@@ -1615,22 +1618,7 @@ export default function AddSubscriptionScreen() {
             </View>
           )}
 
-          {!isFree && (
-            <View style={styles.summaryRow}>
-              <Text style={styles.summaryLabel}>{t('addSubscription.summary.billing')}</Text>
-              <Text style={styles.summaryValue}>{billingDisplay}</Text>
-            </View>
-          )}
-
-          {!isFree && billingCycle === SubscriptionBillingCycle.MONTHLY && monthlyStructure === 'fixed' && (
-            <View style={styles.summaryRow}>
-              <Text style={styles.summaryLabel}>{t('addSubscription.summary.commitmentMonths')}</Text>
-              <Text style={styles.summaryValue}>
-                {t('addSubscription.commitmentMonths.option', { count: commitmentMonths })}
-              </Text>
-            </View>
-          )}
-
+          {/* יום חיוב (monthly) / תאריך חידוש (annual) — hidden for free */}
           {!isFree && (
             <View style={styles.summaryRow}>
               <Text style={styles.summaryLabel}>
@@ -1642,11 +1630,23 @@ export default function AddSubscriptionScreen() {
             </View>
           )}
 
+          {/* תקופה (commitment) — monthly fixed only */}
+          {!isFree && billingCycle === SubscriptionBillingCycle.MONTHLY && monthlyStructure === 'fixed' && (
+            <View style={styles.summaryRow}>
+              <Text style={styles.summaryLabel}>{t('addSubscription.summary.commitmentMonths')}</Text>
+              <Text style={styles.summaryValue}>
+                {t('addSubscription.commitmentMonths.option', { count: commitmentMonths })}
+              </Text>
+            </View>
+          )}
+
+          {/* תזכורת ביקורת / חידוש */}
           <View style={styles.summaryRow}>
-            <Text style={styles.summaryLabel}>{t('addSubscription.summary.renewalType')}</Text>
+            <Text style={styles.summaryLabel}>{renewalLabel}</Text>
             <Text style={styles.summaryValue}>{renewalDisplay}</Text>
           </View>
 
+          {/* קטגוריה */}
           <View style={[styles.summaryRow, styles.summaryRowLast]}>
             <Text style={styles.summaryLabel}>{t('addSubscription.summary.category')}</Text>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, flex: 1 }}>
