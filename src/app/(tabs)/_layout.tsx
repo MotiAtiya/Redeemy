@@ -67,13 +67,6 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="history"
-        options={{
-          href: null,
-          title: t('tabs.history'),
-        }}
-      />
-      <Tabs.Screen
         name="more"
         options={{
           title: t('tabs.more'),

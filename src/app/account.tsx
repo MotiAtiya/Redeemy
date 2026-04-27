@@ -23,6 +23,7 @@ import { useUIStore } from '@/stores/uiStore';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { useFamilyStore } from '@/stores/familyStore';
 import { deleteAllUserData, clearAllLocalStores } from '@/lib/userDataCleanup';
+import { cancelAllNotifications } from '@/lib/notifications';
 import { leaveFamily } from '@/lib/firestoreFamilies';
 import { useAppTheme } from '@/hooks/useAppTheme';
 import type { AppColors } from '@/constants/colors';
@@ -163,6 +164,7 @@ export default function AccountScreen() {
   const currentUser = useAuthStore((s) => s.currentUser);
   const emailUser = isEmailUser();
   const [signingOut, setSigningOut] = useState(false);
+  const [deletingData, setDeletingData] = useState(false);
 
   // Edit name sheet
   const [showEditNameSheet, setShowEditNameSheet] = useState(false);
@@ -229,6 +231,30 @@ export default function AccountScreen() {
         setShowDeleteAccountSheet(false);
       }
     }
+  }
+
+  function handleDeleteAllData() {
+    Alert.alert(t('more.deleteData.title'), t('more.deleteData.message'), [
+      { text: t('common.cancel'), style: 'cancel' },
+      {
+        text: t('more.deleteData.confirm'),
+        style: 'destructive',
+        onPress: async () => {
+          if (!currentUser?.uid) return;
+          setDeletingData(true);
+          try {
+            await cancelAllNotifications();
+            await deleteAllUserData(currentUser.uid);
+            clearAllLocalStores();
+            setDeletingData(false);
+            Alert.alert(t('more.deleteData.successTitle'), t('more.deleteData.successMessage'));
+          } catch {
+            setDeletingData(false);
+            Alert.alert(t('common.error'), t('more.deleteData.error'));
+          }
+        },
+      },
+    ]);
   }
 
   function handleDeleteAccount() {
@@ -416,24 +442,42 @@ export default function AccountScreen() {
           </TouchableOpacity>
         </View>
 
-        {/* Delete account */}
+        {/* Delete all data + Delete account */}
+        <Text style={styles.sectionLabel}>{t('more.deleteData.sectionLabel')}</Text>
         <View style={styles.card}>
           <TouchableOpacity
             style={styles.dangerRow}
+            onPress={handleDeleteAllData}
+            disabled={deletingData || signingOut}
+            accessibilityRole="button"
+          >
+            {deletingData ? (
+              <ActivityIndicator color={colors.danger} size="small" />
+            ) : (
+              <>
+                <Ionicons name="trash-outline" size={20} color={colors.danger} />
+                <Text style={styles.dangerText}>{t('more.deleteData.button')}</Text>
+              </>
+            )}
+          </TouchableOpacity>
+          <View style={styles.separator} />
+          <TouchableOpacity
+            style={styles.dangerRow}
             onPress={handleDeleteAccount}
-            disabled={deletingAccount || signingOut}
+            disabled={deletingAccount || signingOut || deletingData}
             accessibilityRole="button"
           >
             {deletingAccount ? (
               <ActivityIndicator color={colors.danger} size="small" />
             ) : (
               <>
-                <Ionicons name="trash-outline" size={20} color={colors.danger} />
+                <Ionicons name="person-remove-outline" size={20} color={colors.danger} />
                 <Text style={styles.dangerText}>{t('account.deleteAccount.button')}</Text>
               </>
             )}
           </TouchableOpacity>
         </View>
+
       </ScrollView>
 
       {/* Edit name bottom sheet */}

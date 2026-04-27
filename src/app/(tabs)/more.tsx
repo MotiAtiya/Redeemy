@@ -4,7 +4,6 @@ import {
   Text,
   TouchableOpacity,
   StyleSheet,
-  ActivityIndicator,
   Alert,
   Modal,
   Linking,
@@ -16,10 +15,7 @@ import { useRouter } from 'expo-router';
 import { Image } from 'expo-image';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
-import { cancelAllNotifications } from '@/lib/notifications';
-import { deleteAllUserData, clearAllLocalStores } from '@/lib/userDataCleanup';
 import { useAuthStore } from '@/stores/authStore';
-import { useUIStore } from '@/stores/uiStore';
 import { useSettingsStore, type DateFormat, type CurrencyCode, CURRENCY_SYMBOLS } from '@/stores/settingsStore';
 import { useFamilyStore } from '@/stores/familyStore';
 import { useAppTheme, useIsDark } from '@/hooks/useAppTheme';
@@ -39,7 +35,7 @@ const DATE_FORMAT_OPTIONS: { value: DateFormat; label: string }[] = [
 ];
 
 
-function makeStyles(colors: AppColors, isRTL: boolean) {
+function makeStyles(colors: AppColors) {
   return StyleSheet.create({
     safe: { flex: 1, backgroundColor: colors.background },
     container: { paddingHorizontal: 16, paddingBottom: 32 },
@@ -93,14 +89,6 @@ function makeStyles(colors: AppColors, isRTL: boolean) {
     },
     settingsLabel: { fontSize: 15, color: colors.textPrimary, alignSelf: 'flex-start' },
     settingsSubtitle: { fontSize: 13, color: colors.textTertiary, marginEnd: 4 },
-    signOutRow: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'center',
-      padding: 16,
-      gap: 8,
-    },
-    signOutText: { fontSize: 15, fontWeight: '600', color: colors.danger },
     // Appearance sheet
     overlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.35)' },
     sheet: {
@@ -189,7 +177,7 @@ export default function MoreScreen() {
   const colors = useAppTheme();
   const isDark = useIsDark();
   const isRTL = I18nManager.isRTL;
-  const styles = useMemo(() => makeStyles(colors, isRTL), [colors, isRTL]);
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const { t } = useTranslation();
 
   const THEME_OPTIONS: { mode: ThemeMode; label: string; icon: string }[] = [
@@ -223,7 +211,6 @@ export default function MoreScreen() {
   const currency = useSettingsStore((s) => s.currency);
   const setCurrency = useSettingsStore((s) => s.setCurrency);
 
-  const [deletingData, setDeletingData] = useState(false);
   const [showAppearanceSheet, setShowAppearanceSheet] = useState(false);
   const [showLanguageSheet, setShowLanguageSheet] = useState(false);
   const [showDateFormatSheet, setShowDateFormatSheet] = useState(false);
@@ -231,30 +218,6 @@ export default function MoreScreen() {
 
   const themeModeLabel = THEME_OPTIONS.find((o) => o.mode === themeMode)?.label ?? t('more.theme.system');
   const languageLabel = LANGUAGE_OPTIONS.find((o) => o.value === language)?.label ?? t('more.language.system');
-
-  async function handleDeleteAllData() {
-    Alert.alert(t('more.deleteData.title'), t('more.deleteData.message'), [
-      { text: t('common.cancel'), style: 'cancel' },
-      {
-        text: t('more.deleteData.confirm'),
-        style: 'destructive',
-        onPress: async () => {
-          if (!currentUser?.uid) return;
-          setDeletingData(true);
-          try {
-            await cancelAllNotifications();
-            await deleteAllUserData(currentUser.uid);
-            clearAllLocalStores();
-            setDeletingData(false);
-            Alert.alert(t('more.deleteData.successTitle'), t('more.deleteData.successMessage'));
-          } catch {
-            setDeletingData(false);
-            Alert.alert(t('common.error'), t('more.deleteData.error'));
-          }
-        },
-      },
-    ]);
-  }
 
   async function handleLanguageChange(newLang: AppLanguage) {
     await saveLanguage(newLang);
@@ -385,6 +348,20 @@ export default function MoreScreen() {
             <View style={styles.separator} />
             <TouchableOpacity
               style={styles.settingsRow}
+              onPress={() => setShowLanguageSheet(true)}
+              accessibilityRole="button"
+              accessibilityLabel={`${t('more.language.label')}, ${languageLabel}`}
+            >
+              <Ionicons name="language-outline" size={20} color={colors.textSecondary} />
+              <View style={{ flex: 1 }}>
+                <Text style={styles.settingsLabel}>{t('more.language.label')}</Text>
+              </View>
+              <Text style={styles.settingsSubtitle}>{languageLabel}</Text>
+              <Ionicons name={isRTL ? 'chevron-back' : 'chevron-forward'} size={16} color={colors.textTertiary} />
+            </TouchableOpacity>
+            <View style={styles.separator} />
+            <TouchableOpacity
+              style={styles.settingsRow}
               onPress={() => router.push('/notification-settings')}
               accessibilityRole="button"
             >
@@ -415,6 +392,24 @@ export default function MoreScreen() {
               <Text style={styles.settingsSubtitle}>{CURRENCY_SYMBOLS[currency]} {currency}</Text>
               <Ionicons name={isRTL ? 'chevron-back' : 'chevron-forward'} size={16} color={colors.textTertiary} />
             </TouchableOpacity>
+          </View>
+        </View>
+
+        {/* General section */}
+        <View style={styles.section}>
+          <Text style={styles.sectionLabel}>{t('more.sections.general')}</Text>
+          <View style={styles.card}>
+            <TouchableOpacity
+              style={styles.settingsRow}
+              onPress={() => router.push('/history')}
+              accessibilityRole="button"
+            >
+              <Ionicons name="time-outline" size={20} color={colors.textSecondary} />
+              <View style={{ flex: 1 }}>
+                <Text style={styles.settingsLabel}>{t('more.historyRow')}</Text>
+              </View>
+              <Ionicons name={isRTL ? 'chevron-back' : 'chevron-forward'} size={16} color={colors.textTertiary} />
+            </TouchableOpacity>
             <View style={styles.separator} />
             <TouchableOpacity
               style={styles.settingsRow}
@@ -425,38 +420,6 @@ export default function MoreScreen() {
               <View style={{ flex: 1 }}>
                 <Text style={styles.settingsLabel}>{t('onboarding.viewTour')}</Text>
               </View>
-              <Ionicons name={isRTL ? 'chevron-back' : 'chevron-forward'} size={16} color={colors.textTertiary} />
-            </TouchableOpacity>
-            <View style={styles.separator} />
-            <TouchableOpacity
-              style={styles.settingsRow}
-              onPress={() => router.push('/(tabs)/history')}
-              accessibilityRole="button"
-            >
-              <Ionicons name="time-outline" size={20} color={colors.textSecondary} />
-              <View style={{ flex: 1 }}>
-                <Text style={styles.settingsLabel}>{t('more.historyRow')}</Text>
-              </View>
-              <Ionicons name={isRTL ? 'chevron-back' : 'chevron-forward'} size={16} color={colors.textTertiary} />
-            </TouchableOpacity>
-          </View>
-        </View>
-
-        {/* Language section */}
-        <View style={styles.section}>
-          <Text style={styles.sectionLabel}>{t('more.sections.language')}</Text>
-          <View style={styles.card}>
-            <TouchableOpacity
-              style={styles.settingsRow}
-              onPress={() => setShowLanguageSheet(true)}
-              accessibilityRole="button"
-              accessibilityLabel={`${t('more.language.label')}, ${languageLabel}`}
-            >
-              <Ionicons name="language-outline" size={20} color={colors.textSecondary} />
-              <View style={{ flex: 1 }}>
-                <Text style={styles.settingsLabel}>{t('more.language.label')}</Text>
-              </View>
-              <Text style={styles.settingsSubtitle}>{languageLabel}</Text>
               <Ionicons name={isRTL ? 'chevron-back' : 'chevron-forward'} size={16} color={colors.textTertiary} />
             </TouchableOpacity>
           </View>
@@ -486,28 +449,6 @@ export default function MoreScreen() {
                 <Text style={styles.aboutLabel}>{t('more.about.contact')}</Text>
               </View>
               <Ionicons name={isRTL ? 'chevron-back' : 'chevron-forward'} size={16} color={colors.textTertiary} />
-            </TouchableOpacity>
-          </View>
-        </View>
-
-        {/* Delete all data */}
-        <View style={styles.section}>
-          <View style={styles.card}>
-            <TouchableOpacity
-              style={styles.signOutRow}
-              onPress={handleDeleteAllData}
-              disabled={deletingData}
-              accessibilityRole="button"
-              accessibilityLabel={t('more.deleteData.button')}
-            >
-              {deletingData ? (
-                <ActivityIndicator color={colors.danger} size="small" />
-              ) : (
-                <>
-                  <Ionicons name="trash-outline" size={20} color={colors.danger} />
-                  <Text style={styles.signOutText}>{t('more.deleteData.button')}</Text>
-                </>
-              )}
             </TouchableOpacity>
           </View>
         </View>

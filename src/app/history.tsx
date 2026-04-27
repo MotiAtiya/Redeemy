@@ -45,13 +45,13 @@ function makeStyles(colors: AppColors, isRTL: boolean) {
     safe: { flex: 1, backgroundColor: colors.background },
     header: {
       flexDirection: 'row',
-      justifyContent: 'space-between',
       alignItems: 'center',
       paddingHorizontal: 16,
       paddingTop: 8,
       paddingBottom: 12,
+      gap: 12,
     },
-    title: { fontSize: 28, fontWeight: '700', color: colors.textPrimary },
+    title: { flex: 1, fontSize: 28, fontWeight: '700', color: colors.textPrimary },
     headerActions: { flexDirection: 'row', gap: 16, alignItems: 'center' },
     searchContainer: {
       flexDirection: 'row',
@@ -322,6 +322,9 @@ export default function HistoryScreen() {
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
       <View style={styles.header}>
+        <TouchableOpacity onPress={() => router.back()} hitSlop={8}>
+          <Ionicons name={isRTL ? 'arrow-forward' : 'arrow-back'} size={24} color={colors.textPrimary} />
+        </TouchableOpacity>
         <Text style={styles.title}>{t('history.title')}</Text>
         <View style={styles.headerActions}>
           <TouchableOpacity onPress={() => {

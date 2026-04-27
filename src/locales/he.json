@@ -79,7 +79,7 @@
     "sections": {
       "account": "חשבון",
       "settings": "הגדרות",
-      "language": "שפה",
+      "general": "כללי",
       "about": "אודות"
     },
     "appearance": "מראה",
@@ -154,6 +154,7 @@
       "successMessage": "הסיסמה שלך שונתה בהצלחה."
     },
     "deleteData": {
+      "sectionLabel": "אזור סכנה",
       "button": "מחק את כל הנתונים",
       "title": "מחיקת כל הנתונים",
       "message": "פעולה זו תמחק לצמיתות את כל הזיכויים שלך ולא ניתן לבטל אותה.",

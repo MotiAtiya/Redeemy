@@ -79,7 +79,7 @@
     "sections": {
       "account": "ACCOUNT",
       "settings": "SETTINGS",
-      "language": "LANGUAGE",
+      "general": "GENERAL",
       "about": "ABOUT"
     },
     "appearance": "Appearance",
@@ -154,6 +154,7 @@
       "successMessage": "Your password has been changed successfully."
     },
     "deleteData": {
+      "sectionLabel": "DANGER ZONE",
       "button": "Delete All Data",
       "title": "Delete All Data",
       "message": "This will permanently delete all your credits and cannot be undone.",
