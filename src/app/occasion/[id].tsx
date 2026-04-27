@@ -120,8 +120,9 @@ export default function OccasionDetailScreen() {
     ? occasion.eventDate
     : new Date(occasion.eventDate as unknown as string);
 
-  const currentYear = new Date().getFullYear();
-  const yearsCount = currentYear - eventDate.getFullYear();
+  const days = daysUntilNextOccurrence(eventDate, occasion.useHebrewDate, occasion.hebrewDay, occasion.hebrewMonth);
+  const nextDate = nextOccurrenceDate(eventDate, occasion.useHebrewDate, occasion.hebrewDay, occasion.hebrewMonth);
+  const yearsCount = nextDate.getFullYear() - eventDate.getFullYear();
 
   const heroTitle = (() => {
     switch (occasion.type) {
@@ -135,9 +136,6 @@ export default function OccasionDetailScreen() {
   const yearsLabel = yearsCount > 0
     ? t('occasions.yearsCount', { count: yearsCount })
     : '';
-
-  const days = daysUntilNextOccurrence(eventDate, occasion.useHebrewDate, occasion.hebrewDay, occasion.hebrewMonth);
-  const nextDate = nextOccurrenceDate(eventDate, occasion.useHebrewDate, occasion.hebrewDay, occasion.hebrewMonth);
 
   const nextLabel = days === 0
     ? t('occasions.today')
