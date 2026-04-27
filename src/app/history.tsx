@@ -51,7 +51,7 @@ function makeStyles(colors: AppColors, isRTL: boolean) {
       paddingBottom: 12,
       gap: 12,
     },
-    title: { flex: 1, fontSize: 28, fontWeight: '700', color: colors.textPrimary },
+    title: { flex: 1, fontSize: 28, fontWeight: '700', color: colors.textPrimary, textAlign: 'left' },
     headerActions: { flexDirection: 'row', gap: 16, alignItems: 'center' },
     searchContainer: {
       flexDirection: 'row',
