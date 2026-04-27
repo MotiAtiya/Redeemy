@@ -743,7 +743,7 @@
       "billingDayValue": "{{day}}th of each month",
       "autoRenewal": "Automatic",
       "discountedPeriod": "Discounted price",
-      "discountedDetail": "{{price}}/month until {{date}}, then {{regular}}/month",
+      "discountedDetail": "{{price}}/month until {{date}}",
       "reviewReminder": "Review reminder",
       "reviewReminderValue_one": "Every month",
       "reviewReminderValue_other": "Every {{count}} months",

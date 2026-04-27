@@ -346,7 +346,6 @@ export default function SubscriptionDetailScreen() {
               value={t('subscription.detail.discountedDetail', {
                 price: formatCurrency(sub.specialPeriodPriceAgorot ?? 0, symbol),
                 date: formatDate(trialEndsDate, dateFormat),
-                regular: formatCurrency(sub.amountAgorot, symbol),
               })}
               showSeparator
             />
@@ -414,16 +413,6 @@ export default function SubscriptionDetailScreen() {
               icon="alarm-outline"
               label={t('subscription.detail.reviewReminder')}
               value={t('subscription.detail.reviewReminderValue', { count: sub.freeReviewReminderMonths })}
-              showSeparator
-            />
-          )}
-
-          {/* Special period end reminder */}
-          {!!sub.reminderSpecialPeriodEnabled && !!trialEndsDate && (
-            <DetailRow
-              icon="alarm-outline"
-              label={t('subscription.detail.specialPeriodReminderLabel')}
-              value={t('subscription.detail.specialPeriodReminderValue')}
               showSeparator
             />
           )}

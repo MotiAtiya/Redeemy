@@ -742,7 +742,7 @@
       "billingDayValue": "ה-{{day}} לכל חודש",
       "autoRenewal": "אוטומטי",
       "discountedPeriod": "מחיר מוזל",
-      "discountedDetail": "{{price}}/חודש עד {{date}}, לאחר מכן {{regular}}/חודש",
+      "discountedDetail": "{{price}}/חודש עד {{date}}",
       "reviewReminder": "תזכורת ביקורת",
       "reviewReminderValue_one": "כל חודש",
       "reviewReminderValue_other": "כל {{count}} חודשים",
