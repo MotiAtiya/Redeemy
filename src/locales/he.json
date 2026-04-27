@@ -746,7 +746,7 @@
       "reviewReminder": "תזכורת ביקורת",
       "reviewReminderValue_one": "כל חודש",
       "reviewReminderValue_other": "כל {{count}} חודשים",
-      "specialPeriodReminderLabel": "תזכורת תקופה",
+      "specialPeriodReminderLabel": "תזכורת לסיום",
       "specialPeriodReminderValue": "7 ימים לפני הסיום",
       "addedBy": "נוסף ע״י"
     },

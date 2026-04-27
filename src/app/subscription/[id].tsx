@@ -396,12 +396,34 @@ export default function SubscriptionDetailScreen() {
             />
           )}
 
-          {/* Free review reminder */}
-          {sub.isFree && !!sub.freeReviewReminderMonths && (
+          {/* Renewal type — only when explicitly set (not for free / noFixed periodic) */}
+          {!!sub.renewalType && (
+            <DetailRow
+              icon={sub.renewalType === 'manual' ? 'hand-left-outline' : 'refresh-outline'}
+              label={t('subscription.detail.renewalType')}
+              value={sub.renewalType === 'manual'
+                ? t('subscription.detail.manualRenewal')
+                : t('subscription.detail.autoRenewal')}
+              showSeparator
+            />
+          )}
+
+          {/* Review reminder — free AND monthly noFixed (both store freeReviewReminderMonths) */}
+          {!!sub.freeReviewReminderMonths && (
             <DetailRow
               icon="alarm-outline"
               label={t('subscription.detail.reviewReminder')}
               value={t('subscription.detail.reviewReminderValue', { count: sub.freeReviewReminderMonths })}
+              showSeparator
+            />
+          )}
+
+          {/* Special period end reminder */}
+          {!!sub.reminderSpecialPeriodEnabled && !!trialEndsDate && (
+            <DetailRow
+              icon="alarm-outline"
+              label={t('subscription.detail.specialPeriodReminderLabel')}
+              value={t('subscription.detail.specialPeriodReminderValue')}
               showSeparator
             />
           )}
@@ -411,28 +433,8 @@ export default function SubscriptionDetailScreen() {
             icon={categoryMeta?.icon ?? 'grid-outline'}
             label={t('subscription.detail.category')}
             value={t('subscriptions.category.' + sub.category)}
-            showSeparator
+            showSeparator={!!sub.notes || !!familyCreatorName}
           />
-
-          {/* Renewal type — always shown */}
-          <DetailRow
-            icon={sub.renewalType === 'manual' ? 'hand-left-outline' : 'refresh-outline'}
-            label={t('subscription.detail.renewalType')}
-            value={sub.renewalType === 'manual'
-              ? t('subscription.detail.manualRenewal')
-              : t('subscription.detail.autoRenewal')}
-            showSeparator={!!sub.reminderSpecialPeriodEnabled || !!sub.notes || !!familyCreatorName}
-          />
-
-          {/* Special period reminder */}
-          {!!sub.reminderSpecialPeriodEnabled && !!trialEndsDate && (
-            <DetailRow
-              icon="alarm-outline"
-              label={t('subscription.detail.specialPeriodReminderLabel')}
-              value={t('subscription.detail.specialPeriodReminderValue')}
-              showSeparator={!!sub.notes || !!familyCreatorName}
-            />
-          )}
 
           {/* Notes */}
           {!!sub.notes && (

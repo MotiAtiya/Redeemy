@@ -747,7 +747,7 @@
       "reviewReminder": "Review reminder",
       "reviewReminderValue_one": "Every month",
       "reviewReminderValue_other": "Every {{count}} months",
-      "specialPeriodReminderLabel": "Period reminder",
+      "specialPeriodReminderLabel": "End-of-period alert",
       "specialPeriodReminderValue": "7 days before end",
       "addedBy": "Added by"
     },
