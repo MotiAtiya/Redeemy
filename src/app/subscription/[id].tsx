@@ -28,6 +28,7 @@ import { DetailRow } from '@/components/redeemy/DetailRow';
 import { ActionModal } from '@/components/redeemy/ActionModal';
 import { HeroCard } from '@/components/redeemy/HeroCard';
 import { HeroBadge } from '@/components/redeemy/HeroBadge';
+import { DetailScreenHeader } from '@/components/redeemy/DetailScreenHeader';
 import { SubscriptionBillingCycle, SubscriptionStatus } from '@/types/subscriptionTypes';
 import { SUBSCRIPTION_CATEGORIES } from '@/constants/subscriptionCategories';
 import { getNextBillingDate, daysUntilBilling, normalizeToMonthlyAgorot } from '@/lib/subscriptionUtils';
@@ -43,15 +44,6 @@ function makeStyles(colors: AppColors) {
     backButton: { padding: 16 },
     notFound: { flex: 1, justifyContent: 'center', alignItems: 'center' },
     notFoundText: { fontSize: 16, color: colors.textTertiary },
-    header: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      paddingHorizontal: 16,
-      paddingVertical: 12,
-      gap: 12,
-      backgroundColor: colors.background,
-    },
-    headerTitle: { fontSize: 17, fontWeight: '600', color: colors.textPrimary, alignSelf: 'flex-start' },
     scroll: { flex: 1 },
     scrollContent: { padding: 16, gap: 12, paddingBottom: 32 },
     // Hero card
@@ -315,18 +307,12 @@ export default function SubscriptionDetailScreen() {
 
   return (
     <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
-      {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()} hitSlop={8}>
-          <Ionicons name={isRTL ? 'arrow-forward' : 'arrow-back'} size={24} color={colors.textPrimary} />
-        </TouchableOpacity>
-        <View style={{ flex: 1 }}>
-          <Text style={styles.headerTitle} numberOfLines={1}>{sub.serviceName}</Text>
-        </View>
-        <TouchableOpacity onPress={() => setShowActionSheet(true)} hitSlop={8}>
-          <Ionicons name="ellipsis-horizontal" size={22} color={colors.textPrimary} />
-        </TouchableOpacity>
-      </View>
+      <DetailScreenHeader
+        title={sub.serviceName}
+        onBack={() => router.back()}
+        onMenu={() => setShowActionSheet(true)}
+        colors={colors}
+      />
 
       <ScrollView style={styles.scroll} contentContainerStyle={styles.scrollContent}>
         {/* Hero card */}

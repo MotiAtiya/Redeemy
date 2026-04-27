@@ -3,7 +3,6 @@ import {
   addDoc,
   updateDoc,
   deleteDoc,
-  deleteField,
   doc,
   getDocs,
   serverTimestamp,
@@ -15,6 +14,7 @@ import {
 } from 'firebase/firestore';
 import { db } from './firebase';
 import { deleteEntityImages } from './imageUpload';
+import { normalizeTimestamp, normalizeImages, stripUndefined, buildUpdatePayload } from './firestoreUtils';
 import { WarrantyStatus, type Warranty } from '@/types/warrantyTypes';
 import { useWarrantiesStore } from '@/stores/warrantiesStore';
 
@@ -26,20 +26,14 @@ const WARRANTIES_COLLECTION = 'warranties';
 
 function docToWarranty(d: DocumentSnapshot): Warranty {
   const data = d.data()!;
-  // Normalize legacy imageUrl/thumbnailUrl into images array
-  const images = data.images ?? (
-    data.imageUrl
-      ? [{ url: data.imageUrl, thumbnailUrl: data.thumbnailUrl ?? data.imageUrl }]
-      : undefined
-  );
   return {
     ...(data as Omit<Warranty, 'id' | 'expirationDate' | 'closedAt' | 'createdAt' | 'updatedAt'>),
     id: d.id,
-    images,
-    expirationDate: data.expirationDate?.toDate?.() ?? undefined,
-    closedAt: data.closedAt?.toDate?.() ?? undefined,
-    createdAt: data.createdAt?.toDate?.() ?? new Date(),
-    updatedAt: data.updatedAt?.toDate?.() ?? new Date(),
+    images: normalizeImages(data.images, data.imageUrl, data.thumbnailUrl),
+    expirationDate: normalizeTimestamp(data.expirationDate),
+    closedAt: normalizeTimestamp(data.closedAt),
+    createdAt: normalizeTimestamp(data.createdAt) ?? new Date(),
+    updatedAt: normalizeTimestamp(data.updatedAt) ?? new Date(),
   } as Warranty;
 }
 
@@ -85,10 +79,7 @@ export async function createWarranty(
   warrantyData: Omit<Warranty, 'id' | 'createdAt' | 'updatedAt'>
 ): Promise<string> {
   const colRef = collection(db, WARRANTIES_COLLECTION);
-  const data = Object.fromEntries(
-    Object.entries({ ...warrantyData, createdAt: serverTimestamp(), updatedAt: serverTimestamp() })
-      .filter(([, v]) => v !== undefined)
-  );
+  const data = stripUndefined({ ...warrantyData, createdAt: serverTimestamp(), updatedAt: serverTimestamp() });
   const docRef = await addDoc(colRef, data);
   await updateDoc(docRef, { id: docRef.id });
   return docRef.id;
@@ -103,11 +94,7 @@ export async function updateWarranty(
   changes: Partial<Omit<Warranty, 'id' | 'createdAt'>>
 ): Promise<void> {
   const docRef = doc(db, WARRANTIES_COLLECTION, warrantyId);
-  const payload: Record<string, unknown> = { updatedAt: serverTimestamp() };
-  for (const [k, v] of Object.entries(changes as Record<string, unknown>)) {
-    payload[k] = v === undefined ? deleteField() : v;
-  }
-  await updateDoc(docRef, payload);
+  await updateDoc(docRef, buildUpdatePayload(changes as Record<string, unknown>));
 }
 
 /**

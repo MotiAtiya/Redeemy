@@ -5,7 +5,6 @@ import {
   updateDoc,
   deleteDoc,
   getDocs,
-  deleteField,
   doc,
   serverTimestamp,
   query,
@@ -15,6 +14,7 @@ import {
   type Unsubscribe,
 } from 'firebase/firestore';
 import { db } from './firebase';
+import { normalizeTimestamp, normalizeImages, stripUndefined, buildUpdatePayload } from './firestoreUtils';
 import { CreditStatus, type Credit } from '@/types/creditTypes';
 import { useCreditsStore } from '@/stores/creditsStore';
 
@@ -41,24 +41,15 @@ export function subscribeToCredits(userId: string, familyId?: string | null): Un
     (snapshot) => {
       const credits: Credit[] = snapshot.docs.map((d) => {
         const data = d.data();
-        // Normalize legacy imageUrl/thumbnailUrl into images array
-        const images = data.images ?? (
-          data.imageUrl
-            ? [{ url: data.imageUrl, thumbnailUrl: data.thumbnailUrl ?? data.imageUrl }]
-            : undefined
-        );
         return {
           ...(data as Omit<Credit, 'id' | 'expirationDate' | 'createdAt' | 'updatedAt'>),
           id: d.id,
-          images,
-          // Convert Firestore Timestamps to JS Dates
-          expirationDate: data.expirationDate
-            ? (data.expirationDate?.toDate?.() ?? new Date(data.expirationDate))
-            : undefined,
-          createdAt: data.createdAt?.toDate?.() ?? new Date(data.createdAt),
-          updatedAt: data.updatedAt?.toDate?.() ?? new Date(data.updatedAt),
-          redeemedAt: data.redeemedAt?.toDate?.() ?? undefined,
-          expiredAt: data.expiredAt?.toDate?.() ?? undefined,
+          images: normalizeImages(data.images, data.imageUrl, data.thumbnailUrl),
+          expirationDate: normalizeTimestamp(data.expirationDate),
+          createdAt: normalizeTimestamp(data.createdAt) ?? new Date(),
+          updatedAt: normalizeTimestamp(data.updatedAt) ?? new Date(),
+          redeemedAt: normalizeTimestamp(data.redeemedAt),
+          expiredAt: normalizeTimestamp(data.expiredAt),
         } as Credit;
       });
 
@@ -99,11 +90,7 @@ export async function createCredit(
   creditData: Omit<Credit, 'id' | 'createdAt' | 'updatedAt'>
 ): Promise<string> {
   const colRef = collection(db, CREDITS_COLLECTION);
-  // Strip undefined fields — Firestore rejects them
-  const data = Object.fromEntries(
-    Object.entries({ ...creditData, createdAt: serverTimestamp(), updatedAt: serverTimestamp() })
-      .filter(([, v]) => v !== undefined)
-  );
+  const data = stripUndefined({ ...creditData, createdAt: serverTimestamp(), updatedAt: serverTimestamp() });
   const docRef = await addDoc(colRef, data);
 
   // Write the auto-generated ID back into the document
@@ -121,12 +108,7 @@ export async function updateCredit(
   changes: Partial<Omit<Credit, 'id' | 'createdAt'>>
 ): Promise<void> {
   const docRef = doc(db, CREDITS_COLLECTION, creditId);
-  // Replace undefined values with deleteField() so Firestore removes those fields
-  const payload: Record<string, unknown> = { updatedAt: serverTimestamp() };
-  for (const [k, v] of Object.entries(changes as Record<string, unknown>)) {
-    payload[k] = v === undefined ? deleteField() : v;
-  }
-  await updateDoc(docRef, payload);
+  await updateDoc(docRef, buildUpdatePayload(changes as Record<string, unknown>));
 }
 
 /**

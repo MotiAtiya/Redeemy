@@ -3,7 +3,6 @@ import {
   addDoc,
   updateDoc,
   deleteDoc,
-  deleteField,
   doc,
   getDocs,
   serverTimestamp,
@@ -15,6 +14,7 @@ import {
   type DocumentSnapshot,
 } from 'firebase/firestore';
 import { db } from './firebase';
+import { normalizeTimestamp, stripUndefined, buildUpdatePayload } from './firestoreUtils';
 import { type Subscription } from '@/types/subscriptionTypes';
 import { useSubscriptionsStore } from '@/stores/subscriptionsStore';
 
@@ -29,13 +29,13 @@ function docToSubscription(d: DocumentSnapshot): Subscription {
   return {
     ...(data as Omit<Subscription, 'id' | 'registrationDate' | 'nextBillingDate' | 'trialEndsDate' | 'commitmentEndDate' | 'cancelledAt' | 'createdAt' | 'updatedAt'>),
     id: d.id,
-    registrationDate:   data.registrationDate?.toDate?.() ?? undefined,
-    nextBillingDate:    data.nextBillingDate?.toDate?.() ?? undefined,
-    trialEndsDate:      data.trialEndsDate?.toDate?.() ?? undefined,
-    commitmentEndDate:  data.commitmentEndDate?.toDate?.() ?? undefined,
-    cancelledAt:        data.cancelledAt?.toDate?.() ?? undefined,
-    createdAt:          data.createdAt?.toDate?.() ?? new Date(),
-    updatedAt:          data.updatedAt?.toDate?.() ?? new Date(),
+    registrationDate:  normalizeTimestamp(data.registrationDate),
+    nextBillingDate:   normalizeTimestamp(data.nextBillingDate),
+    trialEndsDate:     normalizeTimestamp(data.trialEndsDate),
+    commitmentEndDate: normalizeTimestamp(data.commitmentEndDate),
+    cancelledAt:       normalizeTimestamp(data.cancelledAt),
+    createdAt:         normalizeTimestamp(data.createdAt) ?? new Date(),
+    updatedAt:         normalizeTimestamp(data.updatedAt) ?? new Date(),
   } as Subscription;
 }
 
@@ -81,10 +81,7 @@ export async function createSubscription(
   subscriptionData: Omit<Subscription, 'id' | 'createdAt' | 'updatedAt'>
 ): Promise<string> {
   const colRef = collection(db, SUBSCRIPTIONS_COLLECTION);
-  const data = Object.fromEntries(
-    Object.entries({ ...subscriptionData, createdAt: serverTimestamp(), updatedAt: serverTimestamp() })
-      .filter(([, v]) => v !== undefined)
-  );
+  const data = stripUndefined({ ...subscriptionData, createdAt: serverTimestamp(), updatedAt: serverTimestamp() });
   const docRef = await addDoc(colRef, data);
   await updateDoc(docRef, { id: docRef.id });
   return docRef.id;
@@ -99,11 +96,7 @@ export async function updateSubscription(
   changes: Partial<Omit<Subscription, 'id' | 'createdAt'>>
 ): Promise<void> {
   const docRef = doc(db, SUBSCRIPTIONS_COLLECTION, subscriptionId);
-  const payload: Record<string, unknown> = { updatedAt: serverTimestamp() };
-  for (const [k, v] of Object.entries(changes as Record<string, unknown>)) {
-    payload[k] = v === undefined ? deleteField() : v;
-  }
-  await updateDoc(docRef, payload);
+  await updateDoc(docRef, buildUpdatePayload(changes as Record<string, unknown>));
 }
 
 /**

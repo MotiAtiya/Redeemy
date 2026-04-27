@@ -12,6 +12,7 @@ import {
   type Unsubscribe,
 } from 'firebase/firestore';
 import { db } from './firebase';
+import { normalizeTimestamp, stripUndefined, buildUpdatePayload } from './firestoreUtils';
 import { type Occasion } from '@/types/occasionTypes';
 import { useOccasionsStore } from '@/stores/occasionsStore';
 
@@ -34,9 +35,9 @@ export function subscribeToOccasions(userId: string, familyId?: string | null): 
         return {
           ...(data as Omit<Occasion, 'id' | 'eventDate' | 'createdAt' | 'updatedAt'>),
           id: d.id,
-          eventDate: data.eventDate?.toDate?.() ?? new Date(data.eventDate),
-          createdAt: data.createdAt?.toDate?.() ?? new Date(data.createdAt),
-          updatedAt: data.updatedAt?.toDate?.() ?? new Date(data.updatedAt),
+          eventDate: normalizeTimestamp(data.eventDate) ?? new Date(),
+          createdAt: normalizeTimestamp(data.createdAt) ?? new Date(),
+          updatedAt: normalizeTimestamp(data.updatedAt) ?? new Date(),
         } as Occasion;
       });
       useOccasionsStore.getState().setOccasions(occasions);
@@ -56,13 +57,9 @@ export function subscribeToOccasions(userId: string, familyId?: string | null): 
 export async function createOccasion(
   data: Omit<Occasion, 'id' | 'createdAt' | 'updatedAt'>
 ): Promise<string> {
-  // Strip undefined — Firestore rejects undefined field values
-  const clean = Object.fromEntries(Object.entries(data).filter(([, v]) => v !== undefined));
-  const ref = await addDoc(collection(db, OCCASIONS_COLLECTION), {
-    ...clean,
-    createdAt: serverTimestamp(),
-    updatedAt: serverTimestamp(),
-  });
+  const ref = await addDoc(collection(db, OCCASIONS_COLLECTION),
+    stripUndefined({ ...data, createdAt: serverTimestamp(), updatedAt: serverTimestamp() })
+  );
   return ref.id;
 }
 
@@ -70,10 +67,9 @@ export async function updateOccasion(
   id: string,
   changes: Partial<Occasion>
 ): Promise<void> {
-  await updateDoc(doc(db, OCCASIONS_COLLECTION, id), {
-    ...changes,
-    updatedAt: serverTimestamp(),
-  });
+  await updateDoc(doc(db, OCCASIONS_COLLECTION, id),
+    buildUpdatePayload(changes as Record<string, unknown>)
+  );
 }
 
 export async function deleteOccasion(id: string): Promise<void> {

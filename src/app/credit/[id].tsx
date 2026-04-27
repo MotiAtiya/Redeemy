@@ -3,21 +3,21 @@ import {
   View,
   Text,
   ScrollView,
-  FlatList,
   TouchableOpacity,
   StyleSheet,
   Alert,
-  Dimensions,
+  ActivityIndicator,
   I18nManager,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import { Image } from 'expo-image';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { computeExpiryBadge } from '@/components/redeemy/ExpirationBadge';
 import { HeroCard } from '@/components/redeemy/HeroCard';
 import { HeroBadge } from '@/components/redeemy/HeroBadge';
+import { ImageCarousel } from '@/components/redeemy/ImageCarousel';
+import { DetailScreenHeader } from '@/components/redeemy/DetailScreenHeader';
 import { DetailRow } from '@/components/redeemy/DetailRow';
 import { ActionModal } from '@/components/redeemy/ActionModal';
 import { FullscreenImageViewer } from '@/components/redeemy/FullscreenImageViewer';
@@ -43,30 +43,8 @@ function makeStyles(colors: AppColors) {
     backButton: { padding: 16 },
     notFound: { flex: 1, justifyContent: 'center', alignItems: 'center' },
     notFoundText: { fontSize: 16, color: colors.textTertiary },
-    header: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      paddingHorizontal: 16,
-      paddingVertical: 12,
-      gap: 12,
-      backgroundColor: colors.background,
-    },
-    headerTitle: { fontSize: 17, fontWeight: '600', color: colors.textPrimary, alignSelf: 'flex-start' },
     scroll: { flex: 1 },
     scrollContent: { padding: 16, gap: 12, paddingBottom: 32 },
-    image: { width: Dimensions.get('window').width - 32, height: 220, borderRadius: 14, backgroundColor: colors.separator },
-    imagePlaceholder: {
-      width: '100%',
-      height: 220,
-      borderRadius: 14,
-      backgroundColor: colors.separator,
-      justifyContent: 'center',
-      alignItems: 'center',
-    },
-    carouselContainer: { borderRadius: 14, overflow: 'hidden' },
-    dotRow: { flexDirection: 'row', justifyContent: 'center', gap: 6, marginTop: 8 },
-    dot: { width: 6, height: 6, borderRadius: 3, backgroundColor: colors.separator },
-    dotActive: { backgroundColor: colors.primary, width: 18 },
     heroStoreName: { fontSize: 15, fontWeight: '600', color: colors.textSecondary, textAlign: 'center' },
     heroAmount: { fontSize: 36, fontWeight: '800', color: colors.textPrimary, letterSpacing: -1, textAlign: 'center' },
     detailsCard: { backgroundColor: colors.surface, borderRadius: 14, overflow: 'hidden' },
@@ -123,13 +101,11 @@ export default function CreditDetailScreen() {
   const [showActionSheet, setShowActionSheet] = useState(false);
   const [showFullscreenImage, setShowFullscreenImage] = useState(false);
   const [fullscreenIndex, setFullscreenIndex] = useState(0);
-  const [carouselIndex, setCarouselIndex] = useState(0);
   const [downloading, setDownloading] = useState(false);
   const [loading, setLoading] = useState(false);
   const afterDismissRef = useRef<(() => void) | null>(null);
 
-  // Normalize images: use new images array, fall back to legacy imageUrl
-  const images = credit?.images ?? (credit?.imageUrl ? [{ url: credit.imageUrl, thumbnailUrl: credit.thumbnailUrl ?? credit.imageUrl }] : []);
+  const images = credit?.images ?? [];
   const isRedeemed = credit?.status === CreditStatus.REDEEMED;
 
   const categoryMeta = useMemo(
@@ -259,62 +235,20 @@ export default function CreditDetailScreen() {
 
   return (
     <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()} hitSlop={8}>
-          <Ionicons name={isRTL ? 'arrow-forward' : 'arrow-back'} size={24} color={colors.textPrimary} />
-        </TouchableOpacity>
-        <View style={{ flex: 1 }}>
-          <Text style={styles.headerTitle} numberOfLines={1}>{credit.storeName}</Text>
-        </View>
-        <TouchableOpacity onPress={() => setShowActionSheet(true)} hitSlop={8}>
-          <Ionicons name="ellipsis-horizontal" size={22} color={colors.textPrimary} />
-        </TouchableOpacity>
-      </View>
+      <DetailScreenHeader
+        title={credit.storeName}
+        onBack={() => router.back()}
+        onMenu={() => setShowActionSheet(true)}
+        colors={colors}
+      />
 
       <ScrollView style={styles.scroll} contentContainerStyle={styles.scrollContent}>
-        {images.length > 0 ? (
-          <View>
-            <View style={styles.carouselContainer}>
-              <FlatList
-                data={images}
-                horizontal
-                pagingEnabled
-                showsHorizontalScrollIndicator={false}
-                keyExtractor={(_, i) => String(i)}
-                onMomentumScrollEnd={(e) => {
-                  const rawIdx = Math.round(e.nativeEvent.contentOffset.x / (Dimensions.get('window').width - 32));
-                  const idx = isRTL ? (images.length - 1 - rawIdx) : rawIdx;
-                  setCarouselIndex(idx);
-                }}
-                renderItem={({ item, index }) => (
-                  <TouchableOpacity
-                    onPress={() => { setFullscreenIndex(index); setShowFullscreenImage(true); }}
-                    activeOpacity={0.9}
-                  >
-                    <Image
-                      source={{ uri: item.url }}
-                      style={styles.image}
-                      contentFit="cover"
-                      placeholder={{ blurhash: 'L6PZfSi_.AyE_3t7t7R**0o#DgR4' }}
-                      transition={300}
-                    />
-                  </TouchableOpacity>
-                )}
-              />
-            </View>
-            {images.length > 1 && (
-              <View style={styles.dotRow}>
-                {images.map((_, i) => (
-                  <View key={i} style={[styles.dot, i === carouselIndex && styles.dotActive]} />
-                ))}
-              </View>
-            )}
-          </View>
-        ) : (
-          <View style={styles.imagePlaceholder}>
-            <Ionicons name="image-outline" size={40} color={colors.textTertiary} />
-          </View>
-        )}
+        <ImageCarousel
+          images={images}
+          onImagePress={(index) => { setFullscreenIndex(index); setShowFullscreenImage(true); }}
+          emptyIcon="image-outline"
+          colors={colors}
+        />
 
         <HeroCard>
           <Text style={styles.heroStoreName}>{credit.storeName}</Text>

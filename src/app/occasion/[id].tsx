@@ -16,6 +16,7 @@ import { DetailRow } from '@/components/redeemy/DetailRow';
 import { ActionModal } from '@/components/redeemy/ActionModal';
 import { HeroCard } from '@/components/redeemy/HeroCard';
 import { HeroBadge } from '@/components/redeemy/HeroBadge';
+import { DetailScreenHeader } from '@/components/redeemy/DetailScreenHeader';
 import { useOccasionsStore } from '@/stores/occasionsStore';
 import { useAuthStore } from '@/stores/authStore';
 import { useFamilyStore } from '@/stores/familyStore';
@@ -42,15 +43,6 @@ function makeStyles(colors: AppColors) {
   return StyleSheet.create({
     safe: { flex: 1, backgroundColor: colors.background },
     backButton: { padding: 16 },
-    header: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      paddingHorizontal: 16,
-      paddingVertical: 12,
-      gap: 12,
-      backgroundColor: colors.background,
-    },
-    headerTitle: { fontSize: 17, fontWeight: '600', color: colors.textPrimary, alignSelf: 'flex-start' },
     scroll: { flex: 1 },
     scrollContent: { padding: 16, gap: 12, paddingBottom: 32 },
     heroTitle: { fontSize: 26, fontWeight: '700', color: colors.textPrimary, textAlign: 'center' },
@@ -164,17 +156,12 @@ export default function OccasionDetailScreen() {
 
   return (
     <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()} hitSlop={8}>
-          <Ionicons name={isRTL ? 'arrow-forward' : 'arrow-back'} size={24} color={colors.textPrimary} />
-        </TouchableOpacity>
-        <View style={{ flex: 1 }}>
-          <Text style={styles.headerTitle} numberOfLines={1}>{occasion.name}</Text>
-        </View>
-        <TouchableOpacity onPress={() => setShowActionSheet(true)} hitSlop={8}>
-          <Ionicons name="ellipsis-horizontal" size={22} color={colors.textPrimary} />
-        </TouchableOpacity>
-      </View>
+      <DetailScreenHeader
+        title={occasion.name}
+        onBack={() => router.back()}
+        onMenu={() => setShowActionSheet(true)}
+        colors={colors}
+      />
 
       <ScrollView style={styles.scroll} contentContainerStyle={styles.scrollContent}>
         <HeroCard iconName={TYPE_ICONS[occasion.type]}>
