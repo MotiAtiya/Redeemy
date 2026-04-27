@@ -23,6 +23,14 @@ interface Slide {
   isNotification?: boolean;
 }
 
+const FEATURE_CHIPS: { emoji: string; labelKey: string; dest: 'credit' | 'warranty' | 'subscription' | 'occasion' | 'document' }[] = [
+  { emoji: '💳', labelKey: 'onboarding.complete.addCredit', dest: 'credit' },
+  { emoji: '🛡️', labelKey: 'onboarding.complete.addWarranty', dest: 'warranty' },
+  { emoji: '🔄', labelKey: 'onboarding.complete.addSubscription', dest: 'subscription' },
+  { emoji: '🎂', labelKey: 'onboarding.complete.addOccasion', dest: 'occasion' },
+  { emoji: '🪪', labelKey: 'onboarding.complete.addDocument', dest: 'document' },
+];
+
 const SLIDES: Slide[] = [
   {
     id: 'welcome',
@@ -168,51 +176,26 @@ export default function OnboardingScreen() {
 
           <View style={styles.actions}>
             <TouchableOpacity
-              style={[styles.secondaryButton, { backgroundColor: colors.primarySurface, borderWidth: 0 }]}
-              onPress={() => completeAndNavigate('credit')}
-            >
-              <Text style={[styles.secondaryButtonText, { color: colors.primary }]}>
-                {t('onboarding.complete.addCredit')}
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[styles.secondaryButton, { backgroundColor: colors.primarySurface, borderWidth: 0 }]}
-              onPress={() => completeAndNavigate('warranty')}
-            >
-              <Text style={[styles.secondaryButtonText, { color: colors.primary }]}>
-                {t('onboarding.complete.addWarranty')}
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[styles.secondaryButton, { backgroundColor: colors.primarySurface, borderWidth: 0 }]}
-              onPress={() => completeAndNavigate('subscription')}
-            >
-              <Text style={[styles.secondaryButtonText, { color: colors.primary }]}>
-                {t('onboarding.complete.addSubscription')}
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[styles.secondaryButton, { backgroundColor: colors.primarySurface, borderWidth: 0 }]}
-              onPress={() => completeAndNavigate('occasion')}
-            >
-              <Text style={[styles.secondaryButtonText, { color: colors.primary }]}>
-                {t('onboarding.complete.addOccasion')}
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[styles.secondaryButton, { backgroundColor: colors.primarySurface, borderWidth: 0 }]}
-              onPress={() => completeAndNavigate('document')}
-            >
-              <Text style={[styles.secondaryButtonText, { color: colors.primary }]}>
-                {t('onboarding.complete.addDocument')}
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity
               style={[styles.primaryButton, { backgroundColor: colors.primary }]}
               onPress={() => completeAndNavigate()}
             >
               <Text style={styles.primaryButtonText}>{t('onboarding.complete.goToApp')}</Text>
             </TouchableOpacity>
+            <Text style={[styles.orText, { color: colors.textTertiary }]}>
+              {t('onboarding.complete.orStartWith')}
+            </Text>
+            <View style={styles.chipsRow}>
+              {FEATURE_CHIPS.map((chip) => (
+                <TouchableOpacity
+                  key={chip.dest}
+                  style={[styles.chip, { backgroundColor: colors.primarySurface }]}
+                  onPress={() => completeAndNavigate(chip.dest)}
+                >
+                  <Text style={styles.chipEmoji}>{chip.emoji}</Text>
+                  <Text style={[styles.chipText, { color: colors.primary }]}>{t(chip.labelKey)}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
           </View>
         </Animated.View>
       </SafeAreaView>
@@ -385,15 +368,28 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#FFFFFF',
   },
-  secondaryButton: {
-    height: 52,
-    borderRadius: 14,
-    borderWidth: 1.5,
-    justifyContent: 'center',
-    alignItems: 'center',
+  orText: {
+    fontSize: 14,
+    textAlign: 'center',
+    marginTop: 4,
   },
-  secondaryButtonText: {
-    fontSize: 16,
+  chipsRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'center',
+    gap: 10,
+  },
+  chip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    borderRadius: 20,
+    gap: 6,
+  },
+  chipEmoji: { fontSize: 16 },
+  chipText: {
+    fontSize: 14,
     fontWeight: '500',
   },
   textLink: {

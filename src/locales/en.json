@@ -813,7 +813,8 @@
       "addSubscription": "Add subscription",
       "addOccasion": "Add event",
       "goToApp": "Go to app",
-      "addDocument": "Add document"
+      "addDocument": "Add document",
+      "orStartWith": "or start with:"
     },
     "documents": {
       "title": "Documents always at hand",
