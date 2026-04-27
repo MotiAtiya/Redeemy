@@ -101,7 +101,7 @@ export function OccasionCard({ occasion, onPress }: Props) {
       case 'birthday': return t('occasions.cardTitle.birthday', { name: occasion.name });
       case 'anniversary': return t('occasions.cardTitle.anniversary', { name: occasion.name });
       case 'yahrzeit': return t('occasions.cardTitle.yahrzeit', { name: occasion.name });
-      case 'other': return `${occasion.customLabel ?? ''} — ${occasion.name}`;
+      case 'other': return t('occasions.heroTitle.other', { label: occasion.customLabel ?? '', name: occasion.name });
     }
   })();
 

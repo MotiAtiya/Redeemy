@@ -124,24 +124,11 @@ export default function OccasionDetailScreen() {
   const yearsCount = currentYear - eventDate.getFullYear();
 
   const heroTitle = (() => {
-    const isFirst = yearsCount === 1;
     switch (occasion.type) {
-      case 'birthday':
-        return isFirst
-          ? t('occasions.heroTitle.birthdayFirst', { name: occasion.name })
-          : t('occasions.heroTitle.birthday', { name: occasion.name });
-      case 'anniversary':
-        return isFirst
-          ? t('occasions.heroTitle.anniversaryFirst', { name: occasion.name })
-          : t('occasions.heroTitle.anniversary', { name: occasion.name });
-      case 'yahrzeit':
-        return isFirst
-          ? t('occasions.heroTitle.yahrzeitFirst', { name: occasion.name })
-          : t('occasions.heroTitle.yahrzeit', { name: occasion.name });
-      case 'other':
-        return isFirst
-          ? t('occasions.heroTitle.otherFirst', { label: occasion.customLabel ?? '', name: occasion.name })
-          : t('occasions.heroTitle.other', { label: occasion.customLabel ?? '', name: occasion.name });
+      case 'birthday':   return t('occasions.heroTitle.birthday', { name: occasion.name });
+      case 'anniversary': return t('occasions.heroTitle.anniversary', { name: occasion.name });
+      case 'yahrzeit':   return t('occasions.heroTitle.yahrzeit', { name: occasion.name });
+      case 'other':      return t('occasions.heroTitle.other', { label: occasion.customLabel ?? '', name: occasion.name });
     }
   })();
 
