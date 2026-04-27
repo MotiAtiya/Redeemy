@@ -15,7 +15,6 @@ import {
 } from '@/types/subscriptionTypes';
 import {
   daysUntilBilling,
-  getNextBillingDate,
   normalizeToMonthlyAgorot,
   getNextReminderInfo,
 } from '@/lib/subscriptionUtils';
@@ -106,6 +105,12 @@ export function SubscriptionCard({ subscription: sub, onPress, variant = 'active
   const daysUntilNextBilling = useMemo(() => daysUntilBilling(sub), [sub]);
   const reminderInfo = useMemo(() => getNextReminderInfo(sub), [sub]);
 
+  const specialPeriodActive = useMemo(() => {
+    if (!sub.trialEndsDate) return false;
+    const d = sub.trialEndsDate instanceof Date ? sub.trialEndsDate : new Date(sub.trialEndsDate as unknown as string);
+    return d.getTime() > Date.now();
+  }, [sub.trialEndsDate]);
+
   const { urgencyText, urgencyBg } = useMemo(() => {
     if (reminderInfo.days < 7)
       return { urgencyText: colors.urgencyRed, urgencyBg: colors.urgencyRedSurface };
@@ -141,48 +146,48 @@ export function SubscriptionCard({ subscription: sub, onPress, variant = 'active
   }, [reminderInfo, t]);
 
   const nextBillingLabel = useMemo(() => {
-    if (sub.isFree || sub.isFreeTrial) return null;
+    if (sub.isFree) return null;
+    const hasSpecialPeriod = sub.isFreeTrial || !!sub.specialPeriodType;
+    if (hasSpecialPeriod && specialPeriodActive) return null;
     const days = daysUntilNextBilling;
     if (days === 0) return t('subscriptionCard.renewsToday');
     if (days === 1) return t('subscriptionCard.renewsTomorrow');
-    if (sub.billingCycle === SubscriptionBillingCycle.ANNUAL) {
-      const nextDate = getNextBillingDate(sub);
-      const dateStr = formatDate(nextDate, dateFormat);
-      return t('subscriptionCard.renewsOnDate', { days, date: dateStr });
-    }
     return t('subscriptionCard.renewsInDays', { days });
-  }, [sub, daysUntilNextBilling, t, dateFormat]);
+  }, [sub, daysUntilNextBilling, specialPeriodActive, t, dateFormat]);
 
   const { amountLabel, periodLabel, amountStyle } = useMemo(() => {
     if (sub.isFree)
       return { amountLabel: t('subscriptionCard.free'), periodLabel: null, amountStyle: styles.amountNumberFree };
-    if (sub.isFreeTrial)
+
+    const isTrial = sub.isFreeTrial || sub.specialPeriodType === 'trial';
+
+    // Trial active → show "ניסיון"
+    if (isTrial && specialPeriodActive)
       return { amountLabel: t('subscriptionCard.trial'), periodLabel: null, amountStyle: styles.amountNumberTrial };
-    // In discounted period → show discounted price in amber
-    if (sub.specialPeriodType === 'discounted' && sub.specialPeriodPriceAgorot && sub.trialEndsDate) {
-      const trialEnd = sub.trialEndsDate instanceof Date
-        ? sub.trialEndsDate
-        : new Date(sub.trialEndsDate as unknown as string);
-      if (trialEnd.getTime() > Date.now()) {
-        const discountedMonthly = sub.billingCycle === SubscriptionBillingCycle.ANNUAL
-          ? Math.round(sub.specialPeriodPriceAgorot / 12)
-          : sub.specialPeriodPriceAgorot;
-        return {
-          amountLabel: formatCurrencyCompact(discountedMonthly, currencySymbol),
-          periodLabel: t('subscriptionCard.perMonth'),
-          amountStyle: styles.amountNumberTrial,
-        };
-      }
+
+    // Discounted period active → show discounted price in amber
+    if (sub.specialPeriodType === 'discounted' && sub.specialPeriodPriceAgorot && specialPeriodActive) {
+      const discountedMonthly = sub.billingCycle === SubscriptionBillingCycle.ANNUAL
+        ? Math.round(sub.specialPeriodPriceAgorot / 12)
+        : sub.specialPeriodPriceAgorot;
+      return {
+        amountLabel: formatCurrencyCompact(discountedMonthly, currencySymbol),
+        periodLabel: t('subscriptionCard.perMonth'),
+        amountStyle: styles.amountNumberTrial,
+      };
     }
+
+    // Regular price — for trial subs amountAgorot=0, use priceAfterTrialAgorot
+    const regularAgorot = isTrial ? (sub.priceAfterTrialAgorot ?? 0) : sub.amountAgorot;
     const monthly = sub.billingCycle === SubscriptionBillingCycle.ANNUAL
-      ? normalizeToMonthlyAgorot(sub)
-      : sub.amountAgorot;
+      ? Math.round(regularAgorot / 12)
+      : regularAgorot;
     return {
       amountLabel: formatCurrencyCompact(monthly, currencySymbol),
       periodLabel: t('subscriptionCard.perMonth'),
       amountStyle: styles.amountNumber,
     };
-  }, [sub, t, currencySymbol, styles]);
+  }, [sub, t, currencySymbol, styles, specialPeriodActive]);
 
   return (
     <BaseCard onPress={onPress} dimmed={isCancelled} accessibilityLabel={sub.serviceName}>

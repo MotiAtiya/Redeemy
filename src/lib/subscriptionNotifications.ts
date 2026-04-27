@@ -75,7 +75,7 @@ export async function scheduleSubscriptionNotifications(
     (sub.billingCycle === SubscriptionBillingCycle.MONTHLY && sub.hasFixedPeriod === false);
 
   if (isPeriodicReview) {
-    const months = sub.freeReviewReminderMonths ?? 3;
+    const months = sub.freeReviewReminderMonths ?? 6;
     // Anchor to registrationDate; advance by `months` intervals until it's in the future
     const anchor = sub.registrationDate instanceof Date
       ? sub.registrationDate

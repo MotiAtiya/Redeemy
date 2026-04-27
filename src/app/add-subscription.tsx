@@ -654,7 +654,7 @@ export default function AddSubscriptionScreen() {
     // Access type
     if (s.isFree) {
       setAccessType('free'); setPendingAccessType('free');
-      setPeriodicReminderMonths(s.freeReviewReminderMonths ?? 3);
+      setPeriodicReminderMonths(s.freeReviewReminderMonths ?? 6);
     } else {
       setAccessType('paid'); setPendingAccessType('paid');
       setAmountInput((s.amountAgorot / 100).toFixed(2));
@@ -686,7 +686,7 @@ export default function AddSubscriptionScreen() {
       if (s.billingCycle === SubscriptionBillingCycle.MONTHLY) {
         if (s.hasFixedPeriod === false) {
           setMonthlyStructure('noFixed'); setPendingMonthlyStructure('noFixed');
-          setPeriodicReminderMonths(s.freeReviewReminderMonths ?? 3);
+          setPeriodicReminderMonths(s.freeReviewReminderMonths ?? 6);
         } else if (s.hasFixedPeriod === true || s.commitmentMonths) {
           setMonthlyStructure('fixed'); setPendingMonthlyStructure('fixed');
           if (s.commitmentMonths) setCommitmentMonths(s.commitmentMonths);

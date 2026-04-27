@@ -266,6 +266,11 @@ export default function SubscriptionDetailScreen() {
   const trialEndsDate = sub?.trialEndsDate
     ? (sub.trialEndsDate instanceof Date ? sub.trialEndsDate : new Date(sub.trialEndsDate as unknown as string))
     : null;
+  const specialPeriodActive = trialEndsDate ? trialEndsDate > new Date() : false;
+
+  const registrationDate = sub?.registrationDate
+    ? (sub.registrationDate instanceof Date ? sub.registrationDate : new Date(sub.registrationDate as unknown as string))
+    : null;
 
   const commitmentEndDate = sub?.commitmentEndDate
     ? (sub.commitmentEndDate instanceof Date ? sub.commitmentEndDate : new Date(sub.commitmentEndDate as unknown as string))
@@ -276,13 +281,23 @@ export default function SubscriptionDetailScreen() {
   function getBillingText(): string {
     const s = sub!;
     if (s.isFree) return t('subscription.detail.free');
-    if (s.isFreeTrial) return t('subscription.detail.freeTrialBilling');
-    const amount = formatCurrency(s.amountAgorot, symbol);
+    const isTrial = s.specialPeriodType === 'trial' || s.isFreeTrial;
+    const regularAgorot = isTrial ? (s.priceAfterTrialAgorot ?? 0) : s.amountAgorot;
+    const amount = formatCurrency(regularAgorot, symbol);
     if (s.billingCycle === SubscriptionBillingCycle.MONTHLY) {
       return t('subscription.detail.monthlyAmount', { amount });
     }
-    const monthly = formatCurrency(normalizeToMonthlyAgorot(s), symbol);
+    const monthly = formatCurrency(Math.round(regularAgorot / 12), symbol);
     return t('subscription.detail.annualAmount', { amount, monthly });
+  }
+
+  // Price string for discounted special period — per-month for monthly billing, bare amount for annual
+  function getDiscountedPriceStr(): string {
+    const agorot = sub!.specialPeriodPriceAgorot ?? 0;
+    if (sub!.billingCycle === SubscriptionBillingCycle.MONTHLY) {
+      return t('subscription.detail.monthlyAmount', { amount: formatCurrency(agorot, symbol) });
+    }
+    return formatCurrency(agorot, symbol);
   }
 
   function getNextBillingText(): string {
@@ -339,12 +354,12 @@ export default function SubscriptionDetailScreen() {
           />
 
           {/* Discounted period (specialPeriodType = 'discounted') */}
-          {sub.specialPeriodType === 'discounted' && !!trialEndsDate && (
+          {sub.specialPeriodType === 'discounted' && !!trialEndsDate && specialPeriodActive && (
             <DetailRow
               icon="pricetag-outline"
               label={t('subscription.detail.discountedPeriod')}
               value={t('subscription.detail.discountedDetail', {
-                price: formatCurrency(sub.specialPeriodPriceAgorot ?? 0, symbol),
+                price: getDiscountedPriceStr(),
                 date: formatDate(trialEndsDate, dateFormat),
               })}
               showSeparator
@@ -352,13 +367,12 @@ export default function SubscriptionDetailScreen() {
           )}
 
           {/* Free trial */}
-          {sub.isFreeTrial && !!trialEndsDate && (
+          {(sub.isFreeTrial || sub.specialPeriodType === 'trial') && !!trialEndsDate && specialPeriodActive && (
             <DetailRow
               icon="gift-outline"
               label={t('subscription.detail.freeTrial')}
               value={t('subscription.detail.freeTrialDetail', {
                 date: formatDate(trialEndsDate, dateFormat),
-                price: formatCurrency(sub.priceAfterTrialAgorot ?? 0, symbol),
               })}
               showSeparator
             />
@@ -423,7 +437,7 @@ export default function SubscriptionDetailScreen() {
               icon="document-text-outline"
               label={t('subscription.detail.notes')}
               value={sub.notes}
-              showSeparator={!!familyCreatorName}
+              showSeparator={!!familyCreatorName || !!registrationDate}
               multiline
             />
           )}
@@ -434,6 +448,16 @@ export default function SubscriptionDetailScreen() {
               icon="people-outline"
               label={t('subscription.detail.addedBy')}
               value={familyCreatorName}
+              showSeparator={!!registrationDate}
+            />
+          )}
+
+          {/* Registration date — always last */}
+          {!!registrationDate && (
+            <DetailRow
+              icon="log-in-outline"
+              label={t('subscription.detail.registrationDate')}
+              value={formatDate(registrationDate, dateFormat)}
             />
           )}
         </View>

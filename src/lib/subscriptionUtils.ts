@@ -105,7 +105,7 @@ export function getNextReminderInfo(sub: Subscription): ReminderInfo {
 
   // 2. Free or monthly no-fixed → periodic review reminder
   if (sub.isFree || sub.hasFixedPeriod === false) {
-    const months = sub.freeReviewReminderMonths ?? 3;
+    const months = sub.freeReviewReminderMonths ?? 6;
     const anchor = sub.registrationDate instanceof Date
       ? sub.registrationDate
       : sub.registrationDate
