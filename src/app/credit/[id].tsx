@@ -323,12 +323,6 @@ export default function CreditDetailScreen() {
 
         <View style={styles.detailsCard}>
           <DetailRow
-            icon="pricetag-outline"
-            label={t('credit.detail.category')}
-            value={categoryMeta ? t('category.' + categoryMeta.id) : credit.category}
-            showSeparator
-          />
-          <DetailRow
             icon="calendar-outline"
             label={t('credit.detail.expires')}
             value={expirationDate ? formatDate(expirationDate, dateFormat) : t('credit.detail.noExpiry')}

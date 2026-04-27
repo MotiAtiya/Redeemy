@@ -314,12 +314,6 @@ export default function WarrantyDetailScreen() {
 
         <View style={styles.detailsCard}>
           <DetailRow
-            icon="pricetag-outline"
-            label={t('warranty.detail.category')}
-            value={categoryMeta ? t('category.' + categoryMeta.id) : warranty.category}
-            showSeparator
-          />
-          <DetailRow
             icon="calendar-outline"
             label={t('warranty.detail.expires')}
             value={

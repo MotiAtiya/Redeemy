@@ -417,14 +417,6 @@ export default function SubscriptionDetailScreen() {
             />
           )}
 
-          {/* Category */}
-          <DetailRow
-            icon={categoryMeta?.icon ?? 'grid-outline'}
-            label={t('subscription.detail.category')}
-            value={t('subscriptions.category.' + sub.category)}
-            showSeparator={!!sub.notes || !!familyCreatorName}
-          />
-
           {/* Notes */}
           {!!sub.notes && (
             <DetailRow
