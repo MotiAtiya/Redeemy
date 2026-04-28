@@ -112,7 +112,7 @@ export const WARRANTY_PRODUCT_TYPES: WarrantyProductType[] = [
   { id: 'treadmill',          heLabel: 'הליכון',               enLabel: 'Treadmill',           icon: 'fitness-outline' },
   { id: 'exercise_bike',      heLabel: 'אופני כושר',           enLabel: 'Exercise Bike',       icon: 'bicycle-outline' },
   { id: 'elliptical',         heLabel: 'אליפטיקל',             enLabel: 'Elliptical Trainer',  icon: 'fitness-outline' },
-  { id: 'rowing_machine',     heLabel: 'חתירון',               enLabel: 'Rowing Machine',      icon: 'fitness-outline' },
+  { id: 'rowing_machine',     heLabel: 'מכונת חתירה',          enLabel: 'Rowing Machine',      icon: 'fitness-outline' },
   { id: 'tent',               heLabel: 'אוהל',                 enLabel: 'Tent',                icon: 'triangle-outline' },
 
   // רכב
