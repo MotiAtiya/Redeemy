@@ -514,7 +514,7 @@ export default function AddOccasionScreen() {
             </Text>
           </View>
           <Switch
-            style={{ transform: [{ scaleX: isRTL ? -1 : 1 }] }}
+            style={{ transform: [{ scaleX: Platform.OS === 'ios' && isRTL ? -1 : 1 }] }}
             value={useHebrewDate}
             onValueChange={setUseHebrewDate}
             trackColor={{ false: colors.separator, true: colors.primary }}
@@ -532,7 +532,7 @@ export default function AddOccasionScreen() {
                 </Text>
               </View>
               <Switch
-                style={{ transform: [{ scaleX: isRTL ? -1 : 1 }] }}
+                style={{ transform: [{ scaleX: Platform.OS === 'ios' && isRTL ? -1 : 1 }] }}
                 value={afterSunset}
                 onValueChange={setAfterSunset}
                 trackColor={{ false: colors.separator, true: colors.primary }}

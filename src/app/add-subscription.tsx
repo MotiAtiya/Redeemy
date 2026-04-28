@@ -1355,7 +1355,7 @@ export default function AddSubscriptionScreen() {
             </Text>
           </View>
           <Switch
-            style={{ transform: [{ scaleX: isRTL ? -1 : 1 }] }}
+            style={{ transform: [{ scaleX: Platform.OS === 'ios' && isRTL ? -1 : 1 }] }}
             value={reminderSpecialPeriod}
             onValueChange={setReminderSpecialPeriod}
             trackColor={{ false: colors.separator, true: colors.primary }}

@@ -232,7 +232,7 @@ export default function NotificationSettingsScreen() {
               <Text style={styles.rowLabel}>{t('notificationSettings.enable')}</Text>
             </View>
             <Switch
-              style={{ transform: [{ scaleX: isRTL ? -1 : 1 }] }}
+              style={{ transform: [{ scaleX: Platform.OS === 'ios' && isRTL ? -1 : 1 }] }}
               value={notificationsEnabled}
               onValueChange={handleMasterToggle}
               trackColor={{ false: colors.separator, true: colors.primary }}
@@ -288,7 +288,7 @@ export default function NotificationSettingsScreen() {
               </Text>
             </View>
             <Switch
-              style={{ transform: [{ scaleX: isRTL ? -1 : 1 }] }}
+              style={{ transform: [{ scaleX: Platform.OS === 'ios' && isRTL ? -1 : 1 }] }}
               value={creditLastDayAlert}
               onValueChange={setCreditLastDayAlert}
               disabled={!notificationsEnabled}
@@ -324,7 +324,7 @@ export default function NotificationSettingsScreen() {
               </Text>
             </View>
             <Switch
-              style={{ transform: [{ scaleX: isRTL ? -1 : 1 }] }}
+              style={{ transform: [{ scaleX: Platform.OS === 'ios' && isRTL ? -1 : 1 }] }}
               value={warrantyLastDayAlert}
               onValueChange={setWarrantyLastDayAlert}
               disabled={!notificationsEnabled}
@@ -360,7 +360,7 @@ export default function NotificationSettingsScreen() {
               </Text>
             </View>
             <Switch
-              style={{ transform: [{ scaleX: isRTL ? -1 : 1 }] }}
+              style={{ transform: [{ scaleX: Platform.OS === 'ios' && isRTL ? -1 : 1 }] }}
               value={subscriptionLastDayAlert}
               onValueChange={setSubscriptionLastDayAlert}
               disabled={!notificationsEnabled}
@@ -396,7 +396,7 @@ export default function NotificationSettingsScreen() {
               </Text>
             </View>
             <Switch
-              style={{ transform: [{ scaleX: isRTL ? -1 : 1 }] }}
+              style={{ transform: [{ scaleX: Platform.OS === 'ios' && isRTL ? -1 : 1 }] }}
               value={occasionOnDayAlert}
               onValueChange={setOccasionOnDayAlert}
               disabled={!notificationsEnabled}
@@ -432,7 +432,7 @@ export default function NotificationSettingsScreen() {
               </Text>
             </View>
             <Switch
-              style={{ transform: [{ scaleX: isRTL ? -1 : 1 }] }}
+              style={{ transform: [{ scaleX: Platform.OS === 'ios' && isRTL ? -1 : 1 }] }}
               value={documentExpiryAlert}
               onValueChange={setDocumentExpiryAlert}
               disabled={!notificationsEnabled}
