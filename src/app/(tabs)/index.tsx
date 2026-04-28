@@ -15,7 +15,6 @@ import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import { CreditCard } from '@/components/redeemy/CreditCard';
-import { SyncIndicator } from '@/components/redeemy/SyncIndicator';
 import { subscribeToCredits } from '@/lib/firestoreCredits';
 import { sortCreditsHome, filterActiveCredits, type HomeSortKey } from '@/lib/creditUtils';
 import { useAuthStore } from '@/stores/authStore';
@@ -201,7 +200,6 @@ export default function CreditsScreen() {
         <View style={styles.header}>
           <View style={styles.titleRow}>
             <Text style={styles.title}>{t('credits.title')}</Text>
-            <SyncIndicator />
           </View>
           <View style={{ flexDirection: 'row', gap: 16, alignItems: 'center' }}>
             <TouchableOpacity onPress={() => router.push('/stores')}>

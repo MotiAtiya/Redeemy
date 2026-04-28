@@ -39,17 +39,17 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="warranties"
-        options={{
-          title: t('tabs.warranties'),
-          tabBarIcon: tabIcon('shield-checkmark-outline'),
-        }}
-      />
-      <Tabs.Screen
         name="subscriptions"
         options={{
           title: t('tabs.subscriptions'),
           tabBarIcon: tabIcon('repeat-outline'),
+        }}
+      />
+      <Tabs.Screen
+        name="warranties"
+        options={{
+          title: t('tabs.warranties'),
+          tabBarIcon: tabIcon('shield-checkmark-outline'),
         }}
       />
       <Tabs.Screen

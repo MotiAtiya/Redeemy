@@ -178,16 +178,18 @@ export async function rescheduleAllNotifications(
 
 /**
  * Updates the app icon badge to show the number of credits expiring within
- * 7 days. Call whenever creditsStore changes.
+ * the user's configured reminder window. Clears when the app is foregrounded.
  */
 export async function updateBadgeCount(credits: Credit[]): Promise<void> {
-  const sevenDaysFromNow = new Date();
-  sevenDaysFromNow.setDate(sevenDaysFromNow.getDate() + 7);
+  const { creditReminderDays } = useSettingsStore.getState();
+  const cutoff = new Date();
+  cutoff.setDate(cutoff.getDate() + creditReminderDays);
 
   const count = credits.filter(
     (c) =>
       c.status === CreditStatus.ACTIVE &&
-      c.expirationDate != null && new Date(c.expirationDate) <= sevenDaysFromNow
+      c.expirationDate != null &&
+      new Date(c.expirationDate) <= cutoff,
   ).length;
 
   await Notifications.setBadgeCountAsync(count);

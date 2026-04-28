@@ -3,7 +3,7 @@ import { CreditStatus, type Credit } from '@/types/creditTypes';
 import * as Notifications from 'expo-notifications';
 
 // ---------------------------------------------------------------------------
-// Mock expo-notifications
+// Mocks
 // ---------------------------------------------------------------------------
 
 jest.mock('expo-notifications', () => ({
@@ -17,9 +17,30 @@ jest.mock('expo-notifications', () => ({
   SchedulableTriggerInputTypes: { DATE: 'date' },
 }));
 
+jest.mock('@/stores/settingsStore', () => ({
+  useSettingsStore: {
+    getState: jest.fn(() => ({
+      creditReminderDays: 7,
+      notificationsEnabled: true,
+      notificationHour: 9,
+      notificationMinute: 0,
+      currency: 'ILS',
+      creditLastDayAlert: true,
+    })),
+  },
+  CURRENCY_SYMBOLS: { ILS: '₪', USD: '$', EUR: '€', GBP: '£' },
+}));
+
+jest.mock('@/lib/i18n', () => ({
+  __esModule: true,
+  default: { t: (key: string) => key },
+}));
+
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
+
+const DAY = 24 * 60 * 60 * 1000;
 
 function makeCredit(overrides: Partial<Credit> = {}): Credit {
   return {
@@ -28,7 +49,7 @@ function makeCredit(overrides: Partial<Credit> = {}): Credit {
     storeName: 'Zara',
     amount: 5000,
     category: 'Clothing',
-    expirationDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+    expirationDate: new Date(Date.now() + 30 * DAY),
     reminderDays: 7,
     status: CreditStatus.ACTIVE,
     createdAt: new Date(),
@@ -44,66 +65,53 @@ function makeCredit(overrides: Partial<Credit> = {}): Credit {
 describe('updateBadgeCount', () => {
   const setBadgeCountAsync = Notifications.setBadgeCountAsync as jest.Mock;
 
-  beforeEach(() => {
-    setBadgeCountAsync.mockReset();
-  });
+  beforeEach(() => setBadgeCountAsync.mockReset());
 
   it('sets badge to 0 when there are no credits', async () => {
     await updateBadgeCount([]);
     expect(setBadgeCountAsync).toHaveBeenCalledWith(0);
   });
 
-  it('sets badge to 0 when all credits expire after 7 days', async () => {
-    const credits = [
-      makeCredit({ expirationDate: new Date(Date.now() + 8 * 24 * 60 * 60 * 1000) }),
-      makeCredit({ expirationDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) }),
-    ];
-    await updateBadgeCount(credits);
+  it('sets badge to 0 when all credits expire after the reminder window', async () => {
+    await updateBadgeCount([
+      makeCredit({ expirationDate: new Date(Date.now() + 8 * DAY) }),
+      makeCredit({ expirationDate: new Date(Date.now() + 30 * DAY) }),
+    ]);
     expect(setBadgeCountAsync).toHaveBeenCalledWith(0);
   });
 
   it('counts credits expiring within 7 days', async () => {
-    const credits = [
-      makeCredit({ expirationDate: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000) }),  // in 3d ✓
-      makeCredit({ expirationDate: new Date(Date.now() + 6 * 24 * 60 * 60 * 1000) }),  // in 6d ✓
-      makeCredit({ expirationDate: new Date(Date.now() + 10 * 24 * 60 * 60 * 1000) }), // in 10d ✗
-    ];
-    await updateBadgeCount(credits);
+    await updateBadgeCount([
+      makeCredit({ expirationDate: new Date(Date.now() + 3 * DAY) }),  // ✓
+      makeCredit({ expirationDate: new Date(Date.now() + 6 * DAY) }),  // ✓
+      makeCredit({ expirationDate: new Date(Date.now() + 10 * DAY) }), // ✗
+    ]);
     expect(setBadgeCountAsync).toHaveBeenCalledWith(2);
   });
 
   it('excludes REDEEMED credits from badge count', async () => {
-    const credits = [
-      makeCredit({
-        expirationDate: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000),
-        status: CreditStatus.REDEEMED,
-      }),
-      makeCredit({ expirationDate: new Date(Date.now() + 4 * 24 * 60 * 60 * 1000) }),
-    ];
-    await updateBadgeCount(credits);
+    await updateBadgeCount([
+      makeCredit({ expirationDate: new Date(Date.now() + 3 * DAY), status: CreditStatus.REDEEMED }),
+      makeCredit({ expirationDate: new Date(Date.now() + 4 * DAY) }),
+    ]);
     expect(setBadgeCountAsync).toHaveBeenCalledWith(1);
   });
 
-  it('counts a credit expiring exactly at the 7-day boundary', async () => {
-    // Expiring in exactly 7 days (≤ 7 days from now)
-    const sevenDaysFromNow = new Date();
-    sevenDaysFromNow.setDate(sevenDaysFromNow.getDate() + 7);
-    // Subtract a few seconds to ensure it's <= boundary
-    sevenDaysFromNow.setSeconds(sevenDaysFromNow.getSeconds() - 1);
-
-    const credits = [makeCredit({ expirationDate: sevenDaysFromNow })];
-    await updateBadgeCount(credits);
+  it('counts a credit expiring exactly at the boundary', async () => {
+    const boundary = new Date();
+    boundary.setDate(boundary.getDate() + 7);
+    boundary.setSeconds(boundary.getSeconds() - 1);
+    await updateBadgeCount([makeCredit({ expirationDate: boundary })]);
     expect(setBadgeCountAsync).toHaveBeenCalledWith(1);
   });
 
-  it('handles a mix of active and redeemed credits across ranges', async () => {
-    const credits = [
-      makeCredit({ id: '1', expirationDate: new Date(Date.now() + 1 * 24 * 60 * 60 * 1000) }), // active, within 7d ✓
-      makeCredit({ id: '2', expirationDate: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000) }), // active, within 7d ✓
-      makeCredit({ id: '3', expirationDate: new Date(Date.now() + 20 * 24 * 60 * 60 * 1000) }), // active, beyond 7d ✗
-      makeCredit({ id: '4', expirationDate: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000), status: CreditStatus.REDEEMED }), // redeemed ✗
-    ];
-    await updateBadgeCount(credits);
+  it('handles a mix of statuses and ranges', async () => {
+    await updateBadgeCount([
+      makeCredit({ id: '1', expirationDate: new Date(Date.now() + 1 * DAY) }),  // ✓
+      makeCredit({ id: '2', expirationDate: new Date(Date.now() + 5 * DAY) }),  // ✓
+      makeCredit({ id: '3', expirationDate: new Date(Date.now() + 20 * DAY) }), // ✗ too far
+      makeCredit({ id: '4', expirationDate: new Date(Date.now() + 2 * DAY), status: CreditStatus.REDEEMED }), // ✗ redeemed
+    ]);
     expect(setBadgeCountAsync).toHaveBeenCalledWith(2);
   });
 });
@@ -115,26 +123,19 @@ describe('updateBadgeCount', () => {
 describe('getCreditIdFromNotification', () => {
   function makeResponse(data: Record<string, unknown>): Notifications.NotificationResponse {
     return {
-      notification: {
-        request: {
-          content: { data },
-        },
-      },
+      notification: { request: { content: { data } } },
     } as unknown as Notifications.NotificationResponse;
   }
 
-  it('returns the creditId when present in notification data', () => {
-    const response = makeResponse({ creditId: 'credit-abc' });
-    expect(getCreditIdFromNotification(response)).toBe('credit-abc');
+  it('returns the creditId when present', () => {
+    expect(getCreditIdFromNotification(makeResponse({ creditId: 'credit-abc' }))).toBe('credit-abc');
   });
 
   it('returns null when creditId is absent', () => {
-    const response = makeResponse({});
-    expect(getCreditIdFromNotification(response)).toBeNull();
+    expect(getCreditIdFromNotification(makeResponse({}))).toBeNull();
   });
 
-  it('returns null when data is undefined', () => {
-    const response = makeResponse({ other: 'stuff' });
-    expect(getCreditIdFromNotification(response)).toBeNull();
+  it('returns null for unrelated data', () => {
+    expect(getCreditIdFromNotification(makeResponse({ other: 'stuff' }))).toBeNull();
   });
 });

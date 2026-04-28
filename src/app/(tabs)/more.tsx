@@ -19,6 +19,7 @@ import { useAuthStore } from '@/stores/authStore';
 import { useSettingsStore, type DateFormat, type CurrencyCode, CURRENCY_SYMBOLS } from '@/stores/settingsStore';
 import { useFamilyStore } from '@/stores/familyStore';
 import { useAppTheme, useIsDark } from '@/hooks/useAppTheme';
+import { openStoreReview } from '@/lib/storeReview';
 
 const logoLight = require('../../../assets/images/logo-light.png');
 const logoDark = require('../../../assets/images/logo-dark.png');
@@ -128,19 +129,20 @@ function makeStyles(colors: AppColors) {
       gap: 12,
     },
     aboutLabel: { fontSize: 15, color: colors.textPrimary, alignSelf: 'flex-start' },
+    aboutSubtitle: { fontSize: 12, color: colors.textTertiary, alignSelf: 'flex-start', marginTop: 1 },
     aboutValue: { fontSize: 15, color: colors.textSecondary },
     aboutAppName: {
-      fontSize: 17,
+      fontSize: 20,
       fontWeight: '700',
       color: colors.textPrimary,
       textAlign: 'center',
       marginBottom: 4,
     },
     aboutTagline: {
-      fontSize: 13,
+      fontSize: 14,
       color: colors.textSecondary,
       textAlign: 'center',
-      marginBottom: 4,
+      marginBottom: 6,
     },
     aboutVersion: {
       fontSize: 12,
@@ -158,16 +160,14 @@ function makeStyles(colors: AppColors) {
     langSeparator: { height: 1, backgroundColor: colors.separator },
     aboutHeader: {
       alignItems: 'center',
-      paddingVertical: 20,
+      paddingVertical: 28,
       paddingHorizontal: 16,
-      borderBottomWidth: 1,
-      borderBottomColor: colors.separator,
     },
     aboutLogoImage: {
-      width: 72,
-      height: 72,
-      borderRadius: 16,
-      marginBottom: 10,
+      width: 88,
+      height: 88,
+      borderRadius: 20,
+      marginBottom: 14,
     },
   });
 }
@@ -437,16 +437,35 @@ export default function MoreScreen() {
               />
               <Text style={styles.aboutAppName}>Redeemy</Text>
               <Text style={styles.aboutTagline}>{t('more.about.tagline')}</Text>
-              <Text style={styles.aboutVersion}>Version 1.0.0</Text>
+              <Text style={styles.aboutVersion}>{t('more.about.version')}</Text>
             </View>
-            <View style={styles.separator} />
+          </View>
+        </View>
+
+        {/* Support section */}
+        <View style={styles.section}>
+          <Text style={styles.sectionLabel}>{t('more.sections.support')}</Text>
+          <View style={styles.aboutCard}>
             <TouchableOpacity
               style={styles.aboutRow}
-              onPress={() => Linking.openURL('mailto:a.moti96@gmail.com')}
+              onPress={() => Linking.openURL('mailto:a.moti96@gmail.com?subject=Redeemy%20Support')}
             >
               <Ionicons name="mail-outline" size={20} color={colors.textSecondary} />
               <View style={{ flex: 1 }}>
                 <Text style={styles.aboutLabel}>{t('more.about.contact')}</Text>
+                <Text style={styles.aboutSubtitle}>a.moti96@gmail.com</Text>
+              </View>
+              <Ionicons name={isRTL ? 'chevron-back' : 'chevron-forward'} size={16} color={colors.textTertiary} />
+            </TouchableOpacity>
+            <View style={styles.separator} />
+            <TouchableOpacity
+              style={styles.aboutRow}
+              onPress={openStoreReview}
+            >
+              <Ionicons name="star-outline" size={20} color={colors.textSecondary} />
+              <View style={{ flex: 1 }}>
+                <Text style={styles.aboutLabel}>{t('more.about.rateUs')}</Text>
+                <Text style={styles.aboutSubtitle}>{t('more.about.rateUsSubtitle')}</Text>
               </View>
               <Ionicons name={isRTL ? 'chevron-back' : 'chevron-forward'} size={16} color={colors.textTertiary} />
             </TouchableOpacity>

@@ -80,7 +80,8 @@
       "account": "ACCOUNT",
       "settings": "SETTINGS",
       "general": "GENERAL",
-      "about": "ABOUT"
+      "about": "ABOUT",
+      "support": "SUPPORT"
     },
     "appearance": "Appearance",
     "notifications": {
@@ -128,7 +129,10 @@
     },
     "about": {
       "tagline": "Credits you won't forget",
-      "contact": "Contact Support"
+      "version": "Version 1.0.0",
+      "contact": "Email Us",
+      "rateUs": "Rate Redeemy",
+      "rateUsSubtitle": "A quick review means a lot to us"
     },
     "signOut": {
       "button": "Sign Out",
@@ -779,11 +783,12 @@
     "viewTour": "View Tour Again",
     "welcome": {
       "title": "Welcome to Redeemy",
-      "subtitle": "Credits, warranties, subscriptions, events and documents — everything you need to remember, in one place"
+      "subtitle": "Credits, subscriptions, warranties, events and documents — everything you need to remember, in one place"
     },
     "credits": {
       "title": "Credits you won't forget",
-      "subtitle": "Photograph a store credit, enter the amount and date — we'll remind you before it expires"
+      "subtitle": "Photograph a store credit, enter the amount and date — we'll remind you before it expires",
+      "hint": "See a number on the app icon? That's us flagging a credit about to expire — it clears the moment you open the app"
     },
     "warranties": {
       "title": "Warranties in one place",

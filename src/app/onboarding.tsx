@@ -20,13 +20,14 @@ interface Slide {
   emoji: string;
   titleKey: string;
   subtitleKey: string;
+  hintKey?: string;
   isNotification?: boolean;
 }
 
 const FEATURE_CHIPS: { emoji: string; labelKey: string; dest: 'credit' | 'warranty' | 'subscription' | 'occasion' | 'document' }[] = [
   { emoji: '💳', labelKey: 'onboarding.complete.addCredit', dest: 'credit' },
-  { emoji: '🛡️', labelKey: 'onboarding.complete.addWarranty', dest: 'warranty' },
   { emoji: '🔄', labelKey: 'onboarding.complete.addSubscription', dest: 'subscription' },
+  { emoji: '🛡️', labelKey: 'onboarding.complete.addWarranty', dest: 'warranty' },
   { emoji: '🎂', labelKey: 'onboarding.complete.addOccasion', dest: 'occasion' },
   { emoji: '🪪', labelKey: 'onboarding.complete.addDocument', dest: 'document' },
 ];
@@ -43,18 +44,19 @@ const SLIDES: Slide[] = [
     emoji: '💳',
     titleKey: 'onboarding.credits.title',
     subtitleKey: 'onboarding.credits.subtitle',
-  },
-  {
-    id: 'warranties',
-    emoji: '🛡️',
-    titleKey: 'onboarding.warranties.title',
-    subtitleKey: 'onboarding.warranties.subtitle',
+    hintKey: 'onboarding.credits.hint',
   },
   {
     id: 'subscriptions',
     emoji: '🔄',
     titleKey: 'onboarding.subscriptions.title',
     subtitleKey: 'onboarding.subscriptions.subtitle',
+  },
+  {
+    id: 'warranties',
+    emoji: '🛡️',
+    titleKey: 'onboarding.warranties.title',
+    subtitleKey: 'onboarding.warranties.subtitle',
   },
   {
     id: 'occasions',
@@ -251,6 +253,11 @@ export default function OnboardingScreen() {
           <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
             {t(slide.subtitleKey)}
           </Text>
+          {slide.hintKey && (
+            <Text style={[styles.hint, { color: colors.textTertiary }]}>
+              {t(slide.hintKey)}
+            </Text>
+          )}
         </View>
 
         {/* Progress dots */}
@@ -343,6 +350,12 @@ const styles = StyleSheet.create({
     fontSize: 16,
     textAlign: 'center',
     lineHeight: 24,
+  },
+  hint: {
+    fontSize: 13,
+    textAlign: 'center',
+    lineHeight: 19,
+    marginTop: 16,
   },
   dots: {
     flexDirection: 'row',
