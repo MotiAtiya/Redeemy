@@ -71,6 +71,25 @@ specialPeriodNotificationId: string       → reminder before trial/discount end
 
 `subscriptionUtils.ts` has all date/billing logic: `getNextBillingDate()`, `daysUntilBilling()`, `getNextReminderInfo()` (returns `ReminderType`: `'trial' | 'discounted' | 'review' | 'renews' | 'expires'`), `normalizeToMonthlyAgorot()`, `computeMonthlyTotal()`, `advanceBillingCycle()`, `endFreeTrialIfDue()`.
 
+### Subscription Notification Logic
+
+All scheduling is in `subscriptionNotifications.ts`. The anchor date used for scheduling depends on the subscription type:
+
+| Type | Notification trigger |
+|------|---------------------|
+| `isFree` | Review reminder every `freeReviewReminderMonths` months from `registrationDate` |
+| `MONTHLY` + `hasFixedPeriod: false` | Same as free — periodic review reminder only |
+| `MONTHLY` + `hasFixedPeriod: true` | N days before **`commitmentEndDate`** (never before intermediate billing days) |
+| `ANNUAL` | N days before **`nextBillingDate`** (end of current annual term) |
+
+For the last two cases, N = `subscriptionReminderDays` from settings (default: 7). A second notification fires 1 day before if the user has enabled `subscriptionLastDayAlert` (auto) or always (manual).
+
+**Special period** (`trial` / `discounted`): if `reminderSpecialPeriodEnabled`, fires before `trialEndsDate`:
+- Period in months → 7 days before
+- Period in days → `min(floor(duration/2), 3)` days before, minimum 1
+
+**Critical rule:** A monthly subscription with `hasFixedPeriod: true` must NEVER fire notifications before individual billing cycles — only before `commitmentEndDate`. Use `commitmentEndDate` as the anchor, not `getNextBillingDate()`.
+
 ---
 
 ## Occasions — Key Concepts
