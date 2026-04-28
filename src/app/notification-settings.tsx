@@ -8,6 +8,7 @@ import {
   Modal,
   ScrollView,
   I18nManager,
+  Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
@@ -451,7 +452,7 @@ export default function NotificationSettingsScreen() {
           <DateTimePicker
             value={notifTimeDate}
             mode="time"
-            display="spinner"
+            display={Platform.OS === 'ios' ? 'spinner' : 'default'}
             onChange={handleNotifTimeChange}
             style={{ width: '100%' }}
             textColor={colors.textPrimary}

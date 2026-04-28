@@ -11,6 +11,7 @@ import {
   Alert,
   I18nManager,
   Keyboard,
+  Platform,
 } from 'react-native';
 import { Image } from 'expo-image';
 import { useTranslation } from 'react-i18next';
@@ -499,7 +500,7 @@ export default function AddDocumentScreen() {
         <DateTimePicker
           value={expirationDate}
           mode="date"
-          display="spinner"
+          display={Platform.OS === 'ios' ? 'spinner' : 'default'}
           onChange={(_: DateTimePickerEvent, date?: Date) => { if (date) setExpirationDate(date); }}
           textColor={colors.textPrimary}
           style={{ width: '100%' }}

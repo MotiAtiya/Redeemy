@@ -13,6 +13,7 @@ import {
   Pressable,
   I18nManager,
   Keyboard,
+  Platform,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useRouter, useLocalSearchParams } from 'expo-router';
@@ -500,7 +501,7 @@ export default function AddOccasionScreen() {
         <DateTimePicker
           value={eventDate}
           mode="date"
-          display="spinner"
+          display={Platform.OS === 'ios' ? 'spinner' : 'default'}
           maximumDate={new Date()}
           onChange={(_: DateTimePickerEvent, date?: Date) => date && setEventDate(date)}
           locale="en-GB"

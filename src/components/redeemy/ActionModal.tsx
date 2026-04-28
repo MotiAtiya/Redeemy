@@ -1,5 +1,5 @@
-import type { ComponentProps } from 'react';
-import { View, Text, TouchableOpacity, Modal, StyleSheet } from 'react-native';
+import { type ComponentProps, useEffect, useRef } from 'react';
+import { View, Text, TouchableOpacity, Modal, StyleSheet, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useAppTheme } from '@/hooks/useAppTheme';
 
@@ -27,6 +27,16 @@ interface Props {
  */
 export function ActionModal({ visible, onClose, actions, cancelLabel, onDismiss }: Props) {
   const colors = useAppTheme();
+  const prevVisibleRef = useRef(visible);
+
+  // Modal.onDismiss is iOS-only — fire it manually on Android after the slide animation.
+  useEffect(() => {
+    if (prevVisibleRef.current && !visible && onDismiss && Platform.OS === 'android') {
+      const timer = setTimeout(onDismiss, 300);
+      return () => clearTimeout(timer);
+    }
+    prevVisibleRef.current = visible;
+  }, [visible, onDismiss]);
 
   return (
     <Modal
