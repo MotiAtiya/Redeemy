@@ -25,6 +25,7 @@ type SchedulableSub = Pick<
   | 'renewalType'
   | 'isFree'
   | 'hasFixedPeriod'
+  | 'commitmentEndDate'
   | 'freeReviewReminderMonths'
   | 'registrationDate'
   | 'isFreeTrial'
@@ -123,9 +124,22 @@ export async function scheduleSubscriptionNotifications(
     if (id) result.specialPeriodNotificationId = id;
   }
 
-  // Compute billing trigger dates
-  const nextBilling = getNextBillingDate(sub as Subscription);
-  const billingTriggerDate = new Date(nextBilling);
+  // Compute billing trigger date.
+  // Monthly with a fixed commitment: notify before the commitment end date, not before each
+  // intermediate billing day. Annual and manual-no-fixed: use the next billing date as usual.
+  let anchorDate: Date;
+  if (
+    sub.billingCycle === SubscriptionBillingCycle.MONTHLY &&
+    sub.hasFixedPeriod &&
+    sub.commitmentEndDate
+  ) {
+    anchorDate = sub.commitmentEndDate instanceof Date
+      ? sub.commitmentEndDate
+      : new Date(sub.commitmentEndDate as unknown as string);
+  } else {
+    anchorDate = getNextBillingDate(sub as Subscription);
+  }
+  const billingTriggerDate = new Date(anchorDate);
   billingTriggerDate.setHours(notificationHour, notificationMinute, 0, 0);
 
   const dayBefore = new Date(billingTriggerDate);
