@@ -7,6 +7,7 @@ import {
   getDocs,
   doc,
   serverTimestamp,
+  deleteField,
   query,
   where,
   writeBatch,

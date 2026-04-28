@@ -49,6 +49,7 @@ function makeStyles(colors: AppColors) {
       overflow: 'hidden',
       backgroundColor: colors.surface,
     },
+    backButton: { padding: 16 },
     notFound: { flex: 1, justifyContent: 'center', alignItems: 'center' },
     notFoundText: { fontSize: 16, color: colors.textTertiary },
   });

@@ -190,7 +190,7 @@ function makeStyles(colors: AppColors, isRTL: boolean) {
       justifyContent: 'space-between',
       marginTop: 20,
       padding: 14,
-      backgroundColor: colors.card,
+      backgroundColor: colors.surface,
       borderRadius: 12,
       borderWidth: StyleSheet.hairlineWidth,
       borderColor: colors.separator,

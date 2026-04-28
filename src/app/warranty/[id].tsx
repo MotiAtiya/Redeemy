@@ -7,6 +7,7 @@ import {
   StyleSheet,
   Alert,
   I18nManager,
+  ActivityIndicator,
 } from 'react-native';
 import * as MediaLibrary from 'expo-media-library';
 import * as FileSystem from 'expo-file-system/legacy';

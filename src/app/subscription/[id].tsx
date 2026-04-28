@@ -259,7 +259,7 @@ export default function SubscriptionDetailScreen() {
 
   function getHeroBadgeProps(): { text: string; color: string; bgColor: string } | null {
     if (isCancelled) return null;
-    if (sub.isFree) return { text: t('subscription.detail.free'), color: colors.urgencyGreen, bgColor: colors.urgencyGreenSurface };
+    if (sub?.isFree) return { text: t('subscription.detail.free'), color: colors.urgencyGreen, bgColor: colors.urgencyGreenSurface };
     const text = getNextBillingText();
     if (daysLeft === 0 || daysLeft <= 7) return { text, color: colors.urgencyRed, bgColor: colors.urgencyRedSurface };
     if (daysLeft <= 30) return { text, color: colors.urgencyAmber, bgColor: colors.urgencyAmberSurface };
