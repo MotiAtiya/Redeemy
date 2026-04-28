@@ -323,6 +323,8 @@
       "storeName": "שם החנות",
       "category": "קטגוריה",
       "productName": "שם המוצר",
+      "productType": "מה המוצר?",
+      "productDetails": "מותג ודגם",
       "expiryDate": "תאריך תפוגה",
       "reminder": "תזכורת",
       "photo": "צלמו את הקבלה",
@@ -330,6 +332,20 @@
       "notesInput": "הערות",
       "summary": "הכל נראה טוב?"
     },
+    "productType": {
+      "placeholder": "לדוגמה: תנור אפייה, טלוויזיה",
+      "notFound": "לא מצאת? כתוב בחופשיות"
+    },
+    "brand": {
+      "label": "מותג",
+      "placeholder": "לדוגמה: Bosch, Samsung"
+    },
+    "model": {
+      "label": "דגם",
+      "placeholder": "לדוגמה: HBF154"
+    },
+    "optional": "אופציונלי",
+    "skip": "דלג",
     "productNamePlaceholder": "לדוגמה: תנור אפייה Bosch HBF154",
     "noExpiry": "ללא תאריך תפוגה",
     "continue": "המשך",
@@ -405,6 +421,9 @@
     },
     "detail": {
       "category": "קטגוריה",
+      "product": "מוצר",
+      "brand": "מותג",
+      "model": "דגם",
       "expires": "תפוגה",
       "noExpiry": "ללא תפוגה",
       "reminder": "תזכורת",

@@ -20,7 +20,7 @@ import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import DateTimePicker, { type DateTimePickerEvent } from '@react-native-community/datetimepicker';
 import { StoreAutocomplete } from '@/components/redeemy/StoreAutocomplete';
-import { CategorySelector } from '@/components/redeemy/CategorySelector';
+import { AutocompleteInput, type AutocompleteItem } from '@/components/redeemy/AutocompleteInput';
 import { StepFormScreen } from '@/components/redeemy/StepFormScreen';
 import { openCamera, openGallery, uploadEntityImage, type DocumentImage } from '@/lib/imageUpload';
 import { PhotoPickerStep, type PhotoItem } from '@/components/redeemy/PhotoPickerStep';
@@ -32,8 +32,9 @@ import { useWarrantiesStore } from '@/stores/warrantiesStore';
 import { useUIStore } from '@/stores/uiStore';
 import { useAppTheme } from '@/hooks/useAppTheme';
 import { WarrantyStatus, type Warranty } from '@/types/warrantyTypes';
-import { DEFAULT_CATEGORY_ID, CATEGORIES } from '@/constants/categories';
-import { getCategoryForStore } from '@/data/israeliStores';
+import { WARRANTY_STORES } from '@/data/warrantyStores';
+import { WARRANTY_PRODUCT_TYPES } from '@/data/warrantyProductTypes';
+import { WARRANTY_BRANDS } from '@/data/warrantyBrands';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { formatDate } from '@/lib/formatDate';
 import type { AppColors } from '@/constants/colors';
@@ -44,17 +45,14 @@ import type { AppColors } from '@/constants/colors';
 
 type StepId =
   | 'storeName'
-  | 'category'
-  | 'productName'
+  | 'productType'
+  | 'productDetails'
   | 'expiryDate'
   | 'photo'
   | 'summary';
 
-function getSteps(categoryChosen = false): StepId[] {
-  const steps: StepId[] = ['storeName'];
-  if (categoryChosen) steps.push('category');
-  steps.push('productName', 'expiryDate', 'photo', 'summary');
-  return steps;
+function getSteps(): StepId[] {
+  return ['storeName', 'productType', 'productDetails', 'expiryDate', 'photo', 'summary'];
 }
 
 // ---------------------------------------------------------------------------
@@ -88,18 +86,14 @@ function makeStyles(colors: AppColors, isRTL: boolean) {
     },
     continueBtnDisabled: { backgroundColor: colors.separator },
     continueBtnText: { fontSize: 17, fontWeight: '700', color: '#FFFFFF' },
-    // Product Name step
-    productNameInput: {
-      height: 64,
-      borderWidth: 1,
-      borderColor: colors.separator,
-      borderRadius: 12,
-      paddingHorizontal: 16,
-      fontSize: 20,
-      fontWeight: '500',
-      color: colors.textPrimary,
-      backgroundColor: colors.background,
-      textAlign: isRTL ? 'right' : 'left',
+    // productDetails step
+    fieldLabel: {
+      fontSize: 13,
+      fontWeight: '600',
+      color: colors.textTertiary,
+      alignSelf: 'flex-start',
+      marginBottom: 6,
+      marginTop: 16,
     },
     // Expiry date step
     noExpiryRow: {
@@ -184,32 +178,6 @@ function makeStyles(colors: AppColors, isRTL: boolean) {
       fontWeight: '700',
       color: colors.primary,
     },
-    categoryRow: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-      marginTop: 20,
-      padding: 14,
-      backgroundColor: colors.surface,
-      borderRadius: 12,
-      borderWidth: StyleSheet.hairlineWidth,
-      borderColor: colors.separator,
-    },
-    categoryRowContent: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: 6,
-    },
-    categoryRowTitle: {
-      fontSize: 15,
-      color: colors.textPrimary,
-      fontWeight: '500',
-    },
-    categoryRowLabel: {
-      fontSize: 15,
-      color: colors.textSecondary,
-      fontWeight: '400',
-    },
     notesLabel: {
       fontSize: 13,
       fontWeight: '600',
@@ -262,8 +230,9 @@ export default function AddWarrantyScreen() {
 
   // Form state
   const [storeName, setStoreName] = useState('');
-  const [category, setCategory] = useState(DEFAULT_CATEGORY_ID);
-  const [productName, setProductName] = useState('');
+  const [productType, setProductType] = useState('');
+  const [brand, setBrand] = useState('');
+  const [model, setModel] = useState('');
   const [noExpiry, setNoExpiry] = useState(false);
   const [expirationDate, setExpirationDate] = useState<Date | null>(null);
   const [showDatePicker, setShowDatePicker] = useState(false);
@@ -275,19 +244,19 @@ export default function AddWarrantyScreen() {
 
   // Step state
   const [currentStepId, setCurrentStepId] = useState<StepId>('storeName');
-  const [categoryChosen, setCategoryChosen] = useState(false);
   const { fadeAnim, slideAnim, animateTransition } = useStepAnimation();
   const summaryScrollRef = useRef<ScrollView>(null);
 
-  const steps = useMemo(() => getSteps(categoryChosen), [categoryChosen]);
+  const steps = useMemo(() => getSteps(), []);
   const currentStepIndex = steps.indexOf(currentStepId);
 
   // Pre-fill for edit mode
   useEffect(() => {
     if (!isEditing || !existingWarranty) return;
     setStoreName(existingWarranty.storeName);
-    setProductName(existingWarranty.productName);
-    setCategory(existingWarranty.category);
+    setProductType(existingWarranty.productType ?? existingWarranty.productName ?? '');
+    setBrand(existingWarranty.brand ?? '');
+    setModel(existingWarranty.model ?? '');
     if (existingWarranty.expirationDate) {
       const d =
         existingWarranty.expirationDate instanceof Date
@@ -306,25 +275,6 @@ export default function AddWarrantyScreen() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Auto-detect category when a store is selected from autocomplete
-  function handleSelectStoreSuggestion(selectedName: string) {
-    const mapped = getCategoryForStore(selectedName);
-    if (mapped) setCategory(mapped);
-  }
-
-  function applyStoreCategoryIfNeeded(name: string) {
-    if (category !== DEFAULT_CATEGORY_ID) return;
-    const mapped = getCategoryForStore(name);
-    if (mapped) setCategory(mapped);
-  }
-
-  function handleTapCategoryRow() {
-    animateTransition('forward', () => {
-      setCategoryChosen(true);
-      setCurrentStepId('category');
-    });
-  }
-
   // ---------------------------------------------------------------------------
   // Navigation
   // ---------------------------------------------------------------------------
@@ -339,7 +289,6 @@ export default function AddWarrantyScreen() {
 
   function goBack() {
     if (currentStepIndex > 0) {
-      if (currentStepId === 'category') setCategoryChosen(false);
       animateTransition('back', () => setCurrentStepId(steps[currentStepIndex - 1]));
     } else {
       router.back();
@@ -373,7 +322,6 @@ export default function AddWarrantyScreen() {
 
   function handleContinue() {
     if (!validateCurrentStep()) return;
-    if (currentStepId === 'storeName') applyStoreCategoryIfNeeded(storeName);
     goNext();
   }
 
@@ -383,14 +331,57 @@ export default function AddWarrantyScreen() {
 
   const canContinue = useMemo(() => {
     switch (currentStepId) {
-      case 'storeName': return storeName.trim().length > 0;
-      case 'category': return true;
-      case 'productName': return productName.trim().length > 0;
-      case 'expiryDate': return noExpiry || expirationDate !== null;
-      case 'photo': return photoItems.length > 0;
+      case 'storeName':     return storeName.trim().length > 0;
+      case 'productType':   return productType.trim().length > 0;
+      case 'productDetails': return true;
+      case 'expiryDate':    return noExpiry || expirationDate !== null;
+      case 'photo':         return photoItems.length > 0;
       default: return false;
     }
-  }, [currentStepId, storeName, productName, noExpiry, expirationDate, photoItems]);
+  }, [currentStepId, storeName, productType, noExpiry, expirationDate, photoItems]);
+
+  // productType step derived data
+  const productTypeDisplayValue = useMemo(() => {
+    const found = WARRANTY_PRODUCT_TYPES.find((p) => p.id === productType);
+    return found ? found.heLabel : productType;
+  }, [productType]);
+
+  const productTypeSuggestions = useMemo((): AutocompleteItem[] => {
+    const q = productTypeDisplayValue.trim().toLowerCase();
+    if (!q) return [];
+    const isEnglishQuery = /[a-zA-Z]/.test(q);
+    return WARRANTY_PRODUCT_TYPES
+      .filter((p) => p.heLabel.toLowerCase().includes(q) || p.enLabel.toLowerCase().includes(q))
+      .sort((a, b) => {
+        const primaryLabel = (p: typeof a) => isEnglishQuery ? p.enLabel.toLowerCase() : p.heLabel.toLowerCase();
+        const aStarts = primaryLabel(a).startsWith(q);
+        const bStarts = primaryLabel(b).startsWith(q);
+        if (aStarts && !bStarts) return -1;
+        if (!aStarts && bStarts) return 1;
+        return isEnglishQuery
+          ? a.enLabel.localeCompare(b.enLabel, 'en')
+          : a.heLabel.localeCompare(b.heLabel, 'he');
+      })
+      .slice(0, 30)
+      .map((p) => ({ label: isEnglishQuery ? p.enLabel : p.heLabel, value: p.id }));
+  }, [productTypeDisplayValue]);
+
+  // productDetails step derived data
+  const brandSuggestions = useMemo((): AutocompleteItem[] => {
+    const q = brand.trim().toLowerCase();
+    if (!q) return [];
+    return WARRANTY_BRANDS
+      .filter((b) => b.toLowerCase().includes(q))
+      .sort((a, b) => {
+        const aStarts = a.toLowerCase().startsWith(q);
+        const bStarts = b.toLowerCase().startsWith(q);
+        if (aStarts && !bStarts) return -1;
+        if (!aStarts && bStarts) return 1;
+        return a.localeCompare(b, 'he');
+      })
+      .slice(0, 30)
+      .map((b) => ({ label: b, value: b }));
+  }, [brand]);
 
   // ---------------------------------------------------------------------------
   // Photo helpers
@@ -452,8 +443,9 @@ export default function AddWarrantyScreen() {
         const finalExpiry = noExpiry ? undefined : expirationDate ?? undefined;
         const changes: Partial<Warranty> = {
           storeName: storeName.trim(),
-          productName: productName.trim(),
-          category,
+          productType: productType.trim() || undefined,
+          brand: brand.trim() || undefined,
+          model: model.trim() || undefined,
           expirationDate: finalExpiry,
           noExpiry,
           reminderDays: warrantyReminderDays,
@@ -514,8 +506,9 @@ export default function AddWarrantyScreen() {
       id: tempId,
       userId: currentUser.uid,
       storeName: storeName.trim(),
-      productName: productName.trim(),
-      category,
+      productType: productType.trim() || undefined,
+      brand: brand.trim() || undefined,
+      model: model.trim() || undefined,
       expirationDate: noExpiry ? undefined : expirationDate ?? undefined,
       noExpiry,
       reminderDays: warrantyReminderDays,
@@ -532,8 +525,9 @@ export default function AddWarrantyScreen() {
       const newWarrantyId = await createWarranty({
         userId: currentUser.uid,
         storeName: storeName.trim(),
-        productName: productName.trim(),
-        category,
+        productType: productType.trim() || undefined,
+        brand: brand.trim() || undefined,
+        model: model.trim() || undefined,
         expirationDate: finalExpiry,
         noExpiry,
         reminderDays: warrantyReminderDays,
@@ -603,7 +597,6 @@ export default function AddWarrantyScreen() {
   // ---------------------------------------------------------------------------
 
   function renderStoreNameStep() {
-    const categoryObj = CATEGORIES.find((c) => c.id === category);
     return (
       <ScrollView
         style={styles.stepScroll}
@@ -614,58 +607,60 @@ export default function AddWarrantyScreen() {
         <StoreAutocomplete
           value={storeName}
           onChange={setStoreName}
-          onSelectSuggestion={handleSelectStoreSuggestion}
+          storeList={WARRANTY_STORES}
           autoFocus
         />
-        <TouchableOpacity style={styles.categoryRow} onPress={handleTapCategoryRow}>
-          <Text style={styles.categoryRowTitle}>{t('addCredit.category')}</Text>
-          <View style={styles.categoryRowContent}>
-            {categoryObj && <Ionicons name={categoryObj.icon} size={18} color={colors.textSecondary} />}
-            <Text style={styles.categoryRowLabel}>{t('category.' + category)}</Text>
-            <Ionicons name={isRTL ? 'chevron-back' : 'chevron-forward'} size={16} color={colors.textTertiary} />
-          </View>
-        </TouchableOpacity>
       </ScrollView>
     );
   }
 
-  function renderCategoryStep() {
+  function renderProductTypeStep() {
     return (
       <ScrollView
         style={styles.stepScroll}
         contentContainerStyle={styles.stepContent}
         keyboardShouldPersistTaps="handled"
       >
-        <Text style={styles.stepTitle}>{t('addWarranty.step.category')}</Text>
-        <CategorySelector
-          categories={CATEGORIES}
-          selected={category}
-          onSelect={setCategory}
-          labelFor={(id) => t('category.' + id)}
+        <Text style={styles.stepTitle}>{t('addWarranty.step.productType')}</Text>
+        <AutocompleteInput
+          value={productTypeDisplayValue}
+          suggestions={productTypeSuggestions}
+          onChangeText={setProductType}
+          onSelect={(item) => setProductType(item.value)}
+          placeholder={t('addWarranty.productType.placeholder')}
+          autoFocus
         />
       </ScrollView>
     );
   }
 
-  function renderProductNameStep() {
+  function renderProductDetailsStep() {
     return (
       <ScrollView
         style={styles.stepScroll}
         contentContainerStyle={styles.stepContent}
         keyboardShouldPersistTaps="handled"
       >
-        <Text style={styles.stepTitle}>{t('addWarranty.step.productName')}</Text>
-        <TextInput
-          style={styles.productNameInput}
-          placeholder={t('addWarranty.productNamePlaceholder')}
-          placeholderTextColor={colors.textTertiary}
-          value={productName}
-          onChangeText={setProductName}
-          autoFocus
-          autoCapitalize="sentences"
-          autoCorrect={false}
-          spellCheck={false}
-          returnKeyType="next"
+        <Text style={styles.stepTitle}>{t('addWarranty.step.productDetails')}</Text>
+
+        <Text style={styles.fieldLabel}>{`${t('addWarranty.brand.label')} (${t('addWarranty.optional')})`}</Text>
+        <AutocompleteInput
+          value={brand}
+          suggestions={brandSuggestions}
+          onChangeText={setBrand}
+          onSelect={(item) => setBrand(item.value)}
+          placeholder={t('addWarranty.brand.placeholder')}
+          autoCapitalize="words"
+        />
+
+        <Text style={styles.fieldLabel}>{`${t('addWarranty.model.label')} (${t('addWarranty.optional')})`}</Text>
+        <AutocompleteInput
+          value={model}
+          suggestions={[]}
+          onChangeText={setModel}
+          onSelect={() => {}}
+          placeholder={t('addWarranty.model.placeholder')}
+          autoCapitalize="none"
         />
       </ScrollView>
     );
@@ -744,7 +739,10 @@ export default function AddWarrantyScreen() {
   }
 
   function renderSummaryStep() {
-    const categoryObj = CATEGORIES.find((c) => c.id === category);
+    const productLabel = WARRANTY_PRODUCT_TYPES.find((p) => p.id === productType)?.heLabel ?? productType;
+    const productDisplay = productLabel
+      + (brand ? ` — ${brand}` : '')
+      + (model ? ` (${model})` : '');
 
     return (
       <ScrollView
@@ -778,17 +776,7 @@ export default function AddWarrantyScreen() {
 
           <View style={styles.summaryRow}>
             <Text style={styles.summaryLabel}>{t('addWarranty.summary.product')}</Text>
-            <Text style={[styles.summaryValue, styles.summaryProductValue]}>{productName}</Text>
-          </View>
-
-          <View style={styles.summaryRow}>
-            <Text style={styles.summaryLabel}>{t('addWarranty.summary.category')}</Text>
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, flex: 1 }}>
-              {categoryObj && (
-                <Ionicons name={categoryObj.icon} size={16} color={colors.textSecondary} />
-              )}
-              <Text style={styles.summaryValue}>{t('category.' + category)}</Text>
-            </View>
+            <Text style={[styles.summaryValue, styles.summaryProductValue]}>{productDisplay}</Text>
           </View>
 
           <View style={[styles.summaryRow, styles.summaryRowLast]}>
@@ -825,12 +813,12 @@ export default function AddWarrantyScreen() {
 
   function renderCurrentStep() {
     switch (currentStepId) {
-      case 'storeName': return renderStoreNameStep();
-      case 'category': return renderCategoryStep();
-      case 'productName': return renderProductNameStep();
-      case 'expiryDate': return renderExpiryDateStep();
-      case 'photo': return renderPhotoStep();
-      case 'summary': return renderSummaryStep();
+      case 'storeName':     return renderStoreNameStep();
+      case 'productType':   return renderProductTypeStep();
+      case 'productDetails': return renderProductDetailsStep();
+      case 'expiryDate':    return renderExpiryDateStep();
+      case 'photo':         return renderPhotoStep();
+      case 'summary':       return renderSummaryStep();
     }
   }
 

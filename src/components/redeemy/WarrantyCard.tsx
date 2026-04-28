@@ -10,6 +10,7 @@ import { formatDate } from '@/lib/formatDate';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { CATEGORIES } from '@/constants/categories';
 import { type Warranty } from '@/types/warrantyTypes';
+import { WARRANTY_PRODUCT_TYPES } from '@/data/warrantyProductTypes';
 import { useAppTheme } from '@/hooks/useAppTheme';
 import type { AppColors } from '@/constants/colors';
 
@@ -64,6 +65,11 @@ export function WarrantyCard({ warranty, onPress, variant = 'active' }: Props) {
   const dateFormat = useSettingsStore((s) => s.dateFormat);
 
   const categoryMeta = CATEGORIES.find((c) => c.id === warranty.category);
+  const productLabel =
+    WARRANTY_PRODUCT_TYPES.find((p) => p.id === warranty.productType)?.heLabel
+    ?? warranty.productType
+    ?? warranty.productName
+    ?? '';
   const dimmed = variant === 'closed' || variant === 'expired';
 
   const badgeDate = (() => {
@@ -84,7 +90,7 @@ export function WarrantyCard({ warranty, onPress, variant = 'active' }: Props) {
     <BaseCard
       onPress={onPress}
       dimmed={dimmed}
-      accessibilityLabel={`${warranty.storeName} — ${warranty.productName}`}
+      accessibilityLabel={`${warranty.storeName} — ${productLabel}`}
     >
       <View>
         {(warranty.images?.[0]?.thumbnailUrl ?? warranty.thumbnailUrl) ? (
@@ -116,7 +122,7 @@ export function WarrantyCard({ warranty, onPress, variant = 'active' }: Props) {
           style={[styles.productName, dimmed && styles.productNameDimmed]}
           numberOfLines={2}
         >
-          {warranty.productName}
+          {productLabel}
         </Text>
 
         {dimmed ? (

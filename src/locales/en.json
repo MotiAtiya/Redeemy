@@ -324,6 +324,8 @@
       "storeName": "Store Name",
       "category": "Category",
       "productName": "Product Name",
+      "productType": "What's the product?",
+      "productDetails": "Brand & Model",
       "expiryDate": "Expiry Date",
       "reminder": "Reminder",
       "photo": "Take a photo of your receipt",
@@ -331,6 +333,20 @@
       "notesInput": "Notes",
       "summary": "Looking good?"
     },
+    "productType": {
+      "placeholder": "e.g. Oven, TV, Laptop",
+      "notFound": "Not found? Type freely"
+    },
+    "brand": {
+      "label": "Brand",
+      "placeholder": "e.g. Bosch, Samsung"
+    },
+    "model": {
+      "label": "Model",
+      "placeholder": "e.g. HBF154"
+    },
+    "optional": "Optional",
+    "skip": "Skip",
     "productNamePlaceholder": "e.g. Bosch Oven HBF154",
     "noExpiry": "No expiry date",
     "continue": "Continue",
@@ -406,6 +422,9 @@
     },
     "detail": {
       "category": "Category",
+      "product": "Product",
+      "brand": "Brand",
+      "model": "Model",
       "expires": "Expires",
       "noExpiry": "No expiration",
       "reminder": "Reminder",

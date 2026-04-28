@@ -39,7 +39,7 @@
 # NOTE: Epic 11 (Warranty Management) was implemented and tracked here but is not in epics.md.
 
 generated: 2026-04-21
-last_updated: 2026-04-27  # Epic 13 closed; Warranties/Occasions/Documents epics added
+last_updated: 2026-04-28  # Story 17-1 approved by Senior Dev Review
 project: Redeemy
 project_key: NOKEY
 tracking_system: file-system
@@ -148,3 +148,8 @@ development_status:
   12-5-reminder-notifications-and-auto-renewal: done
   12-6-history-sub-tabs-cancelled-archive-and-family-sharing: done
   epic-12-retrospective: optional
+
+  # Epic 17: Warranty Product Identity Redesign
+  epic-17: in-progress
+  17-1-warranty-product-identity-redesign: done
+  epic-17-retrospective: optional

@@ -32,9 +32,21 @@ import { useAuthStore } from '@/stores/authStore';
 import { useFamilyStore } from '@/stores/familyStore';
 import { useUIStore } from '@/stores/uiStore';
 import { useAppTheme } from '@/hooks/useAppTheme';
-import { WarrantyStatus } from '@/types/warrantyTypes';
-import { CATEGORIES } from '@/constants/categories';
+import { WarrantyStatus, type Warranty } from '@/types/warrantyTypes';
+import { WARRANTY_PRODUCT_TYPES } from '@/data/warrantyProductTypes';
 import type { AppColors } from '@/constants/colors';
+
+function getProductDisplay(w: Warranty): { type: string; brand?: string; model?: string } {
+  if (w.productType) {
+    const typeEntry = WARRANTY_PRODUCT_TYPES.find((p) => p.id === w.productType);
+    return {
+      type: typeEntry ? typeEntry.heLabel : w.productType,
+      brand: w.brand || undefined,
+      model: w.model || undefined,
+    };
+  }
+  return { type: w.productName ?? '—' };
+}
 
 function makeStyles(colors: AppColors) {
   return StyleSheet.create({
@@ -108,10 +120,7 @@ export default function WarrantyDetailScreen() {
   // Normalize images
   const images = warranty?.images ?? (warranty?.imageUrl ? [{ url: warranty.imageUrl, thumbnailUrl: warranty.thumbnailUrl ?? warranty.imageUrl }] : []);
 
-  const categoryMeta = useMemo(
-    () => CATEGORIES.find((c) => c.id === warranty?.category),
-    [warranty?.category]
-  );
+  const productDisplay = useMemo(() => warranty ? getProductDisplay(warranty) : { type: '—' }, [warranty]);
 
   if (!warranty) {
     return (
@@ -168,7 +177,7 @@ export default function WarrantyDetailScreen() {
     setShowActionSheet(false);
     Alert.alert(
       t('warranty.delete.title'),
-      t('warranty.delete.message', { productName: w.productName }),
+      t('warranty.delete.message', { productName: getProductDisplay(w).type }),
       [
         { text: t('common.cancel'), style: 'cancel' },
         {
@@ -244,7 +253,12 @@ export default function WarrantyDetailScreen() {
 
         <HeroCard>
           <Text style={styles.heroStoreName}>{warranty.storeName}</Text>
-          <Text style={styles.heroProductName}>{warranty.productName}</Text>
+          <Text style={styles.heroProductName}>{productDisplay.type}</Text>
+          {(productDisplay.brand || productDisplay.model) && (
+            <Text style={styles.heroStoreName}>
+              {[productDisplay.brand, productDisplay.model].filter(Boolean).join(' · ')}
+            </Text>
+          )}
           {(() => {
             const badge = computeExpiryBadge(warranty.noExpiry ? undefined : (expirationDate ?? undefined), t, colors);
             return <HeroBadge text={badge.text} color={badge.color} bgColor={badge.bgColor} />;
@@ -252,6 +266,28 @@ export default function WarrantyDetailScreen() {
         </HeroCard>
 
         <View style={styles.detailsCard}>
+          <DetailRow
+            icon="cube-outline"
+            label={t('warranty.detail.product')}
+            value={productDisplay.type}
+            showSeparator
+          />
+          {!!productDisplay.brand && (
+            <DetailRow
+              icon="business-outline"
+              label={t('warranty.detail.brand')}
+              value={productDisplay.brand}
+              showSeparator
+            />
+          )}
+          {!!productDisplay.model && (
+            <DetailRow
+              icon="barcode-outline"
+              label={t('warranty.detail.model')}
+              value={productDisplay.model}
+              showSeparator
+            />
+          )}
           <DetailRow
             icon="calendar-outline"
             label={t('warranty.detail.expires')}

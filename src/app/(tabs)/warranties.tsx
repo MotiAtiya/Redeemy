@@ -17,8 +17,15 @@ import { WarrantyCard } from '@/components/redeemy/WarrantyCard';
 import { useWarrantiesStore } from '@/stores/warrantiesStore';
 import { useAppTheme } from '@/hooks/useAppTheme';
 import { WarrantyStatus, type Warranty } from '@/types/warrantyTypes';
-import { CATEGORIES } from '@/constants/categories';
+import { WARRANTY_PRODUCT_TYPES } from '@/data/warrantyProductTypes';
 import type { AppColors } from '@/constants/colors';
+
+function getWarrantyProductLabel(w: Warranty): string {
+  return WARRANTY_PRODUCT_TYPES.find((p) => p.id === w.productType)?.heLabel
+    ?? w.productType
+    ?? w.productName
+    ?? '';
+}
 
 type SortOption = 'expiry' | 'productName' | 'storeName' | 'recent';
 
@@ -136,7 +143,7 @@ function sortWarranties(warranties: Warranty[], sortOption: SortOption): Warrant
         if (b.noExpiry) return -1;
         return (a.expirationDate!.getTime()) - (b.expirationDate!.getTime());
       case 'productName':
-        return a.productName.localeCompare(b.productName, 'he');
+        return getWarrantyProductLabel(a).localeCompare(getWarrantyProductLabel(b), 'he');
       case 'storeName':
         return a.storeName.localeCompare(b.storeName, 'he');
       case 'recent':
@@ -157,7 +164,7 @@ export default function WarrantiesScreen() {
   const [showSortMenu, setShowSortMenu] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
 
-  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [selectedProductType, setSelectedProductType] = useState<string | null>(null);
 
   const SORT_OPTIONS: { key: SortOption; label: string }[] = [
     { key: 'expiry',       label: t('warranties.sort.expiry')       },
@@ -173,8 +180,9 @@ export default function WarrantiesScreen() {
     ),
   [warranties]);
 
-  const availableCategories = useMemo(
-    () => [...new Set(activeWarranties.map((w) => w.category))],
+  // Collect unique productType values present in active warranties (for filter chips)
+  const availableProductTypes = useMemo(
+    () => [...new Set(activeWarranties.map((w) => w.productType).filter((p): p is string => !!p))],
     [activeWarranties]
   );
 
@@ -182,17 +190,19 @@ export default function WarrantiesScreen() {
     const q = searchQuery.trim().toLowerCase();
     return sortWarranties(
       activeWarranties.filter((w) => {
-        if (selectedCategory && w.category !== selectedCategory) return false;
+        if (selectedProductType && w.productType !== selectedProductType) return false;
         if (!q) return true;
         return (
           w.storeName.toLowerCase().includes(q) ||
-          w.productName.toLowerCase().includes(q) ||
+          getWarrantyProductLabel(w).toLowerCase().includes(q) ||
+          (w.brand ?? '').toLowerCase().includes(q) ||
+          (w.model ?? '').toLowerCase().includes(q) ||
           (w.notes ?? '').toLowerCase().includes(q)
         );
       }),
       sortOption
     );
-  }, [activeWarranties, searchQuery, selectedCategory, sortOption]);
+  }, [activeWarranties, searchQuery, selectedProductType, sortOption]);
 
   function renderEmpty() {
     return (
@@ -249,23 +259,25 @@ export default function WarrantiesScreen() {
           />
         </View>
 
-        {availableCategories.length > 1 && (
+        {availableProductTypes.length > 1 && (
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={styles.filterChips}
           >
-            {[null, ...availableCategories].map((item) => {
-              const isActive = item === selectedCategory;
-              const catMeta = item ? CATEGORIES.find((c) => c.id === item) : null;
+            {[null, ...availableProductTypes].map((item) => {
+              const isActive = item === selectedProductType;
+              const typeLabel = item
+                ? (WARRANTY_PRODUCT_TYPES.find((p) => p.id === item)?.heLabel ?? item)
+                : t('warranties.filter.all');
               return (
                 <TouchableOpacity
                   key={item ?? 'all'}
                   style={[styles.filterChip, isActive && styles.filterChipActive]}
-                  onPress={() => setSelectedCategory(isActive ? null : item)}
+                  onPress={() => setSelectedProductType(isActive ? null : (item ?? null))}
                 >
                   <Text style={[styles.filterChipText, isActive && styles.filterChipTextActive]}>
-                    {catMeta ? t('category.' + catMeta.id) : t('warranties.filter.all')}
+                    {typeLabel}
                   </Text>
                 </TouchableOpacity>
               );

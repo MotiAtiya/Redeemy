@@ -224,7 +224,7 @@ export default function HistoryScreen() {
         w.status === WarrantyStatus.CLOSED
         && (!search.trim() ||
           w.storeName.toLowerCase().includes(search.toLowerCase()) ||
-          w.productName.toLowerCase().includes(search.toLowerCase()))
+          (w.productName ?? '').toLowerCase().includes(search.toLowerCase()))
       )
       .sort((a, b) => {
         const aDate = (a.closedAt ?? a.updatedAt ?? a.createdAt).getTime();
@@ -272,7 +272,7 @@ export default function HistoryScreen() {
         w.status === WarrantyStatus.ACTIVE && w.expirationDate && w.expirationDate < now
         && (!search.trim() ||
           w.storeName.toLowerCase().includes(search.toLowerCase()) ||
-          w.productName.toLowerCase().includes(search.toLowerCase()))
+          (w.productName ?? '').toLowerCase().includes(search.toLowerCase()))
       )
       .sort((a, b) => {
         const aDate = (a.expirationDate ?? a.updatedAt ?? a.createdAt).getTime();

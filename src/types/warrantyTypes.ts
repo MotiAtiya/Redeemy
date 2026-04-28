@@ -10,8 +10,16 @@ export interface Warranty {
   id: string;
   userId: string;
   storeName: string;
-  productName: string;
-  category: string;
+
+  // v2 product identity (new records)
+  productType?: string;   // id from WARRANTY_PRODUCT_TYPES
+  brand?: string;         // from WARRANTY_BRANDS, optional
+  model?: string;         // free text, optional
+
+  /** @deprecated v1 — kept for backward compat with existing records */
+  productName?: string;
+  /** @deprecated v1 — kept for backward compat */
+  category?: string;
   expirationDate?: Date;
   noExpiry: boolean;
   reminderDays: number;
