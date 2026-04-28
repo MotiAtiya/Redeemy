@@ -1,8 +1,9 @@
 import * as ImagePicker from 'expo-image-picker';
 import * as ImageManipulator from 'expo-image-manipulator';
+import * as FileSystem from 'expo-file-system/legacy';
 import * as Linking from 'expo-linking';
-import { ref, uploadBytes, getDownloadURL, deleteObject, listAll } from 'firebase/storage';
-import { storage } from './firebase';
+import { ref, getDownloadURL, deleteObject, listAll } from 'firebase/storage';
+import { auth, storage } from './firebase';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -145,16 +146,31 @@ async function compressImage(
 // Upload
 // ---------------------------------------------------------------------------
 
-async function uriToBlob(uri: string): Promise<Blob> {
-  // fetch() with file:// URIs is unreliable on Android — XMLHttpRequest works on both platforms.
-  return new Promise((resolve, reject) => {
-    const xhr = new XMLHttpRequest();
-    xhr.onload = () => resolve(xhr.response);
-    xhr.onerror = () => reject(new Error('uriToBlob failed'));
-    xhr.responseType = 'blob';
-    xhr.open('GET', uri, true);
-    xhr.send(null);
+/**
+ * Uploads a local file URI to Firebase Storage natively.
+ * Uses expo-file-system's uploadAsync (native HTTP, no JS Blob/XHR) so it works
+ * on both iOS and Android, including file:// URIs.
+ */
+async function uploadFileNative(localUri: string, storagePath: string): Promise<void> {
+  const idToken = await auth.currentUser?.getIdToken();
+  if (!idToken) throw new Error('Not authenticated');
+
+  const bucket = (storage.app.options as { storageBucket: string }).storageBucket;
+  const encodedPath = encodeURIComponent(storagePath);
+  const url = `https://firebasestorage.googleapis.com/v0/b/${bucket}/o?uploadType=media&name=${encodedPath}`;
+
+  const result = await FileSystem.uploadAsync(url, localUri, {
+    httpMethod: 'POST',
+    uploadType: FileSystem.FileSystemUploadType.BINARY_CONTENT,
+    headers: {
+      'Content-Type': 'image/jpeg',
+      Authorization: `Firebase ${idToken}`,
+    },
   });
+
+  if (result.status < 200 || result.status >= 300) {
+    throw new Error(`Upload failed: ${result.status} ${result.body}`);
+  }
 }
 
 /**
@@ -172,22 +188,17 @@ export async function uploadCreditImage(
 ): Promise<UploadedImages> {
   const { fullUri, thumbUri } = await compressImage(localUri);
 
-  const [fullBlob, thumbBlob] = await Promise.all([
-    uriToBlob(fullUri),
-    uriToBlob(thumbUri),
-  ]);
-
-  const fullRef = ref(storage, `credits/${creditId}/full.jpg`);
-  const thumbRef = ref(storage, `credits/${creditId}/thumb.jpg`);
+  const fullPath = `credits/${creditId}/full.jpg`;
+  const thumbPath = `credits/${creditId}/thumb.jpg`;
 
   await Promise.all([
-    uploadBytes(fullRef, fullBlob, { contentType: 'image/jpeg' }),
-    uploadBytes(thumbRef, thumbBlob, { contentType: 'image/jpeg' }),
+    uploadFileNative(fullUri, fullPath),
+    uploadFileNative(thumbUri, thumbPath),
   ]);
 
   const [imageUrl, thumbnailUrl] = await Promise.all([
-    getDownloadURL(fullRef),
-    getDownloadURL(thumbRef),
+    getDownloadURL(ref(storage, fullPath)),
+    getDownloadURL(ref(storage, thumbPath)),
   ]);
 
   return { imageUrl, thumbnailUrl };
@@ -218,22 +229,17 @@ export async function uploadDocumentImage(
 ): Promise<UploadedImages> {
   const { fullUri, thumbUri } = await compressImage(localUri);
 
-  const [fullBlob, thumbBlob] = await Promise.all([
-    uriToBlob(fullUri),
-    uriToBlob(thumbUri),
-  ]);
-
-  const fullRef = ref(storage, `documents/${documentId}/full.jpg`);
-  const thumbRef = ref(storage, `documents/${documentId}/thumb.jpg`);
+  const fullPath = `documents/${documentId}/full.jpg`;
+  const thumbPath = `documents/${documentId}/thumb.jpg`;
 
   await Promise.all([
-    uploadBytes(fullRef, fullBlob, { contentType: 'image/jpeg' }),
-    uploadBytes(thumbRef, thumbBlob, { contentType: 'image/jpeg' }),
+    uploadFileNative(fullUri, fullPath),
+    uploadFileNative(thumbUri, thumbPath),
   ]);
 
   const [imageUrl, thumbnailUrl] = await Promise.all([
-    getDownloadURL(fullRef),
-    getDownloadURL(thumbRef),
+    getDownloadURL(ref(storage, fullPath)),
+    getDownloadURL(ref(storage, thumbPath)),
   ]);
 
   return { imageUrl, thumbnailUrl };
@@ -268,22 +274,17 @@ export async function uploadEntityImage(
 ): Promise<DocumentImage> {
   const { fullUri, thumbUri } = await compressImage(localUri);
 
-  const [fullBlob, thumbBlob] = await Promise.all([
-    uriToBlob(fullUri),
-    uriToBlob(thumbUri),
-  ]);
-
-  const fullRef = ref(storage, `${entityType}/${entityId}/${index}_full.jpg`);
-  const thumbRef = ref(storage, `${entityType}/${entityId}/${index}_thumb.jpg`);
+  const fullPath = `${entityType}/${entityId}/${index}_full.jpg`;
+  const thumbPath = `${entityType}/${entityId}/${index}_thumb.jpg`;
 
   await Promise.all([
-    uploadBytes(fullRef, fullBlob, { contentType: 'image/jpeg' }),
-    uploadBytes(thumbRef, thumbBlob, { contentType: 'image/jpeg' }),
+    uploadFileNative(fullUri, fullPath),
+    uploadFileNative(thumbUri, thumbPath),
   ]);
 
   const [url, thumbnailUrl] = await Promise.all([
-    getDownloadURL(fullRef),
-    getDownloadURL(thumbRef),
+    getDownloadURL(ref(storage, fullPath)),
+    getDownloadURL(ref(storage, thumbPath)),
   ]);
 
   return { url, thumbnailUrl };

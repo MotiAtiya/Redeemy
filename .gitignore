@@ -39,6 +39,7 @@ GoogleService-Info.plist
 
 # Editor
 .vscode/
+.idea/
 *.swp
 *.swo
 
