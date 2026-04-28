@@ -1060,6 +1060,11 @@
     "offline": "Cannot save in offline mode",
     "notesPlaceholder": "Notes, additional details…",
     "namePlaceholder": "Name",
+    "nameNote": {
+      "label": "Note",
+      "optional": "optional",
+      "placeholder": "e.g. brother-in-law, nephew, mom's brother"
+    },
     "customLabelPlaceholder": "Event description (e.g. Aliyah Anniversary)",
     "calendarGregorian": "Gregorian",
     "calendarHebrew": "Hebrew",
@@ -1091,6 +1096,7 @@
     "notFound": "Special day not found",
     "detail": {
       "type": "Type",
+      "nameNote": "Note",
       "eventDate": "Date",
       "hebrewDate": "Hebrew date",
       "notes": "Notes"

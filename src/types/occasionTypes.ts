@@ -25,6 +25,8 @@ export interface Occasion {
   hebrewDay?: number;
   /** Hebrew month component (1-13), stored for annual recalculation */
   hebrewMonth?: number;
+  /** Optional clarifier to distinguish people with the same name (e.g. "של מרגלית") */
+  nameNote?: string;
   /** Free-text notes */
   notes?: string;
   /** expo-notifications IDs — scheduled for next N years */

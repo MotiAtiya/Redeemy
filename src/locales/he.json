@@ -1059,6 +1059,11 @@
     "offline": "לא ניתן לשמור במצב לא מקוון",
     "notesPlaceholder": "הערות, פרטים נוספים…",
     "namePlaceholder": "שם",
+    "nameNote": {
+      "label": "פירוט",
+      "optional": "אופציונלי",
+      "placeholder": "לדוגמה: גיס, אחיין, אח של אמא"
+    },
     "customLabelPlaceholder": "לדוגמה: יום העלייה לארץ",
     "calendarGregorian": "לועזי",
     "calendarHebrew": "עברי",
@@ -1090,6 +1095,7 @@
     "notFound": "היום המיוחד לא נמצא",
     "detail": {
       "type": "סוג",
+      "nameNote": "פירוט",
       "eventDate": "תאריך",
       "hebrewDate": "תאריך עברי",
       "notes": "הערות"

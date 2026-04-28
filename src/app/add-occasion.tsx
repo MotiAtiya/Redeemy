@@ -148,6 +148,26 @@ function makeStyles(colors: AppColors, isRTL: boolean) {
       marginBottom: 12,
     },
 
+    nameNoteLabel: {
+      fontSize: 13,
+      fontWeight: '600',
+      color: colors.textTertiary,
+      alignSelf: 'flex-start',
+      marginBottom: 6,
+      marginTop: 8,
+    },
+    nameNoteInput: {
+      height: 48,
+      borderWidth: 1,
+      borderColor: colors.separator,
+      borderRadius: 12,
+      paddingHorizontal: 16,
+      fontSize: 15,
+      color: colors.textPrimary,
+      backgroundColor: colors.background,
+      textAlign: isRTL ? 'right' : 'left',
+    },
+
     // Hebrew date step
     toggleRow: {
       flexDirection: 'row',
@@ -256,6 +276,7 @@ export default function AddOccasionScreen() {
   // Form state
   const [occasionType, setOccasionType] = useState<OccasionType>('birthday');
   const [name, setName] = useState('');
+  const [nameNote, setNameNote] = useState('');
   const [customLabel, setCustomLabel] = useState('');
   const [eventDate, setEventDate] = useState(new Date(new Date().getFullYear() - 1, 0, 1));
   const [afterSunset, setAfterSunset] = useState(false);
@@ -275,6 +296,7 @@ export default function AddOccasionScreen() {
     if (!isEditing || !existingOccasion) return;
     setOccasionType(existingOccasion.type);
     setName(existingOccasion.name);
+    if (existingOccasion.nameNote) setNameNote(existingOccasion.nameNote);
     if (existingOccasion.customLabel) setCustomLabel(existingOccasion.customLabel);
     const d = existingOccasion.eventDate instanceof Date
       ? existingOccasion.eventDate
@@ -364,6 +386,7 @@ export default function AddOccasionScreen() {
       afterSunset,
       useHebrewDate,
       ...(occasionType === 'other' && customLabel.trim() ? { customLabel: customLabel.trim() } : {}),
+      ...(nameNote.trim() ? { nameNote: nameNote.trim() } : {}),
       ...(hebrewDateDisplay ? { hebrewDateStr: hebrewDateDisplay } : {}),
       ...(hebrewDate ? { hebrewDay: hebrewDate.getDate(), hebrewMonth: hebrewDate.getMonth() } : {}),
       ...(notes.trim() ? { notes: notes.trim() } : {}),
@@ -468,6 +491,16 @@ export default function AddOccasionScreen() {
           onChangeText={setName}
           autoFocus
           autoCapitalize="words"
+          returnKeyType="next"
+        />
+        <Text style={styles.nameNoteLabel}>{`${t('addOccasion.nameNote.label')} (${t('addOccasion.nameNote.optional')})`}</Text>
+        <TextInput
+          style={styles.nameNoteInput}
+          placeholder={t('addOccasion.nameNote.placeholder')}
+          placeholderTextColor={colors.textTertiary}
+          value={nameNote}
+          onChangeText={setNameNote}
+          autoCapitalize="sentences"
           returnKeyType="done"
         />
       </ScrollView>
@@ -564,7 +597,9 @@ export default function AddOccasionScreen() {
           </View>
           <View style={styles.summaryRow}>
             <Text style={styles.summaryLabel}>{t('addOccasion.summary.name')}</Text>
-            <Text style={styles.summaryValue}>{name}{occasionType === 'other' && customLabel ? ` — ${customLabel}` : ''}</Text>
+            <Text style={styles.summaryValue}>
+              {name}{nameNote ? ` (${nameNote})` : ''}{occasionType === 'other' && customLabel ? ` — ${customLabel}` : ''}
+            </Text>
           </View>
           <View style={styles.summaryRow}>
             <Text style={styles.summaryLabel}>{t('addOccasion.summary.date')}</Text>

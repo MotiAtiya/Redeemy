@@ -94,12 +94,16 @@ export default function OccasionDetailScreen() {
   const nextDate = nextOccurrenceDate(eventDate, occasion.useHebrewDate, occasion.hebrewDay, occasion.hebrewMonth);
   const yearsCount = nextDate.getFullYear() - eventDate.getFullYear();
 
+  const displayName = occasion.nameNote
+    ? `${occasion.name} (${occasion.nameNote})`
+    : occasion.name;
+
   const heroTitle = (() => {
     switch (occasion.type) {
-      case 'birthday':   return t('occasions.heroTitle.birthday', { name: occasion.name });
-      case 'anniversary': return t('occasions.heroTitle.anniversary', { name: occasion.name });
-      case 'yahrzeit':   return t('occasions.heroTitle.yahrzeit', { name: occasion.name });
-      case 'other':      return t('occasions.heroTitle.other', { label: occasion.customLabel ?? '', name: occasion.name });
+      case 'birthday':   return t('occasions.heroTitle.birthday', { name: displayName });
+      case 'anniversary': return t('occasions.heroTitle.anniversary', { name: displayName });
+      case 'yahrzeit':   return t('occasions.heroTitle.yahrzeit', { name: displayName });
+      case 'other':      return t('occasions.heroTitle.other', { label: occasion.customLabel ?? '', name: displayName });
     }
   })();
 
@@ -177,6 +181,14 @@ export default function OccasionDetailScreen() {
             value={typeLabel}
             showSeparator
           />
+          {!!occasion.nameNote && (
+            <DetailRow
+              icon="information-circle-outline"
+              label={t('occasion.detail.nameNote')}
+              value={occasion.nameNote}
+              showSeparator
+            />
+          )}
           <DetailRow
             icon="calendar-outline"
             label={t('occasion.detail.eventDate')}

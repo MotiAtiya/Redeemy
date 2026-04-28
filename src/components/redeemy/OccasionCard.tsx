@@ -96,12 +96,16 @@ export function OccasionCard({ occasion, onPress }: Props) {
     [eventDate, occasion.useHebrewDate, occasion.hebrewDay, occasion.hebrewMonth]
   );
 
+  const displayName = occasion.nameNote
+    ? `${occasion.name} (${occasion.nameNote})`
+    : occasion.name;
+
   const title = (() => {
     switch (occasion.type) {
-      case 'birthday': return t('occasions.cardTitle.birthday', { name: occasion.name });
-      case 'anniversary': return t('occasions.cardTitle.anniversary', { name: occasion.name });
-      case 'yahrzeit': return t('occasions.cardTitle.yahrzeit', { name: occasion.name });
-      case 'other': return t('occasions.heroTitle.other', { label: occasion.customLabel ?? '', name: occasion.name });
+      case 'birthday': return t('occasions.cardTitle.birthday', { name: displayName });
+      case 'anniversary': return t('occasions.cardTitle.anniversary', { name: displayName });
+      case 'yahrzeit': return t('occasions.cardTitle.yahrzeit', { name: displayName });
+      case 'other': return t('occasions.heroTitle.other', { label: occasion.customLabel ?? '', name: displayName });
     }
   })();
 

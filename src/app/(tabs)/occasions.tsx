@@ -183,6 +183,7 @@ export default function OccasionsScreen() {
       const q = searchQuery.trim().toLowerCase();
       list = list.filter((o) =>
         o.name.toLowerCase().includes(q) ||
+        (o.nameNote ?? '').toLowerCase().includes(q) ||
         (o.customLabel ?? '').toLowerCase().includes(q)
       );
     }
