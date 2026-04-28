@@ -109,7 +109,7 @@ export async function scheduleSubscriptionNotifications(
     // For days-based short trials, use at most half the duration as lead time
     let daysBefore = 7;
     if (sub.specialPeriodUnit === 'days' && sub.specialPeriodDays) {
-      daysBefore = Math.max(1, Math.min(Math.floor(sub.specialPeriodDays / 2), 7));
+      daysBefore = Math.max(1, Math.min(Math.floor(sub.specialPeriodDays / 2), 3));
     }
 
     const reminderDate = new Date(endDate);
