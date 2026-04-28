@@ -22,7 +22,7 @@ function makeStyles(colors: AppColors) {
       alignItems: 'center',
     },
     center: { flex: 1, gap: 4, alignItems: 'flex-start' },
-    title: { fontSize: 16, fontWeight: '700', color: colors.textPrimary },
+    title: { fontSize: 18, fontWeight: '700', color: colors.textPrimary },
     subtitle: { fontSize: 13, color: colors.textSecondary },
     iconCircle: {
       width: 40,

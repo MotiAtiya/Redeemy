@@ -120,7 +120,7 @@ export function WarrantyCard({ warranty, onPress, variant = 'active' }: Props) {
 
         <Text
           style={[styles.productName, dimmed && styles.productNameDimmed]}
-          numberOfLines={2}
+          numberOfLines={1}
         >
           {productLabel}
         </Text>

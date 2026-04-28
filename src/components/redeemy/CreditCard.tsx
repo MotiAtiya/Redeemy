@@ -25,7 +25,7 @@ function makeStyles(colors: AppColors) {
   return StyleSheet.create({
     left: { flex: 1, gap: 6, alignItems: 'flex-start' },
     storeName: { fontSize: 15, fontWeight: '700', color: colors.textPrimary },
-    amount: { fontSize: 26, fontWeight: '800', color: colors.textPrimary, letterSpacing: -0.5 },
+    amount: { fontSize: 22, fontWeight: '800', color: colors.textPrimary, letterSpacing: -0.5 },
     amountCents: { fontSize: 15, fontWeight: '600', letterSpacing: 0 },
     amountDimmed: { color: colors.textTertiary },
     textDimmed: { color: colors.textTertiary },
