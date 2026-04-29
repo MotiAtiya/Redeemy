@@ -31,6 +31,8 @@ import type { AppColors } from '@/constants/colors';
 
 type ThemeMode = 'light' | 'dark' | 'system';
 
+const APP_IN_STORE = false;
+
 const DATE_FORMAT_OPTIONS: { value: DateFormat; label: string }[] = [
   { value: 'DD/MM/YYYY', label: 'DD/MM/YYYY' },
   { value: 'MM/DD/YYYY', label: 'MM/DD/YYYY' },
@@ -471,8 +473,9 @@ export default function MoreScreen() {
             </TouchableOpacity>
             <View style={styles.separator} />
             <TouchableOpacity
-              style={styles.aboutRow}
-              onPress={openStoreReview}
+              style={[styles.aboutRow, !APP_IN_STORE && { opacity: 0.4 }]}
+              onPress={APP_IN_STORE ? openStoreReview : undefined}
+              disabled={!APP_IN_STORE}
             >
               <Ionicons name="star-outline" size={20} color={colors.textSecondary} />
               <View style={{ flex: 1 }}>
@@ -483,8 +486,9 @@ export default function MoreScreen() {
             </TouchableOpacity>
             <View style={styles.separator} />
             <TouchableOpacity
-              style={styles.aboutRow}
-              onPress={handleShareApp}
+              style={[styles.aboutRow, !APP_IN_STORE && { opacity: 0.4 }]}
+              onPress={APP_IN_STORE ? handleShareApp : undefined}
+              disabled={!APP_IN_STORE}
             >
               <Ionicons name="share-social-outline" size={20} color={colors.textSecondary} />
               <View style={{ flex: 1 }}>

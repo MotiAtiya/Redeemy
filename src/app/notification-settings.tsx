@@ -449,10 +449,15 @@ export default function NotificationSettingsScreen() {
         <Text style={styles.sectionLabel}>{t('notificationSettings.appIconBadge.section')}</Text>
         <View style={styles.card}>
           <View style={styles.row}>
-            <Ionicons name="ellipse" size={20} color={colors.danger} />
+            <View style={{ width: 22, height: 22 }}>
+              <Ionicons name="notifications-outline" size={22} color={colors.textSecondary} />
+              <View style={{ position: 'absolute', top: -3, right: -5, minWidth: 13, height: 13, borderRadius: 7, backgroundColor: colors.danger, borderWidth: 1.5, borderColor: colors.surface, justifyContent: 'center', alignItems: 'center' }}>
+                <Text style={{ fontSize: 8, fontWeight: '700', color: '#fff' }}>3</Text>
+              </View>
+            </View>
             <View style={{ flex: 1 }}>
               <Text style={styles.rowLabel}>{t('notificationSettings.appIconBadge.label')}</Text>
-              <Text style={styles.rowSubtitle}>{t('notificationSettings.appIconBadge.subtitle')}</Text>
+              <Text style={[styles.rowSubtitle, { textAlign: 'left' }]}>{t('notificationSettings.appIconBadge.subtitle')}</Text>
             </View>
             <Switch
               style={{ transform: [{ scaleX: Platform.OS === 'ios' && isRTL ? -1 : 1 }] }}
