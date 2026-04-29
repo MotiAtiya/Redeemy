@@ -2,19 +2,18 @@ import { useEffect, useState, useMemo } from 'react';
 import {
   View,
   Text,
-  TextInput,
   FlatList,
   ScrollView,
   TouchableOpacity,
   StyleSheet,
   ActivityIndicator,
-  I18nManager,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import { CreditCard } from '@/components/redeemy/CreditCard';
+import { SearchBar } from '@/components/redeemy/SearchBar';
 import { subscribeToCredits } from '@/lib/firestoreCredits';
 import { sortCreditsHome, filterActiveCredits, type HomeSortKey } from '@/lib/creditUtils';
 import { useAuthStore } from '@/stores/authStore';
@@ -26,7 +25,7 @@ import type { AppColors } from '@/constants/colors';
 
 type SortKey = HomeSortKey;
 
-function makeStyles(colors: AppColors, isRTL: boolean) {
+function makeStyles(colors: AppColors) {
   return StyleSheet.create({
     safe: { flex: 1, backgroundColor: colors.background },
     header: {
@@ -64,23 +63,6 @@ function makeStyles(colors: AppColors, isRTL: boolean) {
     sortOptionActive: { backgroundColor: colors.background },
     sortOptionText: { fontSize: 14, color: colors.textPrimary },
     sortOptionTextActive: { color: colors.primary, fontWeight: '600' },
-    searchContainer: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      backgroundColor: colors.surface,
-      borderRadius: 12,
-      marginHorizontal: 16,
-      marginBottom: 10,
-      paddingHorizontal: 12,
-      height: 44,
-      shadowColor: '#000',
-      shadowOffset: { width: 0, height: 1 },
-      shadowOpacity: 0.04,
-      shadowRadius: 2,
-      elevation: 1,
-    },
-    searchIcon: { marginEnd: 8 },
-    searchInput: { flex: 1, fontSize: 15, color: colors.textPrimary, textAlign: isRTL ? 'right' : 'left', letterSpacing: 0 },
     filterChips: { paddingHorizontal: 16, paddingBottom: 10, gap: 8 },
     filterChip: {
       paddingVertical: 6,
@@ -137,8 +119,7 @@ function makeStyles(colors: AppColors, isRTL: boolean) {
 export default function CreditsScreen() {
   const router = useRouter();
   const colors = useAppTheme();
-  const isRTL = I18nManager.isRTL;
-  const styles = useMemo(() => makeStyles(colors, isRTL), [colors, isRTL]);
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const { t } = useTranslation();
 
   const SORT_OPTIONS: { key: SortKey; label: string }[] = [
@@ -230,18 +211,7 @@ export default function CreditsScreen() {
           </View>
         )}
 
-        <View style={styles.searchContainer}>
-          <Ionicons name="search-outline" size={18} color={colors.textTertiary} style={styles.searchIcon} />
-          <TextInput
-            style={styles.searchInput}
-            placeholder={t('credits.search')}
-            placeholderTextColor={colors.textTertiary}
-            value={searchQuery}
-            onChangeText={setSearchQuery}
-            returnKeyType="search"
-            clearButtonMode="while-editing"
-          />
-        </View>
+        <SearchBar value={searchQuery} onChangeText={setSearchQuery} placeholder={t('credits.search')} />
 
         {availableCategories.length > 1 && (
           <ScrollView

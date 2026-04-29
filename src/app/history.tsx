@@ -2,7 +2,6 @@ import { useMemo, useState } from 'react';
 import {
   View,
   Text,
-  TextInput,
   FlatList,
   ScrollView,
   TouchableOpacity,
@@ -15,6 +14,7 @@ import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import { CreditCard } from '@/components/redeemy/CreditCard';
+import { SearchBar } from '@/components/redeemy/SearchBar';
 import { WarrantyCard } from '@/components/redeemy/WarrantyCard';
 import { SubscriptionCard } from '@/components/redeemy/SubscriptionCard';
 import { useCreditsStore } from '@/stores/creditsStore';
@@ -40,7 +40,7 @@ interface FilterState {
   type: ItemType;
 }
 
-function makeStyles(colors: AppColors, isRTL: boolean) {
+function makeStyles(colors: AppColors) {
   return StyleSheet.create({
     safe: { flex: 1, backgroundColor: colors.background },
     header: {
@@ -53,23 +53,6 @@ function makeStyles(colors: AppColors, isRTL: boolean) {
     },
     title: { flex: 1, fontSize: 28, fontWeight: '700', color: colors.textPrimary, textAlign: 'left' },
     headerActions: { flexDirection: 'row', gap: 16, alignItems: 'center' },
-    searchContainer: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      backgroundColor: colors.surface,
-      borderRadius: 12,
-      marginHorizontal: 16,
-      marginBottom: 10,
-      paddingHorizontal: 12,
-      height: 44,
-      shadowColor: '#000',
-      shadowOffset: { width: 0, height: 1 },
-      shadowOpacity: 0.04,
-      shadowRadius: 2,
-      elevation: 1,
-    },
-    searchIcon: { marginEnd: 8 },
-    searchInput: { flex: 1, fontSize: 15, color: colors.textPrimary, textAlign: isRTL ? 'right' : 'left', letterSpacing: 0 },
     activeFilters: {
       flexDirection: 'row',
       flexWrap: 'wrap',
@@ -166,7 +149,7 @@ export default function HistoryScreen() {
   const router = useRouter();
   const colors = useAppTheme();
   const isRTL = I18nManager.isRTL;
-  const styles = useMemo(() => makeStyles(colors, isRTL), [colors, isRTL]);
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const { t } = useTranslation();
   const credits = useCreditsStore((s) => s.credits);
   const warranties = useWarrantiesStore((s) => s.warranties);
@@ -343,17 +326,7 @@ export default function HistoryScreen() {
         </View>
       </View>
 
-      <View style={styles.searchContainer}>
-        <Ionicons name="search-outline" size={18} color={colors.textTertiary} style={styles.searchIcon} />
-        <TextInput
-          style={styles.searchInput}
-          placeholder={t('history.search')}
-          placeholderTextColor={colors.textTertiary}
-          value={search}
-          onChangeText={setSearch}
-          clearButtonMode="while-editing"
-        />
-      </View>
+      <SearchBar value={search} onChangeText={setSearch} placeholder={t('history.search')} />
 
       {activeFilterChips.length > 0 && (
         <View style={styles.activeFilters}>
