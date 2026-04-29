@@ -36,7 +36,6 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       backgroundColor: '#5F9E8F',
     },
     googleServicesFile: process.env.GOOGLE_SERVICES_JSON ?? './google-services.json',
-    enableProguard: true,
   },
   web: {
     bundler: 'metro',
