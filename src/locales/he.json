@@ -132,7 +132,10 @@
       "version": "גרסה 1.0.0",
       "contact": "צרו קשר במייל",
       "rateUs": "דרגו אותנו",
-      "rateUsSubtitle": "ביקורת קטנה שלכם עוזרת מאוד"
+      "rateUsSubtitle": "ביקורת קטנה שלכם עוזרת מאוד",
+      "shareApp": "שתפו אותנו",
+      "shareAppSubtitle": "שתפו את Redeemy עם חברים ומשפחה",
+      "shareMessage": "הכירו את Redeemy — האפליקציה לניהול זיכויים, אחריויות, מנויים ועוד!\n\niOS: https://apps.apple.com/app/id6744642246\nAndroid: https://play.google.com/store/apps/details?id=com.redeemy.app"
     },
     "signOut": {
       "button": "התנתקות",
@@ -578,7 +581,12 @@
     "documents": "מסמכים",
     "reminderBeforeExpiry": "תזכורת לפני תפוגה",
     "expiryDayAlert": "התראה ביום התפוגה",
-    "sheetTitleDocument": "תזכורת לתפוגת מסמכים"
+    "sheetTitleDocument": "תזכורת לתפוגת מסמכים",
+    "appIconBadge": {
+      "section": "אייקון האפליקציה",
+      "label": "נקודה אדומה",
+      "subtitle": "הצג ספירה על אייקון האפליקציה כשיש זיכויים שעומדים לפוג"
+    }
   },
   "reminder": {
     "1day": "יום אחד",

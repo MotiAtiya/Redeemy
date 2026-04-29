@@ -181,7 +181,12 @@ export async function rescheduleAllNotifications(
  * the user's configured reminder window. Clears when the app is foregrounded.
  */
 export async function updateBadgeCount(credits: Credit[]): Promise<void> {
-  const { creditReminderDays } = useSettingsStore.getState();
+  const { creditReminderDays, appIconBadge } = useSettingsStore.getState();
+  if (!appIconBadge) {
+    await Notifications.setBadgeCountAsync(0);
+    return;
+  }
+
   const cutoff = new Date();
   cutoff.setDate(cutoff.getDate() + creditReminderDays);
 

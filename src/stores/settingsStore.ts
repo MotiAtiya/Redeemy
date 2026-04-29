@@ -21,6 +21,8 @@ interface SettingsStore {
   setLanguage: (lang: AppLanguage) => void;
   notificationsEnabled: boolean;
   setNotificationsEnabled: (enabled: boolean) => void;
+  appIconBadge: boolean;
+  setAppIconBadge: (enabled: boolean) => void;
   creditReminderDays: number;
   setCreditReminderDays: (days: number) => void;
   warrantyReminderDays: number;
@@ -65,6 +67,8 @@ export const useSettingsStore = create<SettingsStore>()(
       setLanguage: (language) => set({ language }),
       notificationsEnabled: true,
       setNotificationsEnabled: (notificationsEnabled) => set({ notificationsEnabled }),
+      appIconBadge: true,
+      setAppIconBadge: (appIconBadge) => set({ appIconBadge }),
       creditReminderDays: 7,
       setCreditReminderDays: (creditReminderDays) => set({ creditReminderDays }),
       warrantyReminderDays: 7,

@@ -145,6 +145,9 @@ export default function NotificationSettingsScreen() {
   const documentExpiryAlert = useSettingsStore((s) => s.documentExpiryAlert);
   const setDocumentExpiryAlert = useSettingsStore((s) => s.setDocumentExpiryAlert);
 
+  const appIconBadge = useSettingsStore((s) => s.appIconBadge);
+  const setAppIconBadge = useSettingsStore((s) => s.setAppIconBadge);
+
   const [showNotifTimeSheet, setShowNotifTimeSheet] = useState(false);
   const [showCreditSheet, setShowCreditSheet] = useState(false);
   const [showWarrantySheet, setShowWarrantySheet] = useState(false);
@@ -436,6 +439,25 @@ export default function NotificationSettingsScreen() {
               value={documentExpiryAlert}
               onValueChange={setDocumentExpiryAlert}
               disabled={!notificationsEnabled}
+              trackColor={{ false: colors.separator, true: colors.primary }}
+              thumbColor="#FFFFFF"
+            />
+          </View>
+        </View>
+
+        {/* App icon badge */}
+        <Text style={styles.sectionLabel}>{t('notificationSettings.appIconBadge.section')}</Text>
+        <View style={styles.card}>
+          <View style={styles.row}>
+            <Ionicons name="ellipse" size={20} color={colors.danger} />
+            <View style={{ flex: 1 }}>
+              <Text style={styles.rowLabel}>{t('notificationSettings.appIconBadge.label')}</Text>
+              <Text style={styles.rowSubtitle}>{t('notificationSettings.appIconBadge.subtitle')}</Text>
+            </View>
+            <Switch
+              style={{ transform: [{ scaleX: Platform.OS === 'ios' && isRTL ? -1 : 1 }] }}
+              value={appIconBadge}
+              onValueChange={setAppIconBadge}
               trackColor={{ false: colors.separator, true: colors.primary }}
               thumbColor="#FFFFFF"
             />

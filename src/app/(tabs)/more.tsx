@@ -7,6 +7,7 @@ import {
   Alert,
   Modal,
   Linking,
+  Share,
   I18nManager,
   ScrollView,
 } from 'react-native';
@@ -210,6 +211,17 @@ export default function MoreScreen() {
   const setDateFormat = useSettingsStore((s) => s.setDateFormat);
   const currency = useSettingsStore((s) => s.currency);
   const setCurrency = useSettingsStore((s) => s.setCurrency);
+
+  async function handleShareApp() {
+    try {
+      await Share.share({
+        message: t('more.about.shareMessage'),
+        url: 'https://apps.apple.com/app/id6744642246', // TODO: replace with actual App Store ID
+      });
+    } catch {
+      // user dismissed share sheet — no action needed
+    }
+  }
 
   const [showAppearanceSheet, setShowAppearanceSheet] = useState(false);
   const [showLanguageSheet, setShowLanguageSheet] = useState(false);
@@ -466,6 +478,18 @@ export default function MoreScreen() {
               <View style={{ flex: 1 }}>
                 <Text style={styles.aboutLabel}>{t('more.about.rateUs')}</Text>
                 <Text style={styles.aboutSubtitle}>{t('more.about.rateUsSubtitle')}</Text>
+              </View>
+              <Ionicons name={isRTL ? 'chevron-back' : 'chevron-forward'} size={16} color={colors.textTertiary} />
+            </TouchableOpacity>
+            <View style={styles.separator} />
+            <TouchableOpacity
+              style={styles.aboutRow}
+              onPress={handleShareApp}
+            >
+              <Ionicons name="share-social-outline" size={20} color={colors.textSecondary} />
+              <View style={{ flex: 1 }}>
+                <Text style={styles.aboutLabel}>{t('more.about.shareApp')}</Text>
+                <Text style={styles.aboutSubtitle}>{t('more.about.shareAppSubtitle')}</Text>
               </View>
               <Ionicons name={isRTL ? 'chevron-back' : 'chevron-forward'} size={16} color={colors.textTertiary} />
             </TouchableOpacity>

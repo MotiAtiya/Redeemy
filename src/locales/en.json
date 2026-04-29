@@ -132,7 +132,10 @@
       "version": "Version 1.0.0",
       "contact": "Email Us",
       "rateUs": "Rate Redeemy",
-      "rateUsSubtitle": "A quick review means a lot to us"
+      "rateUsSubtitle": "A quick review means a lot to us",
+      "shareApp": "Share Redeemy",
+      "shareAppSubtitle": "Share Redeemy with friends and family",
+      "shareMessage": "Check out Redeemy — manage your credits, warranties, subscriptions and more!\n\niOS: https://apps.apple.com/app/id6744642246\nAndroid: https://play.google.com/store/apps/details?id=com.redeemy.app"
     },
     "signOut": {
       "button": "Sign Out",
@@ -579,7 +582,12 @@
     "documents": "Documents",
     "reminderBeforeExpiry": "Reminder before expiry",
     "expiryDayAlert": "Alert on expiry day",
-    "sheetTitleDocument": "Document expiry reminder"
+    "sheetTitleDocument": "Document expiry reminder",
+    "appIconBadge": {
+      "section": "App Icon",
+      "label": "Red dot badge",
+      "subtitle": "Show a count on the app icon when credits are about to expire"
+    }
   },
   "reminder": {
     "1day": "1 Day",
