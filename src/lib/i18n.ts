@@ -2,6 +2,7 @@ import i18next from 'i18next';
 import { initReactI18next } from 'react-i18next';
 import { I18nManager } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { getLocales } from 'expo-localization';
 
 import en from '@/locales/en.json';
 import he from '@/locales/he.json';
@@ -36,8 +37,8 @@ export async function saveLanguage(lang: AppLanguage): Promise<void> {
 export function resolveLanguage(pref: AppLanguage): 'en' | 'he' {
   if (pref === 'system') {
     try {
-      const locale = Intl.DateTimeFormat().resolvedOptions().locale;
-      return locale.startsWith('he') ? 'he' : 'en';
+      const languageCode = getLocales()[0]?.languageCode ?? 'en';
+      return languageCode === 'he' ? 'he' : 'en';
     } catch {
       return 'en';
     }

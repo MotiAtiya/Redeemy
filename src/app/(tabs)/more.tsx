@@ -234,12 +234,9 @@ export default function MoreScreen() {
   const languageLabel = LANGUAGE_OPTIONS.find((o) => o.value === language)?.label ?? t('more.language.system');
 
   async function handleLanguageChange(newLang: AppLanguage) {
-    await saveLanguage(newLang);
     const resolved = resolveLanguage(newLang);
-    await i18n.changeLanguage(resolved);
-    setLanguage(newLang);
+    const needsRestart = I18nManager.isRTL !== (resolved === 'he');
     setShowLanguageSheet(false);
-    const needsRestart = applyRTL(resolved);
     if (needsRestart) {
       Alert.alert(
         t('more.language.restartTitle'),
@@ -248,10 +245,20 @@ export default function MoreScreen() {
           { text: t('common.cancel'), style: 'cancel' },
           {
             text: t('more.language.restartNow'),
-            onPress: () => Updates.reloadAsync(),
+            onPress: async () => {
+              await saveLanguage(newLang);
+              await i18n.changeLanguage(resolved);
+              setLanguage(newLang);
+              applyRTL(resolved);
+              Updates.reloadAsync();
+            },
           },
         ]
       );
+    } else {
+      await saveLanguage(newLang);
+      await i18n.changeLanguage(resolved);
+      setLanguage(newLang);
     }
   }
 
