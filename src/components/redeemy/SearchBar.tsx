@@ -1,7 +1,6 @@
-import { View, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, TextInput, TouchableOpacity, StyleSheet, I18nManager } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useAppTheme } from '@/hooks/useAppTheme';
-import { getIsRTL } from '@/lib/i18n';
 
 interface Props {
   value: string;
@@ -11,7 +10,6 @@ interface Props {
 
 export function SearchBar({ value, onChangeText, placeholder }: Props) {
   const colors = useAppTheme();
-  const isRTL = getIsRTL();
   const hasValue = value.length > 0;
 
   const searchIcon = (
@@ -26,7 +24,7 @@ export function SearchBar({ value, onChangeText, placeholder }: Props) {
 
   const input = (
     <TextInput
-      style={[styles.input, { color: colors.textPrimary, textAlign: isRTL ? 'right' : 'left' }]}
+      style={[styles.input, { color: colors.textPrimary, textAlign: I18nManager.isRTL ? 'right' : 'left' }]}
       placeholder={placeholder}
       placeholderTextColor={colors.textTertiary}
       value={value}
@@ -35,17 +33,13 @@ export function SearchBar({ value, onChangeText, placeholder }: Props) {
     />
   );
 
+  // Same JSX order for all cases — I18nManager handles the visual flip:
+  // LTR: [🔍][text][✕]  |  RTL empty: [placeholder][🔍]  |  RTL typing: [✕][text][🔍]
   return (
     <View style={[styles.container, { backgroundColor: colors.surface }]}>
-      {isRTL && hasValue ? (
-        // RTL + typing: JSX [✕][input][🔍] — I18nManager reversal → visual [🔍][text][✕]
-        <>{clearButton}{input}{searchIcon}</>
-      ) : (
-        // LTR all states + RTL empty:
-        // LTR visual: [🔍][text][✕]
-        // RTL empty: reversal → visual [placeholder][🔍] = 🔍 on right
-        <>{searchIcon}{input}{!isRTL && hasValue && clearButton}</>
-      )}
+      {searchIcon}
+      {input}
+      {hasValue && clearButton}
     </View>
   );
 }
