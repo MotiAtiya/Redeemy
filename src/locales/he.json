@@ -556,7 +556,12 @@
     "off": "כבוי",
     "continue": "המשך",
     "save": "שמירה",
-    "choosePhotoSource": "בחר מקור תמונה"
+    "choosePhotoSource": "בחר מקור תמונה",
+    "exitForm": {
+      "title": "לצאת מהטופס?",
+      "message": "הנתונים שהזנת לא יישמרו",
+      "confirm": "יציאה"
+    }
   },
   "notificationSettings": {
     "title": "התראות",

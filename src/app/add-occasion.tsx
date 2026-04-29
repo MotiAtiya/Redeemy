@@ -28,6 +28,7 @@ import { useOccasionsStore } from '@/stores/occasionsStore';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { useUIStore } from '@/stores/uiStore';
 import { useAppTheme } from '@/hooks/useAppTheme';
+import { useFormExitConfirmation } from '@/hooks/useFormExitConfirmation';
 import { formatDate } from '@/lib/formatDate';
 import { type Occasion, type OccasionType } from '@/types/occasionTypes';
 import type { AppColors } from '@/constants/colors';
@@ -290,6 +291,11 @@ export default function AddOccasionScreen() {
   const currentStepIndex = steps.indexOf(currentStepId);
   const { fadeAnim, slideAnim, animateTransition } = useStepAnimation();
   const summaryScrollRef = useRef<ScrollView>(null);
+
+  useFormExitConfirmation(
+    !isEditing && (name.trim().length > 0 || currentStepIndex > 0),
+    t('common.exitForm.title'), t('common.exitForm.message'), t('common.exitForm.confirm'), t('common.cancel'),
+  );
 
   // Pre-fill for edit mode
   useEffect(() => {

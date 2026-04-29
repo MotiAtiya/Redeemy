@@ -36,6 +36,7 @@ import { useAuthStore } from '@/stores/authStore';
 import { useSubscriptionsStore } from '@/stores/subscriptionsStore';
 import { useUIStore } from '@/stores/uiStore';
 import { useAppTheme } from '@/hooks/useAppTheme';
+import { useFormExitConfirmation } from '@/hooks/useFormExitConfirmation';
 import { useSettingsStore, CURRENCY_SYMBOLS, type CurrencyCode } from '@/stores/settingsStore';
 import {
   SubscriptionBillingCycle,
@@ -639,6 +640,11 @@ export default function AddSubscriptionScreen() {
 
   const steps = useMemo(() => getSteps(flowState, categoryChosen), [flowState, categoryChosen]);
   const currentStepIndex = steps.indexOf(currentStepId);
+
+  useFormExitConfirmation(
+    !isEditing && (serviceName.trim().length > 0 || currentStepIndex > 0),
+    t('common.exitForm.title'), t('common.exitForm.message'), t('common.exitForm.confirm'), t('common.cancel'),
+  );
 
   // Pre-fill for edit mode
   useEffect(() => {

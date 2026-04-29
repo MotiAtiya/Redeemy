@@ -557,7 +557,12 @@
     "off": "Off",
     "continue": "Continue",
     "save": "Save",
-    "choosePhotoSource": "Choose Photo Source"
+    "choosePhotoSource": "Choose Photo Source",
+    "exitForm": {
+      "title": "Exit form?",
+      "message": "Your entered data will not be saved",
+      "confirm": "Exit"
+    }
   },
   "notificationSettings": {
     "title": "Notifications",

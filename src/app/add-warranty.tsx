@@ -31,6 +31,7 @@ import { useAuthStore } from '@/stores/authStore';
 import { useWarrantiesStore } from '@/stores/warrantiesStore';
 import { useUIStore } from '@/stores/uiStore';
 import { useAppTheme } from '@/hooks/useAppTheme';
+import { useFormExitConfirmation } from '@/hooks/useFormExitConfirmation';
 import { WarrantyStatus, type Warranty } from '@/types/warrantyTypes';
 import { WARRANTY_STORES } from '@/data/warrantyStores';
 import { WARRANTY_PRODUCT_TYPES } from '@/data/warrantyProductTypes';
@@ -249,6 +250,11 @@ export default function AddWarrantyScreen() {
 
   const steps = useMemo(() => getSteps(), []);
   const currentStepIndex = steps.indexOf(currentStepId);
+
+  useFormExitConfirmation(
+    !isEditing && (storeName.trim().length > 0 || currentStepIndex > 0),
+    t('common.exitForm.title'), t('common.exitForm.message'), t('common.exitForm.confirm'), t('common.cancel'),
+  );
 
   // Pre-fill for edit mode
   useEffect(() => {

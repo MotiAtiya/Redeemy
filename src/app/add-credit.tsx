@@ -34,6 +34,7 @@ import { useAuthStore } from '@/stores/authStore';
 import { useCreditsStore } from '@/stores/creditsStore';
 import { useUIStore } from '@/stores/uiStore';
 import { useAppTheme } from '@/hooks/useAppTheme';
+import { useFormExitConfirmation } from '@/hooks/useFormExitConfirmation';
 import { CreditStatus, type Credit } from '@/types/creditTypes';
 import { DEFAULT_CATEGORY_ID, CATEGORIES } from '@/constants/categories';
 import { getCategoryForStore } from '@/data/israeliStores';
@@ -307,6 +308,11 @@ export default function AddCreditScreen() {
 
   const steps = useMemo(() => getSteps(categoryChosen), [categoryChosen]);
   const currentStepIndex = steps.indexOf(currentStepId);
+
+  useFormExitConfirmation(
+    !isEditing && (storeName.trim().length > 0 || currentStepIndex > 0),
+    t('common.exitForm.title'), t('common.exitForm.message'), t('common.exitForm.confirm'), t('common.cancel'),
+  );
 
   // Pre-fill for edit mode
   useEffect(() => {

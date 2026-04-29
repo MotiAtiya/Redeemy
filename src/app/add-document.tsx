@@ -28,6 +28,7 @@ import { useDocumentsStore } from '@/stores/documentsStore';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { useUIStore } from '@/stores/uiStore';
 import { useAppTheme } from '@/hooks/useAppTheme';
+import { useFormExitConfirmation } from '@/hooks/useFormExitConfirmation';
 import { formatDate } from '@/lib/formatDate';
 import { type DocumentType } from '@/types/documentTypes';
 import { DOCUMENT_TYPE_OPTIONS } from '@/constants/documentTypeIcons';
@@ -247,6 +248,11 @@ export default function AddDocumentScreen() {
   const currentStepIndex = steps.indexOf(currentStepId);
   const { fadeAnim, slideAnim, animateTransition } = useStepAnimation();
   const summaryScrollRef = useRef<ScrollView>(null);
+
+  useFormExitConfirmation(
+    !isEditing && currentStepIndex > 0,
+    t('common.exitForm.title'), t('common.exitForm.message'), t('common.exitForm.confirm'), t('common.cancel'),
+  );
 
   // Pre-fill for edit mode
   useEffect(() => {
