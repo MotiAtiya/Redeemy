@@ -512,7 +512,7 @@
     "done": "Done"
   },
   "offline": {
-    "toast": "You're offline — browsing cached credits",
+    "toast": "You're offline — browsing cached data",
     "title": "No Internet Connection"
   },
   "notifications": {
