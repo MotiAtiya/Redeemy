@@ -11,6 +11,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import * as Notifications from 'expo-notifications';
+import { Linking } from 'react-native';
+import { registerNotificationCategories } from '@/lib/notifications';
 import { useTranslation } from 'react-i18next';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { useAppTheme } from '@/hooks/useAppTheme';
@@ -128,7 +130,17 @@ export default function OnboardingScreen() {
   }
 
   async function handleAllowNotifications() {
-    await Notifications.requestPermissionsAsync();
+    const { status, canAskAgain } = await Notifications.getPermissionsAsync();
+    if (status === 'granted') {
+      await registerNotificationCategories();
+    } else if (canAskAgain) {
+      const result = await Notifications.requestPermissionsAsync();
+      if (result.status === 'granted') await registerNotificationCategories();
+    } else {
+      // Previously denied — OS won't show dialog again, open Settings instead
+      Linking.openSettings();
+      return;
+    }
     animateTransition(() => setIsComplete(true));
   }
 

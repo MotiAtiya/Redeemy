@@ -26,7 +26,7 @@ import { getSavedLanguage, resolveLanguage, initI18n, applyRTL } from '@/lib/i18
 
 // One-time module-level setup
 configureGoogleSignIn();
-registerNotificationCategories();
+// registerNotificationCategories() is called after the user grants permission in onboarding
 
 function AuthGate({ children }: { children: React.ReactNode }) {
   useAuthState();
@@ -119,6 +119,14 @@ export default function RootLayout() {
   const [i18nReady, setI18nReady] = useState(false);
   const setLanguage = useSettingsStore((s) => s.setLanguage);
   const colors = useAppTheme();
+
+  useEffect(() => {
+    // Register notification categories only if permission is already granted
+    // (avoids triggering the OS dialog prematurely on fresh installs)
+    Notifications.getPermissionsAsync().then(({ status }) => {
+      if (status === 'granted') registerNotificationCategories();
+    });
+  }, []);
 
   useEffect(() => {
     getSavedLanguage().then((pref) => {
