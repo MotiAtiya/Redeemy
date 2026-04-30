@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { View, ActivityIndicator, StyleSheet, I18nManager } from 'react-native';
 import { Stack, useRouter, useSegments } from 'expo-router';
+import * as Updates from 'expo-updates';
 import { StatusBar } from 'expo-status-bar';
 import * as Notifications from 'expo-notifications';
 import { useAuthState } from '@/hooks/useAuthState';
@@ -122,7 +123,13 @@ export default function RootLayout() {
   useEffect(() => {
     getSavedLanguage().then((pref) => {
       const lang = resolveLanguage(pref);
-      applyRTL(lang);
+      const needsRestart = applyRTL(lang);
+      if (needsRestart) {
+        // RTL direction changed (e.g. first launch on Hebrew device) — restart
+        // silently before the user sees any UI so layout is correct from the start
+        Updates.reloadAsync();
+        return;
+      }
       initI18n(lang);
       setLanguage(pref);
       setI18nReady(true);
