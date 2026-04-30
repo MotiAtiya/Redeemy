@@ -3,7 +3,7 @@ import { SubscriptionBillingCycle, type Subscription } from '@/types/subscriptio
 import { useSettingsStore } from '@/stores/settingsStore';
 import i18n from './i18n';
 import { getNextBillingDate } from './subscriptionUtils';
-import { requestNotificationPermission, cancelNotification, scheduleNotificationAt } from './notifications';
+import { cancelNotification, scheduleNotificationAt } from './notifications';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -63,7 +63,7 @@ export async function scheduleSubscriptionNotifications(
 ): Promise<ScheduledSubscriptionNotifications> {
   const empty: ScheduledSubscriptionNotifications = { notificationIds: [] };
   if (!useSettingsStore.getState().notificationsEnabled) return empty;
-  const granted = await requestNotificationPermission();
+  const { granted } = await Notifications.getPermissionsAsync();
   if (!granted) return empty;
 
   const t = i18n.t.bind(i18n);

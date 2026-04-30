@@ -1,6 +1,7 @@
+import * as Notifications from 'expo-notifications';
 import { type Occasion } from '@/types/occasionTypes';
 import { useSettingsStore } from '@/stores/settingsStore';
-import { requestNotificationPermission, cancelNotification, scheduleNotificationAt } from './notifications';
+import { cancelNotification, scheduleNotificationAt } from './notifications';
 import { getNextGregorianOccurrences, getNextHebrewOccurrences } from './hebrewDate';
 import i18n from './i18n';
 
@@ -36,7 +37,7 @@ export async function scheduleOccasionNotifications(
   const settings = useSettingsStore.getState();
   if (!settings.notificationsEnabled) return [];
 
-  const granted = await requestNotificationPermission();
+  const { granted } = await Notifications.getPermissionsAsync();
   if (!granted) return [];
 
   const { notificationHour, notificationMinute, occasionOnDayAlert, occasionEarlyReminderDays } = settings;
