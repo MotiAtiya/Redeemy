@@ -18,8 +18,8 @@ import { useTranslation } from 'react-i18next';
 import { Image } from 'expo-image';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import DateTimePicker, { type DateTimePickerEvent } from '@react-native-community/datetimepicker';
 import { StoreAutocomplete } from '@/components/redeemy/StoreAutocomplete';
+import { StepDatePicker } from '@/components/redeemy/StepDatePicker';
 import { AutocompleteInput, type AutocompleteItem } from '@/components/redeemy/AutocompleteInput';
 import { StepFormScreen } from '@/components/redeemy/StepFormScreen';
 import { uploadEntityImage, type DocumentImage } from '@/lib/imageUpload';
@@ -107,20 +107,6 @@ function makeStyles(colors: AppColors, isRTL: boolean) {
       marginTop: 8,
     },
     noExpiryLabel: { fontSize: 15, color: colors.textPrimary },
-    dateButton: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      height: 52,
-      borderWidth: 1,
-      borderColor: colors.separator,
-      borderRadius: 12,
-      paddingHorizontal: 16,
-      backgroundColor: colors.background,
-      gap: 10,
-    },
-    dateButtonText: { flex: 1, fontSize: 16, color: colors.textPrimary },
-    datePlaceholder: { color: colors.textTertiary },
-    dateError: { fontSize: 12, color: colors.danger, marginTop: 6, alignSelf: 'flex-start' },
     summaryPhotoBadge: {
       position: 'absolute',
       bottom: 8,
@@ -235,12 +221,14 @@ export default function AddWarrantyScreen() {
   const [brand, setBrand] = useState('');
   const [model, setModel] = useState('');
   const [noExpiry, setNoExpiry] = useState(false);
-  const [expirationDate, setExpirationDate] = useState<Date | null>(null);
-  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [expirationDate, setExpirationDate] = useState<Date>(() => {
+    const d = new Date();
+    d.setDate(d.getDate() + 1);
+    return d;
+  });
   const [photoItems, setPhotoItems] = useState<PhotoItem[]>([]);
   const [notes, setNotes] = useState('');
   const [saving, setSaving] = useState(false);
-  const [dateError, setDateError] = useState('');
 
   // Step state
   const [currentStepId, setCurrentStepId] = useState<StepId>('storeName');
@@ -304,24 +292,7 @@ export default function AddWarrantyScreen() {
   // ---------------------------------------------------------------------------
 
   function validateCurrentStep(): boolean {
-    switch (currentStepId) {
-      case 'expiryDate': {
-        if (!noExpiry) {
-          if (!expirationDate) {
-            setDateError(t('addCredit.validation.dateRequired'));
-            return false;
-          }
-          if (expirationDate <= new Date()) {
-            setDateError(t('addCredit.validation.datePast'));
-            return false;
-          }
-        }
-        setDateError('');
-        return true;
-      }
-      default:
-        return true;
-    }
+    return true;
   }
 
   function handleContinue() {
@@ -338,7 +309,7 @@ export default function AddWarrantyScreen() {
       case 'storeName':     return storeName.trim().length > 0;
       case 'productType':   return productType.trim().length > 0;
       case 'productDetails': return true;
-      case 'expiryDate':    return noExpiry || expirationDate !== null;
+      case 'expiryDate':    return true;
       case 'photo':         return photoItems.length > 0;
       default: return false;
     }
@@ -435,7 +406,7 @@ export default function AddWarrantyScreen() {
 
     if (isEditing && existingWarranty) {
       try {
-        const finalExpiry = noExpiry ? undefined : expirationDate ?? undefined;
+        const finalExpiry = noExpiry ? undefined : expirationDate;
         const changes: Partial<Warranty> = {
           storeName: storeName.trim(),
           productType: productType.trim() || undefined,
@@ -504,7 +475,7 @@ export default function AddWarrantyScreen() {
       productType: productType.trim() || undefined,
       brand: brand.trim() || undefined,
       model: model.trim() || undefined,
-      expirationDate: noExpiry ? undefined : expirationDate ?? undefined,
+      expirationDate: noExpiry ? undefined : expirationDate,
       noExpiry,
       reminderDays: warrantyReminderDays,
       notes: notes.trim(),
@@ -515,7 +486,7 @@ export default function AddWarrantyScreen() {
     addWarrantyToStore(optimisticWarranty);
 
     try {
-      const finalExpiry = noExpiry ? undefined : expirationDate ?? undefined;
+      const finalExpiry = noExpiry ? undefined : expirationDate;
       const displayName = currentUser.displayName ?? currentUser.email?.split('@')[0] ?? 'Member';
       const newWarrantyId = await createWarranty({
         userId: currentUser.uid,
@@ -572,18 +543,6 @@ export default function AddWarrantyScreen() {
       removeWarranty(tempId);
       setSaving(false);
       Alert.alert(t('addWarranty.error.save'), t('addWarranty.error.saveMessage'));
-    }
-  }
-
-  // ---------------------------------------------------------------------------
-  // Date picker handler
-  // ---------------------------------------------------------------------------
-
-  function onDateChange(_event: DateTimePickerEvent, date?: Date) {
-    if (Platform.OS === 'android') setShowDatePicker(false);
-    if (date) {
-      setExpirationDate(date);
-      setDateError('');
     }
   }
 
@@ -665,40 +624,19 @@ export default function AddWarrantyScreen() {
     return (
       <ScrollView
         style={styles.stepScroll}
-        contentContainerStyle={[styles.stepContent, { paddingBottom: showDatePicker ? 320 : 16 }]}
+        contentContainerStyle={styles.stepContent}
         keyboardShouldPersistTaps="handled"
       >
         <Text style={styles.stepTitle}>{t('addWarranty.step.expiryDate')}</Text>
 
         {!noExpiry && (
-          <>
-            <TouchableOpacity
-              style={styles.dateButton}
-              onPress={() => setShowDatePicker((v) => !v)}
-            >
-              <Ionicons name="calendar-outline" size={20} color={colors.textSecondary} />
-              <Text
-                style={[
-                  styles.dateButtonText,
-                  !expirationDate && styles.datePlaceholder,
-                ]}
-              >
-                {expirationDate ? formatDate(expirationDate, dateFormat) : dateFormat}
-              </Text>
-            </TouchableOpacity>
-            {!!dateError && <Text style={styles.dateError}>{dateError}</Text>}
-
-            {showDatePicker && (
-              <DateTimePicker
-                value={expirationDate ?? new Date()}
-                mode="date"
-                display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-                minimumDate={new Date()}
-                onChange={onDateChange}
-                locale="en-GB"
-              />
-            )}
-          </>
+          <StepDatePicker
+            value={expirationDate}
+            onChange={setExpirationDate}
+            isActive={currentStepId === 'expiryDate'}
+            autoOpenOnAndroid={false}
+            minimumDate={new Date()}
+          />
         )}
 
         <View style={styles.noExpiryRow}>
@@ -706,13 +644,7 @@ export default function AddWarrantyScreen() {
           <Switch
             style={{ transform: [{ scaleX: Platform.OS === 'ios' && isRTL ? -1 : 1 }] }}
             value={noExpiry}
-            onValueChange={(v) => {
-              setNoExpiry(v);
-              if (v) {
-                setShowDatePicker(false);
-                setDateError('');
-              }
-            }}
+            onValueChange={setNoExpiry}
             trackColor={{ false: colors.separator, true: colors.primary }}
             thumbColor="#FFFFFF"
           />
@@ -779,9 +711,7 @@ export default function AddWarrantyScreen() {
             <Text style={styles.summaryValue}>
               {noExpiry
                 ? t('addWarranty.summary.noExpiry')
-                : expirationDate
-                ? formatDate(expirationDate, dateFormat)
-                : '—'}
+                : formatDate(expirationDate, dateFormat)}
             </Text>
           </View>
         </View>

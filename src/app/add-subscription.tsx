@@ -19,8 +19,8 @@ import {
 import { useTranslation } from 'react-i18next';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import DateTimePicker, { type DateTimePickerEvent } from '@react-native-community/datetimepicker';
 import { ServiceAutocomplete } from '@/components/redeemy/ServiceAutocomplete';
+import { StepDatePicker } from '@/components/redeemy/StepDatePicker';
 import { CategorySelector } from '@/components/redeemy/CategorySelector';
 import { CurrencyPicker } from '@/components/redeemy/CurrencyPicker';
 import { StepFormScreen } from '@/components/redeemy/StepFormScreen';
@@ -910,10 +910,6 @@ export default function AddSubscriptionScreen() {
     );
   }
 
-  function onDateChange(_event: DateTimePickerEvent, date?: Date) {
-    if (date) setRegistrationDate(date);
-  }
-
   // ---------------------------------------------------------------------------
   // handleContinue
   // ---------------------------------------------------------------------------
@@ -1499,13 +1495,11 @@ export default function AddSubscriptionScreen() {
         <Text style={styles.stepTitle}>{t('addSubscription.step.registrationDate')}</Text>
         <Text style={styles.stepSub}>{t('addSubscription.registrationDate.sub')}</Text>
 
-        <DateTimePicker
+        <StepDatePicker
           value={registrationDate}
-          mode="date"
-          display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+          onChange={setRegistrationDate}
+          isActive={currentStepId === 'registrationDate'}
           maximumDate={new Date()}
-          onChange={onDateChange}
-          locale="en-GB"
         />
       </ScrollView>
     );

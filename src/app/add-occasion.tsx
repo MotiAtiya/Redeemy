@@ -18,8 +18,8 @@ import {
 import { useTranslation } from 'react-i18next';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import DateTimePicker, { type DateTimePickerEvent } from '@react-native-community/datetimepicker';
 import { StepFormScreen } from '@/components/redeemy/StepFormScreen';
+import { StepDatePicker } from '@/components/redeemy/StepDatePicker';
 import { createOccasion, updateOccasion } from '@/lib/firestoreOccasions';
 import { scheduleOccasionNotifications, cancelOccasionNotifications } from '@/lib/occasionNotifications';
 import { toHebrewDate, formatHebrewDate } from '@/lib/hebrewDate';
@@ -536,13 +536,11 @@ export default function AddOccasionScreen() {
         <Text style={styles.stepTitle}>{t('addOccasion.step.date')}</Text>
         <Text style={styles.stepSub}>{formatDate(eventDate, dateFormat)}</Text>
 
-        <DateTimePicker
+        <StepDatePicker
           value={eventDate}
-          mode="date"
-          display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+          onChange={setEventDate}
+          isActive={currentStepId === 'date'}
           maximumDate={new Date()}
-          onChange={(_: DateTimePickerEvent, date?: Date) => date && setEventDate(date)}
-          locale="en-GB"
         />
 
         <View style={styles.toggleRow}>

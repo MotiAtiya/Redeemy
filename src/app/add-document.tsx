@@ -17,7 +17,7 @@ import { Image } from 'expo-image';
 import { useTranslation } from 'react-i18next';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import DateTimePicker, { type DateTimePickerEvent } from '@react-native-community/datetimepicker';
+import { StepDatePicker } from '@/components/redeemy/StepDatePicker';
 import { StepFormScreen } from '@/components/redeemy/StepFormScreen';
 import { createDocument, updateDocument } from '@/lib/firestoreDocuments';
 import { uploadEntityImage, type DocumentImage } from '@/lib/imageUpload';
@@ -493,13 +493,10 @@ export default function AddDocumentScreen() {
     return (
       <ScrollView style={styles.stepScroll} contentContainerStyle={styles.stepContent} keyboardShouldPersistTaps="handled">
         <Text style={styles.stepTitle}>{t('addDocument.step.expiration')}</Text>
-        <DateTimePicker
+        <StepDatePicker
           value={expirationDate}
-          mode="date"
-          display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-          onChange={(_: DateTimePickerEvent, date?: Date) => { if (date) setExpirationDate(date); }}
-          textColor={colors.textPrimary}
-          style={{ width: '100%' }}
+          onChange={setExpirationDate}
+          isActive={currentStepId === 'expiration'}
           minimumDate={new Date()}
         />
       </ScrollView>
