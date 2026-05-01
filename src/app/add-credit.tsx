@@ -23,9 +23,9 @@ import { StoreAutocomplete } from '@/components/redeemy/StoreAutocomplete';
 import { CategorySelector } from '@/components/redeemy/CategorySelector';
 import { CurrencyPicker } from '@/components/redeemy/CurrencyPicker';
 import { StepFormScreen } from '@/components/redeemy/StepFormScreen';
-import { openCamera, openGallery, uploadEntityImage, type DocumentImage } from '@/lib/imageUpload';
+import { uploadEntityImage, type DocumentImage } from '@/lib/imageUpload';
+import { usePhotoPicker } from '@/hooks/usePhotoPicker';
 import { PhotoPickerStep, type PhotoItem } from '@/components/redeemy/PhotoPickerStep';
-import { CropModal } from '@/components/redeemy/CropModal';
 import { createCredit, updateCredit } from '@/lib/firestoreCredits';
 import { scheduleReminderNotification } from '@/lib/notifications';
 import { parseAmountToAgot } from '@/constants/currencies';
@@ -294,7 +294,6 @@ export default function AddCreditScreen() {
   const [expirationDate, setExpirationDate] = useState<Date | null>(null);
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [photoItems, setPhotoItems] = useState<PhotoItem[]>([]);
-  const [cropUri, setCropUri] = useState<string | null>(null);
   const [notes, setNotes] = useState('');
   const [saving, setSaving] = useState(false);
   const [amountError, setAmountError] = useState('');
@@ -459,21 +458,12 @@ export default function AddCreditScreen() {
 
   const MAX_PHOTOS = 3;
 
-  async function handleCamera() {
-    if (photoItems.length >= MAX_PHOTOS) return;
-    try {
-      const picked = await openCamera();
-      if (picked) setCropUri(picked.localUri);
-    } catch {
-      /* Camera not available (simulator) — silently skip */
-    }
-  }
-
-  async function handleGallery() {
-    if (photoItems.length >= MAX_PHOTOS) return;
-    const picked = await openGallery();
-    if (picked) setCropUri(picked.localUri);
-  }
+  const { fromCamera: handleCamera, fromGallery: handleGallery, cropOverlay } = usePhotoPicker({
+    maxPhotos: MAX_PHOTOS,
+    currentCount: photoItems.length,
+    onAdd: (uri) =>
+      setPhotoItems((prev) => (prev.length < MAX_PHOTOS ? [...prev, { type: 'local', uri }] : prev)),
+  });
 
   function handleRemovePhoto(index: number) {
     setPhotoItems((prev) => prev.filter((_, i) => i !== index));
@@ -952,16 +942,7 @@ export default function AddCreditScreen() {
       footerButton={renderFooterButton()}
       onSave={isEditing ? handleSave : undefined}
       isSaving={saving}
-      extras={cropUri ? (
-        <CropModal
-          uri={cropUri}
-          onCrop={(uri) => {
-            setPhotoItems((prev) => prev.length < MAX_PHOTOS ? [...prev, { type: 'local', uri }] : prev);
-            setCropUri(null);
-          }}
-          onCancel={() => setCropUri(null)}
-        />
-      ) : undefined}
+      extras={cropOverlay ?? undefined}
     >
       {renderCurrentStep()}
     </StepFormScreen>

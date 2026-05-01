@@ -19,9 +19,9 @@ import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import DateTimePicker, { type DateTimePickerEvent } from '@react-native-community/datetimepicker';
 import { StepFormScreen } from '@/components/redeemy/StepFormScreen';
-import { CropModal } from '@/components/redeemy/CropModal';
 import { createDocument, updateDocument } from '@/lib/firestoreDocuments';
-import { openCamera, openGallery, uploadEntityImage, type DocumentImage } from '@/lib/imageUpload';
+import { uploadEntityImage, type DocumentImage } from '@/lib/imageUpload';
+import { usePhotoPicker } from '@/hooks/usePhotoPicker';
 import { PhotoPickerStep, type PhotoItem } from '@/components/redeemy/PhotoPickerStep';
 import { useAuthStore } from '@/stores/authStore';
 import { useDocumentsStore } from '@/stores/documentsStore';
@@ -237,7 +237,6 @@ export default function AddDocumentScreen() {
     return d;
   });
   const [photoItems, setPhotoItems] = useState<PhotoItem[]>([]);
-  const [cropUri, setCropUri] = useState<string | null>(null);
   const [notes, setNotes] = useState('');
   const [saving, setSaving] = useState(false);
 
@@ -310,21 +309,12 @@ export default function AddDocumentScreen() {
   // Photo actions
   // ---------------------------------------------------------------------------
 
-  async function handleCamera() {
-    if (photoItems.length >= MAX_PHOTOS) return;
-    try {
-      const picked = await openCamera();
-      if (picked) setCropUri(picked.localUri);
-    } catch {
-      /* Camera not available — silently skip */
-    }
-  }
-
-  async function handleGallery() {
-    if (photoItems.length >= MAX_PHOTOS) return;
-    const picked = await openGallery();
-    if (picked) setCropUri(picked.localUri);
-  }
+  const { fromCamera: handleCamera, fromGallery: handleGallery, cropOverlay } = usePhotoPicker({
+    maxPhotos: MAX_PHOTOS,
+    currentCount: photoItems.length,
+    onAdd: (uri) =>
+      setPhotoItems((prev) => (prev.length < MAX_PHOTOS ? [...prev, { type: 'local', uri }] : prev)),
+  });
 
   function handleRemovePhoto(index: number) {
     setPhotoItems((prev) => prev.filter((_, i) => i !== index));
@@ -632,16 +622,7 @@ export default function AddDocumentScreen() {
       fadeAnim={fadeAnim}
       slideAnim={slideAnim}
       footerButton={footerButton}
-      extras={cropUri ? (
-        <CropModal
-          uri={cropUri}
-          onCrop={(uri) => {
-            setPhotoItems((prev) => prev.length < MAX_PHOTOS ? [...prev, { type: 'local', uri }] : prev);
-            setCropUri(null);
-          }}
-          onCancel={() => setCropUri(null)}
-        />
-      ) : undefined}
+      extras={cropOverlay ?? undefined}
     >
       {renderStep()}
     </StepFormScreen>

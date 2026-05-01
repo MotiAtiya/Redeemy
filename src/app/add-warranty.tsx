@@ -22,9 +22,9 @@ import DateTimePicker, { type DateTimePickerEvent } from '@react-native-communit
 import { StoreAutocomplete } from '@/components/redeemy/StoreAutocomplete';
 import { AutocompleteInput, type AutocompleteItem } from '@/components/redeemy/AutocompleteInput';
 import { StepFormScreen } from '@/components/redeemy/StepFormScreen';
-import { openCamera, openGallery, uploadEntityImage, type DocumentImage } from '@/lib/imageUpload';
+import { uploadEntityImage, type DocumentImage } from '@/lib/imageUpload';
+import { usePhotoPicker } from '@/hooks/usePhotoPicker';
 import { PhotoPickerStep, type PhotoItem } from '@/components/redeemy/PhotoPickerStep';
-import { CropModal } from '@/components/redeemy/CropModal';
 import { createWarranty, updateWarranty } from '@/lib/firestoreWarranties';
 import { scheduleReminderNotification, cancelNotification } from '@/lib/notifications';
 import { useAuthStore } from '@/stores/authStore';
@@ -238,7 +238,6 @@ export default function AddWarrantyScreen() {
   const [expirationDate, setExpirationDate] = useState<Date | null>(null);
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [photoItems, setPhotoItems] = useState<PhotoItem[]>([]);
-  const [cropUri, setCropUri] = useState<string | null>(null);
   const [notes, setNotes] = useState('');
   const [saving, setSaving] = useState(false);
   const [dateError, setDateError] = useState('');
@@ -392,21 +391,12 @@ export default function AddWarrantyScreen() {
   // Photo helpers
   // ---------------------------------------------------------------------------
 
-  async function handleCamera() {
-    if (photoItems.length >= MAX_PHOTOS) return;
-    try {
-      const picked = await openCamera();
-      if (picked) setCropUri(picked.localUri);
-    } catch {
-      /* Camera not available (simulator) — silently skip */
-    }
-  }
-
-  async function handleGallery() {
-    if (photoItems.length >= MAX_PHOTOS) return;
-    const picked = await openGallery();
-    if (picked) setCropUri(picked.localUri);
-  }
+  const { fromCamera: handleCamera, fromGallery: handleGallery, cropOverlay } = usePhotoPicker({
+    maxPhotos: MAX_PHOTOS,
+    currentCount: photoItems.length,
+    onAdd: (uri) =>
+      setPhotoItems((prev) => (prev.length < MAX_PHOTOS ? [...prev, { type: 'local', uri }] : prev)),
+  });
 
   function handleRemovePhoto(index: number) {
     setPhotoItems((prev) => prev.filter((_, i) => i !== index));
@@ -877,16 +867,7 @@ export default function AddWarrantyScreen() {
       footerButton={renderFooterButton()}
       onSave={isEditing ? handleSave : undefined}
       isSaving={saving}
-      extras={cropUri ? (
-        <CropModal
-          uri={cropUri}
-          onCrop={(uri) => {
-            setPhotoItems((prev) => prev.length < MAX_PHOTOS ? [...prev, { type: 'local', uri }] : prev);
-            setCropUri(null);
-          }}
-          onCancel={() => setCropUri(null)}
-        />
-      ) : undefined}
+      extras={cropOverlay ?? undefined}
     >
       {renderCurrentStep()}
     </StepFormScreen>

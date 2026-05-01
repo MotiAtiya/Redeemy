@@ -6,7 +6,6 @@ import {
   TouchableOpacity,
   Text,
   PanResponder,
-  Image as RNImage,
   ActivityIndicator,
   I18nManager,
 } from 'react-native';
@@ -23,6 +22,9 @@ interface Size { width: number; height: number }
 
 interface Props {
   uri: string;
+  /** Natural pixel size — provided by the picker, avoids a flaky Image.getSize call. */
+  width: number;
+  height: number;
   onCrop: (croppedUri: string) => void;
   onCancel: () => void;
 }
@@ -49,11 +51,14 @@ function clamp(rect: Rect, bounds: Rect): Rect {
   return { x, y, width, height };
 }
 
-export function CropModal({ uri, onCrop, onCancel }: Props) {
+export function CropModal({ uri, width, height, onCrop, onCancel }: Props) {
   const { t } = useTranslation();
   const [currentUri, setCurrentUri] = useState(uri);
   const [containerSize, setContainerSize] = useState<Size | null>(null);
-  const [naturalSize, setNaturalSize] = useState<Size | null>(null);
+  // Natural size starts from the picker-provided dimensions and is replaced
+  // on rotation by the dimensions ImageManipulator returns. This keeps us off
+  // Image.getSize entirely — its disk read raced the picker's cache write.
+  const [naturalSize, setNaturalSize] = useState<Size>({ width, height });
   const [cropRect, setCropRect] = useState<Rect | null>(null);
   const [cropping, setCropping] = useState(false);
   const [rotating, setRotating] = useState(false);
@@ -61,13 +66,6 @@ export function CropModal({ uri, onCrop, onCancel }: Props) {
   // Refs so PanResponder closures always see current values
   const cropRef = useRef<Rect | null>(null);
   const imageRectRef = useRef<Rect | null>(null);
-
-  // Get natural image dimensions whenever the URI changes (e.g. after rotation).
-  // Reset first so imageRect becomes null while we wait → prevents stale crop init.
-  useEffect(() => {
-    setNaturalSize(null);
-    RNImage.getSize(currentUri, (w, h) => setNaturalSize({ width: w, height: h }));
-  }, [currentUri]);
 
   // Recalculate image display rect when inputs change
   const imageRect =
@@ -180,9 +178,11 @@ export function CropModal({ uri, onCrop, onCancel }: Props) {
         [{ rotate: 90 }],
         { compress: 1, format: ImageManipulator.SaveFormat.JPEG }
       );
-      // Reset crop rect so it recalculates for the new orientation
+      // Reset crop rect so it recalculates for the new orientation, and use
+      // the dimensions ImageManipulator just gave us — no getSize round-trip.
       cropRef.current = null;
       setCurrentUri(result.uri);
+      setNaturalSize({ width: result.width, height: result.height });
     } finally {
       setRotating(false);
     }
