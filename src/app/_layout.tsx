@@ -8,6 +8,7 @@ import { useAuthState } from '@/hooks/useAuthState';
 import { useBadgeUpdater } from '@/hooks/useBadgeUpdater';
 import { useNetworkMonitor } from '@/hooks/useNetworkMonitor';
 import { useFamilyListener } from '@/hooks/useFamilyListener';
+import { useFamilyIdRehydrate } from '@/hooks/useFamilyIdRehydrate';
 import { useWarrantiesListener } from '@/hooks/useWarrantiesListener';
 import { useCreditsListener } from '@/hooks/useCreditsListener';
 import { useDocumentsListener } from '@/hooks/useDocumentsListener';
@@ -35,6 +36,7 @@ function AuthGate({ children }: { children: React.ReactNode }) {
   useAuthState();
   useBadgeUpdater();
   useNetworkMonitor();
+  useFamilyIdRehydrate();
   const familyId = useSettingsStore((s) => s.familyId);
   useFamilyListener(familyId);
 

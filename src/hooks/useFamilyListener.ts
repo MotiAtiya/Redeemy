@@ -1,4 +1,6 @@
 import { useEffect } from 'react';
+import { doc, setDoc, deleteField } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
 import { subscribeToFamily } from '@/lib/firestoreFamilies';
 import { useAuthStore } from '@/stores/authStore';
 import { useSettingsStore } from '@/stores/settingsStore';
@@ -19,6 +21,12 @@ export function useFamilyListener(familyId: string | null | undefined): void {
 
     function handleUserRemoved() {
       setFamilyId(null);
+      // Also clear the server-side pointer so a future sign-in doesn't
+      // rehydrate the now-stale familyId. Best-effort.
+      if (currentUid) {
+        setDoc(doc(db, 'users', currentUid), { familyId: deleteField() }, { merge: true })
+          .catch(() => { /* silent */ });
+      }
     }
 
     const unsubscribe = subscribeToFamily(familyId, currentUid, handleUserRemoved);

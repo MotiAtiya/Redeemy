@@ -2,6 +2,7 @@ import {
   collection,
   addDoc,
   updateDoc,
+  setDoc,
   deleteDoc,
   deleteField,
   doc,
@@ -70,6 +71,10 @@ export async function createFamily(name: string, user: User): Promise<string> {
     // Write the auto-generated ID back into the document
     await updateDoc(docRef, { id: docRef.id });
 
+    // Persist familyId on the user document so it can be rehydrated on sign-in
+    // if local AsyncStorage was cleared (e.g. after sign-out).
+    await setDoc(doc(db, 'users', user.uid), { familyId: docRef.id }, { merge: true });
+
     return docRef.id;
   } catch (error) {
     throw new Error(mapFirebaseError(error));
@@ -118,6 +123,7 @@ export function subscribeToFamily(
 ): Unsubscribe {
   const docRef = doc(db, FAMILIES_COLLECTION, familyId);
   let seenAsMember = false;
+  let backfilledUserDoc = false;
 
   return onSnapshot(
     docRef,
@@ -136,6 +142,15 @@ export function subscribeToFamily(
         return;
       }
       seenAsMember = true;
+
+      // Self-heal: once we've confirmed membership, persist familyId on the
+      // user doc so a future sign-in (with cleared AsyncStorage) can rehydrate
+      // it. Best-effort, fire-and-forget — failure must not break the listener.
+      if (currentUid && !backfilledUserDoc) {
+        backfilledUserDoc = true;
+        setDoc(doc(db, 'users', currentUid), { familyId }, { merge: true })
+          .catch(() => { backfilledUserDoc = false; });
+      }
 
       const data = rawData;
       const adminId: string = data.adminId;
@@ -220,32 +235,35 @@ export async function joinFamily(
     if (!snap.exists()) throw 'invalid-code' as JoinFamilyError;
 
     const data = snap.data();
-
-    // Validate code expiry
-    const expiresAt: Date = data.inviteCodeExpiresAt instanceof Timestamp
-      ? data.inviteCodeExpiresAt.toDate()
-      : new Date(data.inviteCodeExpiresAt);
-    if (expiresAt < new Date()) throw 'expired-code' as JoinFamilyError;
-
-    // Validate capacity
     const members: Record<string, unknown> = data.members ?? {};
-    if (Object.keys(members).length >= (data.maxMembers ?? 6)) throw 'family-full' as JoinFamilyError;
+    const alreadyMember = user.uid in members;
 
-    // If already a member (e.g. app lost state after a previous join), skip the
-    // write and let the caller re-hydrate local state from the existing doc.
-    if (user.uid in members) return;
+    // Expiry / capacity validation only applies to a fresh join.
+    // An already-member who reaches this path is rehydrating after lost local
+    // state — they should not be blocked by an expired code or full capacity.
+    if (!alreadyMember) {
+      const expiresAt: Date = data.inviteCodeExpiresAt instanceof Timestamp
+        ? data.inviteCodeExpiresAt.toDate()
+        : new Date(data.inviteCodeExpiresAt);
+      if (expiresAt < new Date()) throw 'expired-code' as JoinFamilyError;
+      if (Object.keys(members).length >= (data.maxMembers ?? 6)) throw 'family-full' as JoinFamilyError;
 
-    // Add user to members map
-    const memberEntry = {
-      displayName: user.displayName ?? user.email?.split('@')[0] ?? 'Member',
-      ...(user.photoURL ? { photoURL: user.photoURL } : {}),
-      joinedAt: serverTimestamp(),
-    };
+      const memberEntry = {
+        displayName: user.displayName ?? user.email?.split('@')[0] ?? 'Member',
+        ...(user.photoURL ? { photoURL: user.photoURL } : {}),
+        joinedAt: serverTimestamp(),
+      };
 
-    transaction.update(familyRef, {
-      [`members.${user.uid}`]: memberEntry,
-      updatedAt: serverTimestamp(),
-    });
+      transaction.update(familyRef, {
+        [`members.${user.uid}`]: memberEntry,
+        updatedAt: serverTimestamp(),
+      });
+    }
+
+    // Persist familyId on the user doc — runs for both fresh joins and
+    // already-member rehydration so that sign-in can restore familyId
+    // even after local AsyncStorage was cleared.
+    transaction.set(doc(db, 'users', user.uid), { familyId }, { merge: true });
   }).catch((err) => {
     // Re-throw JoinFamilyError strings as-is; wrap anything else
     if (typeof err === 'string') throw err;
@@ -265,28 +283,36 @@ export async function joinFamily(
  */
 export async function leaveFamily(familyId: string, userId: string): Promise<void> {
   const familyRef = doc(db, FAMILIES_COLLECTION, familyId);
+  const userRef = doc(db, 'users', userId);
 
   await runTransaction(db, async (transaction) => {
     const snap = await transaction.get(familyRef);
-    if (!snap.exists()) return;
+    if (!snap.exists()) {
+      // Family doc gone but the user doc may still carry a stale pointer — clear it.
+      transaction.set(userRef, { familyId: deleteField() }, { merge: true });
+      return;
+    }
 
     const data = snap.data();
     const remainingMembers = Object.keys(data.members ?? {}).filter((uid) => uid !== userId);
 
     if (remainingMembers.length === 0) {
       transaction.delete(familyRef);
-      return;
+    } else {
+      const updates: Record<string, unknown> = {
+        [`members.${userId}`]: deleteField(),
+        updatedAt: serverTimestamp(),
+      };
+      // If admin is leaving, auto-transfer to first remaining member
+      if (data.adminId === userId) {
+        updates.adminId = remainingMembers[0];
+      }
+      transaction.update(familyRef, updates);
     }
 
-    const updates: Record<string, unknown> = {
-      [`members.${userId}`]: deleteField(),
-      updatedAt: serverTimestamp(),
-    };
-    // If admin is leaving, auto-transfer to first remaining member
-    if (data.adminId === userId) {
-      updates.adminId = remainingMembers[0];
-    }
-    transaction.update(familyRef, updates);
+    // Clear familyId pointer on the leaving user's doc so a future sign-in
+    // doesn't rehydrate them into a family they no longer belong to.
+    transaction.set(userRef, { familyId: deleteField() }, { merge: true });
   });
 }
 
