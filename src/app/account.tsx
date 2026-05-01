@@ -488,7 +488,7 @@ export default function AccountScreen() {
         animationType="slide"
         onRequestClose={() => setShowEditNameSheet(false)}
       >
-        <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+        <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
           <TouchableOpacity style={styles.overlay} activeOpacity={1} onPress={() => setShowEditNameSheet(false)} />
           <View style={styles.sheet}>
             <View style={styles.sheetHandle} />
@@ -522,7 +522,7 @@ export default function AccountScreen() {
         animationType="slide"
         onRequestClose={() => setShowDeleteAccountSheet(false)}
       >
-        <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+        <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
           <TouchableOpacity style={styles.overlay} activeOpacity={1} onPress={() => setShowDeleteAccountSheet(false)} />
           <View style={styles.sheet}>
             <View style={styles.sheetHandle} />
@@ -568,7 +568,7 @@ export default function AccountScreen() {
         animationType="slide"
         onRequestClose={() => setShowChangePasswordSheet(false)}
       >
-        <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+        <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
           <TouchableOpacity style={styles.overlay} activeOpacity={1} onPress={() => setShowChangePasswordSheet(false)} />
           <View style={styles.sheet}>
             <View style={styles.sheetHandle} />
