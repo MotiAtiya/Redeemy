@@ -250,8 +250,7 @@ export default function AddDocumentScreen() {
   const summaryScrollRef = useRef<ScrollView>(null);
 
   useFormExitConfirmation(
-    !isEditing && currentStepIndex > 0,
-    t('common.exitForm.title'), t('common.exitForm.message'), t('common.exitForm.confirm'), t('common.cancel'),
+    !isEditing && !saving && currentStepIndex > 0,
   );
 
   // Pre-fill for edit mode
@@ -361,9 +360,10 @@ export default function AddDocumentScreen() {
 
     setSaving(true);
 
+    const displayName = currentUser.displayName ?? currentUser.email?.split('@')[0] ?? 'Member';
     const data = {
       userId: currentUser.uid,
-      ...(familyId ? { familyId } : {}),
+      ...(familyId ? { familyId, createdBy: currentUser.uid, createdByName: displayName } : {}),
       type: docType,
       ...(docType === 'other' && customTypeName.trim() ? { customTypeName: customTypeName.trim() } : {}),
       ownerName: ownerName.trim(),

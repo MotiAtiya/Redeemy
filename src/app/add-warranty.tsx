@@ -252,8 +252,7 @@ export default function AddWarrantyScreen() {
   const currentStepIndex = steps.indexOf(currentStepId);
 
   useFormExitConfirmation(
-    !isEditing && (storeName.trim().length > 0 || currentStepIndex > 0),
-    t('common.exitForm.title'), t('common.exitForm.message'), t('common.exitForm.confirm'), t('common.cancel'),
+    !isEditing && !saving && (storeName.trim().length > 0 || currentStepIndex > 0),
   );
 
   // Pre-fill for edit mode

@@ -4,7 +4,7 @@ import { Image } from 'expo-image';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import { BaseCard } from './BaseCard';
-import { MemberAvatar } from './MemberAvatar';
+import { MemberAvatarOverlay } from './MemberAvatarOverlay';
 import { ExpirationBadge } from './ExpirationBadge';
 import { formatCurrency } from '@/lib/formatCurrency';
 import { formatDate } from '@/lib/formatDate';
@@ -84,7 +84,7 @@ export function CreditCard({ credit, onPress, variant = 'active' }: Props) {
       dimmed={dimmed}
       accessibilityLabel={`${credit.storeName} credit, ${formatCurrency(credit.amount, currencySymbol)}`}
     >
-      <View>
+      <MemberAvatarOverlay item={credit}>
         {(credit.images?.[0]?.thumbnailUrl ?? credit.thumbnailUrl) ? (
           <Image
             source={{ uri: credit.images?.[0]?.thumbnailUrl ?? credit.thumbnailUrl! }}
@@ -98,12 +98,7 @@ export function CreditCard({ credit, onPress, variant = 'active' }: Props) {
             <Ionicons name="image-outline" size={24} color={colors.textTertiary} />
           </View>
         )}
-        <MemberAvatar
-          familyId={credit.familyId}
-          createdBy={credit.createdBy}
-          createdByName={credit.createdByName}
-        />
-      </View>
+      </MemberAvatarOverlay>
 
       <View style={styles.left}>
         <Text style={[styles.storeName, dimmed && styles.textDimmed]} numberOfLines={1}>

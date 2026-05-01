@@ -18,6 +18,9 @@ import { useAuthStore } from '@/stores/authStore';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { migrateCreditsToFamily } from '@/lib/firestoreCredits';
 import { migrateSubscriptionsToFamily } from '@/lib/firestoreSubscriptions';
+import { migrateWarrantiesToFamily } from '@/lib/firestoreWarranties';
+import { migrateOccasionsToFamily } from '@/lib/firestoreOccasions';
+import { migrateDocumentsToFamily } from '@/lib/firestoreDocuments';
 import { AuthStatus } from '@/types/userTypes';
 import { configureGoogleSignIn } from '@/lib/auth';
 import { registerNotificationCategories, getCreditIdFromNotification } from '@/lib/notifications';
@@ -33,8 +36,6 @@ function AuthGate({ children }: { children: React.ReactNode }) {
   useBadgeUpdater();
   useNetworkMonitor();
   const familyId = useSettingsStore((s) => s.familyId);
-  const familyCreditsMigrated = useSettingsStore((s) => s.familyCreditsMigrated);
-  const setFamilyCreditsMigrated = useSettingsStore((s) => s.setFamilyCreditsMigrated);
   useFamilyListener(familyId);
 
   const currentUser = useAuthStore((s) => s.currentUser);
@@ -42,16 +43,21 @@ function AuthGate({ children }: { children: React.ReactNode }) {
   useCreditsListener(currentUser?.uid ?? null, familyId ?? null);
   useDocumentsListener(currentUser?.uid ?? null, familyId ?? null);
   useSubscriptionsListener(currentUser?.uid ?? null, familyId ?? null);
+  // Family migration runs on every launch / familyId change. Each migrate*ToFamily
+  // function is idempotent — it skips docs already correctly tagged, so this is a
+  // no-op when nothing needs updating. This makes the system self-healing when
+  // schema fields are added (e.g. createdByName on documents).
   useEffect(() => {
-    if (!familyId || !currentUser?.uid || familyCreditsMigrated) return;
+    if (!familyId || !currentUser?.uid) return;
     const displayName = currentUser.displayName ?? currentUser.email?.split('@')[0] ?? 'Member';
     Promise.all([
       migrateCreditsToFamily(currentUser.uid, familyId, displayName),
       migrateSubscriptionsToFamily(currentUser.uid, familyId, displayName),
-    ])
-      .then(() => setFamilyCreditsMigrated(true))
-      .catch(() => { /* silent — will retry next launch */ });
-  }, [familyId, currentUser?.uid, familyCreditsMigrated, setFamilyCreditsMigrated]);
+      migrateWarrantiesToFamily(currentUser.uid, familyId, displayName),
+      migrateOccasionsToFamily(currentUser.uid, familyId, displayName),
+      migrateDocumentsToFamily(currentUser.uid, familyId, displayName),
+    ]).catch(() => { /* silent — will retry next launch */ });
+  }, [familyId, currentUser?.uid]);
 
   const router = useRouter();
   const segments = useSegments();

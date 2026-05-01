@@ -14,6 +14,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import { CreditCard } from '@/components/redeemy/CreditCard';
 import { SearchBar } from '@/components/redeemy/SearchBar';
+import { EmptyState } from '@/components/redeemy/EmptyState';
 import { subscribeToCredits } from '@/lib/firestoreCredits';
 import { sortCreditsHome, filterActiveCredits, type HomeSortKey } from '@/lib/creditUtils';
 import { useAuthStore } from '@/stores/authStore';
@@ -80,23 +81,6 @@ function makeStyles(colors: AppColors) {
     creditsList: { flex: 1 },
     listContent: { paddingTop: 4, paddingBottom: 100 },
     listContentEmpty: { flex: 1 },
-    emptyState: {
-      flex: 1,
-      justifyContent: 'center',
-      alignItems: 'center',
-      paddingHorizontal: 40,
-      gap: 12,
-    },
-    emptyTitle: { fontSize: 18, fontWeight: '700', color: colors.textPrimary, textAlign: 'center' },
-    emptySubtitle: { fontSize: 14, color: colors.textTertiary, textAlign: 'center', lineHeight: 20 },
-    emptyAction: {
-      marginTop: 8,
-      paddingVertical: 12,
-      paddingHorizontal: 24,
-      backgroundColor: colors.primary,
-      borderRadius: 10,
-    },
-    emptyActionText: { color: '#FFFFFF', fontSize: 15, fontWeight: '600' },
     fab: {
       position: 'absolute',
       bottom: 28,
@@ -161,17 +145,30 @@ export default function CreditsScreen() {
 
   function openAddCredit() { router.push('/add-credit'); }
 
+  const hasActiveCredits = useMemo(
+    () => credits.some((c) => c.status === CreditStatus.ACTIVE),
+    [credits]
+  );
+
   function renderEmpty() {
     if (isLoading) return null;
+    if (hasActiveCredits) {
+      return (
+        <EmptyState
+          icon="search-outline"
+          iconSize={48}
+          title={t('credits.noResults')}
+        />
+      );
+    }
     return (
-      <View style={styles.emptyState}>
-        <Ionicons name="wallet-outline" size={56} color={colors.textTertiary} />
-        <Text style={styles.emptyTitle}>{t('credits.empty.title')}</Text>
-        <Text style={styles.emptySubtitle}>{t('credits.empty.subtitle')}</Text>
-        <TouchableOpacity style={styles.emptyAction} onPress={openAddCredit}>
-          <Text style={styles.emptyActionText}>{t('credits.empty.action')}</Text>
-        </TouchableOpacity>
-      </View>
+      <EmptyState
+        icon="wallet-outline"
+        title={t('credits.empty.title')}
+        subtitle={t('credits.empty.subtitle')}
+        actionLabel={t('credits.empty.action')}
+        onAction={openAddCredit}
+      />
     );
   }
 

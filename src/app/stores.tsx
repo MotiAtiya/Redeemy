@@ -2,7 +2,6 @@ import { useMemo, useState } from 'react';
 import {
   View,
   Text,
-  TextInput,
   FlatList,
   TouchableOpacity,
   StyleSheet,
@@ -12,6 +11,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
+import { SearchBar } from '@/components/redeemy/SearchBar';
+import { EmptyState } from '@/components/redeemy/EmptyState';
 import { useCreditsStore } from '@/stores/creditsStore';
 import { useSettingsStore, CURRENCY_SYMBOLS } from '@/stores/settingsStore';
 import { useAppTheme } from '@/hooks/useAppTheme';
@@ -35,7 +36,7 @@ function getIconForCategory(categoryId: string): IoniconsName {
   return CATEGORIES.find((c) => c.id === categoryId)?.icon ?? 'storefront-outline';
 }
 
-function makeStyles(colors: AppColors, isRTL: boolean) {
+function makeStyles(colors: AppColors) {
   return StyleSheet.create({
     safe: { flex: 1, backgroundColor: colors.background },
     header: {
@@ -52,23 +53,6 @@ function makeStyles(colors: AppColors, isRTL: boolean) {
       fontWeight: '600',
       color: colors.textPrimary,
     },
-    searchContainer: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      backgroundColor: colors.surface,
-      borderRadius: 12,
-      marginHorizontal: 16,
-      marginBottom: 12,
-      paddingHorizontal: 12,
-      height: 44,
-      shadowColor: '#000',
-      shadowOffset: { width: 0, height: 1 },
-      shadowOpacity: 0.04,
-      shadowRadius: 2,
-      elevation: 1,
-    },
-    searchIcon: { marginEnd: 8 },
-    searchInput: { flex: 1, fontSize: 15, color: colors.textPrimary, textAlign: isRTL ? 'right' : 'left', letterSpacing: 0 },
     listContent: { paddingBottom: 32 },
     listContentEmpty: { flex: 1 },
     row: {
@@ -92,23 +76,6 @@ function makeStyles(colors: AppColors, isRTL: boolean) {
     rowMeta: { fontSize: 12, color: colors.textTertiary, marginTop: 2, alignSelf: 'flex-start' },
     rowAmount: { fontSize: 16, fontWeight: '700', color: colors.textPrimary, marginEnd: 4 },
     separator: { height: 1, backgroundColor: colors.separator, marginStart: 64 },
-    emptyState: {
-      flex: 1,
-      justifyContent: 'center',
-      alignItems: 'center',
-      paddingHorizontal: 40,
-      gap: 12,
-    },
-    emptyTitle: { fontSize: 18, fontWeight: '700', color: colors.textPrimary, textAlign: 'center' },
-    emptySubtitle: { fontSize: 14, color: colors.textTertiary, textAlign: 'center', lineHeight: 20 },
-    emptyAction: {
-      marginTop: 8,
-      paddingVertical: 12,
-      paddingHorizontal: 24,
-      backgroundColor: colors.primary,
-      borderRadius: 10,
-    },
-    emptyActionText: { color: '#FFFFFF', fontSize: 15, fontWeight: '600' },
   });
 }
 
@@ -116,7 +83,7 @@ export default function StoresScreen() {
   const router = useRouter();
   const colors = useAppTheme();
   const isRTL = I18nManager.isRTL;
-  const styles = useMemo(() => makeStyles(colors, isRTL), [colors, isRTL]);
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const { t } = useTranslation();
   const credits = useCreditsStore((s) => s.credits);
   const currencySymbol = CURRENCY_SYMBOLS[useSettingsStore((s) => s.currency)];
@@ -153,15 +120,23 @@ export default function StoresScreen() {
   }, [stores, search]);
 
   function renderEmpty() {
+    if (stores.length > 0) {
+      return (
+        <EmptyState
+          icon="search-outline"
+          iconSize={48}
+          title={t('stores.noResults')}
+        />
+      );
+    }
     return (
-      <View style={styles.emptyState}>
-        <Ionicons name="storefront-outline" size={56} color={colors.textTertiary} />
-        <Text style={styles.emptyTitle}>{t('stores.empty.title')}</Text>
-        <Text style={styles.emptySubtitle}>{t('stores.empty.subtitle')}</Text>
-        <TouchableOpacity style={styles.emptyAction} onPress={() => router.push('/add-credit')}>
-          <Text style={styles.emptyActionText}>{t('stores.empty.action')}</Text>
-        </TouchableOpacity>
-      </View>
+      <EmptyState
+        icon="storefront-outline"
+        title={t('stores.empty.title')}
+        subtitle={t('stores.empty.subtitle')}
+        actionLabel={t('stores.empty.action')}
+        onAction={() => router.push('/add-credit')}
+      />
     );
   }
 
@@ -174,18 +149,7 @@ export default function StoresScreen() {
         <Text style={styles.headerTitle}>{t('stores.title')}</Text>
       </View>
 
-      <View style={styles.searchContainer}>
-        <Ionicons name="search-outline" size={18} color={colors.textTertiary} style={styles.searchIcon} />
-        <TextInput
-          style={styles.searchInput}
-          placeholder={t('stores.search')}
-          placeholderTextColor={colors.textTertiary}
-          value={search}
-          onChangeText={setSearch}
-          returnKeyType="search"
-          clearButtonMode="while-editing"
-        />
-      </View>
+      <SearchBar value={search} onChangeText={setSearch} placeholder={t('stores.search')} />
 
       <FlatList
         data={filtered}

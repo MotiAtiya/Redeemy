@@ -4,7 +4,7 @@ import { Image } from 'expo-image';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import { BaseCard } from './BaseCard';
-import { MemberAvatar } from './MemberAvatar';
+import { MemberAvatarOverlay } from './MemberAvatarOverlay';
 import { ExpirationBadge } from './ExpirationBadge';
 import { formatDate } from '@/lib/formatDate';
 import { useSettingsStore } from '@/stores/settingsStore';
@@ -92,7 +92,7 @@ export function WarrantyCard({ warranty, onPress, variant = 'active' }: Props) {
       dimmed={dimmed}
       accessibilityLabel={`${warranty.storeName} — ${productLabel}`}
     >
-      <View>
+      <MemberAvatarOverlay item={warranty}>
         {(warranty.images?.[0]?.thumbnailUrl ?? warranty.thumbnailUrl) ? (
           <Image
             source={{ uri: warranty.images?.[0]?.thumbnailUrl ?? warranty.thumbnailUrl! }}
@@ -106,12 +106,7 @@ export function WarrantyCard({ warranty, onPress, variant = 'active' }: Props) {
             <Ionicons name="shield-checkmark-outline" size={24} color={colors.textTertiary} />
           </View>
         )}
-        <MemberAvatar
-          familyId={warranty.familyId}
-          createdBy={warranty.createdBy}
-          createdByName={warranty.createdByName}
-        />
-      </View>
+      </MemberAvatarOverlay>
 
       <View style={styles.left}>
         <Text style={[styles.storeName, dimmed && styles.textDimmed]} numberOfLines={1}>

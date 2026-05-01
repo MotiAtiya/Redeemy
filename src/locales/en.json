@@ -21,6 +21,7 @@
     "filter": {
       "all": "All"
     },
+    "noResults": "No credits found",
     "empty": {
       "title": "No credits yet",
       "subtitle": "Add your first credit and never lose money again",
@@ -32,6 +33,7 @@
     "search": "Search stores…",
     "activeCredits_one": "{{count}} active credit",
     "activeCredits_other": "{{count}} active credits",
+    "noResults": "No stores found",
     "empty": {
       "title": "No active credits yet",
       "subtitle": "Add your first credit to get started",
@@ -385,6 +387,7 @@
     "filter": {
       "all": "All"
     },
+    "noResults": "No warranties found",
     "empty": {
       "title": "No warranties yet",
       "subtitle": "Add your first warranty to keep track of product guarantees",
@@ -678,6 +681,7 @@
       "amount": "Amount",
       "recent": "Recent"
     },
+    "noResults": "No subscriptions found",
     "empty": {
       "title": "No subscriptions yet",
       "subtitle": "Add your first subscription to track recurring payments",

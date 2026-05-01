@@ -17,6 +17,9 @@ import { useTranslation } from 'react-i18next';
 import { createFamily } from '@/lib/firestoreFamilies';
 import { migrateCreditsToFamily } from '@/lib/firestoreCredits';
 import { migrateSubscriptionsToFamily } from '@/lib/firestoreSubscriptions';
+import { migrateWarrantiesToFamily } from '@/lib/firestoreWarranties';
+import { migrateOccasionsToFamily } from '@/lib/firestoreOccasions';
+import { migrateDocumentsToFamily } from '@/lib/firestoreDocuments';
 import { useAuthStore } from '@/stores/authStore';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { useAppTheme } from '@/hooks/useAppTheme';
@@ -133,8 +136,13 @@ export default function CreateFamilyScreen() {
     try {
       const familyId = await createFamily(trimmed, currentUser);
       const displayName = currentUser.displayName ?? currentUser.email?.split('@')[0] ?? 'Member';
-      await migrateCreditsToFamily(currentUser.uid, familyId, displayName);
-      await migrateSubscriptionsToFamily(currentUser.uid, familyId, displayName);
+      await Promise.all([
+        migrateCreditsToFamily(currentUser.uid, familyId, displayName),
+        migrateSubscriptionsToFamily(currentUser.uid, familyId, displayName),
+        migrateWarrantiesToFamily(currentUser.uid, familyId, displayName),
+        migrateOccasionsToFamily(currentUser.uid, familyId, displayName),
+        migrateDocumentsToFamily(currentUser.uid, familyId, displayName),
+      ]);
       setFamilyId(familyId);
       router.replace(`/family/${familyId}?created=1`);
     } catch (err) {

@@ -39,7 +39,12 @@ import {
 } from '@/lib/firestoreFamilies';
 import { migrateCreditsFromFamily } from '@/lib/firestoreCredits';
 import { migrateSubscriptionsFromFamily } from '@/lib/firestoreSubscriptions';
+import { migrateWarrantiesFromFamily } from '@/lib/firestoreWarranties';
+import { migrateOccasionsFromFamily } from '@/lib/firestoreOccasions';
+import { migrateDocumentsFromFamily } from '@/lib/firestoreDocuments';
 import { useAppTheme } from '@/hooks/useAppTheme';
+import { getInitials } from '@/lib/initials';
+import { getAvatarColor } from '@/lib/avatarColor';
 import { FamilyRole, type FamilyMember } from '@/types/familyTypes';
 import type { AppColors } from '@/constants/colors';
 
@@ -142,7 +147,6 @@ function makeStyles(colors: AppColors, isRTL: boolean) {
       width: 36,
       height: 36,
       borderRadius: 18,
-      backgroundColor: '#5F9E8F',
       justifyContent: 'center',
       alignItems: 'center',
     },
@@ -270,7 +274,6 @@ export default function FamilyManageScreen() {
   const family = useFamilyStore((s) => s.family);
   const currentUser = useAuthStore((s) => s.currentUser);
   const setFamilyId = useSettingsStore((s) => s.setFamilyId);
-  const setFamilyCreditsMigrated = useSettingsStore((s) => s.setFamilyCreditsMigrated);
 
   const isAdmin = family?.adminId === currentUser?.uid;
 
@@ -412,8 +415,13 @@ export default function FamilyManageScreen() {
           onPress: async () => {
             setRemovingUid(member.userId);
             try {
-              await migrateCreditsFromFamily(member.userId, family.id);
-              await migrateSubscriptionsFromFamily(member.userId, family.id);
+              await Promise.all([
+                migrateCreditsFromFamily(member.userId, family.id),
+                migrateSubscriptionsFromFamily(member.userId, family.id),
+                migrateWarrantiesFromFamily(member.userId, family.id),
+                migrateOccasionsFromFamily(member.userId, family.id),
+                migrateDocumentsFromFamily(member.userId, family.id),
+              ]);
               await removeMember(family.id, member.userId);
             } catch {
               Alert.alert(t('common.error'), t('family.errors.removeFailed'));
@@ -443,12 +451,16 @@ export default function FamilyManageScreen() {
           onPress: async () => {
             setIsLeaving(true);
             try {
-              await migrateCreditsFromFamily(currentUser.uid);
-              await migrateSubscriptionsFromFamily(currentUser.uid);
+              await Promise.all([
+                migrateCreditsFromFamily(currentUser.uid),
+                migrateSubscriptionsFromFamily(currentUser.uid),
+                migrateWarrantiesFromFamily(currentUser.uid),
+                migrateOccasionsFromFamily(currentUser.uid),
+                migrateDocumentsFromFamily(currentUser.uid),
+              ]);
               await leaveFamily(family.id, currentUser.uid);
               useFamilyStore.getState().setFamily(null);
               setFamilyId(null);
-              setFamilyCreditsMigrated(false);
               router.replace('/(tabs)');
             } catch {
               Alert.alert(t('common.error'), t('family.errors.leaveFailed'));
@@ -548,9 +560,9 @@ export default function FamilyManageScreen() {
                 <View key={member.userId}>
                   {index > 0 && <View style={styles.separator} />}
                   <View style={styles.memberRow}>
-                    <View style={styles.memberAvatar}>
+                    <View style={[styles.memberAvatar, { backgroundColor: getAvatarColor(member.userId) }]}>
                       <Text style={styles.memberInitial}>
-                        {member.displayName[0]?.toUpperCase() ?? '?'}
+                        {getInitials(member.displayName)}
                       </Text>
                     </View>
                     <View style={styles.memberNameWrapper}>

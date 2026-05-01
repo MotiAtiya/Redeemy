@@ -6,8 +6,10 @@ import {
   getDocs,
   doc,
   serverTimestamp,
+  deleteField,
   query,
   where,
+  writeBatch,
   onSnapshot,
   type Unsubscribe,
 } from 'firebase/firestore';
@@ -84,4 +86,62 @@ export async function deleteAllUserDocuments(userId: string): Promise<void> {
   const q = query(collection(db, DOCUMENTS_COLLECTION), where('userId', '==', userId));
   const snapshot = await getDocs(q);
   await Promise.all(snapshot.docs.map((d) => deleteDoc(d.ref)));
+}
+
+/**
+ * Batch-assigns familyId (and createdBy info) to all documents belonging to a user.
+ * Idempotent: skips docs already correctly tagged so updatedAt isn't churned.
+ */
+export async function migrateDocumentsToFamily(
+  userId: string,
+  familyId: string,
+  createdByName: string
+): Promise<void> {
+  const q = query(collection(db, DOCUMENTS_COLLECTION), where('userId', '==', userId));
+  const snapshot = await getDocs(q);
+  const toUpdate = snapshot.docs.filter((d) => {
+    const data = d.data();
+    return data.familyId !== familyId
+      || data.createdBy !== userId
+      || data.createdByName !== createdByName;
+  });
+  if (toUpdate.length === 0) return;
+
+  const batch = writeBatch(db);
+  toUpdate.forEach((d) => {
+    batch.update(d.ref, {
+      familyId,
+      createdBy: userId,
+      createdByName,
+      updatedAt: serverTimestamp(),
+    });
+  });
+  await batch.commit();
+}
+
+/**
+ * Batch-removes familyId and createdBy from all documents belonging to a user.
+ * Called when a user leaves a family — their documents revert to personal ownership.
+ */
+export async function migrateDocumentsFromFamily(
+  userId: string,
+  familyId?: string
+): Promise<void> {
+  const constraints = familyId
+    ? [where('userId', '==', userId), where('familyId', '==', familyId)]
+    : [where('userId', '==', userId)];
+  const q = query(collection(db, DOCUMENTS_COLLECTION), ...constraints);
+  const snapshot = await getDocs(q);
+  if (snapshot.empty) return;
+
+  const batch = writeBatch(db);
+  snapshot.docs.forEach((d) => {
+    batch.update(d.ref, {
+      familyId: deleteField(),
+      createdBy: deleteField(),
+      createdByName: deleteField(),
+      updatedAt: serverTimestamp(),
+    });
+  });
+  await batch.commit();
 }

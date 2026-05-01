@@ -13,17 +13,15 @@ import { useSettingsStore } from '@/stores/settingsStore';
 export function useFamilyListener(familyId: string | null | undefined): void {
   const currentUid = useAuthStore((s) => s.currentUser?.uid);
   const setFamilyId = useSettingsStore((s) => s.setFamilyId);
-  const setFamilyCreditsMigrated = useSettingsStore((s) => s.setFamilyCreditsMigrated);
 
   useEffect(() => {
     if (!familyId) return;
 
     function handleUserRemoved() {
       setFamilyId(null);
-      setFamilyCreditsMigrated(false);
     }
 
     const unsubscribe = subscribeToFamily(familyId, currentUid, handleUserRemoved);
     return unsubscribe;
-  }, [familyId, currentUid, setFamilyId, setFamilyCreditsMigrated]);
+  }, [familyId, currentUid, setFamilyId]);
 }

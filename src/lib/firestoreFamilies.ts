@@ -101,8 +101,14 @@ export async function generateInviteCode(familyId: string): Promise<{ code: stri
 /**
  * Sets up a real-time onSnapshot listener for a family document.
  * Converts Timestamps to JS Dates and writes to familyStore.
- * Calls onUserRemoved when the current user is no longer in the members map
+ * Calls onUserRemoved when the current user transitions from member to non-member
  * (kicked by admin or family dissolved) — caller should clear familyId.
+ *
+ * The kick callback only fires after we've confirmed membership at least once
+ * in this listener's lifetime. This avoids a false positive on the very first
+ * snapshot — e.g. just after joining, where a transient stale read could
+ * otherwise wipe out a valid membership.
+ *
  * Returns unsubscribe function — call on cleanup.
  */
 export function subscribeToFamily(
@@ -111,23 +117,25 @@ export function subscribeToFamily(
   onUserRemoved?: () => void,
 ): Unsubscribe {
   const docRef = doc(db, FAMILIES_COLLECTION, familyId);
+  let seenAsMember = false;
 
   return onSnapshot(
     docRef,
     (snapshot) => {
       if (!snapshot.exists()) {
         useFamilyStore.getState().setFamily(null);
-        onUserRemoved?.();
+        if (seenAsMember) onUserRemoved?.();
         return;
       }
 
       const rawData = snapshot.data();
-      // Detect if current user was removed from the family
-      if (currentUid && !(currentUid in (rawData.members ?? {}))) {
+      const isMember = !currentUid || currentUid in (rawData.members ?? {});
+      if (!isMember) {
         useFamilyStore.getState().setFamily(null);
-        onUserRemoved?.();
+        if (seenAsMember) onUserRemoved?.();
         return;
       }
+      seenAsMember = true;
 
       const data = rawData;
       const adminId: string = data.adminId;

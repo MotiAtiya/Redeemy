@@ -3,7 +3,7 @@ import { View, Text, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import { BaseCard } from './BaseCard';
-import { MemberAvatar } from './MemberAvatar';
+import { MemberAvatarOverlay } from './MemberAvatarOverlay';
 import { useAppTheme } from '@/hooks/useAppTheme';
 import { useSettingsStore, CURRENCY_SYMBOLS } from '@/stores/settingsStore';
 import { formatCurrencyCompact } from '@/lib/formatCurrency';
@@ -240,18 +240,13 @@ export function SubscriptionCard({ subscription: sub, onPress, variant = 'active
       </View>
 
       {/* Category icon circle (end side) */}
-      <View style={styles.categoryIconCircle}>
+      <MemberAvatarOverlay item={sub} style={styles.categoryIconCircle}>
         <Ionicons
           name={categoryMeta?.icon ?? 'repeat-outline'}
           size={20}
           color={colors.primary}
         />
-        <MemberAvatar
-          familyId={sub.familyId}
-          createdBy={sub.createdBy}
-          createdByName={sub.createdByName}
-        />
-      </View>
+      </MemberAvatarOverlay>
     </BaseCard>
   );
 }

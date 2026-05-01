@@ -20,6 +20,8 @@ import { useAuthStore } from '@/stores/authStore';
 import { useSettingsStore, type DateFormat, type CurrencyCode, CURRENCY_SYMBOLS } from '@/stores/settingsStore';
 import { useFamilyStore } from '@/stores/familyStore';
 import { useAppTheme, useIsDark } from '@/hooks/useAppTheme';
+import { getInitials } from '@/lib/initials';
+import { getAvatarColor } from '@/lib/avatarColor';
 import { openStoreReview } from '@/lib/storeReview';
 
 const logoLight = require('../../../assets/images/logo-light.png');
@@ -76,7 +78,6 @@ function makeStyles(colors: AppColors) {
       width: 44,
       height: 44,
       borderRadius: 22,
-      backgroundColor: colors.primary,
       justifyContent: 'center',
       alignItems: 'center',
     },
@@ -277,11 +278,11 @@ export default function MoreScreen() {
             activeOpacity={0.7}
           >
             <View style={styles.accountRow}>
-              <View style={styles.avatar}>
+              <View style={[styles.avatar, { backgroundColor: getAvatarColor(currentUser?.uid) }]}>
                 <Text style={styles.avatarInitial}>
-                  {currentUser?.displayName?.[0]?.toUpperCase() ??
-                    currentUser?.email?.[0]?.toUpperCase() ??
-                    '?'}
+                  {currentUser?.displayName
+                    ? getInitials(currentUser.displayName)
+                    : currentUser?.email?.[0]?.toUpperCase() ?? '?'}
                 </Text>
               </View>
               <View style={styles.accountInfo}>

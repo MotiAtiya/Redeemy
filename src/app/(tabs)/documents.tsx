@@ -13,6 +13,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import { DocumentCard } from '@/components/redeemy/DocumentCard';
 import { SearchBar } from '@/components/redeemy/SearchBar';
+import { EmptyState } from '@/components/redeemy/EmptyState';
 import { useDocumentsStore } from '@/stores/documentsStore';
 import { useAuthStore } from '@/stores/authStore';
 import { useSettingsStore } from '@/stores/settingsStore';
@@ -76,23 +77,6 @@ function makeStyles(colors: AppColors) {
     list: { flex: 1 },
     listContent: { paddingTop: 4, paddingBottom: 100 },
     listContentEmpty: { flex: 1 },
-    emptyContainer: {
-      flex: 1,
-      justifyContent: 'center',
-      alignItems: 'center',
-      padding: 32,
-      gap: 12,
-    },
-    emptyTitle: { fontSize: 18, fontWeight: '700', color: colors.textPrimary, textAlign: 'center' },
-    emptySubtitle: { fontSize: 14, color: colors.textTertiary, textAlign: 'center', lineHeight: 20 },
-    emptyAction: {
-      marginTop: 8,
-      paddingVertical: 12,
-      paddingHorizontal: 24,
-      backgroundColor: colors.primary,
-      borderRadius: 10,
-    },
-    emptyActionText: { color: '#FFFFFF', fontSize: 15, fontWeight: '600' },
     fab: {
       position: 'absolute',
       bottom: 28,
@@ -177,23 +161,23 @@ export default function DocumentsScreen() {
   }, [documents, searchQuery, selectedType, sortKey]);
 
   function renderEmpty() {
-    if (documents.length === 0) {
+    if (documents.length > 0) {
       return (
-        <View style={styles.emptyContainer}>
-          <Ionicons name="documents-outline" size={56} color={colors.textTertiary} />
-          <Text style={styles.emptyTitle}>{t('documents.empty.title')}</Text>
-          <Text style={styles.emptySubtitle}>{t('documents.empty.subtitle')}</Text>
-          <TouchableOpacity style={styles.emptyAction} onPress={() => router.push('/add-document')}>
-            <Text style={styles.emptyActionText}>{t('documents.empty.action')}</Text>
-          </TouchableOpacity>
-        </View>
+        <EmptyState
+          icon="search-outline"
+          iconSize={48}
+          title={t('documents.noResults')}
+        />
       );
     }
     return (
-      <View style={styles.emptyContainer}>
-        <Ionicons name="search-outline" size={48} color={colors.textTertiary} />
-        <Text style={styles.emptyTitle}>{t('documents.noResults')}</Text>
-      </View>
+      <EmptyState
+        icon="documents-outline"
+        title={t('documents.empty.title')}
+        subtitle={t('documents.empty.subtitle')}
+        actionLabel={t('documents.empty.action')}
+        onAction={() => router.push('/add-document')}
+      />
     );
   }
 

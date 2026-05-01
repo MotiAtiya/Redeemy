@@ -3,6 +3,7 @@ import { View, Text, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import { BaseCard } from './BaseCard';
+import { MemberAvatarOverlay } from './MemberAvatarOverlay';
 import { useAppTheme } from '@/hooks/useAppTheme';
 import { daysUntilNextOccurrence, nextOccurrenceDate } from '@/lib/hebrewDate';
 import { type Occasion, type OccasionType } from '@/types/occasionTypes';
@@ -121,9 +122,11 @@ export function OccasionCard({ occasion, onPress }: Props) {
 
   return (
     <BaseCard onPress={onPress} accessibilityLabel={title}>
-      <View style={styles.iconCircle}>
-        <Ionicons name={TYPE_ICONS[occasion.type]} size={22} color={colors.primary} />
-      </View>
+      <MemberAvatarOverlay item={occasion}>
+        <View style={styles.iconCircle}>
+          <Ionicons name={TYPE_ICONS[occasion.type]} size={22} color={colors.primary} />
+        </View>
+      </MemberAvatarOverlay>
 
       <View style={styles.center}>
         <Text style={styles.title} numberOfLines={2}>{title}</Text>

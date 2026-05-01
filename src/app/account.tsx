@@ -26,6 +26,8 @@ import { deleteAllUserData, clearAllLocalStores } from '@/lib/userDataCleanup';
 import { cancelAllNotifications } from '@/lib/notifications';
 import { leaveFamily } from '@/lib/firestoreFamilies';
 import { useAppTheme } from '@/hooks/useAppTheme';
+import { getInitials } from '@/lib/initials';
+import { getAvatarColor } from '@/lib/avatarColor';
 import type { AppColors } from '@/constants/colors';
 
 function makeStyles(colors: AppColors, isRTL: boolean) {
@@ -56,7 +58,6 @@ function makeStyles(colors: AppColors, isRTL: boolean) {
       width: 72,
       height: 72,
       borderRadius: 36,
-      backgroundColor: colors.primary,
       justifyContent: 'center',
       alignItems: 'center',
       marginBottom: 12,
@@ -386,11 +387,11 @@ export default function AccountScreen() {
 
         {/* Avatar card */}
         <View style={styles.avatarCard}>
-          <View style={styles.avatar}>
+          <View style={[styles.avatar, { backgroundColor: getAvatarColor(currentUser?.uid) }]}>
             <Text style={styles.avatarInitial}>
-              {currentUser?.displayName?.[0]?.toUpperCase() ??
-                currentUser?.email?.[0]?.toUpperCase() ??
-                '?'}
+              {currentUser?.displayName
+                ? getInitials(currentUser.displayName)
+                : currentUser?.email?.[0]?.toUpperCase() ?? '?'}
             </Text>
           </View>
           {currentUser?.displayName ? (

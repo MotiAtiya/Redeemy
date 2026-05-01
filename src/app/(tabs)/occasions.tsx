@@ -13,6 +13,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import { OccasionCard } from '@/components/redeemy/OccasionCard';
 import { SearchBar } from '@/components/redeemy/SearchBar';
+import { EmptyState } from '@/components/redeemy/EmptyState';
 import { useOccasionsStore } from '@/stores/occasionsStore';
 import { useAuthStore } from '@/stores/authStore';
 import { useSettingsStore } from '@/stores/settingsStore';
@@ -77,23 +78,6 @@ function makeStyles(colors: AppColors) {
     list: { flex: 1 },
     listContent: { paddingTop: 4, paddingBottom: 100 },
     listContentEmpty: { flex: 1 },
-    emptyContainer: {
-      flex: 1,
-      justifyContent: 'center',
-      alignItems: 'center',
-      padding: 32,
-      gap: 12,
-    },
-    emptyTitle: { fontSize: 18, fontWeight: '700', color: colors.textPrimary, textAlign: 'center' },
-    emptySubtitle: { fontSize: 14, color: colors.textTertiary, textAlign: 'center', lineHeight: 20 },
-    emptyAction: {
-      marginTop: 8,
-      paddingVertical: 12,
-      paddingHorizontal: 24,
-      backgroundColor: colors.primary,
-      borderRadius: 10,
-    },
-    emptyActionText: { color: '#FFFFFF', fontSize: 15, fontWeight: '600' },
     fab: {
       position: 'absolute',
       bottom: 28,
@@ -182,24 +166,23 @@ export default function OccasionsScreen() {
   }, [occasions, searchQuery, selectedType, sortKey]);
 
   function renderEmpty() {
-    if (occasions.length === 0) {
+    if (occasions.length > 0) {
       return (
-        <View style={styles.emptyContainer}>
-          <Ionicons name="heart-outline" size={56} color={colors.textTertiary} />
-          <Text style={styles.emptyTitle}>{t('occasions.empty.title')}</Text>
-          <Text style={styles.emptySubtitle}>{t('occasions.empty.subtitle')}</Text>
-          <TouchableOpacity style={styles.emptyAction} onPress={() => router.push('/add-occasion')}>
-            <Text style={styles.emptyActionText}>{t('occasions.empty.action')}</Text>
-          </TouchableOpacity>
-        </View>
+        <EmptyState
+          icon="search-outline"
+          iconSize={48}
+          title={t('occasions.noResults')}
+        />
       );
     }
-    // Has occasions but search/filter returned nothing
     return (
-      <View style={styles.emptyContainer}>
-        <Ionicons name="search-outline" size={48} color={colors.textTertiary} />
-        <Text style={styles.emptyTitle}>{t('occasions.noResults')}</Text>
-      </View>
+      <EmptyState
+        icon="heart-outline"
+        title={t('occasions.empty.title')}
+        subtitle={t('occasions.empty.subtitle')}
+        actionLabel={t('occasions.empty.action')}
+        onAction={() => router.push('/add-occasion')}
+      />
     );
   }
 

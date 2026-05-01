@@ -118,7 +118,7 @@ export async function deleteAllUserSubscriptions(userId: string): Promise<void> 
 
 /**
  * Batch-assigns familyId (and createdBy info) to all subscriptions belonging to a user.
- * Called when a user joins a family — makes their subscriptions visible to all family members.
+ * Idempotent: skips docs already correctly tagged so updatedAt isn't churned.
  */
 export async function migrateSubscriptionsToFamily(
   userId: string,
@@ -127,10 +127,16 @@ export async function migrateSubscriptionsToFamily(
 ): Promise<void> {
   const q = query(collection(db, SUBSCRIPTIONS_COLLECTION), where('userId', '==', userId));
   const snapshot = await getDocs(q);
-  if (snapshot.empty) return;
+  const toUpdate = snapshot.docs.filter((d) => {
+    const data = d.data();
+    return data.familyId !== familyId
+      || data.createdBy !== userId
+      || data.createdByName !== createdByName;
+  });
+  if (toUpdate.length === 0) return;
 
   const batch = writeBatch(db);
-  snapshot.docs.forEach((d) => {
+  toUpdate.forEach((d) => {
     batch.update(d.ref, {
       familyId,
       createdBy: userId,

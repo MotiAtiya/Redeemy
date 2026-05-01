@@ -293,8 +293,7 @@ export default function AddOccasionScreen() {
   const summaryScrollRef = useRef<ScrollView>(null);
 
   useFormExitConfirmation(
-    !isEditing && (name.trim().length > 0 || currentStepIndex > 0),
-    t('common.exitForm.title'), t('common.exitForm.message'), t('common.exitForm.confirm'), t('common.cancel'),
+    !isEditing && !saving && (name.trim().length > 0 || currentStepIndex > 0),
   );
 
   // Pre-fill for edit mode

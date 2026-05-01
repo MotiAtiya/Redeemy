@@ -7,6 +7,8 @@ export interface Document {
   id: string;
   userId: string;
   familyId?: string;
+  createdBy?: string;
+  createdByName?: string;
   type: DocumentType;
   customTypeName?: string;
   ownerName: string;

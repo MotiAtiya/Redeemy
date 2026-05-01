@@ -47,5 +47,4 @@ export function clearAllLocalStores(): void {
 
   useFamilyStore.getState().setFamily(null);
   useSettingsStore.getState().setFamilyId(null);
-  useSettingsStore.getState().setFamilyCreditsMigrated(false);
 }

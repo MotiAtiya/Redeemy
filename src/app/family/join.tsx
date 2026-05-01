@@ -116,7 +116,6 @@ export default function JoinFamilyScreen() {
 
   const currentUser = useAuthStore((s) => s.currentUser);
   const setFamilyId = useSettingsStore((s) => s.setFamilyId);
-  const setFamilyCreditsMigrated = useSettingsStore((s) => s.setFamilyCreditsMigrated);
 
   const [code, setCode] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -140,9 +139,8 @@ export default function JoinFamilyScreen() {
     try {
       const familyId = await joinFamily(trimmed, currentUser);
       // Persist familyId immediately — this triggers useFamilyListener and
-      // credits re-subscription. Credit migration runs in _layout.tsx on next
-      // render (familyCreditsMigrated = false → startup migration effect fires).
-      setFamilyCreditsMigrated(false);
+      // re-subscription of all listeners. The idempotent migration in _layout.tsx
+      // then assigns familyId/createdBy to all of this user's items.
       setFamilyId(familyId);
       router.replace('/(tabs)');
     } catch (err) {

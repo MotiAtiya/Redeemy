@@ -18,6 +18,8 @@ import Constants from 'expo-constants';
 import * as Crypto from 'expo-crypto';
 import { auth, db } from './firebase';
 import i18n from './i18n';
+import { useAuthStore } from '@/stores/authStore';
+import { propagateDisplayNameChange } from './userProfile';
 import type { User } from '@/types/userTypes';
 
 function generateNonce(length = 32): string {
@@ -135,6 +137,11 @@ export async function registerWithEmail(
     photoURL: userRecord.photoURL,
   });
 
+  // onAuthStateChanged fires immediately after createUserWithEmailAndPassword,
+  // before updateProfile completes — so the store would otherwise hold the user
+  // without displayName until the next app launch. Sync it here.
+  useAuthStore.getState().setCurrentUser(userRecord);
+
   return userRecord;
 }
 
@@ -147,6 +154,7 @@ export async function updateDisplayName(newName: string): Promise<void> {
   if (!user) throw new Error('Not authenticated');
   await updateProfile(user, { displayName: newName });
   await setDoc(doc(db, 'users', user.uid), { displayName: newName }, { merge: true });
+  await propagateDisplayNameChange(user.uid, newName);
 }
 
 export async function changePassword(currentPassword: string, newPassword: string): Promise<void> {

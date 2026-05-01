@@ -13,6 +13,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import { SubscriptionCard } from '@/components/redeemy/SubscriptionCard';
 import { SearchBar } from '@/components/redeemy/SearchBar';
+import { EmptyState } from '@/components/redeemy/EmptyState';
 import { useSubscriptionsStore } from '@/stores/subscriptionsStore';
 import { CURRENCY_SYMBOLS } from '@/stores/settingsStore';
 import { useAppTheme } from '@/hooks/useAppTheme';
@@ -77,23 +78,6 @@ function makeStyles(colors: AppColors) {
     filterChipTextActive: { color: '#FFFFFF', fontWeight: '600' },
     listContent: { paddingTop: 4, paddingBottom: 100 },
     listContentEmpty: { flex: 1 },
-    emptyState: {
-      flex: 1,
-      justifyContent: 'center',
-      alignItems: 'center',
-      paddingHorizontal: 40,
-      gap: 12,
-    },
-    emptyTitle: { fontSize: 18, fontWeight: '700', color: colors.textPrimary, textAlign: 'center' },
-    emptySubtitle: { fontSize: 14, color: colors.textTertiary, textAlign: 'center', lineHeight: 20 },
-    emptyAction: {
-      marginTop: 8,
-      paddingVertical: 12,
-      paddingHorizontal: 24,
-      backgroundColor: colors.primary,
-      borderRadius: 10,
-    },
-    emptyActionText: { color: '#FFFFFF', fontSize: 15, fontWeight: '600' },
     fab: {
       position: 'absolute',
       bottom: 28,
@@ -189,18 +173,23 @@ export default function SubscriptionsScreen() {
 
   function renderEmpty() {
     if (isLoading) return null;
+    if (activeSubscriptions.length > 0) {
+      return (
+        <EmptyState
+          icon="search-outline"
+          iconSize={48}
+          title={t('subscriptions.noResults')}
+        />
+      );
+    }
     return (
-      <View style={styles.emptyState}>
-        <Ionicons name="repeat-outline" size={56} color={colors.textTertiary} />
-        <Text style={styles.emptyTitle}>{t('subscriptions.empty.title')}</Text>
-        <Text style={styles.emptySubtitle}>{t('subscriptions.empty.subtitle')}</Text>
-        <TouchableOpacity
-          style={styles.emptyAction}
-          onPress={() => router.push('/add-subscription')}
-        >
-          <Text style={styles.emptyActionText}>{t('subscriptions.empty.action')}</Text>
-        </TouchableOpacity>
-      </View>
+      <EmptyState
+        icon="repeat-outline"
+        title={t('subscriptions.empty.title')}
+        subtitle={t('subscriptions.empty.subtitle')}
+        actionLabel={t('subscriptions.empty.action')}
+        onAction={() => router.push('/add-subscription')}
+      />
     );
   }
 
