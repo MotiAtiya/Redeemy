@@ -122,8 +122,6 @@ export async function registerWithEmail(
   const credential = await createUserWithEmailAndPassword(auth, email, password);
   const { uid } = credential.user;
 
-  await updateProfile(credential.user, { displayName });
-
   const userRecord: User = {
     uid,
     email: credential.user.email ?? undefined,
@@ -131,15 +129,23 @@ export async function registerWithEmail(
     photoURL: undefined,
   };
 
+  // Seed the store BEFORE the slow updateProfile/Firestore writes. The
+  // onAuthStateChanged listener fires shortly after createUserWithEmailAndPassword
+  // with displayName=null (Firebase's own User object lags the updateProfile call),
+  // and the listener's merge logic in useAuthState preserves the displayName we
+  // set here. Also writes the Firestore /users/{uid} doc so the listener's
+  // Firestore fallback has data to read on future cold starts.
+  useAuthStore.getState().setCurrentUser(userRecord);
+
+  await updateProfile(credential.user, { displayName });
   await upsertUserDocument(uid, {
     email: userRecord.email,
     displayName: userRecord.displayName,
     photoURL: userRecord.photoURL,
   });
 
-  // onAuthStateChanged fires immediately after createUserWithEmailAndPassword,
-  // before updateProfile completes — so the store would otherwise hold the user
-  // without displayName until the next app launch. Sync it here.
+  // Re-sync after the awaits in case the listener fired in between with a
+  // stale firebaseUser.displayName.
   useAuthStore.getState().setCurrentUser(userRecord);
 
   return userRecord;
