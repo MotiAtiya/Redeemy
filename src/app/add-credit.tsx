@@ -579,10 +579,11 @@ export default function AddCreditScreen() {
         creditLastDayAlert,
       );
       if (reminderId || expiryId) {
+        // Post-create system fixup — already logged item_created above; suppress duplicate.
         await updateCredit(newCreditId, {
           ...(reminderId ? { notificationId: reminderId } : {}),
           ...(expiryId ? { expirationNotificationId: expiryId } : {}),
-        });
+        }, { silent: true });
       }
       if (photoItems.length > 0) {
         try {
@@ -593,7 +594,7 @@ export default function AddCreditScreen() {
                 : uploadEntityImage(item.uri, 'credits', newCreditId, i)
             )
           );
-          await updateCredit(newCreditId, { images: uploadedImages });
+          await updateCredit(newCreditId, { images: uploadedImages }, { silent: true });
         } catch {
           Alert.alert(t('addCredit.error.photo'));
         }

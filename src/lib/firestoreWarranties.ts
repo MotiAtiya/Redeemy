@@ -95,11 +95,14 @@ export async function createWarranty(
  */
 export async function updateWarranty(
   warrantyId: string,
-  changes: Partial<Omit<Warranty, 'id' | 'createdAt'>>
+  changes: Partial<Omit<Warranty, 'id' | 'createdAt'>>,
+  options: { silent?: boolean } = {}
 ): Promise<void> {
   const docRef = doc(db, WARRANTIES_COLLECTION, warrantyId);
   await updateDoc(docRef, buildUpdatePayload(changes as Record<string, unknown>));
-  void logEvent('item_updated', { itemCategory: 'warranty', itemId: warrantyId });
+  if (!options.silent) {
+    void logEvent('item_updated', { itemCategory: 'warranty', itemId: warrantyId });
+  }
 }
 
 /**

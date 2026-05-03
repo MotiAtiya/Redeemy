@@ -377,7 +377,8 @@ export default function AddDocumentScreen() {
             )
           );
           updateDocumentInStore(documentId, { images: uploadedImages });
-          await updateDocument(documentId, { images: uploadedImages });
+          // Post-edit system fixup — already logged item_updated above.
+          await updateDocument(documentId, { images: uploadedImages }, { silent: true });
         }
 
         router.back();
@@ -408,7 +409,8 @@ export default function AddDocumentScreen() {
               : uploadEntityImage(item.uri, 'documents', docId, i)
           )
         );
-        await updateDocument(docId, { images: uploadedImages });
+        // Post-create system fixup — already logged item_created from createDocument.
+        await updateDocument(docId, { images: uploadedImages }, { silent: true });
       }
 
       removeDocumentFromStore(tempId);

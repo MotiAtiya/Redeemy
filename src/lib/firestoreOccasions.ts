@@ -69,12 +69,15 @@ export async function createOccasion(
 
 export async function updateOccasion(
   id: string,
-  changes: Partial<Occasion>
+  changes: Partial<Occasion>,
+  options: { silent?: boolean } = {}
 ): Promise<void> {
   await updateDoc(doc(db, OCCASIONS_COLLECTION, id),
     buildUpdatePayload(changes as Record<string, unknown>)
   );
-  void logEvent('item_updated', { itemCategory: 'occasion', itemId: id });
+  if (!options.silent) {
+    void logEvent('item_updated', { itemCategory: 'occasion', itemId: id });
+  }
 }
 
 export async function deleteOccasion(id: string): Promise<void> {

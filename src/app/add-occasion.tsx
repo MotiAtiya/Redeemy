@@ -428,7 +428,8 @@ export default function AddOccasionScreen() {
       const newId = await createOccasion(data);
       const fullOccasion: Occasion = { ...data, id: newId, notificationIds: [], createdAt: new Date(), updatedAt: new Date() };
       const ids = await scheduleOccasionNotifications(fullOccasion);
-      if (ids.length) await updateOccasion(newId, { notificationIds: ids });
+      // Post-create system fixup — already logged item_created from createOccasion.
+      if (ids.length) await updateOccasion(newId, { notificationIds: ids }, { silent: true });
       removeOccasionFromStore(tempId);
       router.back();
     } catch {

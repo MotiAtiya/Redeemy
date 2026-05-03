@@ -71,11 +71,14 @@ export async function createDocument(
 
 export async function updateDocument(
   id: string,
-  changes: Partial<Document>
+  changes: Partial<Document>,
+  options: { silent?: boolean } = {}
 ): Promise<void> {
   const docRef = doc(db, DOCUMENTS_COLLECTION, id);
   await updateDoc(docRef, buildUpdatePayload(changes as Record<string, unknown>));
-  void logEvent('item_updated', { itemCategory: 'document', itemId: id });
+  if (!options.silent) {
+    void logEvent('item_updated', { itemCategory: 'document', itemId: id });
+  }
 }
 
 export async function deleteDocument(id: string): Promise<void> {

@@ -514,10 +514,11 @@ export default function AddWarrantyScreen() {
           warrantyLastDayAlert,
         );
         if (reminderId || expiryId) {
+          // Post-create system fixup — already logged item_created above; suppress duplicate.
           await updateWarranty(newWarrantyId, {
             ...(reminderId ? { notificationId: reminderId } : {}),
             ...(expiryId ? { expirationNotificationId: expiryId } : {}),
-          });
+          }, { silent: true });
         }
       }
 
@@ -530,7 +531,7 @@ export default function AddWarrantyScreen() {
                 : uploadEntityImage(item.uri, 'warranties', newWarrantyId, i)
             )
           );
-          await updateWarranty(newWarrantyId, { images: uploadedImages });
+          await updateWarranty(newWarrantyId, { images: uploadedImages }, { silent: true });
         } catch {
           Alert.alert(t('addWarranty.error.photo'));
         }

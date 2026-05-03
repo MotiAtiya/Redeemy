@@ -1072,11 +1072,12 @@ export default function AddSubscriptionScreen() {
           id: existingSubscription.id,
           ...subscriptionData,
         });
+        // Post-edit system fixup — already logged item_updated at line 1069.
         await updateSubscription(existingSubscription.id, {
           notificationIds: scheduled.notificationIds,
           renewalNotificationId: scheduled.renewalNotificationId,
           specialPeriodNotificationId: scheduled.specialPeriodNotificationId,
-        });
+        }, { silent: true });
         showToast(t('addSubscription.savedToast'));
         setTimeout(() => router.back(), 300);
       } catch (err) {
@@ -1108,11 +1109,12 @@ export default function AddSubscriptionScreen() {
           id: newId,
           ...subscriptionData,
         });
+        // Post-create system fixup — already logged item_created from createSubscription.
         await updateSubscription(newId, {
           notificationIds: scheduled.notificationIds,
           renewalNotificationId: scheduled.renewalNotificationId,
           specialPeriodNotificationId: scheduled.specialPeriodNotificationId,
-        });
+        }, { silent: true });
       }
       showToast(t('addSubscription.savedToast'));
       setTimeout(() => router.back(), 300);
