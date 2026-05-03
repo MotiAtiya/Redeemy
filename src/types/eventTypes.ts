@@ -17,6 +17,7 @@ export type EventType =
   // Item status changes (semantic, more useful than generic item_updated)
   | 'credit_redeemed'
   | 'credit_unredeemed'
+  | 'credit_expired'
   | 'subscription_cancelled'
   | 'warranty_closed'
   // Family

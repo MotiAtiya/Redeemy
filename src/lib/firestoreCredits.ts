@@ -67,8 +67,10 @@ export function subscribeToCredits(userId: string, familyId?: string | null): Un
       for (const c of toExpire) {
         const expiredAt = new Date(c.expirationDate!);
         expiredAt.setHours(23, 59, 59, 999);
-        // System auto-expire — not a user action; suppress the activity-feed event.
+        // System auto-expire — log the lifecycle event explicitly instead of
+        // a generic item_updated.
         updateCredit(c.id, { status: CreditStatus.EXPIRED, expiredAt }, { silent: true });
+        void logEvent('credit_expired', { itemCategory: 'credit', itemId: c.id });
       }
     },
     (_error) => {
