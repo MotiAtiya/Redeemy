@@ -4,7 +4,7 @@
 **Story Key:** 18-4-admin-dashboard-daily-digest-email-and-mobile-polish
 **Author:** Moti
 **Date:** 2026-05-03
-**Status:** planned
+**Status:** done
 
 ---
 

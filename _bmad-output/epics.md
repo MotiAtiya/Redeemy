@@ -32,7 +32,7 @@ This document provides the complete epic and story breakdown for Redeemy, decomp
 | Epic 14 | Warranties (full rewrite with multi-image) | 1 story | ✅ done |
 | Epic 15 | Occasions (birthdays, anniversaries, yahrzeit) | 2 stories | ✅ done |
 | Epic 16 | Documents (ID, license, passport, insurance) | 1 story | ✅ done |
-| Epic 18 | Admin Dashboard (web, V1 MVP) | 4 stories | 📝 planned |
+| Epic 18 | Admin Dashboard (web, V1 MVP) | 4 stories | ✅ done |
 
 > **Note:** Epics 9–16 were added after initial planning. Epics 14–16 are new features not in the original product brief. Epic 18 is a separate web application (not part of the mobile app codebase).
 
@@ -1572,7 +1572,7 @@ So that reminders work from day one and I know how to get started.
 
 **Goal:** A separate web application that gives Moti — Redeemy's solo founder and only admin — a real-time picture of the app's state, users, and operational health, without leaving the Redeemy visual identity.
 
-**Status:** 📝 Planned (V1 MVP, ready for implementation)
+**Status:** ✅ Done (V1 MVP shipped 2026-05-03 — separate `redeemy-admin` repo)
 
 **Source documents:**
 - Brainstorming session: `_bmad-output/brainstorming/brainstorming-session-2026-05-03-1345.md`
@@ -1587,7 +1587,7 @@ So that reminders work from day one and I know how to get started.
 | 18.1 | Admin Dashboard — Foundation, Auth & Theme | ✅ done |
 | 18.2 | Admin Dashboard — User List & Activity Feed | ✅ done |
 | 18.3 | Admin Dashboard — Health Banner & Cost Widget | ✅ done |
-| 18.4 | Admin Dashboard — Daily Digest Email & Mobile Polish | 📝 planned |
+| 18.4 | Admin Dashboard — Daily Digest Email & Mobile Polish | ✅ done |
 
 **Tech stack:** Next.js 15 (App Router) + TypeScript + Tailwind + shadcn/ui + Firebase Admin SDK + Resend (email) + Vercel (hosting + cron). Separate repository (`redeemy-admin`).
 

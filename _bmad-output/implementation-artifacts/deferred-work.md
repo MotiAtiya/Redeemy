@@ -1,4 +1,20 @@
 
+## Verify BigQuery auto-cost integration after data lands
+
+**Source:** Story 18.4 (Admin Dashboard) — Moti enabled BigQuery billing export on 2026-05-03 and the integration code is committed in `redeemy-admin@2cfca0d`.
+**Status:** Code ready; needs IAM grant + BigQuery data + manual verification.
+
+**What to do when picked up:**
+1. Confirm the service account `firebase-adminsdk-fbsvc@redeemy-39e9b.iam.gserviceaccount.com` has the `BigQuery User` role (covers `BigQuery Job User` + read access). If not granted yet, add it via [IAM Console](https://console.cloud.google.com/iam-admin/iam?project=redeemy-39e9b).
+2. Wait for BigQuery billing export data to land (typically 24–48h after enabling).
+3. Manually trigger the cron once: `curl -X POST -H "Authorization: Bearer $CRON_SECRET" https://<deployed-url>/api/cron/refresh-cost` (or against `localhost:3000` after `npm run dev`).
+4. Expected success: `{"ok":true,"amountUSD":<n>,"updatedBy":"auto:bigquery"}`. The Cost Widget on the dashboard home will show the ⚡ "Auto-updated from BigQuery" tag.
+5. If it returns `{"ok":true,"skipped":"no_bigquery_data_yet"}`, data hasn't propagated yet — wait longer.
+
+The Vercel cron is already configured (daily at 02:00 UTC) — once it works manually, production will run automatically every night.
+
+---
+
 ## Auto-expire flows for warranties / subscriptions / documents (lifecycle events)
 
 **Source:** Story 18.2 review — Moti's feedback during admin-dashboard build (2026-05-03).
