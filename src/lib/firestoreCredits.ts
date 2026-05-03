@@ -67,7 +67,8 @@ export function subscribeToCredits(userId: string, familyId?: string | null): Un
       for (const c of toExpire) {
         const expiredAt = new Date(c.expirationDate!);
         expiredAt.setHours(23, 59, 59, 999);
-        updateCredit(c.id, { status: CreditStatus.EXPIRED, expiredAt });
+        // System auto-expire — not a user action; suppress the activity-feed event.
+        updateCredit(c.id, { status: CreditStatus.EXPIRED, expiredAt }, { silent: true });
       }
     },
     (_error) => {
@@ -108,11 +109,14 @@ export async function createCredit(
  */
 export async function updateCredit(
   creditId: string,
-  changes: Partial<Omit<Credit, 'id' | 'createdAt'>>
+  changes: Partial<Omit<Credit, 'id' | 'createdAt'>>,
+  options: { silent?: boolean } = {}
 ): Promise<void> {
   const docRef = doc(db, CREDITS_COLLECTION, creditId);
   await updateDoc(docRef, buildUpdatePayload(changes as Record<string, unknown>));
-  void logEvent('item_updated', { itemCategory: 'credit', itemId: creditId });
+  if (!options.silent) {
+    void logEvent('item_updated', { itemCategory: 'credit', itemId: creditId });
+  }
 }
 
 /**

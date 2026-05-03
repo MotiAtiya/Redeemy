@@ -26,11 +26,15 @@ async function maybeAdvance(sub: Subscription): Promise<void> {
     await cancelSubscriptionNotifications(sub);
     const merged: Subscription = { ...sub, ...patch };
     const scheduled = await scheduleSubscriptionNotifications(merged);
-    await updateSubscription(sub.id, {
-      ...patch,
-      notificationIds: scheduled.notificationIds,
-      renewalNotificationId: scheduled.renewalNotificationId,
-    });
+    await updateSubscription(
+      sub.id,
+      {
+        ...patch,
+        notificationIds: scheduled.notificationIds,
+        renewalNotificationId: scheduled.renewalNotificationId,
+      },
+      { silent: true } // billing-cycle / trial-end auto-tick — not a user action
+    );
   } catch {
     // Best-effort: let next snapshot retry.
     processedThisSession.delete(sub.id);

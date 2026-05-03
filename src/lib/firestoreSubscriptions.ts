@@ -96,11 +96,14 @@ export async function createSubscription(
  */
 export async function updateSubscription(
   subscriptionId: string,
-  changes: Partial<Omit<Subscription, 'id' | 'createdAt'>>
+  changes: Partial<Omit<Subscription, 'id' | 'createdAt'>>,
+  options: { silent?: boolean } = {}
 ): Promise<void> {
   const docRef = doc(db, SUBSCRIPTIONS_COLLECTION, subscriptionId);
   await updateDoc(docRef, buildUpdatePayload(changes as Record<string, unknown>));
-  void logEvent('item_updated', { itemCategory: 'subscription', itemId: subscriptionId });
+  if (!options.silent) {
+    void logEvent('item_updated', { itemCategory: 'subscription', itemId: subscriptionId });
+  }
 }
 
 /**
