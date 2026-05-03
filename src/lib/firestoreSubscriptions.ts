@@ -82,12 +82,20 @@ export function subscribeToSubscriptions(userId: string, familyId?: string | nul
 export async function createSubscription(
   subscriptionData: Omit<Subscription, 'id' | 'createdAt' | 'updatedAt'>
 ): Promise<string> {
-  const colRef = collection(db, SUBSCRIPTIONS_COLLECTION);
-  const data = stripUndefined({ ...subscriptionData, createdAt: serverTimestamp(), updatedAt: serverTimestamp() });
-  const docRef = await addDoc(colRef, data);
-  await updateDoc(docRef, { id: docRef.id });
-  void logEvent('item_created', { itemCategory: 'subscription', itemId: docRef.id });
-  return docRef.id;
+  try {
+    const colRef = collection(db, SUBSCRIPTIONS_COLLECTION);
+    const data = stripUndefined({ ...subscriptionData, createdAt: serverTimestamp(), updatedAt: serverTimestamp() });
+    const docRef = await addDoc(colRef, data);
+    await updateDoc(docRef, { id: docRef.id });
+    void logEvent('item_created', { itemCategory: 'subscription', itemId: docRef.id });
+    return docRef.id;
+  } catch (err) {
+    void logEvent('firestore_write_failed', {
+      itemCategory: 'subscription',
+      metadata: { operation: 'create', errorCode: (err as { code?: string })?.code ?? 'unknown' },
+    });
+    throw err;
+  }
 }
 
 /**

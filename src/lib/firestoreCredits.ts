@@ -94,15 +94,23 @@ export function subscribeToCredits(userId: string, familyId?: string | null): Un
 export async function createCredit(
   creditData: Omit<Credit, 'id' | 'createdAt' | 'updatedAt'>
 ): Promise<string> {
-  const colRef = collection(db, CREDITS_COLLECTION);
-  const data = stripUndefined({ ...creditData, createdAt: serverTimestamp(), updatedAt: serverTimestamp() });
-  const docRef = await addDoc(colRef, data);
+  try {
+    const colRef = collection(db, CREDITS_COLLECTION);
+    const data = stripUndefined({ ...creditData, createdAt: serverTimestamp(), updatedAt: serverTimestamp() });
+    const docRef = await addDoc(colRef, data);
 
-  // Write the auto-generated ID back into the document
-  await updateDoc(docRef, { id: docRef.id });
+    // Write the auto-generated ID back into the document
+    await updateDoc(docRef, { id: docRef.id });
 
-  void logEvent('item_created', { itemCategory: 'credit', itemId: docRef.id });
-  return docRef.id;
+    void logEvent('item_created', { itemCategory: 'credit', itemId: docRef.id });
+    return docRef.id;
+  } catch (err) {
+    void logEvent('firestore_write_failed', {
+      itemCategory: 'credit',
+      metadata: { operation: 'create', errorCode: (err as { code?: string })?.code ?? 'unknown' },
+    });
+    throw err;
+  }
 }
 
 /**

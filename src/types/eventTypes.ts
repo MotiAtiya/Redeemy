@@ -24,6 +24,9 @@ export type EventType =
   | 'family_created'
   | 'family_joined'
   | 'family_left'
+  // Failures (powering the admin Health Banner — Story 18.3)
+  | 'firestore_write_failed'
+  | 'image_upload_failed'
   // Lifecycle
   | 'app_opened';
 

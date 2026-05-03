@@ -60,11 +60,19 @@ export function subscribeToOccasions(userId: string, familyId?: string | null): 
 export async function createOccasion(
   data: Omit<Occasion, 'id' | 'createdAt' | 'updatedAt'>
 ): Promise<string> {
-  const ref = await addDoc(collection(db, OCCASIONS_COLLECTION),
-    stripUndefined({ ...data, createdAt: serverTimestamp(), updatedAt: serverTimestamp() })
-  );
-  void logEvent('item_created', { itemCategory: 'occasion', itemId: ref.id });
-  return ref.id;
+  try {
+    const ref = await addDoc(collection(db, OCCASIONS_COLLECTION),
+      stripUndefined({ ...data, createdAt: serverTimestamp(), updatedAt: serverTimestamp() })
+    );
+    void logEvent('item_created', { itemCategory: 'occasion', itemId: ref.id });
+    return ref.id;
+  } catch (err) {
+    void logEvent('firestore_write_failed', {
+      itemCategory: 'occasion',
+      metadata: { operation: 'create', errorCode: (err as { code?: string })?.code ?? 'unknown' },
+    });
+    throw err;
+  }
 }
 
 export async function updateOccasion(

@@ -81,12 +81,20 @@ export function subscribeToWarranties(userId: string, familyId?: string | null):
 export async function createWarranty(
   warrantyData: Omit<Warranty, 'id' | 'createdAt' | 'updatedAt'>
 ): Promise<string> {
-  const colRef = collection(db, WARRANTIES_COLLECTION);
-  const data = stripUndefined({ ...warrantyData, createdAt: serverTimestamp(), updatedAt: serverTimestamp() });
-  const docRef = await addDoc(colRef, data);
-  await updateDoc(docRef, { id: docRef.id });
-  void logEvent('item_created', { itemCategory: 'warranty', itemId: docRef.id });
-  return docRef.id;
+  try {
+    const colRef = collection(db, WARRANTIES_COLLECTION);
+    const data = stripUndefined({ ...warrantyData, createdAt: serverTimestamp(), updatedAt: serverTimestamp() });
+    const docRef = await addDoc(colRef, data);
+    await updateDoc(docRef, { id: docRef.id });
+    void logEvent('item_created', { itemCategory: 'warranty', itemId: docRef.id });
+    return docRef.id;
+  } catch (err) {
+    void logEvent('firestore_write_failed', {
+      itemCategory: 'warranty',
+      metadata: { operation: 'create', errorCode: (err as { code?: string })?.code ?? 'unknown' },
+    });
+    throw err;
+  }
 }
 
 /**

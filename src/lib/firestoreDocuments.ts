@@ -62,11 +62,19 @@ export function subscribeToDocuments(userId: string, familyId?: string | null): 
 export async function createDocument(
   data: Omit<Document, 'id' | 'createdAt' | 'updatedAt'>
 ): Promise<string> {
-  const clean = stripUndefined({ ...data, createdAt: serverTimestamp(), updatedAt: serverTimestamp() });
-  const docRef = await addDoc(collection(db, DOCUMENTS_COLLECTION), clean);
-  await updateDoc(docRef, { id: docRef.id });
-  void logEvent('item_created', { itemCategory: 'document', itemId: docRef.id });
-  return docRef.id;
+  try {
+    const clean = stripUndefined({ ...data, createdAt: serverTimestamp(), updatedAt: serverTimestamp() });
+    const docRef = await addDoc(collection(db, DOCUMENTS_COLLECTION), clean);
+    await updateDoc(docRef, { id: docRef.id });
+    void logEvent('item_created', { itemCategory: 'document', itemId: docRef.id });
+    return docRef.id;
+  } catch (err) {
+    void logEvent('firestore_write_failed', {
+      itemCategory: 'document',
+      metadata: { operation: 'create', errorCode: (err as { code?: string })?.code ?? 'unknown' },
+    });
+    throw err;
+  }
 }
 
 export async function updateDocument(

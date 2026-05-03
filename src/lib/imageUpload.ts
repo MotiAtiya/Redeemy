@@ -5,6 +5,7 @@ import * as Linking from 'expo-linking';
 import { launchCamera, launchImageLibrary } from 'react-native-image-picker';
 import { ref, getDownloadURL, deleteObject, listAll } from 'firebase/storage';
 import { auth, storage } from './firebase';
+import { logEvent } from './eventLog';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -444,22 +445,30 @@ export async function uploadEntityImage(
   entityId: string,
   index: number,
 ): Promise<DocumentImage> {
-  const { fullUri, thumbUri } = await compressImage(localUri);
+  try {
+    const { fullUri, thumbUri } = await compressImage(localUri);
 
-  const fullPath = `${entityType}/${entityId}/${index}_full.jpg`;
-  const thumbPath = `${entityType}/${entityId}/${index}_thumb.jpg`;
+    const fullPath = `${entityType}/${entityId}/${index}_full.jpg`;
+    const thumbPath = `${entityType}/${entityId}/${index}_thumb.jpg`;
 
-  await Promise.all([
-    uploadFileNative(fullUri, fullPath),
-    uploadFileNative(thumbUri, thumbPath),
-  ]);
+    await Promise.all([
+      uploadFileNative(fullUri, fullPath),
+      uploadFileNative(thumbUri, thumbPath),
+    ]);
 
-  const [url, thumbnailUrl] = await Promise.all([
-    getDownloadURL(ref(storage, fullPath)),
-    getDownloadURL(ref(storage, thumbPath)),
-  ]);
+    const [url, thumbnailUrl] = await Promise.all([
+      getDownloadURL(ref(storage, fullPath)),
+      getDownloadURL(ref(storage, thumbPath)),
+    ]);
 
-  return { url, thumbnailUrl };
+    return { url, thumbnailUrl };
+  } catch (err) {
+    const errorCode = (err as { code?: string })?.code ?? 'unknown';
+    void logEvent('image_upload_failed', {
+      metadata: { entityType, errorCode, message: String((err as Error)?.message ?? err).slice(0, 200) },
+    });
+    throw err;
+  }
 }
 
 /**
