@@ -32,10 +32,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   android: {
     package: 'com.redeemy.app',
     versionCode: 1,
-    adaptiveIcon: {
-      foregroundImage: './assets/images/android-icon-foreground.png',
-      backgroundColor: '#5F9E8F',
-    },
+    icon: './assets/images/icon.png',
     googleServicesFile: process.env.GOOGLE_SERVICES_JSON ?? './google-services.json',
   },
   web: {
@@ -44,12 +41,13 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     favicon: './assets/images/favicon.png',
   },
   plugins: [
+    './plugins/withApkVersionedFilename',
     'expo-router',
     [
       'expo-splash-screen',
       {
         backgroundColor: '#5F9E8F',
-        image: './assets/images/splash-icon.png',
+        image: './assets/images/icon.png',
         imageWidth: 200,
       },
     ],
