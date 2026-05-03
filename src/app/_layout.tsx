@@ -164,7 +164,7 @@ export default function RootLayout() {
     <AuthGate>
       <Stack screenOptions={{ animation: I18nManager.isRTL ? 'slide_from_left' : 'slide_from_right' }}>
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="auth/sign-in" options={{ headerShown: false }} />
+        <Stack.Screen name="auth/sign-in" options={{ headerShown: false, gestureEnabled: false }} />
         <Stack.Screen name="auth/sign-up" options={{ headerShown: false }} />
         <Stack.Screen name="auth/forgot-password" options={{ headerShown: false }} />
         <Stack.Screen

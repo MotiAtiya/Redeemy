@@ -137,7 +137,8 @@ export default function SignInScreen() {
   // ---- email sign-in -------------------------------------------------------
 
   async function handleSignIn() {
-    const eErr = validateEmail(email);
+    const trimmedEmail = email.trim();
+    const eErr = validateEmail(trimmedEmail);
     const pErr = validatePassword(password);
     setEmailError(eErr);
     setPasswordError(pErr);
@@ -147,7 +148,7 @@ export default function SignInScreen() {
 
     setLoading(true);
     try {
-      await signInWithEmail(email.trim(), password);
+      await signInWithEmail(trimmedEmail, password);
       // AuthGate in _layout.tsx handles redirect
     } catch (err: any) {
       setGeneralError(mapFirebaseAuthError(err?.code ?? ''));

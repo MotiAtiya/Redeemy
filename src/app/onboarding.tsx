@@ -13,6 +13,7 @@ import { Ionicons } from '@expo/vector-icons';
 import * as Notifications from 'expo-notifications';
 import { Linking } from 'react-native';
 import { registerNotificationCategories } from '@/lib/notifications';
+import { markUserOnboarded } from '@/lib/auth';
 import { useTranslation } from 'react-i18next';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { useAppTheme } from '@/hooks/useAppTheme';
@@ -150,11 +151,13 @@ export default function OnboardingScreen() {
 
   function skipAll() {
     setHasOnboarded(true);
+    markUserOnboarded().catch(() => { /* silent — local flag still set */ });
     router.replace('/(tabs)');
   }
 
   function completeAndNavigate(destination?: 'credit' | 'warranty' | 'subscription' | 'occasion' | 'document') {
     setHasOnboarded(true);
+    markUserOnboarded().catch(() => { /* silent — local flag still set */ });
     router.replace('/(tabs)');
     if (destination) {
       requestAnimationFrame(() => {

@@ -333,12 +333,42 @@ export async function deleteAccount(): Promise<void> {
 
   await deleteDoc(doc(db, 'users', user.uid));
   await deleteUser(user);
+
+  // Revoke Google's access grant so a subsequent "Continue with Google" shows
+  // the account picker instead of silently reusing the deleted account.
+  if (_GoogleSignin) {
+    try {
+      await _GoogleSignin.revokeAccess();
+    } catch {
+      // ignore — account is already deleted on Firebase side
+    }
+  }
 }
 
 // ---------------------------------------------------------------------------
 // Sign out
 // ---------------------------------------------------------------------------
 
+/**
+ * Persists the onboarded flag on /users/{uid} so subsequent sign-ins (on this
+ * or any device) skip onboarding. The local hasOnboarded store flag is set by
+ * the caller alongside this — this function only writes the server side.
+ */
+export async function markUserOnboarded(): Promise<void> {
+  const user = auth.currentUser;
+  if (!user) return;
+  await setDoc(doc(db, 'users', user.uid), { hasOnboarded: true }, { merge: true });
+}
+
 export async function signOut(): Promise<void> {
+  // Also clear Google's cached account so the next Google sign-in shows the
+  // account picker instead of auto-selecting the previous account.
+  if (_GoogleSignin) {
+    try {
+      await _GoogleSignin.signOut();
+    } catch {
+      // ignore — proceed with Firebase sign-out regardless
+    }
+  }
   await firebaseSignOut(auth);
 }

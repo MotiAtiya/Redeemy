@@ -32,7 +32,7 @@ function makeStyles(colors: AppColors, isRTL: boolean) {
     appName: { fontSize: 22, fontWeight: '700', color: colors.textPrimary, marginTop: 10 },
     form: { width: '100%' },
     title: { fontSize: 24, fontWeight: '600', color: colors.textPrimary, marginBottom: 8, alignSelf: 'flex-start' },
-    description: { fontSize: 14, color: colors.textSecondary, marginBottom: 24, alignSelf: 'flex-start', lineHeight: 20 },
+    description: { fontSize: 14, color: colors.textSecondary, marginBottom: 24, alignSelf: 'flex-start', lineHeight: 20, textAlign: 'left' },
     input: {
       height: 52,
       borderWidth: 1,
