@@ -4,7 +4,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   ...config,
   name: 'Redeemy',
   slug: 'redeemy',
-  version: '1.0.0',
+  version: '1.0.0-beta.1',
   orientation: 'portrait',
   updates: {
     url: 'https://u.expo.dev/1bba5598-7e1b-4a4c-b956-912de45854b6',
@@ -31,6 +31,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   },
   android: {
     package: 'com.redeemy.app',
+    versionCode: 1,
     adaptiveIcon: {
       foregroundImage: './assets/images/android-icon-foreground.png',
       backgroundColor: '#5F9E8F',

@@ -16,6 +16,7 @@ import { useRouter } from 'expo-router';
 import { Image } from 'expo-image';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
+import Constants from 'expo-constants';
 import { useAuthStore } from '@/stores/authStore';
 import { useSettingsStore, type DateFormat, type CurrencyCode, CURRENCY_SYMBOLS } from '@/stores/settingsStore';
 import { useFamilyStore } from '@/stores/familyStore';
@@ -459,7 +460,7 @@ export default function MoreScreen() {
               />
               <Text style={styles.aboutAppName}>Redeemy</Text>
               <Text style={styles.aboutTagline}>{t('more.about.tagline')}</Text>
-              <Text style={styles.aboutVersion}>{t('more.about.version')}</Text>
+              <Text style={styles.aboutVersion}>{t('more.about.version', { version: `⁦${Constants.expoConfig?.version ?? ''}⁩` })}</Text>
             </View>
           </View>
         </View>

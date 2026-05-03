@@ -131,7 +131,7 @@
     },
     "about": {
       "tagline": "לא שוכחים זיכויים",
-      "version": "גרסה 1.0.0",
+      "version": "גרסה {{version}}",
       "contact": "צרו קשר במייל",
       "rateUs": "דרגו אותנו",
       "rateUsSubtitle": "ביקורת קטנה שלכם עוזרת מאוד",

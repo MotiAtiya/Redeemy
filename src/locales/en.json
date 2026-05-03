@@ -131,7 +131,7 @@
     },
     "about": {
       "tagline": "Credits you won't forget",
-      "version": "Version 1.0.0",
+      "version": "Version {{version}}",
       "contact": "Email Us",
       "rateUs": "Rate Redeemy",
       "rateUsSubtitle": "A quick review means a lot to us",
