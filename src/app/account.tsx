@@ -14,6 +14,7 @@ import {
   I18nManager,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
@@ -387,13 +388,23 @@ export default function AccountScreen() {
 
         {/* Avatar card */}
         <View style={styles.avatarCard}>
-          <View style={[styles.avatar, { backgroundColor: getAvatarColor(currentUser?.uid) }]}>
-            <Text style={styles.avatarInitial}>
-              {currentUser?.displayName
-                ? getInitials(currentUser.displayName)
-                : currentUser?.email?.[0]?.toUpperCase() ?? '?'}
-            </Text>
-          </View>
+          {currentUser?.photoURL ? (
+            <Image
+              source={{ uri: currentUser.photoURL }}
+              style={styles.avatar}
+              contentFit="cover"
+              transition={150}
+              accessibilityIgnoresInvertColors
+            />
+          ) : (
+            <View style={[styles.avatar, { backgroundColor: getAvatarColor(currentUser?.uid) }]}>
+              <Text style={styles.avatarInitial}>
+                {currentUser?.displayName
+                  ? getInitials(currentUser.displayName)
+                  : currentUser?.email?.[0]?.toUpperCase() ?? '?'}
+              </Text>
+            </View>
+          )}
           {currentUser?.displayName ? (
             <Text style={styles.displayName}>{currentUser.displayName}</Text>
           ) : null}

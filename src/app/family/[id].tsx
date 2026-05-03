@@ -15,6 +15,7 @@ import {
   Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { Image } from 'expo-image';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
@@ -560,11 +561,21 @@ export default function FamilyManageScreen() {
                 <View key={member.userId}>
                   {index > 0 && <View style={styles.separator} />}
                   <View style={styles.memberRow}>
-                    <View style={[styles.memberAvatar, { backgroundColor: getAvatarColor(member.userId) }]}>
-                      <Text style={styles.memberInitial}>
-                        {getInitials(member.displayName)}
-                      </Text>
-                    </View>
+                    {member.photoURL ? (
+                      <Image
+                        source={{ uri: member.photoURL }}
+                        style={styles.memberAvatar}
+                        contentFit="cover"
+                        transition={150}
+                        accessibilityIgnoresInvertColors
+                      />
+                    ) : (
+                      <View style={[styles.memberAvatar, { backgroundColor: getAvatarColor(member.userId) }]}>
+                        <Text style={styles.memberInitial}>
+                          {getInitials(member.displayName)}
+                        </Text>
+                      </View>
+                    )}
                     <View style={styles.memberNameWrapper}>
                       <Text style={styles.memberName} numberOfLines={1}>
                         {member.displayName}

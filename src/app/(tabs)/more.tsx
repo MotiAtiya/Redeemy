@@ -279,13 +279,23 @@ export default function MoreScreen() {
             activeOpacity={0.7}
           >
             <View style={styles.accountRow}>
-              <View style={[styles.avatar, { backgroundColor: getAvatarColor(currentUser?.uid) }]}>
-                <Text style={styles.avatarInitial}>
-                  {currentUser?.displayName
-                    ? getInitials(currentUser.displayName)
-                    : currentUser?.email?.[0]?.toUpperCase() ?? '?'}
-                </Text>
-              </View>
+              {currentUser?.photoURL ? (
+                <Image
+                  source={{ uri: currentUser.photoURL }}
+                  style={styles.avatar}
+                  contentFit="cover"
+                  transition={150}
+                  accessibilityIgnoresInvertColors
+                />
+              ) : (
+                <View style={[styles.avatar, { backgroundColor: getAvatarColor(currentUser?.uid) }]}>
+                  <Text style={styles.avatarInitial}>
+                    {currentUser?.displayName
+                      ? getInitials(currentUser.displayName)
+                      : currentUser?.email?.[0]?.toUpperCase() ?? '?'}
+                  </Text>
+                </View>
+              )}
               <View style={styles.accountInfo}>
                 {currentUser?.displayName ? (
                   <Text style={styles.displayName}>{currentUser.displayName}</Text>
