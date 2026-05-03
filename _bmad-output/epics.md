@@ -32,8 +32,9 @@ This document provides the complete epic and story breakdown for Redeemy, decomp
 | Epic 14 | Warranties (full rewrite with multi-image) | 1 story | ✅ done |
 | Epic 15 | Occasions (birthdays, anniversaries, yahrzeit) | 2 stories | ✅ done |
 | Epic 16 | Documents (ID, license, passport, insurance) | 1 story | ✅ done |
+| Epic 18 | Admin Dashboard (web, V1 MVP) | 4 stories | 📝 planned |
 
-> **Note:** Epics 9–16 were added after initial planning. Epics 14–16 are new features not in the original product brief.
+> **Note:** Epics 9–16 were added after initial planning. Epics 14–16 are new features not in the original product brief. Epic 18 is a separate web application (not part of the mobile app codebase).
 
 ---
 
@@ -1567,9 +1568,38 @@ So that reminders work from day one and I know how to get started.
 
 ---
 
+## Epic 18: Admin Dashboard (web, V1 MVP)
+
+**Goal:** A separate web application that gives Moti — Redeemy's solo founder and only admin — a real-time picture of the app's state, users, and operational health, without leaving the Redeemy visual identity.
+
+**Status:** 📝 Planned (V1 MVP, ready for implementation)
+
+**Source documents:**
+- Brainstorming session: `_bmad-output/brainstorming/brainstorming-session-2026-05-03-1345.md`
+- Tech spec: `_bmad-output/planning-artifacts/admin-dashboard-tech-spec.md`
+
+**Critical context:** Redeemy is at ~3 users (pre-launch). At this scale, aggregate metrics (DAU/MAU, retention, cohorts) are noise. V1 makes every individual user, event, and error directly visible. Aggregate analytics deferred to V2 (50–500 users) and V3 (500+).
+
+**Stories:**
+
+| Story | Title | Status |
+|-------|-------|--------|
+| 18.1 | Admin Dashboard — Foundation, Auth & Theme | ✅ done |
+| 18.2 | Admin Dashboard — User List & Activity Feed | 📝 planned |
+| 18.3 | Admin Dashboard — Health Banner & Cost Widget | 📝 planned |
+| 18.4 | Admin Dashboard — Daily Digest Email & Mobile Polish | 📝 planned |
+
+**Tech stack:** Next.js 15 (App Router) + TypeScript + Tailwind + shadcn/ui + Firebase Admin SDK + Resend (email) + Vercel (hosting + cron). Separate repository (`redeemy-admin`).
+
+**What V1 explicitly does NOT include:** charts, DAU/MAU, retention, funnels, anomaly alerts, Story Mode, public stats, NL query, A/B tests, dark mode. (All deferred to V2/V3.)
+
+**Required mobile-app change:** add `events/` Firestore collection + `logEvent` helper instrumented at auth, item, family, and error sites (covered in Story 18.2).
+
+---
+
 ## Summary
 
-**Total: 15 Epics · 40+ Stories** (all implemented and done)
+**Total: 16 Epics · 44+ Stories** (15 done, 1 planned)
 
 | Epic | Stories | Delivers |
 |------|---------|---------|
@@ -1588,6 +1618,7 @@ So that reminders work from day one and I know how to get started.
 | Epic 14: Warranties (full) | 1 | Warranties with multi-image, family sharing, notifications |
 | Epic 15: Occasions | 2 | Annual occasions with Hebrew calendar, reminder notifications |
 | Epic 16: Documents | 1 | Expiring personal documents with photos and renewal reminders |
+| Epic 18: Admin Dashboard | 4 | Web admin for Moti — user list, activity feed, health, cost, daily digest |
 
 **Context incorporated:**
 - ✅ Product Brief requirements (all 14 FRs)
