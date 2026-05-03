@@ -4,7 +4,7 @@
 **Story Key:** 18-3-admin-dashboard-health-banner-and-cost-widget
 **Author:** Moti
 **Date:** 2026-05-03
-**Status:** planned
+**Status:** done
 
 ---
 

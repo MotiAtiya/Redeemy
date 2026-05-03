@@ -1586,7 +1586,7 @@ So that reminders work from day one and I know how to get started.
 |-------|-------|--------|
 | 18.1 | Admin Dashboard — Foundation, Auth & Theme | ✅ done |
 | 18.2 | Admin Dashboard — User List & Activity Feed | ✅ done |
-| 18.3 | Admin Dashboard — Health Banner & Cost Widget | 📝 planned |
+| 18.3 | Admin Dashboard — Health Banner & Cost Widget | ✅ done |
 | 18.4 | Admin Dashboard — Daily Digest Email & Mobile Polish | 📝 planned |
 
 **Tech stack:** Next.js 15 (App Router) + TypeScript + Tailwind + shadcn/ui + Firebase Admin SDK + Resend (email) + Vercel (hosting + cron). Separate repository (`redeemy-admin`).
