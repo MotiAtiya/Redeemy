@@ -8,6 +8,7 @@ import {
   KeyboardAvoidingView,
   Platform,
   ActivityIndicator,
+  ScrollView,
   I18nManager,
 } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
@@ -33,7 +34,8 @@ const logoDark = require('../../../assets/images/logo-dark.png');
 function makeStyles(colors: AppColors, isRTL: boolean) {
   return StyleSheet.create({
     safe: { flex: 1, backgroundColor: colors.background },
-    container: { flex: 1, justifyContent: 'center', paddingHorizontal: 24 },
+    flex: { flex: 1 },
+    container: { flexGrow: 1, justifyContent: 'center', paddingHorizontal: 24, paddingVertical: 24 },
     header: { alignItems: 'center', marginBottom: 40 },
     logoImage: { width: 90, height: 90, borderRadius: 20 },
     appName: { fontSize: 26, fontWeight: '700', color: colors.textPrimary, marginTop: 12 },
@@ -189,9 +191,14 @@ export default function SignInScreen() {
   return (
     <SafeAreaView style={styles.safe}>
       <KeyboardAvoidingView
-        style={styles.container}
+        style={styles.flex}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
+        <ScrollView
+          contentContainerStyle={styles.container}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+        >
         <View style={styles.header}>
           <Image
             source={isDark ? logoDark : logoLight}
@@ -316,6 +323,7 @@ export default function SignInScreen() {
             </TouchableOpacity>
           </View>
         </View>
+        </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
