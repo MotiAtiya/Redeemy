@@ -16,6 +16,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import { updateSubscription, deleteSubscription } from '@/lib/firestoreSubscriptions';
 import { cancelSubscriptionNotifications } from '@/lib/subscriptionNotifications';
+import { logEvent } from '@/lib/eventLog';
 import { formatCurrency } from '@/lib/formatCurrency';
 import { formatDate } from '@/lib/formatDate';
 import { useSubscriptionsStore } from '@/stores/subscriptionsStore';
@@ -189,7 +190,8 @@ export default function SubscriptionDetailScreen() {
           try {
             await cancelSubscriptionNotifications(s);
             updateSubInStore(s.id, { status: SubscriptionStatus.CANCELLED, cancelledAt: new Date() });
-            await updateSubscription(s.id, { status: SubscriptionStatus.CANCELLED, cancelledAt: new Date() });
+            await updateSubscription(s.id, { status: SubscriptionStatus.CANCELLED, cancelledAt: new Date() }, { silent: true });
+            void logEvent('subscription_cancelled', { itemCategory: 'subscription', itemId: s.id });
             showToast(t('subscription.cancel.toast', { name: s.serviceName }));
             setTimeout(() => router.back(), 500);
           } catch {

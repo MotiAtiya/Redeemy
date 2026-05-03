@@ -23,6 +23,7 @@ import { ActionModal } from '@/components/redeemy/ActionModal';
 import { FullscreenImageViewer } from '@/components/redeemy/FullscreenImageViewer';
 import { deleteCredit, updateCredit } from '@/lib/firestoreCredits';
 import { cancelCreditNotifications } from '@/lib/notifications';
+import { logEvent } from '@/lib/eventLog';
 import * as MediaLibrary from 'expo-media-library';
 import * as FileSystem from 'expo-file-system/legacy';
 import { formatCurrency } from '@/lib/formatCurrency';
@@ -141,7 +142,8 @@ export default function CreditDetailScreen() {
           try {
             await cancelCreditNotifications(c.notificationId, c.expirationNotificationId);
             updateCreditInStore(c.id, { status: CreditStatus.REDEEMED, redeemedAt: new Date() });
-            await updateCredit(c.id, { status: CreditStatus.REDEEMED, redeemedAt: new Date() });
+            await updateCredit(c.id, { status: CreditStatus.REDEEMED, redeemedAt: new Date() }, { silent: true });
+            void logEvent('credit_redeemed', { itemCategory: 'credit', itemId: c.id });
             router.back();
           } catch {
             updateCreditInStore(c.id, { status: CreditStatus.ACTIVE });
@@ -217,7 +219,8 @@ export default function CreditDetailScreen() {
     setLoading(true);
     try {
       updateCreditInStore(c.id, { status: CreditStatus.ACTIVE, redeemedAt: undefined });
-      await updateCredit(c.id, { status: CreditStatus.ACTIVE, redeemedAt: null as any });
+      await updateCredit(c.id, { status: CreditStatus.ACTIVE, redeemedAt: null as any }, { silent: true });
+      void logEvent('credit_unredeemed', { itemCategory: 'credit', itemId: c.id });
       router.back();
     } catch {
       updateCreditInStore(c.id, { status: CreditStatus.REDEEMED, redeemedAt: c.redeemedAt });

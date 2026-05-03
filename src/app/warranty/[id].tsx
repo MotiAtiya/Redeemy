@@ -25,6 +25,7 @@ import { ActionModal } from '@/components/redeemy/ActionModal';
 import { FullscreenImageViewer } from '@/components/redeemy/FullscreenImageViewer';
 import { deleteWarranty, updateWarranty } from '@/lib/firestoreWarranties';
 import { cancelCreditNotifications } from '@/lib/notifications';
+import { logEvent } from '@/lib/eventLog';
 import { formatDate } from '@/lib/formatDate';
 import { useWarrantiesStore } from '@/stores/warrantiesStore';
 import { useSettingsStore } from '@/stores/settingsStore';
@@ -153,7 +154,8 @@ export default function WarrantyDetailScreen() {
             try {
               await cancelCreditNotifications(w.notificationId, w.expirationNotificationId);
               updateWarrantyInStore(w.id, { status: WarrantyStatus.CLOSED, closedAt: new Date() });
-              await updateWarranty(w.id, { status: WarrantyStatus.CLOSED, closedAt: new Date() });
+              await updateWarranty(w.id, { status: WarrantyStatus.CLOSED, closedAt: new Date() }, { silent: true });
+              void logEvent('warranty_closed', { itemCategory: 'warranty', itemId: w.id });
               router.back();
             } catch {
               updateWarrantyInStore(w.id, { status: WarrantyStatus.ACTIVE, closedAt: undefined });
