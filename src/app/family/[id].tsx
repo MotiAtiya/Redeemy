@@ -15,7 +15,7 @@ import {
   Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Image } from 'expo-image';
+import { Avatar } from '@/components/redeemy/Avatar';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
@@ -44,8 +44,6 @@ import { migrateWarrantiesFromFamily } from '@/lib/firestoreWarranties';
 import { migrateOccasionsFromFamily } from '@/lib/firestoreOccasions';
 import { migrateDocumentsFromFamily } from '@/lib/firestoreDocuments';
 import { useAppTheme } from '@/hooks/useAppTheme';
-import { getInitials } from '@/lib/initials';
-import { getAvatarColor } from '@/lib/avatarColor';
 import { FamilyRole, type FamilyMember } from '@/types/familyTypes';
 import type { AppColors } from '@/constants/colors';
 
@@ -143,18 +141,6 @@ function makeStyles(colors: AppColors, isRTL: boolean) {
       alignItems: 'center',
       padding: 14,
       gap: 12,
-    },
-    memberAvatar: {
-      width: 36,
-      height: 36,
-      borderRadius: 18,
-      justifyContent: 'center',
-      alignItems: 'center',
-    },
-    memberInitial: {
-      fontSize: 15,
-      fontWeight: '700',
-      color: '#FFFFFF',
     },
     memberNameWrapper: {
       flex: 1,
@@ -561,21 +547,12 @@ export default function FamilyManageScreen() {
                 <View key={member.userId}>
                   {index > 0 && <View style={styles.separator} />}
                   <View style={styles.memberRow}>
-                    {member.photoURL ? (
-                      <Image
-                        source={{ uri: member.photoURL }}
-                        style={styles.memberAvatar}
-                        contentFit="cover"
-                        transition={150}
-                        accessibilityIgnoresInvertColors
-                      />
-                    ) : (
-                      <View style={[styles.memberAvatar, { backgroundColor: getAvatarColor(member.userId) }]}>
-                        <Text style={styles.memberInitial}>
-                          {getInitials(member.displayName)}
-                        </Text>
-                      </View>
-                    )}
+                    <Avatar
+                      photoURL={member.photoURL}
+                      name={member.displayName}
+                      uid={member.userId}
+                      size={36}
+                    />
                     <View style={styles.memberNameWrapper}>
                       <Text style={styles.memberName} numberOfLines={1}>
                         {member.displayName}

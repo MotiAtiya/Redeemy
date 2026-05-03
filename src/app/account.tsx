@@ -14,7 +14,7 @@ import {
   I18nManager,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Image } from 'expo-image';
+import { Avatar } from '@/components/redeemy/Avatar';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
@@ -27,8 +27,6 @@ import { deleteAllUserData, clearAllLocalStores } from '@/lib/userDataCleanup';
 import { cancelAllNotifications } from '@/lib/notifications';
 import { leaveFamily } from '@/lib/firestoreFamilies';
 import { useAppTheme } from '@/hooks/useAppTheme';
-import { getInitials } from '@/lib/initials';
-import { getAvatarColor } from '@/lib/avatarColor';
 import type { AppColors } from '@/constants/colors';
 
 function makeStyles(colors: AppColors, isRTL: boolean) {
@@ -55,15 +53,7 @@ function makeStyles(colors: AppColors, isRTL: boolean) {
       padding: 24,
       marginBottom: 20,
     },
-    avatar: {
-      width: 72,
-      height: 72,
-      borderRadius: 36,
-      justifyContent: 'center',
-      alignItems: 'center',
-      marginBottom: 12,
-    },
-    avatarInitial: { fontSize: 30, fontWeight: '700', color: '#FFFFFF' },
+    avatar: { marginBottom: 12 },
     displayName: { fontSize: 18, fontWeight: '700', color: colors.textPrimary, marginBottom: 4 },
     email: { fontSize: 14, color: colors.textSecondary },
     // Section
@@ -388,23 +378,13 @@ export default function AccountScreen() {
 
         {/* Avatar card */}
         <View style={styles.avatarCard}>
-          {currentUser?.photoURL ? (
-            <Image
-              source={{ uri: currentUser.photoURL }}
-              style={styles.avatar}
-              contentFit="cover"
-              transition={150}
-              accessibilityIgnoresInvertColors
-            />
-          ) : (
-            <View style={[styles.avatar, { backgroundColor: getAvatarColor(currentUser?.uid) }]}>
-              <Text style={styles.avatarInitial}>
-                {currentUser?.displayName
-                  ? getInitials(currentUser.displayName)
-                  : currentUser?.email?.[0]?.toUpperCase() ?? '?'}
-              </Text>
-            </View>
-          )}
+          <Avatar
+            photoURL={currentUser?.photoURL}
+            name={currentUser?.displayName ?? currentUser?.email}
+            uid={currentUser?.uid}
+            size={72}
+            style={styles.avatar}
+          />
           {currentUser?.displayName ? (
             <Text style={styles.displayName}>{currentUser.displayName}</Text>
           ) : null}

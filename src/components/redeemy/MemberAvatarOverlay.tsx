@@ -1,8 +1,8 @@
-import { View, Text, StyleSheet, type StyleProp, type ViewStyle } from 'react-native';
+import { View, StyleSheet, type StyleProp, type ViewStyle } from 'react-native';
 import { useAppTheme } from '@/hooks/useAppTheme';
 import { useAuthStore } from '@/stores/authStore';
-import { getInitials } from '@/lib/initials';
-import { getAvatarColor } from '@/lib/avatarColor';
+import { useFamilyStore } from '@/stores/familyStore';
+import { Avatar } from './Avatar';
 
 interface Item {
   familyId?: string | null;
@@ -16,16 +16,20 @@ interface Props {
   style?: StyleProp<ViewStyle>;
 }
 
+const BADGE_SIZE = 22;
+
 /**
  * Wraps a card's leading visual (thumbnail, icon, etc.) and overlays a small
- * member-initials badge in the bottom-end corner — but only for items shared
+ * member-avatar badge in the bottom-end corner — but only for items shared
  * via family that were created by someone other than the current user.
  *
- * Use this anywhere a list/card needs to show "who added this" attribution.
+ * The badge shows the member's profile photo when available (looked up by
+ * `createdBy` uid in the current family), falling back to colored initials.
  */
 export function MemberAvatarOverlay({ item, children, style }: Props) {
   const colors = useAppTheme();
   const currentUid = useAuthStore((s) => s.currentUser?.uid);
+  const family = useFamilyStore((s) => s.family);
 
   const showBadge =
     !!item.familyId &&
@@ -33,16 +37,22 @@ export function MemberAvatarOverlay({ item, children, style }: Props) {
     !!item.createdByName &&
     item.createdBy !== currentUid;
 
-  const initials = showBadge ? getInitials(item.createdByName) : '';
-  const bg = showBadge ? getAvatarColor(item.createdBy) : '';
+  const memberPhotoURL = showBadge
+    ? family?.memberList.find((m) => m.userId === item.createdBy)?.photoURL ?? null
+    : null;
 
   return (
     <View style={style}>
       {children}
       {showBadge && (
-        <View style={[styles.badge, { backgroundColor: bg, borderColor: colors.surface }]}>
-          <Text style={styles.text}>{initials}</Text>
-        </View>
+        <Avatar
+          photoURL={memberPhotoURL}
+          name={item.createdByName}
+          uid={item.createdBy}
+          size={BADGE_SIZE}
+          fontSize={9}
+          style={[styles.badge, { borderColor: colors.surface }]}
+        />
       )}
     </View>
   );
@@ -53,12 +63,6 @@ const styles = StyleSheet.create({
     position: 'absolute',
     bottom: -4,
     end: -4,
-    width: 22,
-    height: 22,
-    borderRadius: 11,
-    justifyContent: 'center',
-    alignItems: 'center',
     borderWidth: 1.5,
   },
-  text: { fontSize: 9, fontWeight: '700', color: '#FFFFFF' },
 });

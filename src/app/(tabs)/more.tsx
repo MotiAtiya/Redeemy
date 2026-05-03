@@ -14,6 +14,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Image } from 'expo-image';
+import { Avatar } from '@/components/redeemy/Avatar';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import Constants from 'expo-constants';
@@ -21,8 +22,6 @@ import { useAuthStore } from '@/stores/authStore';
 import { useSettingsStore, type DateFormat, type CurrencyCode, CURRENCY_SYMBOLS } from '@/stores/settingsStore';
 import { useFamilyStore } from '@/stores/familyStore';
 import { useAppTheme, useIsDark } from '@/hooks/useAppTheme';
-import { getInitials } from '@/lib/initials';
-import { getAvatarColor } from '@/lib/avatarColor';
 import { openStoreReview } from '@/lib/storeReview';
 
 const logoLight = require('../../../assets/images/logo-light.png');
@@ -75,14 +74,6 @@ function makeStyles(colors: AppColors) {
       padding: 16,
       gap: 12,
     },
-    avatar: {
-      width: 44,
-      height: 44,
-      borderRadius: 22,
-      justifyContent: 'center',
-      alignItems: 'center',
-    },
-    avatarInitial: { fontSize: 18, fontWeight: '700', color: '#FFFFFF' },
     accountInfo: { flex: 1 },
     displayName: { fontSize: 15, fontWeight: '600', color: colors.textPrimary, alignSelf: 'flex-start' },
     email: { fontSize: 13, color: colors.textSecondary, marginTop: 1, alignSelf: 'flex-start' },
@@ -279,23 +270,12 @@ export default function MoreScreen() {
             activeOpacity={0.7}
           >
             <View style={styles.accountRow}>
-              {currentUser?.photoURL ? (
-                <Image
-                  source={{ uri: currentUser.photoURL }}
-                  style={styles.avatar}
-                  contentFit="cover"
-                  transition={150}
-                  accessibilityIgnoresInvertColors
-                />
-              ) : (
-                <View style={[styles.avatar, { backgroundColor: getAvatarColor(currentUser?.uid) }]}>
-                  <Text style={styles.avatarInitial}>
-                    {currentUser?.displayName
-                      ? getInitials(currentUser.displayName)
-                      : currentUser?.email?.[0]?.toUpperCase() ?? '?'}
-                  </Text>
-                </View>
-              )}
+              <Avatar
+                photoURL={currentUser?.photoURL}
+                name={currentUser?.displayName ?? currentUser?.email}
+                uid={currentUser?.uid}
+                size={44}
+              />
               <View style={styles.accountInfo}>
                 {currentUser?.displayName ? (
                   <Text style={styles.displayName}>{currentUser.displayName}</Text>
