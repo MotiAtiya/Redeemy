@@ -15,6 +15,7 @@ import {
 } from 'firebase/firestore';
 import { db } from './firebase';
 import { normalizeTimestamp, stripUndefined, buildUpdatePayload } from './firestoreUtils';
+import { logEvent } from './eventLog';
 import { type Occasion } from '@/types/occasionTypes';
 import { useOccasionsStore } from '@/stores/occasionsStore';
 
@@ -62,6 +63,7 @@ export async function createOccasion(
   const ref = await addDoc(collection(db, OCCASIONS_COLLECTION),
     stripUndefined({ ...data, createdAt: serverTimestamp(), updatedAt: serverTimestamp() })
   );
+  void logEvent('item_created', { itemCategory: 'occasion', itemId: ref.id });
   return ref.id;
 }
 
@@ -72,10 +74,12 @@ export async function updateOccasion(
   await updateDoc(doc(db, OCCASIONS_COLLECTION, id),
     buildUpdatePayload(changes as Record<string, unknown>)
   );
+  void logEvent('item_updated', { itemCategory: 'occasion', itemId: id });
 }
 
 export async function deleteOccasion(id: string): Promise<void> {
   await deleteDoc(doc(db, OCCASIONS_COLLECTION, id));
+  void logEvent('item_deleted', { itemCategory: 'occasion', itemId: id });
 }
 
 export async function deleteAllUserOccasions(userId: string): Promise<void> {

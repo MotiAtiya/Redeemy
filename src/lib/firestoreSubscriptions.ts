@@ -16,6 +16,7 @@ import {
 } from 'firebase/firestore';
 import { db } from './firebase';
 import { normalizeTimestamp, stripUndefined, buildUpdatePayload } from './firestoreUtils';
+import { logEvent } from './eventLog';
 import { type Subscription } from '@/types/subscriptionTypes';
 import { useSubscriptionsStore } from '@/stores/subscriptionsStore';
 
@@ -85,6 +86,7 @@ export async function createSubscription(
   const data = stripUndefined({ ...subscriptionData, createdAt: serverTimestamp(), updatedAt: serverTimestamp() });
   const docRef = await addDoc(colRef, data);
   await updateDoc(docRef, { id: docRef.id });
+  void logEvent('item_created', { itemCategory: 'subscription', itemId: docRef.id });
   return docRef.id;
 }
 
@@ -98,6 +100,7 @@ export async function updateSubscription(
 ): Promise<void> {
   const docRef = doc(db, SUBSCRIPTIONS_COLLECTION, subscriptionId);
   await updateDoc(docRef, buildUpdatePayload(changes as Record<string, unknown>));
+  void logEvent('item_updated', { itemCategory: 'subscription', itemId: subscriptionId });
 }
 
 /**
@@ -105,6 +108,7 @@ export async function updateSubscription(
  */
 export async function deleteSubscription(subscriptionId: string): Promise<void> {
   await deleteDoc(doc(db, SUBSCRIPTIONS_COLLECTION, subscriptionId));
+  void logEvent('item_deleted', { itemCategory: 'subscription', itemId: subscriptionId });
 }
 
 /**

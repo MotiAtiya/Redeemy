@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { View, ActivityIndicator, StyleSheet, I18nManager } from 'react-native';
 import { Stack, useRouter, useSegments } from 'expo-router';
 import * as Updates from 'expo-updates';
@@ -24,6 +24,7 @@ import { migrateOccasionsToFamily } from '@/lib/firestoreOccasions';
 import { migrateDocumentsToFamily } from '@/lib/firestoreDocuments';
 import { AuthStatus } from '@/types/userTypes';
 import { configureGoogleSignIn } from '@/lib/auth';
+import { logEvent } from '@/lib/eventLog';
 import { registerNotificationCategories, getCreditIdFromNotification } from '@/lib/notifications';
 import { getSubscriptionIdFromNotification } from '@/lib/subscriptionNotifications';
 import { getSavedLanguage, resolveLanguage, initI18n, applyRTL } from '@/lib/i18n';
@@ -67,6 +68,16 @@ function AuthGate({ children }: { children: React.ReactNode }) {
   const hasOnboarded = useSettingsStore((s) => s.hasOnboarded);
   const colors = useAppTheme();
   const isDark = useIsDark();
+
+  // Fire `app_opened` once per cold start, after the user is authenticated.
+  // Firestore rules require auth on the events/ collection, so we wait for it.
+  const appOpenedLogged = useRef(false);
+  useEffect(() => {
+    if (appOpenedLogged.current) return;
+    if (!currentUser?.uid) return;
+    appOpenedLogged.current = true;
+    void logEvent('app_opened');
+  }, [currentUser?.uid]);
 
   useEffect(() => {
     if (authStatus === AuthStatus.LOADING) return;

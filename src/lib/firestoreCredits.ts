@@ -16,6 +16,7 @@ import {
 } from 'firebase/firestore';
 import { db } from './firebase';
 import { normalizeTimestamp, normalizeImages, stripUndefined, buildUpdatePayload } from './firestoreUtils';
+import { logEvent } from './eventLog';
 import { CreditStatus, type Credit } from '@/types/creditTypes';
 import { useCreditsStore } from '@/stores/creditsStore';
 
@@ -97,6 +98,7 @@ export async function createCredit(
   // Write the auto-generated ID back into the document
   await updateDoc(docRef, { id: docRef.id });
 
+  void logEvent('item_created', { itemCategory: 'credit', itemId: docRef.id });
   return docRef.id;
 }
 
@@ -110,6 +112,7 @@ export async function updateCredit(
 ): Promise<void> {
   const docRef = doc(db, CREDITS_COLLECTION, creditId);
   await updateDoc(docRef, buildUpdatePayload(changes as Record<string, unknown>));
+  void logEvent('item_updated', { itemCategory: 'credit', itemId: creditId });
 }
 
 /**
@@ -120,6 +123,7 @@ export async function deleteCredit(creditId: string): Promise<void> {
     deleteDoc(doc(db, CREDITS_COLLECTION, creditId)),
     deleteCreditImages(creditId),
   ]);
+  void logEvent('item_deleted', { itemCategory: 'credit', itemId: creditId });
 }
 
 /**

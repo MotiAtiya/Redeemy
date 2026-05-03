@@ -17,6 +17,7 @@ import {
 import { db } from './firebase';
 import { deleteEntityImages } from './imageUpload';
 import { normalizeTimestamp, normalizeImages, stripUndefined, buildUpdatePayload } from './firestoreUtils';
+import { logEvent } from './eventLog';
 import { WarrantyStatus, type Warranty } from '@/types/warrantyTypes';
 import { useWarrantiesStore } from '@/stores/warrantiesStore';
 
@@ -84,6 +85,7 @@ export async function createWarranty(
   const data = stripUndefined({ ...warrantyData, createdAt: serverTimestamp(), updatedAt: serverTimestamp() });
   const docRef = await addDoc(colRef, data);
   await updateDoc(docRef, { id: docRef.id });
+  void logEvent('item_created', { itemCategory: 'warranty', itemId: docRef.id });
   return docRef.id;
 }
 
@@ -97,6 +99,7 @@ export async function updateWarranty(
 ): Promise<void> {
   const docRef = doc(db, WARRANTIES_COLLECTION, warrantyId);
   await updateDoc(docRef, buildUpdatePayload(changes as Record<string, unknown>));
+  void logEvent('item_updated', { itemCategory: 'warranty', itemId: warrantyId });
 }
 
 /**
@@ -107,6 +110,7 @@ export async function deleteWarranty(warrantyId: string): Promise<void> {
     deleteDoc(doc(db, WARRANTIES_COLLECTION, warrantyId)),
     deleteEntityImages('warranties', warrantyId),
   ]);
+  void logEvent('item_deleted', { itemCategory: 'warranty', itemId: warrantyId });
 }
 
 /**

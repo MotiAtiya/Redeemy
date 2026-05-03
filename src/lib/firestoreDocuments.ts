@@ -16,6 +16,7 @@ import {
 import { db } from './firebase';
 import { deleteEntityImages } from './imageUpload';
 import { normalizeTimestamp, normalizeImages, stripUndefined, buildUpdatePayload } from './firestoreUtils';
+import { logEvent } from './eventLog';
 import { type Document } from '@/types/documentTypes';
 import { useDocumentsStore } from '@/stores/documentsStore';
 
@@ -64,6 +65,7 @@ export async function createDocument(
   const clean = stripUndefined({ ...data, createdAt: serverTimestamp(), updatedAt: serverTimestamp() });
   const docRef = await addDoc(collection(db, DOCUMENTS_COLLECTION), clean);
   await updateDoc(docRef, { id: docRef.id });
+  void logEvent('item_created', { itemCategory: 'document', itemId: docRef.id });
   return docRef.id;
 }
 
@@ -73,6 +75,7 @@ export async function updateDocument(
 ): Promise<void> {
   const docRef = doc(db, DOCUMENTS_COLLECTION, id);
   await updateDoc(docRef, buildUpdatePayload(changes as Record<string, unknown>));
+  void logEvent('item_updated', { itemCategory: 'document', itemId: id });
 }
 
 export async function deleteDocument(id: string): Promise<void> {
@@ -80,6 +83,7 @@ export async function deleteDocument(id: string): Promise<void> {
     deleteDoc(doc(db, DOCUMENTS_COLLECTION, id)),
     deleteEntityImages('documents', id),
   ]);
+  void logEvent('item_deleted', { itemCategory: 'document', itemId: id });
 }
 
 export async function deleteAllUserDocuments(userId: string): Promise<void> {

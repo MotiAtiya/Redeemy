@@ -20,6 +20,7 @@ import { auth, db } from './firebase';
 import i18n from './i18n';
 import { useAuthStore } from '@/stores/authStore';
 import { propagateDisplayNameChange } from './userProfile';
+import { logEvent } from './eventLog';
 import type { User } from '@/types/userTypes';
 
 function generateNonce(length = 32): string {
@@ -148,6 +149,7 @@ export async function registerWithEmail(
   // stale firebaseUser.displayName.
   useAuthStore.getState().setCurrentUser(userRecord);
 
+  void logEvent('sign_up');
   return userRecord;
 }
 
@@ -176,6 +178,7 @@ export async function signInWithEmail(
   password: string
 ): Promise<User> {
   const credential = await signInWithEmailAndPassword(auth, email, password);
+  void logEvent('sign_in', { metadata: { provider: 'password' } });
   return {
     uid: credential.user.uid,
     email: credential.user.email ?? undefined,
@@ -220,6 +223,7 @@ export async function signInWithGoogle(): Promise<User | null> {
     photoURL: userRecord.photoURL,
   });
 
+  void logEvent('sign_in', { metadata: { provider: 'google' } });
   return userRecord;
 }
 
@@ -275,6 +279,7 @@ export async function signInWithApple(): Promise<User | null> {
       photoURL: userRecord.photoURL,
     });
 
+    void logEvent('sign_in', { metadata: { provider: 'apple' } });
     return userRecord;
   } catch (err: unknown) {
     if ((err as { code?: string })?.code === 'ERR_CANCELED') return null;
@@ -361,6 +366,9 @@ export async function markUserOnboarded(): Promise<void> {
 }
 
 export async function signOut(): Promise<void> {
+  // Log BEFORE the actual sign-out — the events/ rule requires auth.
+  await logEvent('sign_out');
+
   // Also clear Google's cached account so the next Google sign-in shows the
   // account picker instead of auto-selecting the previous account.
   if (_GoogleSignin) {

@@ -16,6 +16,7 @@ import {
   type Unsubscribe,
 } from 'firebase/firestore';
 import { db } from './firebase';
+import { logEvent } from './eventLog';
 import { FamilyRole, type Family, type FamilyMember } from '@/types/familyTypes';
 import { useFamilyStore } from '@/stores/familyStore';
 import type { User } from '@/types/userTypes';
@@ -75,6 +76,7 @@ export async function createFamily(name: string, user: User): Promise<string> {
     // if local AsyncStorage was cleared (e.g. after sign-out).
     await setDoc(doc(db, 'users', user.uid), { familyId: docRef.id }, { merge: true });
 
+    void logEvent('family_created', { metadata: { familyId: docRef.id } });
     return docRef.id;
   } catch (error) {
     throw new Error(mapFirebaseError(error));
@@ -272,6 +274,7 @@ export async function joinFamily(
     throw 'network-error' as JoinFamilyError;
   });
 
+  void logEvent('family_joined', { metadata: { familyId } });
   return familyId;
 }
 
@@ -314,6 +317,8 @@ export async function leaveFamily(familyId: string, userId: string): Promise<voi
     // doesn't rehydrate them into a family they no longer belong to.
     transaction.set(userRef, { familyId: deleteField() }, { merge: true });
   });
+
+  void logEvent('family_left', { metadata: { familyId } });
 }
 
 /**
