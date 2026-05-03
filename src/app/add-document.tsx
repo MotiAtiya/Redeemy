@@ -619,6 +619,8 @@ export default function AddDocumentScreen() {
       fadeAnim={fadeAnim}
       slideAnim={slideAnim}
       footerButton={footerButton}
+      onSave={isEditing ? handleSave : undefined}
+      isSaving={saving}
       extras={cropOverlay ?? undefined}
     >
       {renderStep()}
