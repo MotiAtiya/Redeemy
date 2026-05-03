@@ -1585,7 +1585,7 @@ So that reminders work from day one and I know how to get started.
 | Story | Title | Status |
 |-------|-------|--------|
 | 18.1 | Admin Dashboard — Foundation, Auth & Theme | ✅ done |
-| 18.2 | Admin Dashboard — User List & Activity Feed | 📝 planned |
+| 18.2 | Admin Dashboard — User List & Activity Feed | ✅ done |
 | 18.3 | Admin Dashboard — Health Banner & Cost Widget | 📝 planned |
 | 18.4 | Admin Dashboard — Daily Digest Email & Mobile Polish | 📝 planned |
 

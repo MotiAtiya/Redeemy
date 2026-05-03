@@ -4,7 +4,7 @@
 **Story Key:** 18-2-admin-dashboard-user-list-and-activity-feed
 **Author:** Moti
 **Date:** 2026-05-03
-**Status:** planned
+**Status:** done
 
 ---
 
