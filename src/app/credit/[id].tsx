@@ -21,6 +21,7 @@ import { DetailScreenHeader } from '@/components/redeemy/DetailScreenHeader';
 import { NotFoundScreen } from '@/components/redeemy/NotFoundScreen';
 import { DetailRow } from '@/components/redeemy/DetailRow';
 import { ActionModal } from '@/components/redeemy/ActionModal';
+import { DetailAddedFooter } from '@/components/redeemy/DetailAddedFooter';
 import { FullscreenImageViewer } from '@/components/redeemy/FullscreenImageViewer';
 import { deleteCredit, updateCredit } from '@/lib/firestoreCredits';
 import { cancelCreditNotifications } from '@/lib/notifications';
@@ -48,7 +49,6 @@ function makeStyles(colors: AppColors) {
     heroStoreName: { fontSize: 15, fontWeight: '600', color: colors.textSecondary, textAlign: 'center' },
     heroAmount: { fontSize: 36, fontWeight: '800', color: colors.textPrimary, letterSpacing: -1, textAlign: 'center' },
     detailsCard: { backgroundColor: colors.surface, borderRadius: 14, overflow: 'hidden' },
-    addedFooterText: { fontSize: 12, color: colors.textTertiary, alignSelf: 'flex-start' },
     footer: {
       padding: 16,
       paddingBottom: 8,
@@ -234,7 +234,6 @@ export default function CreditDetailScreen() {
         <ImageCarousel
           images={images}
           onImagePress={(index) => { setFullscreenIndex(index); setShowFullscreenImage(true); }}
-          emptyIcon="image-outline"
           colors={colors}
         />
 
@@ -263,9 +262,7 @@ export default function CreditDetailScreen() {
             />
           )}
         </View>
-        <Text style={styles.addedFooterText}>
-          {t('credit.detail.added')}: {formatDate(new Date(credit.createdAt as Date), dateFormat)}
-        </Text>
+        <DetailAddedFooter label={t('credit.detail.added')} createdAt={credit.createdAt} />
       </ScrollView>
 
       <View style={styles.footer}>

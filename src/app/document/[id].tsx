@@ -20,6 +20,7 @@ import { ImageCarousel } from '@/components/redeemy/ImageCarousel';
 import { DetailScreenHeader } from '@/components/redeemy/DetailScreenHeader';
 import { NotFoundScreen } from '@/components/redeemy/NotFoundScreen';
 import { ActionModal } from '@/components/redeemy/ActionModal';
+import { DetailAddedFooter } from '@/components/redeemy/DetailAddedFooter';
 import { DocumentRenewalPrompt, documentNeedsRenewal } from '@/components/redeemy/DocumentRenewalPrompt';
 import { FullscreenImageViewer } from '@/components/redeemy/FullscreenImageViewer';
 import { useDocumentsStore } from '@/stores/documentsStore';
@@ -45,7 +46,6 @@ function makeStyles(colors: AppColors) {
     heroTitle: { fontSize: 26, fontWeight: '700', color: colors.textPrimary, textAlign: 'center' },
     heroOwner: { fontSize: 15, fontWeight: '600', color: colors.textSecondary, textAlign: 'center' },
     detailsCard: { backgroundColor: colors.surface, borderRadius: 14, overflow: 'hidden', marginHorizontal: 16 },
-    addedFooterText: { fontSize: 12, color: colors.textTertiary, alignSelf: 'flex-start', marginHorizontal: 16 },
     photoCard: {
       marginHorizontal: 16,
       borderRadius: 14,
@@ -200,9 +200,11 @@ export default function DocumentDetailScreen() {
           )}
         </View>
 
-        <Text style={styles.addedFooterText}>
-          {t('document.detail.added')}: {formatDate(new Date(document.createdAt as Date), dateFormat)}
-        </Text>
+        <DetailAddedFooter
+          label={t('document.detail.added')}
+          createdAt={document.createdAt}
+          style={{ marginHorizontal: 16 }}
+        />
       </ScrollView>
 
       <FullscreenImageViewer

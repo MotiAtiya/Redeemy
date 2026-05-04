@@ -27,6 +27,7 @@ import { useUIStore } from '@/stores/uiStore';
 import { useAppTheme } from '@/hooks/useAppTheme';
 import { DetailRow } from '@/components/redeemy/DetailRow';
 import { ActionModal } from '@/components/redeemy/ActionModal';
+import { DetailAddedFooter } from '@/components/redeemy/DetailAddedFooter';
 import { HeroCard } from '@/components/redeemy/HeroCard';
 import { HeroBadge } from '@/components/redeemy/HeroBadge';
 import { DetailScreenHeader } from '@/components/redeemy/DetailScreenHeader';
@@ -61,7 +62,6 @@ function makeStyles(colors: AppColors) {
     },
     // Details card
     detailsCard: { backgroundColor: colors.surface, borderRadius: 14, overflow: 'hidden' },
-    addedFooterText: { fontSize: 12, color: colors.textTertiary, alignSelf: 'flex-start' },
     // Footer
     footer: {
       padding: 16,
@@ -434,12 +434,7 @@ export default function SubscriptionDetailScreen() {
             />
           )}
         </View>
-        <Text style={styles.addedFooterText}>
-          {t('subscription.detail.added')}: {formatDate(
-            normalizeTimestampOrNow(sub.createdAt),
-            dateFormat
-          )}
-        </Text>
+        <DetailAddedFooter label={t('subscription.detail.added')} createdAt={sub.createdAt} />
       </ScrollView>
 
       {/* Footer */}

@@ -10,7 +10,7 @@ import { formatDate } from '@/lib/formatDate';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { CATEGORIES } from '@/constants/categories';
 import { type Warranty } from '@/types/warrantyTypes';
-import { WARRANTY_PRODUCT_TYPES } from '@/data/warrantyProductTypes';
+import { getWarrantyProductLabel } from '@/data/warrantyProductTypes';
 import { useAppTheme } from '@/hooks/useAppTheme';
 import type { AppColors } from '@/constants/colors';
 import { normalizeTimestampOrNow } from "@/lib/dateUtils";
@@ -62,15 +62,14 @@ function makeStyles(colors: AppColors) {
 export function WarrantyCard({ warranty, onPress, variant = 'active' }: Props) {
   const colors = useAppTheme();
   const styles = useMemo(() => makeStyles(colors), [colors]);
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const dateFormat = useSettingsStore((s) => s.dateFormat);
 
   const categoryMeta = CATEGORIES.find((c) => c.id === warranty.category);
   const productLabel =
-    WARRANTY_PRODUCT_TYPES.find((p) => p.id === warranty.productType)?.heLabel
-    ?? warranty.productType
-    ?? warranty.productName
-    ?? '';
+    getWarrantyProductLabel(warranty.productType, i18n.language)
+    || warranty.productName
+    || '';
   const dimmed = variant === 'closed' || variant === 'expired';
 
   const badgeDate = (() => {

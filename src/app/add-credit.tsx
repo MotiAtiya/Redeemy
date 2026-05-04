@@ -473,6 +473,10 @@ export default function AddCreditScreen() {
       );
       return;
     }
+    if (photoItems.length === 0) {
+      Alert.alert(t('common.error'), t('addCredit.validation.photoRequired'));
+      return;
+    }
 
     const agot = parseAmountToAgot(amountInput);
     const { creditReminderDays, creditLastDayAlert } = useSettingsStore.getState();

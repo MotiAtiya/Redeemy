@@ -22,6 +22,7 @@ import { DetailScreenHeader } from '@/components/redeemy/DetailScreenHeader';
 import { NotFoundScreen } from '@/components/redeemy/NotFoundScreen';
 import { DetailRow } from '@/components/redeemy/DetailRow';
 import { ActionModal } from '@/components/redeemy/ActionModal';
+import { DetailAddedFooter } from '@/components/redeemy/DetailAddedFooter';
 import { FullscreenImageViewer } from '@/components/redeemy/FullscreenImageViewer';
 import { deleteWarranty, updateWarranty } from '@/lib/firestoreWarranties';
 import { cancelCreditNotifications } from '@/lib/notifications';
@@ -35,15 +36,14 @@ import { useUIStore } from '@/stores/uiStore';
 import { showToast } from '@/stores/toastStore';
 import { useAppTheme } from '@/hooks/useAppTheme';
 import { WarrantyStatus, type Warranty } from '@/types/warrantyTypes';
-import { WARRANTY_PRODUCT_TYPES } from '@/data/warrantyProductTypes';
+import { getWarrantyProductLabel } from '@/data/warrantyProductTypes';
 import type { AppColors } from '@/constants/colors';
 import { normalizeTimestampOrNow } from "@/lib/dateUtils";
 
-function getProductDisplay(w: Warranty): { type: string; brand?: string; model?: string } {
+function getProductDisplay(w: Warranty, language: string | undefined): { type: string; brand?: string; model?: string } {
   if (w.productType) {
-    const typeEntry = WARRANTY_PRODUCT_TYPES.find((p) => p.id === w.productType);
     return {
-      type: typeEntry ? typeEntry.heLabel : w.productType,
+      type: getWarrantyProductLabel(w.productType, language) || w.productType,
       brand: w.brand || undefined,
       model: w.model || undefined,
     };
@@ -59,7 +59,6 @@ function makeStyles(colors: AppColors) {
     heroStoreName: { fontSize: 15, fontWeight: '600', color: colors.textSecondary, textAlign: 'center' },
     heroProductName: { fontSize: 26, fontWeight: '700', color: colors.textPrimary, textAlign: 'center' },
     detailsCard: { backgroundColor: colors.surface, borderRadius: 14, overflow: 'hidden' },
-    addedFooterText: { fontSize: 12, color: colors.textTertiary, alignSelf: 'flex-start' },
     footer: {
       padding: 16,
       paddingBottom: 8,
@@ -97,7 +96,7 @@ export default function WarrantyDetailScreen() {
   const colors = useAppTheme();
   const isRTL = I18nManager.isRTL;
   const styles = useMemo(() => makeStyles(colors), [colors]);
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const dateFormat = useSettingsStore((s) => s.dateFormat);
 
   const warranty = useWarrantiesStore((s) => s.warranties.find((w) => w.id === id));
@@ -120,7 +119,7 @@ export default function WarrantyDetailScreen() {
   // Normalize images
   const images = warranty?.images ?? (warranty?.imageUrl ? [{ url: warranty.imageUrl, thumbnailUrl: warranty.thumbnailUrl ?? warranty.imageUrl }] : []);
 
-  const productDisplay = useMemo(() => warranty ? getProductDisplay(warranty) : { type: '—' }, [warranty]);
+  const productDisplay = useMemo(() => warranty ? getProductDisplay(warranty, i18n.language) : { type: '—' }, [warranty, i18n.language]);
 
   if (!warranty) {
     return <NotFoundScreen message={t('warranty.notFound')} />;
@@ -170,7 +169,7 @@ export default function WarrantyDetailScreen() {
     setShowActionSheet(false);
     Alert.alert(
       t('warranty.delete.title'),
-      t('warranty.delete.message', { productName: getProductDisplay(w).type }),
+      t('warranty.delete.message', { productName: getProductDisplay(w, i18n.language).type }),
       [
         { text: t('common.cancel'), style: 'cancel' },
         {
@@ -234,7 +233,6 @@ export default function WarrantyDetailScreen() {
         <ImageCarousel
           images={images}
           onImagePress={(index) => { setFullscreenIndex(index); setShowFullscreenImage(true); }}
-          emptyIcon="shield-checkmark-outline"
           colors={colors}
         />
 
@@ -296,9 +294,7 @@ export default function WarrantyDetailScreen() {
             />
           )}
         </View>
-        <Text style={styles.addedFooterText}>
-          {t('warranty.detail.added')}: {formatDate(new Date(warranty.createdAt as Date), dateFormat)}
-        </Text>
+        <DetailAddedFooter label={t('warranty.detail.added')} createdAt={warranty.createdAt} />
       </ScrollView>
 
       <View style={styles.footer}>

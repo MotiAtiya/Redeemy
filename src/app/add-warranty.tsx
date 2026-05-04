@@ -35,7 +35,7 @@ import { useAppTheme } from '@/hooks/useAppTheme';
 import { useFormExitConfirmation } from '@/hooks/useFormExitConfirmation';
 import { WarrantyStatus, type Warranty } from '@/types/warrantyTypes';
 import { WARRANTY_STORES } from '@/data/warrantyStores';
-import { WARRANTY_PRODUCT_TYPES } from '@/data/warrantyProductTypes';
+import { WARRANTY_PRODUCT_TYPES, getWarrantyProductLabel } from '@/data/warrantyProductTypes';
 import { WARRANTY_BRANDS } from '@/data/warrantyBrands';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { formatDate } from '@/lib/formatDate';
@@ -201,7 +201,7 @@ export default function AddWarrantyScreen() {
   const { warrantyId } = useLocalSearchParams<{ warrantyId?: string }>();
   const isEditing = !!warrantyId;
   const colors = useAppTheme();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const isRTL = I18nManager.isRTL;
   const dateFormat = useSettingsStore((s) => s.dateFormat);
   const styles = useMemo(() => makeStyles(colors, isRTL), [colors, isRTL]);
@@ -316,10 +316,10 @@ export default function AddWarrantyScreen() {
   }, [currentStepId, storeName, productType, noExpiry, expirationDate, photoItems]);
 
   // productType step derived data
-  const productTypeDisplayValue = useMemo(() => {
-    const found = WARRANTY_PRODUCT_TYPES.find((p) => p.id === productType);
-    return found ? found.heLabel : productType;
-  }, [productType]);
+  const productTypeDisplayValue = useMemo(
+    () => getWarrantyProductLabel(productType, i18n.language) || productType,
+    [productType, i18n.language],
+  );
 
   const productTypeSuggestions = useMemo((): AutocompleteItem[] => {
     const q = productTypeDisplayValue.trim().toLowerCase();
@@ -398,6 +398,10 @@ export default function AddWarrantyScreen() {
         t('addWarranty.offline.adding'),
         [{ text: t('common.ok') }]
       );
+      return;
+    }
+    if (photoItems.length === 0) {
+      Alert.alert(t('common.error'), t('addWarranty.error.photoRequired'));
       return;
     }
 
@@ -668,7 +672,7 @@ export default function AddWarrantyScreen() {
   }
 
   function renderSummaryStep() {
-    const productLabel = WARRANTY_PRODUCT_TYPES.find((p) => p.id === productType)?.heLabel ?? productType;
+    const productLabel = getWarrantyProductLabel(productType, i18n.language) || productType;
     const productDisplay = productLabel
       + (brand ? ` — ${brand}` : '')
       + (model ? ` (${model})` : '');

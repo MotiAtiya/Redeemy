@@ -26,6 +26,7 @@ jest.mock('@/stores/settingsStore', () => ({
       notificationMinute: 0,
       currency: 'ILS',
       creditLastDayAlert: true,
+      appIconBadge: true,
     })),
   },
   CURRENCY_SYMBOLS: { ILS: '₪', USD: '$', EUR: '€', GBP: '£' },

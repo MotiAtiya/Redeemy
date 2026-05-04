@@ -17,14 +17,11 @@ import { EmptyState } from '@/components/redeemy/EmptyState';
 import { useWarrantiesStore } from '@/stores/warrantiesStore';
 import { useAppTheme } from '@/hooks/useAppTheme';
 import { WarrantyStatus, type Warranty } from '@/types/warrantyTypes';
-import { WARRANTY_PRODUCT_TYPES } from '@/data/warrantyProductTypes';
+import { getWarrantyProductLabel } from '@/data/warrantyProductTypes';
 import type { AppColors } from '@/constants/colors';
 
-function getWarrantyProductLabel(w: Warranty): string {
-  return WARRANTY_PRODUCT_TYPES.find((p) => p.id === w.productType)?.heLabel
-    ?? w.productType
-    ?? w.productName
-    ?? '';
+function warrantyProductDisplay(w: Warranty, language: string | undefined): string {
+  return getWarrantyProductLabel(w.productType, language) || w.productName || '';
 }
 
 type SortOption = 'expiry' | 'productName' | 'storeName' | 'recent';
@@ -100,7 +97,8 @@ function makeStyles(colors: AppColors) {
   });
 }
 
-function sortWarranties(warranties: Warranty[], sortOption: SortOption): Warranty[] {
+function sortWarranties(warranties: Warranty[], sortOption: SortOption, language: string | undefined): Warranty[] {
+  const collatorLocale = language?.startsWith('en') ? 'en' : 'he';
   return [...warranties].sort((a, b) => {
     switch (sortOption) {
       case 'expiry':
@@ -109,9 +107,9 @@ function sortWarranties(warranties: Warranty[], sortOption: SortOption): Warrant
         if (b.noExpiry) return -1;
         return (a.expirationDate!.getTime()) - (b.expirationDate!.getTime());
       case 'productName':
-        return getWarrantyProductLabel(a).localeCompare(getWarrantyProductLabel(b), 'he');
+        return warrantyProductDisplay(a, language).localeCompare(warrantyProductDisplay(b, language), collatorLocale);
       case 'storeName':
-        return a.storeName.localeCompare(b.storeName, 'he');
+        return a.storeName.localeCompare(b.storeName, collatorLocale);
       case 'recent':
         return b.createdAt.getTime() - a.createdAt.getTime();
     }
@@ -122,7 +120,7 @@ export default function WarrantiesScreen() {
   const router = useRouter();
   const colors = useAppTheme();
   const styles = useMemo(() => makeStyles(colors), [colors]);
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const warranties = useWarrantiesStore((s) => s.warranties);
 
   const [sortOption, setSortOption] = useState<SortOption>('expiry');
@@ -159,15 +157,16 @@ export default function WarrantiesScreen() {
         if (!q) return true;
         return (
           w.storeName.toLowerCase().includes(q) ||
-          getWarrantyProductLabel(w).toLowerCase().includes(q) ||
+          warrantyProductDisplay(w, i18n.language).toLowerCase().includes(q) ||
           (w.brand ?? '').toLowerCase().includes(q) ||
           (w.model ?? '').toLowerCase().includes(q) ||
           (w.notes ?? '').toLowerCase().includes(q)
         );
       }),
-      sortOption
+      sortOption,
+      i18n.language,
     );
-  }, [activeWarranties, searchQuery, selectedProductType, sortOption]);
+  }, [activeWarranties, searchQuery, selectedProductType, sortOption, i18n.language]);
 
   function renderEmpty() {
     if (activeWarranties.length > 0) {
@@ -230,7 +229,7 @@ export default function WarrantiesScreen() {
             {[null, ...availableProductTypes].map((item) => {
               const isActive = item === selectedProductType;
               const typeLabel = item
-                ? (WARRANTY_PRODUCT_TYPES.find((p) => p.id === item)?.heLabel ?? item)
+                ? (getWarrantyProductLabel(item, i18n.language) || item)
                 : t('warranties.filter.all');
               return (
                 <TouchableOpacity

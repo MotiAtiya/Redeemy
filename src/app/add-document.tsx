@@ -273,7 +273,7 @@ export default function AddDocumentScreen() {
   const summaryScrollRef = useRef<ScrollView>(null);
 
   useFormExitConfirmation(
-    !isEditing && !saving && currentStepIndex > 0,
+    !isEditing && !saving && (ownerName.trim().length > 0 || currentStepIndex > 0),
   );
 
   // Pre-fill for edit mode
@@ -366,7 +366,7 @@ export default function AddDocumentScreen() {
       Alert.alert(t('offline.title'), t('addDocument.offline'));
       return;
     }
-    if (photoItems.length === 0 && !isEditing) {
+    if (photoItems.length === 0) {
       Alert.alert(t('common.error'), t('addDocument.error.photoRequired'));
       return;
     }

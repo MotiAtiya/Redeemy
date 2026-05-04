@@ -379,7 +379,8 @@
     "error": {
       "save": "Couldn't save",
       "saveMessage": "Please try again.",
-      "photo": "Photo upload failed — warranty saved without photo."
+      "photo": "Photo upload failed — warranty saved without photo.",
+      "photoRequired": "Please attach a photo of the warranty"
     }
   },
   "warranties": {
@@ -1152,7 +1153,8 @@
       "nameNote": "Note",
       "eventDate": "Date",
       "hebrewDate": "Hebrew date",
-      "notes": "Notes"
+      "notes": "Notes",
+      "added": "Added"
     },
     "delete": {
       "title": "Delete Event",
@@ -1247,7 +1249,7 @@
       "owner": "Owner",
       "expiration": "Expires",
       "notes": "Notes",
-      "added": "Saved"
+      "added": "Added"
     },
     "delete": {
       "title": "Delete Document",

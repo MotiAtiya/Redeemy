@@ -10,6 +10,21 @@ export interface WarrantyProductType {
   icon: IoniconsName;
 }
 
+/**
+ * Pick the correct localized label for a product type id, with sensible
+ * fallbacks: missing entry → echo the id; nullish input → empty string.
+ * Pass `i18n.language` from useTranslation().
+ */
+export function getWarrantyProductLabel(
+  productType: string | undefined | null,
+  language: string | undefined,
+): string {
+  if (!productType) return '';
+  const found = WARRANTY_PRODUCT_TYPES.find((p) => p.id === productType);
+  if (!found) return productType;
+  return language?.startsWith('en') ? found.enLabel : found.heLabel;
+}
+
 export const WARRANTY_PRODUCT_TYPES: WarrantyProductType[] = [
   // אלקטרוניקה וטכנולוגיה
   { id: 'smartphone',         heLabel: 'טלפון חכם',           enLabel: 'Smartphone',          icon: 'phone-portrait-outline' },

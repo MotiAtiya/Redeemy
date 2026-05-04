@@ -14,6 +14,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import { DetailRow } from '@/components/redeemy/DetailRow';
 import { ActionModal } from '@/components/redeemy/ActionModal';
+import { DetailAddedFooter } from '@/components/redeemy/DetailAddedFooter';
 import { HeroCard } from '@/components/redeemy/HeroCard';
 import { HeroBadge } from '@/components/redeemy/HeroBadge';
 import { DetailScreenHeader } from '@/components/redeemy/DetailScreenHeader';
@@ -203,6 +204,7 @@ export default function OccasionDetailScreen() {
             />
           )}
         </View>
+        <DetailAddedFooter label={t('occasion.detail.added')} createdAt={occasion.createdAt} />
       </ScrollView>
 
       <ActionModal
