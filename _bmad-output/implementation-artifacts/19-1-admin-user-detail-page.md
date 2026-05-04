@@ -4,7 +4,7 @@
 **Story Key:** 19-1-admin-user-detail-page
 **Author:** Moti
 **Date:** 2026-05-04
-**Status:** planned
+**Status:** done
 
 ---
 

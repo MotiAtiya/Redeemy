@@ -4,7 +4,7 @@
 **Story Key:** 19-3-admin-activity-search-and-filters
 **Author:** Moti
 **Date:** 2026-05-04
-**Status:** planned
+**Status:** done
 
 ---
 

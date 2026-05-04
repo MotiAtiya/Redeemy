@@ -1608,9 +1608,9 @@ So that reminders work from day one and I know how to get started.
 
 | Story | Title | Status |
 |-------|-------|--------|
-| 19.1 | Admin — User Detail Page (`/users/[uid]`) | 📝 planned |
+| 19.1 | Admin — User Detail Page (`/users/[uid]`) | ✅ done |
 | 19.2 | Admin — Crashlytics via BigQuery integration | 📝 planned |
-| 19.3 | Admin — Activity feed search & filters | 📝 planned |
+| 19.3 | Admin — Activity feed search & filters | ✅ done |
 
 All three live in the `redeemy-admin` repo (web). No mobile-app changes required.
 
