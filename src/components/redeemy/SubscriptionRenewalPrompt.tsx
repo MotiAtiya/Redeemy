@@ -36,20 +36,22 @@ export function SubscriptionRenewalPrompt({ subscription, onResolved }: Props) {
   const [busy, setBusy] = useState<'confirm' | 'decline' | null>(null);
 
   async function handleConfirm() {
-    const patch = advanceBillingCycle(subscription);
-    if (!patch) {
-      // Shouldn't happen — if the prompt is showing, advance should produce a patch.
-      return;
-    }
+    // For ANNUAL: advanceBillingCycle returns a patch with the new nextBillingDate.
+    // For MONTHLY: advanceBillingCycle returns a notification-reset patch (or null
+    // if the billing day hasn't passed yet — but if the prompt is showing, it has).
+    // Either way, we always also stamp lastRenewalConfirmedAt so the helper
+    // knows the user confirmed for this cycle.
+    const advancePatch = advanceBillingCycle(subscription) ?? {};
     setBusy('confirm');
     try {
       await cancelSubscriptionNotifications(subscription);
-      const merged: Subscription = { ...subscription, ...patch };
+      const merged: Subscription = { ...subscription, ...advancePatch };
       const scheduled = await scheduleSubscriptionNotifications(merged);
       const fullPatch = {
-        ...patch,
+        ...advancePatch,
         notificationIds: scheduled.notificationIds,
         renewalNotificationId: scheduled.renewalNotificationId,
+        lastRenewalConfirmedAt: new Date(),
       };
       updateSubInStore(subscription.id, fullPatch);
       await confirmSubscriptionRenewal(subscription.id, fullPatch);

@@ -20,7 +20,9 @@ So that I either advance the cycle (if I did renew in real life) or move it to h
 
 The subscription model has a `renewalType: 'auto' | 'manual'` field. Auto subscriptions are advanced by the system whenever the billing date passes (the listener handles that). Manual subscriptions, however, were also being silently auto-advanced — which is a bug, because the user might have actually let the subscription lapse, but the app would still show it as active forever.
 
-This story fixes that for the **annual + manual** case (the common one — domain renewals, gym memberships, annual software, etc.). Monthly + manual is left as-is for now (the listener resets notification IDs each month so reminders fire — no auto-archive); could be revisited later if it becomes a problem.
+This story fixes that for **both annual + manual and monthly + manual** subscriptions:
+- ANNUAL + manual: prompt fires when `nextBillingDate < today`. On confirm, `advanceBillingCycle` advances the stored date by a year.
+- MONTHLY + manual: prompt fires when `billingDayOfMonth` for this calendar month has passed AND user hasn't yet confirmed for this cycle. A new `lastRenewalConfirmedAt` field on Subscription tracks the most recent confirmation so the prompt doesn't re-appear after a "yes" within the same cycle.
 
 Documents and warranties were addressed in Stories 19.4 / 19.6. Occasions and credits are out of scope (different lifecycles).
 
@@ -41,8 +43,9 @@ Documents and warranties were addressed in Stories 19.4 / 19.6. Occasions and cr
 **Then** it returns `true` only when ALL of:
 - `renewalType === 'manual'`
 - `status === SubscriptionStatus.ACTIVE`
-- `billingCycle === SubscriptionBillingCycle.ANNUAL`
-- `nextBillingDate` is set and in the past (≤ now)
+- ONE of:
+  - `billingCycle === ANNUAL` AND `nextBillingDate` is set and in the past, OR
+  - `billingCycle === MONTHLY` AND `billingDayOfMonth` is set AND this calendar month's billing date has passed AND `lastRenewalConfirmedAt` is missing OR < this month's billing date.
 
 Otherwise returns `false`.
 

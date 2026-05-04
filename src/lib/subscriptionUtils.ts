@@ -258,21 +258,51 @@ export function endFreeTrialIfDue(sub: Subscription): Partial<Subscription> | nu
 }
 
 /**
- * True iff this subscription is annual + manual-renewal + active + already past
- * its `nextBillingDate`. The user must explicitly tell us "I renewed" before
- * we advance the billing cycle (otherwise we'd silently push the date forward
- * even when the user actually let it lapse).
+ * True iff this subscription is manual-renewal + active + already past
+ * its current billing date AND the user hasn't yet confirmed renewal for
+ * the current cycle.
  *
- * V1 covers ANNUAL only. Monthly manual-renewal is left as-is (the existing
- * listener handles it well enough for now); Story 19.7 if/when needed.
+ * For ANNUAL subs the "current billing date" is the stored `nextBillingDate`.
+ * For MONTHLY subs the current billing date is `billingDayOfMonth` of this
+ * calendar month — and we use `lastRenewalConfirmedAt` to remember whether
+ * the user already clicked "I renewed" for this cycle (otherwise the prompt
+ * would re-appear every render even after confirmation).
+ *
+ * Auto-renewal subs are unaffected (always returns false).
  */
 export function subscriptionNeedsRenewalConfirmation(sub: Subscription): boolean {
   if (sub.renewalType !== 'manual') return false;
   if (sub.status !== SubscriptionStatus.ACTIVE) return false;
-  if (sub.billingCycle !== SubscriptionBillingCycle.ANNUAL) return false;
-  if (!sub.nextBillingDate) return false;
-  const next = sub.nextBillingDate instanceof Date
-    ? sub.nextBillingDate
-    : new Date(sub.nextBillingDate as unknown as string);
-  return next.getTime() <= Date.now();
+
+  if (sub.billingCycle === SubscriptionBillingCycle.ANNUAL) {
+    if (!sub.nextBillingDate) return false;
+    const next = sub.nextBillingDate instanceof Date
+      ? sub.nextBillingDate
+      : new Date(sub.nextBillingDate as unknown as string);
+    return next.getTime() <= Date.now();
+  }
+
+  if (sub.billingCycle === SubscriptionBillingCycle.MONTHLY) {
+    if (!sub.billingDayOfMonth) return false;
+    const today = new Date();
+    const day = sub.billingDayOfMonth;
+    const lastDay = new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate();
+    const thisMonthBillingDate = new Date(
+      today.getFullYear(),
+      today.getMonth(),
+      Math.min(day, lastDay),
+    );
+    // Billing day for this month hasn't arrived yet → no prompt.
+    if (thisMonthBillingDate > today) return false;
+    // User already confirmed for this cycle → no prompt.
+    if (sub.lastRenewalConfirmedAt) {
+      const confirmedAt = sub.lastRenewalConfirmedAt instanceof Date
+        ? sub.lastRenewalConfirmedAt
+        : new Date(sub.lastRenewalConfirmedAt as unknown as string);
+      if (confirmedAt.getTime() >= thisMonthBillingDate.getTime()) return false;
+    }
+    return true;
+  }
+
+  return false;
 }
