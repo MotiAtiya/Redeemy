@@ -294,12 +294,19 @@ export function subscriptionNeedsRenewalConfirmation(sub: Subscription): boolean
     );
     // Billing day for this month hasn't arrived yet → no prompt.
     if (thisMonthBillingDate > today) return false;
-    // User already confirmed for this cycle → no prompt.
-    if (sub.lastRenewalConfirmedAt) {
-      const confirmedAt = sub.lastRenewalConfirmedAt instanceof Date
-        ? sub.lastRenewalConfirmedAt
-        : new Date(sub.lastRenewalConfirmedAt as unknown as string);
-      if (confirmedAt.getTime() >= thisMonthBillingDate.getTime()) return false;
+
+    // The user is implicitly "paid up" through one of these signals, in priority:
+    //   1. Explicit confirmation via the prompt (lastRenewalConfirmedAt)
+    //   2. The subscription's createdAt — adding a sub means "I'm paid up now"
+    // (We deliberately do NOT use updatedAt — it changes for many unrelated edits
+    //  like notes/reminder tweaks; treating those as renewal would suppress the
+    //  prompt forever.)
+    const candidateRaw = sub.lastRenewalConfirmedAt ?? sub.createdAt;
+    if (candidateRaw) {
+      const candidate = candidateRaw instanceof Date
+        ? candidateRaw
+        : new Date(candidateRaw as unknown as string);
+      if (candidate.getTime() >= thisMonthBillingDate.getTime()) return false;
     }
     return true;
   }
