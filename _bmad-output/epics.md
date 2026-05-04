@@ -33,7 +33,7 @@ This document provides the complete epic and story breakdown for Redeemy, decomp
 | Epic 15 | Occasions (birthdays, anniversaries, yahrzeit) | 2 stories | ✅ done |
 | Epic 16 | Documents (ID, license, passport, insurance) | 1 story | ✅ done |
 | Epic 18 | Admin Dashboard (web, V1 MVP) | 4 stories | ✅ done |
-| Epic 19 | Admin Dashboard — V1.5 quick wins | 3 stories | 📝 planned |
+| Epic 19 | Admin Dashboard — V1.5 quick wins | 6 stories | 🟡 5/6 done — 19.2 (Crashlytics via BigQuery) deferred |
 
 > **Note:** Epics 9–16 were added after initial planning. Epics 14–16 are new features not in the original product brief. Epic 18 is a separate web application (not part of the mobile app codebase).
 
@@ -1600,28 +1600,28 @@ So that reminders work from day one and I know how to get started.
 
 ## Epic 19: Admin Dashboard — V1.5 quick wins
 
-**Goal:** Three small-but-useful additions to the Admin Dashboard that pay off at the current 3-user scale (or any scale), without waiting for V2 (50–500 users) features that need more data.
+**Goal:** Six small-but-useful additions across admin + mobile that pay off at the current 3-user scale (or any scale), without waiting for V2 (50–500 users) features that need more data. Originally drafted as 3 admin stories; expanded to 6 once the auto-expire / manual-renewal mobile work was scoped in.
 
-**Status:** 📝 Planned (drafted 2026-05-04)
+**Status:** 🟡 5 of 6 done (2026-05-04). Only 19.2 outstanding — blocked on Crashlytics→BigQuery export setup + 24–48h data backfill.
 
 **Stories:**
 
 | Story | Title | Status |
 |-------|-------|--------|
 | 19.1 | Admin — User Detail Page (`/users/[uid]`) | ✅ done |
-| 19.2 | Admin — Crashlytics via BigQuery integration | 📝 planned |
+| 19.2 | Admin — Crashlytics via BigQuery integration | 📝 planned (deferred — awaiting export data) |
 | 19.3 | Admin — Activity feed search & filters | ✅ done |
 | 19.4 | Mobile — Warranty auto-expire (with shared autoExpire helper) | ✅ done |
 | 19.5 | Mobile — Subscription manual-renewal prompt | ✅ done |
 | 19.6 | Mobile — Document renewal flow | ✅ done |
 
-All three live in the `redeemy-admin` repo (web). No mobile-app changes required.
+19.1–19.3 ship in the `redeemy-admin` repo. 19.4–19.6 ship in the mobile repo and add three new event types (`warranty_expired`, `subscription_renewed`, `subscription_expired`, `document_renewed`) which the admin activity feed renders with dedicated icons + i18n.
 
 ---
 
 ## Summary
 
-**Total: 17 Epics · 47+ Stories** (16 done, 1 planned)
+**Total: 17 Epics · 52+ Stories** (16 epics done; Epic 19 partial — 5/6 stories done, 19.2 deferred)
 
 | Epic | Stories | Delivers |
 |------|---------|---------|
