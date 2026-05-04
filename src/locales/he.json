@@ -1209,6 +1209,17 @@
     },
     "customTypePlaceholder": "שם המסמך",
     "ownerPlaceholder": "שם בעל המסמך",
+    "typeDetail": {
+      "label": "פירוט",
+      "optional": "אופציונלי",
+      "placeholder": {
+        "id_card": "לדוגמה: ביומטרית",
+        "license": "לדוגמה: נהיגה, נשק",
+        "passport": "לדוגמה: ישראלי, אמריקאי",
+        "insurance": "לדוגמה: רכב, חיים, דירה",
+        "other": "לדוגמה: פרטים נוספים"
+      }
+    },
     "notesPlaceholder": "הערות…",
     "photoHint": "לחצו לצילום המסמך",
     "photosHint": "ניתן להוסיף עד 3 תמונות",

@@ -140,9 +140,12 @@ export default function DocumentDetailScreen() {
     setShowActionSheet(false);
   }
 
-  const typeLabel = document.type === 'other' && document.customTypeName
+  const baseTypeLabel = document.type === 'other' && document.customTypeName
     ? document.customTypeName
     : t(`documents.types.${document.type}`);
+  const typeLabel = document.typeDetail
+    ? `${baseTypeLabel} (${document.typeDetail})`
+    : baseTypeLabel;
 
   return (
     <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>

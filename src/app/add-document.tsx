@@ -116,6 +116,27 @@ function makeStyles(colors: AppColors, isRTL: boolean) {
       textAlign: isRTL ? 'right' : 'left',
     },
 
+    // Optional type-detail input (sub-label below owner)
+    typeDetailLabel: {
+      fontSize: 13,
+      fontWeight: '600',
+      color: colors.textTertiary,
+      alignSelf: 'flex-start',
+      marginTop: 20,
+      marginBottom: 6,
+    },
+    typeDetailInput: {
+      height: 48,
+      borderWidth: 1,
+      borderColor: colors.separator,
+      borderRadius: 12,
+      paddingHorizontal: 16,
+      fontSize: 15,
+      color: colors.textPrimary,
+      backgroundColor: colors.background,
+      textAlign: isRTL ? 'right' : 'left',
+    },
+
     summaryPhotoBadge: {
       position: 'absolute',
       bottom: 8,
@@ -233,6 +254,7 @@ export default function AddDocumentScreen() {
   // Form state
   const [docType, setDocType] = useState<DocumentType>('id_card');
   const [ownerName, setOwnerName] = useState('');
+  const [typeDetail, setTypeDetail] = useState('');
   const [expirationDate, setExpirationDate] = useState(() => {
     const d = new Date();
     d.setFullYear(d.getFullYear() + 1);
@@ -259,6 +281,7 @@ export default function AddDocumentScreen() {
     if (!isEditing || !existingDocument) return;
     setDocType(existingDocument.type);
     if (existingDocument.customTypeName) setCustomTypeName(existingDocument.customTypeName);
+    if (existingDocument.typeDetail) setTypeDetail(existingDocument.typeDetail);
     setOwnerName(existingDocument.ownerName);
     const d = normalizeTimestampOrNow(existingDocument.expirationDate);
     setExpirationDate(d);
@@ -356,6 +379,7 @@ export default function AddDocumentScreen() {
       ...(familyId ? { familyId, createdBy: currentUser.uid, createdByName: displayName } : {}),
       type: docType,
       ...(docType === 'other' && customTypeName.trim() ? { customTypeName: customTypeName.trim() } : {}),
+      ...(typeDetail.trim() ? { typeDetail: typeDetail.trim() } : {}),
       ownerName: ownerName.trim(),
       expirationDate,
       ...(notes.trim() ? { notes: notes.trim() } : {}),
@@ -475,6 +499,7 @@ export default function AddDocumentScreen() {
   }
 
   function renderOwnerStep() {
+    const detailPlaceholder = t(`addDocument.typeDetail.placeholder.${docType}`);
     return (
       <ScrollView style={styles.stepScroll} contentContainerStyle={styles.stepContent} keyboardShouldPersistTaps="handled">
         <Text style={styles.stepTitle}>{t('addDocument.step.owner')}</Text>
@@ -487,6 +512,18 @@ export default function AddDocumentScreen() {
           autoFocus
           returnKeyType="next"
           onSubmitEditing={ownerName.trim() ? goNext : undefined}
+        />
+        <Text style={styles.typeDetailLabel}>
+          {`${t('addDocument.typeDetail.label')} (${t('addDocument.typeDetail.optional')})`}
+        </Text>
+        <TextInput
+          style={styles.typeDetailInput}
+          placeholder={detailPlaceholder}
+          placeholderTextColor={colors.textTertiary}
+          value={typeDetail}
+          onChangeText={setTypeDetail}
+          autoCapitalize="sentences"
+          returnKeyType="done"
         />
       </ScrollView>
     );
@@ -519,9 +556,12 @@ export default function AddDocumentScreen() {
   }
 
   function renderSummaryStep() {
-    const typeLabel = docType === 'other' && customTypeName.trim()
+    const baseTypeLabel = docType === 'other' && customTypeName.trim()
       ? customTypeName.trim()
       : t(`documents.types.${docType}`);
+    const typeLabel = typeDetail.trim()
+      ? `${baseTypeLabel} (${typeDetail.trim()})`
+      : baseTypeLabel;
     return (
       <ScrollView ref={summaryScrollRef} style={styles.stepScroll} contentContainerStyle={styles.stepContent} keyboardShouldPersistTaps="handled">
         <Text style={styles.stepTitle}>{t('addDocument.step.summary')}</Text>

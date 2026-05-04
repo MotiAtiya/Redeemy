@@ -1210,6 +1210,17 @@
     },
     "customTypePlaceholder": "Document name",
     "ownerPlaceholder": "Owner's name",
+    "typeDetail": {
+      "label": "Detail",
+      "optional": "optional",
+      "placeholder": {
+        "id_card": "e.g. Biometric",
+        "license": "e.g. Driver's, Firearm",
+        "passport": "e.g. Israeli, American",
+        "insurance": "e.g. Car, Life, Home",
+        "other": "e.g. additional details"
+      }
+    },
     "notesPlaceholder": "Notes…",
     "photoHint": "Tap to photograph the document",
     "photosHint": "You can add up to 3 photos",

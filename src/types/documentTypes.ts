@@ -11,6 +11,7 @@ export interface Document {
   createdByName?: string;
   type: DocumentType;
   customTypeName?: string;
+  typeDetail?: string;
   ownerName: string;
   expirationDate: Date | Timestamp;
   /** @deprecated Use images instead */

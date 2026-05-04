@@ -49,7 +49,12 @@ export function DocumentCard({ document, onPress }: Props) {
 
   const expirationDate = normalizeTimestampOrNow(document.expirationDate);
 
-  const typeLabel = t(`documents.types.${document.type}`);
+  const baseTypeLabel = document.type === 'other' && document.customTypeName
+    ? document.customTypeName
+    : t(`documents.types.${document.type}`);
+  const typeLabel = document.typeDetail
+    ? `${baseTypeLabel} (${document.typeDetail})`
+    : baseTypeLabel;
 
   return (
     <BaseCard onPress={onPress} accessibilityLabel={`${typeLabel} — ${document.ownerName}`}>
