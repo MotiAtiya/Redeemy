@@ -33,6 +33,7 @@ This document provides the complete epic and story breakdown for Redeemy, decomp
 | Epic 15 | Occasions (birthdays, anniversaries, yahrzeit) | 2 stories | ✅ done |
 | Epic 16 | Documents (ID, license, passport, insurance) | 1 story | ✅ done |
 | Epic 18 | Admin Dashboard (web, V1 MVP) | 4 stories | ✅ done |
+| Epic 19 | Admin Dashboard — V1.5 quick wins | 3 stories | 📝 planned |
 
 > **Note:** Epics 9–16 were added after initial planning. Epics 14–16 are new features not in the original product brief. Epic 18 is a separate web application (not part of the mobile app codebase).
 
@@ -1597,9 +1598,27 @@ So that reminders work from day one and I know how to get started.
 
 ---
 
+## Epic 19: Admin Dashboard — V1.5 quick wins
+
+**Goal:** Three small-but-useful additions to the Admin Dashboard that pay off at the current 3-user scale (or any scale), without waiting for V2 (50–500 users) features that need more data.
+
+**Status:** 📝 Planned (drafted 2026-05-04)
+
+**Stories:**
+
+| Story | Title | Status |
+|-------|-------|--------|
+| 19.1 | Admin — User Detail Page (`/users/[uid]`) | 📝 planned |
+| 19.2 | Admin — Crashlytics via BigQuery integration | 📝 planned |
+| 19.3 | Admin — Activity feed search & filters | 📝 planned |
+
+All three live in the `redeemy-admin` repo (web). No mobile-app changes required.
+
+---
+
 ## Summary
 
-**Total: 16 Epics · 44+ Stories** (15 done, 1 planned)
+**Total: 17 Epics · 47+ Stories** (16 done, 1 planned)
 
 | Epic | Stories | Delivers |
 |------|---------|---------|
