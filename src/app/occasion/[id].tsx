@@ -138,12 +138,14 @@ export default function OccasionDetailScreen() {
           text: t('occasion.delete.button'),
           style: 'destructive',
           onPress: async () => {
+            // Navigate away FIRST so the screen doesn't flash "not found"
+            // while the firestore write resolves.
+            router.back();
+            showToast(t('toasts.deleted.occasion'));
             try {
               await cancelOccasionNotifications(occasion!.notificationIds);
               removeOccasion(occasion!.id);
               await deleteOccasion(occasion!.id);
-              showToast(t('toasts.deleted.occasion'));
-              router.back();
             } catch {
               Alert.alert(t('common.error'), t('occasion.delete.error'));
             }

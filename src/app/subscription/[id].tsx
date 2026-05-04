@@ -214,15 +214,15 @@ export default function SubscriptionDetailScreen() {
           text: t('subscription.delete.button'),
           style: 'destructive',
           onPress: async () => {
-            setLoading(true);
+            // Navigate away FIRST so the screen doesn't flash "not found"
+            // while the firestore write resolves.
+            router.back();
+            showToast(t('toasts.deleted.subscription'));
             try {
               await cancelSubscriptionNotifications(s);
               removeSubFromStore(s.id);
               await deleteSubscription(s.id);
-              showToast(t('toasts.deleted.subscription'));
-              router.back();
             } catch {
-              setLoading(false);
               Alert.alert(t('common.error'), t('subscription.delete.error'));
             }
           },

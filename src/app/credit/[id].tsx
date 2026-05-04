@@ -172,15 +172,15 @@ export default function CreditDetailScreen() {
         text: t('credit.delete.button'),
         style: 'destructive',
         onPress: async () => {
-          setLoading(true);
+          // Navigate away FIRST so the screen doesn't flash "not found"
+          // while the firestore write resolves.
+          router.back();
+          showToast(t('toasts.deleted.credit'));
           try {
             await cancelCreditNotifications(c.notificationId, c.expirationNotificationId);
             removeCredit(c.id);
             await deleteCredit(c.id);
-            showToast(t('toasts.deleted.credit'));
-            router.back();
           } catch {
-            setLoading(false);
             Alert.alert(t('common.error'), t('credit.delete.error'));
           }
         },

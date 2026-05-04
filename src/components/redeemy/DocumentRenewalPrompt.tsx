@@ -104,17 +104,16 @@ export function DocumentRenewalPrompt({ document, onResolved }: Props) {
           text: t('document.renewalPrompt.discardConfirm'),
           style: 'destructive',
           onPress: async () => {
-            setBusy('discard');
+            // Navigate away FIRST so the parent screen doesn't flash "not
+            // found" while the firestore write resolves.
+            onResolved?.();
+            showToast(t('toasts.documentDiscarded'));
             try {
               removeDocFromStore(document.id);
               await deleteDocument(document.id);
-              showToast(t('toasts.documentDiscarded'));
-              onResolved?.();
             } catch (err) {
               const message = err instanceof Error ? err.message : String(err);
               Alert.alert(t('document.renewalPrompt.errorTitle'), message);
-            } finally {
-              setBusy(null);
             }
           },
         },

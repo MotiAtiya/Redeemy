@@ -188,15 +188,16 @@ export default function WarrantyDetailScreen() {
           text: t('warranty.delete.button'),
           style: 'destructive',
           onPress: async () => {
-            setLoading(true);
+            // Navigate away FIRST — otherwise the store update flashes a
+            // "not found" view on this detail screen while the firestore
+            // write resolves. The snapshot listener reconciles on errors.
+            router.back();
+            showToast(t('toasts.deleted.warranty'));
             try {
               await cancelCreditNotifications(w.notificationId, w.expirationNotificationId);
               removeWarranty(w.id);
               await deleteWarranty(w.id);
-              showToast(t('toasts.deleted.warranty'));
-              router.back();
             } catch {
-              setLoading(false);
               Alert.alert(t('common.error'), t('warranty.delete.error'));
             }
           },

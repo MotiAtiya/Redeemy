@@ -115,11 +115,13 @@ export default function DocumentDetailScreen() {
           text: t('document.delete.button'),
           style: 'destructive',
           onPress: async () => {
+            // Navigate away FIRST so the screen doesn't flash "not found"
+            // while the firestore write resolves.
+            router.back();
+            showToast(t('toasts.deleted.document'));
             try {
               removeDocument(document!.id);
               await deleteDocument(document!.id);
-              showToast(t('toasts.deleted.document'));
-              router.back();
             } catch {
               Alert.alert(t('common.error'), t('document.delete.error'));
             }
