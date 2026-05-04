@@ -216,47 +216,68 @@ export default function HistoryScreen() {
       });
   }, [warranties, search]);
 
-  // Cancelled subscriptions
-  const cancelledSubscriptions = useMemo(() => {
+  // Subscriptions in a terminal state — CANCELLED (user cancelled) or
+  // EXPIRED (user declined to renew a manual sub, Story 19.5).
+  const filteredSubscriptions = useMemo(() => {
     const rangeStart = dateRangeStart(filters.dateRange);
     const q = search.trim().toLowerCase();
-    return subscriptions
-      .filter((s) => {
-        if (s.status !== SubscriptionStatus.CANCELLED) return false;
-        const when = s.cancelledAt ?? s.updatedAt ?? s.createdAt;
-        if (!when) return false;
-        if (when < rangeStart) return false;
-        if (q && !s.serviceName.toLowerCase().includes(q) && !(s.notes ?? '').toLowerCase().includes(q)) {
-          return false;
+    const sortFn = (a: typeof subscriptions[number], b: typeof subscriptions[number]) => {
+      switch (sortKey) {
+        case 'storeName':
+          return a.serviceName.localeCompare(b.serviceName);
+        case 'amount':
+          return normalizeToMonthlyAgorot(b) - normalizeToMonthlyAgorot(a);
+        case 'redeemedAt':
+        default: {
+          const aT = (a.cancelledAt ?? a.expiredAt ?? a.updatedAt ?? a.createdAt).getTime();
+          const bT = (b.cancelledAt ?? b.expiredAt ?? b.updatedAt ?? b.createdAt).getTime();
+          return bT - aT;
         }
-        return true;
-      })
-      .sort((a, b) => {
-        switch (sortKey) {
-          case 'storeName':
-            return a.serviceName.localeCompare(b.serviceName);
-          case 'amount':
-            return normalizeToMonthlyAgorot(b) - normalizeToMonthlyAgorot(a);
-          case 'redeemedAt':
-          default: {
-            const aT = (a.cancelledAt ?? a.updatedAt ?? a.createdAt).getTime();
-            const bT = (b.cancelledAt ?? b.updatedAt ?? b.createdAt).getTime();
-            return bT - aT;
-          }
-        }
-      });
+      }
+    };
+    const filterByDateAndQuery = (when: Date | undefined, name: string, notes?: string) => {
+      if (!when) return false;
+      if (when < rangeStart) return false;
+      if (q && !name.toLowerCase().includes(q) && !(notes ?? '').toLowerCase().includes(q)) {
+        return false;
+      }
+      return true;
+    };
+    const cancelled = subscriptions
+      .filter((s) =>
+        s.status === SubscriptionStatus.CANCELLED &&
+        filterByDateAndQuery(s.cancelledAt ?? s.updatedAt ?? s.createdAt, s.serviceName, s.notes)
+      )
+      .sort(sortFn);
+    const expired = subscriptions
+      .filter((s) =>
+        s.status === SubscriptionStatus.EXPIRED &&
+        filterByDateAndQuery(s.expiredAt ?? s.updatedAt ?? s.createdAt, s.serviceName, s.notes)
+      )
+      .sort(sortFn);
+    return { cancelled, expired };
   }, [subscriptions, search, filters.dateRange, sortKey]);
+  const cancelledSubscriptions = filteredSubscriptions.cancelled;
+  const expiredSubscriptions = filteredSubscriptions.expired;
 
-  // Auto-expired warranties (active but past expiration date)
+  // Expired warranties — Story 19.4's auto-expire flips ACTIVE → EXPIRED on the
+  // listener tick. Older records on a pre-19.4 device may still be ACTIVE with
+  // an expirationDate in the past until that tick lands, so accept both.
   const expiredWarranties = useMemo(() => {
     const now = new Date();
     return warranties
-      .filter((w) =>
-        w.status === WarrantyStatus.ACTIVE && w.expirationDate && w.expirationDate < now
-        && (!search.trim() ||
-          w.storeName.toLowerCase().includes(search.toLowerCase()) ||
-          (w.productName ?? '').toLowerCase().includes(search.toLowerCase()))
-      )
+      .filter((w) => {
+        const isExpired =
+          w.status === WarrantyStatus.EXPIRED ||
+          (w.status === WarrantyStatus.ACTIVE && w.expirationDate && w.expirationDate < now);
+        if (!isExpired) return false;
+        if (!search.trim()) return true;
+        const q = search.toLowerCase();
+        return (
+          w.storeName.toLowerCase().includes(q) ||
+          (w.productName ?? '').toLowerCase().includes(q)
+        );
+      })
       .sort((a, b) => {
         const aDate = (a.expirationDate ?? a.updatedAt ?? a.createdAt).getTime();
         const bDate = (b.expirationDate ?? b.updatedAt ?? b.createdAt).getTime();
@@ -300,7 +321,7 @@ export default function HistoryScreen() {
   const isEmpty =
     (showCredits ? redeemedCredits.length + expiredCredits.length : 0) === 0 &&
     (showWarranties ? closedWarranties.length + expiredWarranties.length : 0) === 0 &&
-    (showSubscriptions ? cancelledSubscriptions.length : 0) === 0;
+    (showSubscriptions ? cancelledSubscriptions.length + expiredSubscriptions.length : 0) === 0;
 
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
@@ -428,6 +449,23 @@ export default function HistoryScreen() {
                   <SubscriptionCard
                     subscription={item}
                     variant="cancelled"
+                    onPress={() => router.push({ pathname: '/subscription/[id]', params: { id: item.id } })}
+                  />
+                )}
+              />
+            </>
+          )}
+          {showSubscriptions && expiredSubscriptions.length > 0 && (
+            <>
+              <Text style={styles.sectionHeader}>{t('history.sectionSubscriptionsExpired').toUpperCase()}</Text>
+              <FlatList
+                data={expiredSubscriptions}
+                keyExtractor={(item) => item.id}
+                scrollEnabled={false}
+                renderItem={({ item }) => (
+                  <SubscriptionCard
+                    subscription={item}
+                    variant="expired"
                     onPress={() => router.push({ pathname: '/subscription/[id]', params: { id: item.id } })}
                   />
                 )}

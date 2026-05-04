@@ -47,6 +47,7 @@
     "sectionWarrantiesClosed": "Redeemed Warranties",
     "sectionWarrantiesExpired": "Expired Warranties",
     "sectionSubscriptionsCancelled": "Cancelled Subscriptions",
+    "sectionSubscriptionsExpired": "Expired Subscriptions",
     "dateRange": {
       "thisMonth": "This Month",
       "last3Months": "Last 3 Months",
@@ -742,6 +743,8 @@
     "renewsOnDate": "Next billing in {{days}} days — {{date}}",
     "cancelled": "Cancelled",
     "cancelledOn": "Cancelled on {{date}}",
+    "expired": "Expired",
+    "expiredOn": "Expired on {{date}}",
     "badgeTimeToday": "today",
     "badgeTimeOneDay": "tomorrow",
     "badgeTimeDays": "in {{days}} days",

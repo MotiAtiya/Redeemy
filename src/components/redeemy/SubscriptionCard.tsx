@@ -82,7 +82,7 @@ function makeStyles(colors: AppColors) {
 interface Props {
   subscription: Subscription;
   onPress: () => void;
-  variant?: 'active' | 'cancelled';
+  variant?: 'active' | 'cancelled' | 'expired';
 }
 
 export function SubscriptionCard({ subscription: sub, onPress, variant = 'active' }: Props) {
@@ -93,6 +93,8 @@ export function SubscriptionCard({ subscription: sub, onPress, variant = 'active
   const dateFormat = useSettingsStore((s) => s.dateFormat);
 
   const isCancelled = variant === 'cancelled';
+  const isExpired = variant === 'expired';
+  const isHistorical = isCancelled || isExpired;
   const needsRenewalConfirmation = useMemo(
     () => subscriptionNeedsRenewalConfirmation(sub),
     [sub],
@@ -103,6 +105,14 @@ export function SubscriptionCard({ subscription: sub, onPress, variant = 'active
         sub.cancelledAt instanceof Date
           ? sub.cancelledAt
           : new Date(sub.cancelledAt as unknown as string),
+        dateFormat
+      )
+    : null;
+  const expiredDate = isExpired && sub.expiredAt
+    ? formatDate(
+        sub.expiredAt instanceof Date
+          ? sub.expiredAt
+          : new Date(sub.expiredAt as unknown as string),
         dateFormat
       )
     : null;
@@ -151,6 +161,7 @@ export function SubscriptionCard({ subscription: sub, onPress, variant = 'active
   }, [reminderInfo, t]);
 
   const nextBillingLabel = useMemo(() => {
+    if (isHistorical) return null;
     if (sub.isFree) return null;
     const isTrialActive = (sub.isFreeTrial || sub.specialPeriodType === 'trial') && specialPeriodActive;
     if (isTrialActive) return null;
@@ -158,7 +169,7 @@ export function SubscriptionCard({ subscription: sub, onPress, variant = 'active
     if (days === 0) return t('subscriptionCard.renewsToday');
     if (days === 1) return t('subscriptionCard.renewsTomorrow');
     return t('subscriptionCard.renewsInDays', { days });
-  }, [sub, daysUntilNextBilling, specialPeriodActive, t, dateFormat]);
+  }, [sub, daysUntilNextBilling, specialPeriodActive, t, dateFormat, isHistorical]);
 
   const { amountLabel, periodLabel, amountStyle } = useMemo(() => {
     if (sub.isFree)
@@ -195,7 +206,7 @@ export function SubscriptionCard({ subscription: sub, onPress, variant = 'active
   }, [sub, t, currencySymbol, styles, specialPeriodActive]);
 
   return (
-    <BaseCard onPress={onPress} dimmed={isCancelled} accessibilityLabel={sub.serviceName}>
+    <BaseCard onPress={onPress} dimmed={isHistorical} accessibilityLabel={sub.serviceName}>
       {/* Amount block (start side) */}
       <View style={styles.amountBlock}>
         {(() => {
@@ -233,6 +244,14 @@ export function SubscriptionCard({ subscription: sub, onPress, variant = 'active
               {cancelledDate
                 ? t('subscriptionCard.cancelledOn', { date: cancelledDate })
                 : t('subscriptionCard.cancelled')}
+            </Text>
+          </View>
+        ) : isExpired ? (
+          <View style={styles.cancelledBadge}>
+            <Text style={styles.cancelledBadgeText}>
+              {expiredDate
+                ? t('subscriptionCard.expiredOn', { date: expiredDate })
+                : t('subscriptionCard.expired')}
             </Text>
           </View>
         ) : needsRenewalConfirmation ? (

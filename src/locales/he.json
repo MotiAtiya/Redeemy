@@ -47,6 +47,7 @@
     "sectionWarrantiesClosed": "אחריויות שמומשו",
     "sectionWarrantiesExpired": "אחריויות שפג תוקפן",
     "sectionSubscriptionsCancelled": "מנויים שבוטלו",
+    "sectionSubscriptionsExpired": "מנויים שפג תוקפם",
     "dateRange": {
       "thisMonth": "החודש",
       "last3Months": "3 חודשים אחרונים",
@@ -741,6 +742,8 @@
     "renewsOnDate": "החיוב הבא בעוד {{days}} ימים — {{date}}",
     "cancelled": "בוטל",
     "cancelledOn": "בוטל ב-{{date}}",
+    "expired": "פג תוקף",
+    "expiredOn": "פג תוקף ב-{{date}}",
     "badgeTimeToday": "היום",
     "badgeTimeOneDay": "מחר",
     "badgeTimeDays": "בעוד {{days}} ימים",
