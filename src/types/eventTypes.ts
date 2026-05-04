@@ -23,6 +23,7 @@ export type EventType =
   | 'subscription_expired'
   | 'warranty_closed'
   | 'warranty_expired'
+  | 'document_renewed'
   // Family
   | 'family_created'
   | 'family_joined'

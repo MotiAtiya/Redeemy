@@ -1232,6 +1232,18 @@
       "savedTitle": "Saved",
       "savedMessage": "Image saved to your library",
       "saveError": "Failed to save image. Please try again."
+    },
+    "renewalPrompt": {
+      "title": "This document has expired",
+      "body": "Did you renew it? Pick a new expiration date. If not — we'll remove the document from the app.",
+      "renew": "✓ I renewed",
+      "discard": "✗ No longer needed",
+      "pickDateTitle": "New expiration date",
+      "confirmDate": "Save",
+      "confirmDiscardTitle": "Remove document?",
+      "confirmDiscardMessage": "This will permanently delete the document from the app. You can add a new one anytime.",
+      "discardConfirm": "Remove",
+      "errorTitle": "Something went wrong"
     }
   }
 }

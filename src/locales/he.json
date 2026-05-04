@@ -1231,6 +1231,18 @@
       "savedTitle": "נשמר בהצלחה",
       "savedMessage": "התמונה נשמרה לגלריה",
       "saveError": "שמירת התמונה נכשלה. נסה שוב."
+    },
+    "renewalPrompt": {
+      "title": "המסמך פג תוקף",
+      "body": "חידשת אותו? בחר תאריך תפוגה חדש. אם לא — נסיר את המסמך מהאפליקציה.",
+      "renew": "✓ חידשתי",
+      "discard": "✗ לא רלוונטי",
+      "pickDateTitle": "תאריך תפוגה חדש",
+      "confirmDate": "אישור",
+      "confirmDiscardTitle": "להסיר את המסמך?",
+      "confirmDiscardMessage": "המסמך יוסר מהאפליקציה לצמיתות. תוכל להוסיף מסמך חדש בכל עת.",
+      "discardConfirm": "הסר",
+      "errorTitle": "אירעה שגיאה"
     }
   }
 }

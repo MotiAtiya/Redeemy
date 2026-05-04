@@ -19,6 +19,7 @@ import { HeroBadge } from '@/components/redeemy/HeroBadge';
 import { ImageCarousel } from '@/components/redeemy/ImageCarousel';
 import { DetailScreenHeader } from '@/components/redeemy/DetailScreenHeader';
 import { ActionModal } from '@/components/redeemy/ActionModal';
+import { DocumentRenewalPrompt, documentNeedsRenewal } from '@/components/redeemy/DocumentRenewalPrompt';
 import { FullscreenImageViewer } from '@/components/redeemy/FullscreenImageViewer';
 import { useDocumentsStore } from '@/stores/documentsStore';
 import { useAuthStore } from '@/stores/authStore';
@@ -188,6 +189,10 @@ export default function DocumentDetailScreen() {
             return <HeroBadge text={badge.text} color={badge.color} bgColor={badge.bgColor} />;
           })()}
         </HeroCard>
+
+        {documentNeedsRenewal(document) && (
+          <DocumentRenewalPrompt document={document} onResolved={() => router.back()} />
+        )}
 
         {/* Details */}
         <View style={styles.detailsCard}>

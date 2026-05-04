@@ -89,6 +89,23 @@ export async function updateDocument(
   }
 }
 
+/**
+ * User confirmed they renewed an expired document — push the new expiration
+ * date to Firestore. Emits `document_renewed` so the admin activity feed can
+ * distinguish a renewal from a generic edit. (Story 19.6)
+ */
+export async function confirmDocumentRenewal(
+  id: string,
+  newExpirationDate: Date,
+): Promise<void> {
+  const docRef = doc(db, DOCUMENTS_COLLECTION, id);
+  await updateDoc(
+    docRef,
+    buildUpdatePayload({ expirationDate: newExpirationDate }),
+  );
+  void logEvent('document_renewed', { itemCategory: 'document', itemId: id });
+}
+
 export async function deleteDocument(id: string): Promise<void> {
   await Promise.all([
     deleteDoc(doc(db, DOCUMENTS_COLLECTION, id)),
