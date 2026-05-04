@@ -2,26 +2,9 @@ import { collection, deleteField, query, serverTimestamp, where, type Query, typ
 import { db } from './firebase';
 import type { DocumentImage } from './imageUpload';
 
-// ---------------------------------------------------------------------------
-// Timestamp normalization
-// ---------------------------------------------------------------------------
-
-type FirestoreTimestampLike = { toDate: () => Date };
-
-/** Converts a Firestore Timestamp, Date, string, or number to a JS Date.
- *  Returns undefined if the value is null/undefined. */
-export function normalizeTimestamp(value: unknown): Date | undefined {
-  if (value == null) return undefined;
-  if (typeof (value as FirestoreTimestampLike).toDate === 'function') {
-    return (value as FirestoreTimestampLike).toDate();
-  }
-  return new Date(value as string | number | Date);
-}
-
-/** Same as normalizeTimestamp but falls back to `new Date()` instead of undefined. */
-export function normalizeTimestampOrNow(value: unknown): Date {
-  return normalizeTimestamp(value) ?? new Date();
-}
+// Re-exported for backward compat — the implementation lives in dateUtils so
+// jest tests can import them without dragging in the firebase ESM bundle.
+export { normalizeTimestamp, normalizeTimestampOrNow } from './dateUtils';
 
 // ---------------------------------------------------------------------------
 // Image normalization

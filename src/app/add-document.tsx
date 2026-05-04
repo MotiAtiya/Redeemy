@@ -34,6 +34,7 @@ import { formatDate } from '@/lib/formatDate';
 import { type DocumentType } from '@/types/documentTypes';
 import { DOCUMENT_TYPE_OPTIONS } from '@/constants/documentTypeIcons';
 import type { AppColors } from '@/constants/colors';
+import { normalizeTimestampOrNow } from "@/lib/dateUtils";
 
 // ---------------------------------------------------------------------------
 // Steps
@@ -259,9 +260,7 @@ export default function AddDocumentScreen() {
     setDocType(existingDocument.type);
     if (existingDocument.customTypeName) setCustomTypeName(existingDocument.customTypeName);
     setOwnerName(existingDocument.ownerName);
-    const d = existingDocument.expirationDate instanceof Date
-      ? existingDocument.expirationDate
-      : new Date(existingDocument.expirationDate as unknown as string);
+    const d = normalizeTimestampOrNow(existingDocument.expirationDate);
     setExpirationDate(d);
     if (existingDocument.notes) setNotes(existingDocument.notes);
     const existingImages = existingDocument.images ?? (existingDocument.imageUrl ? [{ url: existingDocument.imageUrl, thumbnailUrl: existingDocument.thumbnailUrl ?? existingDocument.imageUrl }] : []);

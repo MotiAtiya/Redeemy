@@ -37,6 +37,7 @@ import { useAppTheme } from '@/hooks/useAppTheme';
 import { WarrantyStatus, type Warranty } from '@/types/warrantyTypes';
 import { WARRANTY_PRODUCT_TYPES } from '@/data/warrantyProductTypes';
 import type { AppColors } from '@/constants/colors';
+import { normalizeTimestampOrNow } from "@/lib/dateUtils";
 
 function getProductDisplay(w: Warranty): { type: string; brand?: string; model?: string } {
   if (w.productType) {
@@ -217,9 +218,7 @@ export default function WarrantyDetailScreen() {
   }
 
   const expirationDate = warranty.expirationDate
-    ? (warranty.expirationDate instanceof Date
-        ? warranty.expirationDate
-        : new Date(warranty.expirationDate as unknown as string))
+    ? (normalizeTimestampOrNow(warranty.expirationDate))
     : null;
 
   return (

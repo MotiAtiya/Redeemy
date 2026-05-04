@@ -4,6 +4,7 @@ import { useSettingsStore } from '@/stores/settingsStore';
 import i18n from './i18n';
 import { getNextBillingDate } from './subscriptionUtils';
 import { cancelNotification, scheduleNotificationAt } from './notifications';
+import { normalizeTimestamp, normalizeTimestampOrNow } from './dateUtils';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -78,11 +79,7 @@ export async function scheduleSubscriptionNotifications(
   if (isPeriodicReview) {
     const months = sub.freeReviewReminderMonths ?? 6;
     // Anchor to registrationDate; advance by `months` intervals until it's in the future
-    const anchor = sub.registrationDate instanceof Date
-      ? sub.registrationDate
-      : sub.registrationDate
-      ? new Date(sub.registrationDate as unknown as string)
-      : new Date();
+    const anchor = normalizeTimestamp(sub.registrationDate) ?? new Date();
     const now = new Date();
     const reminderDate = new Date(anchor);
     reminderDate.setMonth(reminderDate.getMonth() + months);
@@ -102,9 +99,7 @@ export async function scheduleSubscriptionNotifications(
 
   // Special period end reminder (smart timing: min(floor(duration/2), 7) days before)
   if (sub.reminderSpecialPeriodEnabled && sub.trialEndsDate) {
-    const endDate = sub.trialEndsDate instanceof Date
-      ? sub.trialEndsDate
-      : new Date(sub.trialEndsDate as unknown as string);
+    const endDate = normalizeTimestampOrNow(sub.trialEndsDate);
 
     // For days-based short trials, use at most half the duration as lead time
     let daysBefore = 7;
@@ -133,9 +128,7 @@ export async function scheduleSubscriptionNotifications(
     sub.hasFixedPeriod &&
     sub.commitmentEndDate
   ) {
-    anchorDate = sub.commitmentEndDate instanceof Date
-      ? sub.commitmentEndDate
-      : new Date(sub.commitmentEndDate as unknown as string);
+    anchorDate = normalizeTimestampOrNow(sub.commitmentEndDate);
   } else {
     anchorDate = getNextBillingDate(sub as Subscription);
   }

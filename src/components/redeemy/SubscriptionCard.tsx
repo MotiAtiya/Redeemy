@@ -20,6 +20,7 @@ import {
   subscriptionNeedsRenewalConfirmation,
 } from '@/lib/subscriptionUtils';
 import type { AppColors } from '@/constants/colors';
+import { normalizeTimestampOrNow } from "@/lib/dateUtils";
 
 // ---------------------------------------------------------------------------
 // Styles
@@ -102,17 +103,13 @@ export function SubscriptionCard({ subscription: sub, onPress, variant = 'active
   const categoryMeta = SUBSCRIPTION_CATEGORIES.find((c) => c.id === sub.category);
   const cancelledDate = isCancelled && sub.cancelledAt
     ? formatDate(
-        sub.cancelledAt instanceof Date
-          ? sub.cancelledAt
-          : new Date(sub.cancelledAt as unknown as string),
+        normalizeTimestampOrNow(sub.cancelledAt),
         dateFormat
       )
     : null;
   const expiredDate = isExpired && sub.expiredAt
     ? formatDate(
-        sub.expiredAt instanceof Date
-          ? sub.expiredAt
-          : new Date(sub.expiredAt as unknown as string),
+        normalizeTimestampOrNow(sub.expiredAt),
         dateFormat
       )
     : null;
@@ -122,7 +119,7 @@ export function SubscriptionCard({ subscription: sub, onPress, variant = 'active
 
   const specialPeriodActive = useMemo(() => {
     if (!sub.trialEndsDate) return false;
-    const d = sub.trialEndsDate instanceof Date ? sub.trialEndsDate : new Date(sub.trialEndsDate as unknown as string);
+    const d = normalizeTimestampOrNow(sub.trialEndsDate);
     return d.getTime() > Date.now();
   }, [sub.trialEndsDate]);
 

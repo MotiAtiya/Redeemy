@@ -8,6 +8,7 @@ import { useAppTheme } from '@/hooks/useAppTheme';
 import { daysUntilNextOccurrence, nextOccurrenceDate } from '@/lib/hebrewDate';
 import { type Occasion, type OccasionType } from '@/types/occasionTypes';
 import type { AppColors } from '@/constants/colors';
+import { normalizeTimestampOrNow } from "@/lib/dateUtils";
 
 type IoniconsName = React.ComponentProps<typeof Ionicons>['name'];
 
@@ -88,9 +89,7 @@ export function OccasionCard({ occasion, onPress }: Props) {
   const styles = useMemo(() => makeStyles(colors), [colors]);
   const { t } = useTranslation();
 
-  const eventDate = occasion.eventDate instanceof Date
-    ? occasion.eventDate
-    : new Date(occasion.eventDate as unknown as string);
+  const eventDate = normalizeTimestampOrNow(occasion.eventDate);
 
   const days = useMemo(
     () => daysUntilNextOccurrence(eventDate, occasion.useHebrewDate, occasion.hebrewDay, occasion.hebrewMonth),

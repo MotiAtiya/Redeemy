@@ -1,4 +1,5 @@
 import { SubscriptionBillingCycle, SubscriptionStatus, type Subscription } from '@/types/subscriptionTypes';
+import { normalizeTimestamp, normalizeTimestampOrNow } from './dateUtils';
 
 /**
  * Computes the next billing date for a subscription.
@@ -54,14 +55,10 @@ export function daysUntilSubscriptionEnd(sub: Subscription): number {
   const endDate: Date | undefined = (() => {
     if (sub.isFreeTrial && sub.trialEndsDate) return sub.trialEndsDate;
     if (sub.billingCycle === SubscriptionBillingCycle.MONTHLY && sub.commitmentEndDate) {
-      return sub.commitmentEndDate instanceof Date
-        ? sub.commitmentEndDate
-        : new Date(sub.commitmentEndDate as unknown as string);
+      return normalizeTimestampOrNow(sub.commitmentEndDate);
     }
     if (sub.billingCycle === SubscriptionBillingCycle.ANNUAL && sub.nextBillingDate) {
-      return sub.nextBillingDate instanceof Date
-        ? sub.nextBillingDate
-        : new Date(sub.nextBillingDate as unknown as string);
+      return normalizeTimestampOrNow(sub.nextBillingDate);
     }
     return undefined;
   })();
@@ -94,9 +91,7 @@ export function getNextReminderInfo(sub: Subscription): ReminderInfo {
 
   // 1. In special period?
   if (sub.trialEndsDate) {
-    const trialEnd = sub.trialEndsDate instanceof Date
-      ? sub.trialEndsDate
-      : new Date(sub.trialEndsDate as unknown as string);
+    const trialEnd = normalizeTimestampOrNow(sub.trialEndsDate);
     if (trialEnd.getTime() > now) {
       const days = Math.max(0, Math.ceil((trialEnd.getTime() - now) / msPerDay));
       return { days, type: sub.specialPeriodType === 'discounted' ? 'discounted' : 'trial' };
@@ -106,11 +101,7 @@ export function getNextReminderInfo(sub: Subscription): ReminderInfo {
   // 2. Free or monthly no-fixed → periodic review reminder
   if (sub.isFree || sub.hasFixedPeriod === false) {
     const months = sub.freeReviewReminderMonths ?? 6;
-    const anchor = sub.registrationDate instanceof Date
-      ? sub.registrationDate
-      : sub.registrationDate
-        ? new Date(sub.registrationDate as unknown as string)
-        : new Date();
+    const anchor = normalizeTimestamp(sub.registrationDate) ?? new Date();
     const reminderDate = new Date(anchor);
     reminderDate.setMonth(reminderDate.getMonth() + months);
     while (reminderDate.getTime() <= now) {
@@ -123,9 +114,7 @@ export function getNextReminderInfo(sub: Subscription): ReminderInfo {
   // 3. Manual renewal → expires at commitmentEndDate (if set), else nextBillingDate
   if (sub.renewalType === 'manual') {
     const expiryDate = sub.commitmentEndDate
-      ? (sub.commitmentEndDate instanceof Date
-          ? sub.commitmentEndDate
-          : new Date(sub.commitmentEndDate as unknown as string))
+      ? (normalizeTimestampOrNow(sub.commitmentEndDate))
       : getNextBillingDate(sub);
     const days = Math.max(0, Math.ceil((expiryDate.getTime() - now) / msPerDay));
     return { days, type: 'expires' };
@@ -198,9 +187,7 @@ export function advanceBillingCycle(sub: Subscription): Partial<Subscription> | 
   const now = Date.now();
   if (sub.billingCycle === SubscriptionBillingCycle.ANNUAL) {
     if (!sub.nextBillingDate) return null;
-    const current = sub.nextBillingDate instanceof Date
-      ? sub.nextBillingDate
-      : new Date(sub.nextBillingDate as unknown as string);
+    const current = normalizeTimestampOrNow(sub.nextBillingDate);
     if (current.getTime() > now) return null;
     const next = new Date(current);
     next.setFullYear(next.getFullYear() + 1);
@@ -238,9 +225,7 @@ export function advanceBillingCycle(sub: Subscription): Partial<Subscription> | 
  */
 export function endFreeTrialIfDue(sub: Subscription): Partial<Subscription> | null {
   if (!sub.isFreeTrial || !sub.trialEndsDate || !sub.priceAfterTrialAgorot) return null;
-  const trialEnd = sub.trialEndsDate instanceof Date
-    ? sub.trialEndsDate
-    : new Date(sub.trialEndsDate as unknown as string);
+  const trialEnd = normalizeTimestampOrNow(sub.trialEndsDate);
   if (trialEnd.getTime() > Date.now()) return null;
   const nextBilling = new Date(trialEnd);
   nextBilling.setMonth(nextBilling.getMonth() + 1);
@@ -272,15 +257,11 @@ export function endFreeTrialIfDue(sub: Subscription): Partial<Subscription> | nu
 function getCurrentCommitmentEnd(sub: Subscription): Date | null {
   if (sub.billingCycle === SubscriptionBillingCycle.ANNUAL) {
     if (!sub.nextBillingDate) return null;
-    return sub.nextBillingDate instanceof Date
-      ? sub.nextBillingDate
-      : new Date(sub.nextBillingDate as unknown as string);
+    return normalizeTimestampOrNow(sub.nextBillingDate);
   }
   if (sub.billingCycle === SubscriptionBillingCycle.MONTHLY) {
     if (!sub.hasFixedPeriod || !sub.commitmentEndDate) return null;
-    return sub.commitmentEndDate instanceof Date
-      ? sub.commitmentEndDate
-      : new Date(sub.commitmentEndDate as unknown as string);
+    return normalizeTimestampOrNow(sub.commitmentEndDate);
   }
   return null;
 }
@@ -321,9 +302,7 @@ export function subscriptionNeedsRenewalConfirmation(sub: Subscription): boolean
 export function advanceRenewalCycle(sub: Subscription): Partial<Subscription> | null {
   if (sub.billingCycle === SubscriptionBillingCycle.ANNUAL) {
     if (!sub.nextBillingDate) return null;
-    const current = sub.nextBillingDate instanceof Date
-      ? sub.nextBillingDate
-      : new Date(sub.nextBillingDate as unknown as string);
+    const current = normalizeTimestampOrNow(sub.nextBillingDate);
     const next = new Date(current);
     next.setFullYear(next.getFullYear() + 1);
     return {
@@ -334,9 +313,7 @@ export function advanceRenewalCycle(sub: Subscription): Partial<Subscription> | 
   }
   if (sub.billingCycle === SubscriptionBillingCycle.MONTHLY) {
     if (!sub.hasFixedPeriod || !sub.commitmentMonths || !sub.commitmentEndDate) return null;
-    const current = sub.commitmentEndDate instanceof Date
-      ? sub.commitmentEndDate
-      : new Date(sub.commitmentEndDate as unknown as string);
+    const current = normalizeTimestampOrNow(sub.commitmentEndDate);
     const next = new Date(current);
     next.setMonth(next.getMonth() + sub.commitmentMonths);
     return {

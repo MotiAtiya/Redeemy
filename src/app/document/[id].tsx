@@ -34,6 +34,7 @@ import { useAppTheme } from '@/hooks/useAppTheme';
 import { type DocumentType } from '@/types/documentTypes';
 import { downloadImageToLibrary } from '@/lib/imageDownload';
 import type { AppColors } from '@/constants/colors';
+import { normalizeTimestampOrNow } from "@/lib/dateUtils";
 
 
 function makeStyles(colors: AppColors) {
@@ -83,9 +84,7 @@ export default function DocumentDetailScreen() {
     return <NotFoundScreen message={t('document.notFound')} />;
   }
 
-  const expirationDate = document.expirationDate instanceof Date
-    ? document.expirationDate
-    : new Date(document.expirationDate as unknown as string);
+  const expirationDate = normalizeTimestampOrNow(document.expirationDate);
 
   async function handleDelete() {
     if (useUIStore.getState().offlineMode) {

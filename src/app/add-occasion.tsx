@@ -33,6 +33,7 @@ import { useFormExitConfirmation } from '@/hooks/useFormExitConfirmation';
 import { formatDate } from '@/lib/formatDate';
 import { type Occasion, type OccasionType } from '@/types/occasionTypes';
 import type { AppColors } from '@/constants/colors';
+import { normalizeTimestampOrNow } from "@/lib/dateUtils";
 
 // ---------------------------------------------------------------------------
 // Steps
@@ -304,9 +305,7 @@ export default function AddOccasionScreen() {
     setName(existingOccasion.name);
     if (existingOccasion.nameNote) setNameNote(existingOccasion.nameNote);
     if (existingOccasion.customLabel) setCustomLabel(existingOccasion.customLabel);
-    const d = existingOccasion.eventDate instanceof Date
-      ? existingOccasion.eventDate
-      : new Date(existingOccasion.eventDate as unknown as string);
+    const d = normalizeTimestampOrNow(existingOccasion.eventDate);
     setEventDate(d);
     setAfterSunset(existingOccasion.afterSunset);
     setUseHebrewDate(existingOccasion.useHebrewDate);

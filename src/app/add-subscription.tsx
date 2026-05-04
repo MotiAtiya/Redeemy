@@ -46,6 +46,7 @@ import {
 import { SUBSCRIPTION_CATEGORIES } from '@/constants/subscriptionCategories';
 import { formatDate } from '@/lib/formatDate';
 import type { AppColors } from '@/constants/colors';
+import { normalizeTimestampOrNow } from "@/lib/dateUtils";
 
 // ---------------------------------------------------------------------------
 // Month wheel picker
@@ -687,7 +688,7 @@ export default function AddSubscriptionScreen() {
 
       // Restore registration date
       if (s.registrationDate) {
-        setRegistrationDate(s.registrationDate instanceof Date ? s.registrationDate : new Date(s.registrationDate as unknown as string));
+        setRegistrationDate(normalizeTimestampOrNow(s.registrationDate));
       } else if (s.billingCycle === SubscriptionBillingCycle.MONTHLY && s.billingDayOfMonth) {
         // Fallback: reconstruct approximate date from billing day
         const d = new Date();
@@ -695,7 +696,7 @@ export default function AddSubscriptionScreen() {
         setRegistrationDate(d);
       } else if (s.billingCycle === SubscriptionBillingCycle.ANNUAL && s.nextBillingDate) {
         // Fallback: go back one year from next billing date
-        const nb = s.nextBillingDate instanceof Date ? s.nextBillingDate : new Date(s.nextBillingDate as unknown as string);
+        const nb = normalizeTimestampOrNow(s.nextBillingDate);
         const d = new Date(nb);
         d.setFullYear(d.getFullYear() - 1);
         setRegistrationDate(d);

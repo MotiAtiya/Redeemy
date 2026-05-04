@@ -31,6 +31,7 @@ import { formatDate } from '@/lib/formatDate';
 import { useAppTheme } from '@/hooks/useAppTheme';
 import { type OccasionType } from '@/types/occasionTypes';
 import type { AppColors } from '@/constants/colors';
+import { normalizeTimestampOrNow } from "@/lib/dateUtils";
 
 type IoniconsName = React.ComponentProps<typeof Ionicons>['name'];
 
@@ -76,9 +77,7 @@ export default function OccasionDetailScreen() {
     return <NotFoundScreen message={t('occasion.notFound')} />;
   }
 
-  const eventDate = occasion.eventDate instanceof Date
-    ? occasion.eventDate
-    : new Date(occasion.eventDate as unknown as string);
+  const eventDate = normalizeTimestampOrNow(occasion.eventDate);
 
   const days = daysUntilNextOccurrence(eventDate, occasion.useHebrewDate, occasion.hebrewDay, occasion.hebrewMonth);
   const nextDate = nextOccurrenceDate(eventDate, occasion.useHebrewDate, occasion.hebrewDay, occasion.hebrewMonth);

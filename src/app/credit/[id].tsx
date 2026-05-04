@@ -38,6 +38,7 @@ import { useAppTheme } from '@/hooks/useAppTheme';
 import { CreditStatus } from '@/types/creditTypes';
 import { CATEGORIES } from '@/constants/categories';
 import type { AppColors } from '@/constants/colors';
+import { normalizeTimestampOrNow } from "@/lib/dateUtils";
 
 function makeStyles(colors: AppColors) {
   return StyleSheet.create({
@@ -217,9 +218,7 @@ export default function CreditDetailScreen() {
   }
 
   const expirationDate = credit.expirationDate
-    ? (credit.expirationDate instanceof Date
-        ? credit.expirationDate
-        : new Date(credit.expirationDate as unknown as string))
+    ? (normalizeTimestampOrNow(credit.expirationDate))
     : null;
 
   return (

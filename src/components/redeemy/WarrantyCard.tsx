@@ -13,6 +13,7 @@ import { type Warranty } from '@/types/warrantyTypes';
 import { WARRANTY_PRODUCT_TYPES } from '@/data/warrantyProductTypes';
 import { useAppTheme } from '@/hooks/useAppTheme';
 import type { AppColors } from '@/constants/colors';
+import { normalizeTimestampOrNow } from "@/lib/dateUtils";
 
 interface Props {
   warranty: Warranty;
@@ -81,9 +82,7 @@ export function WarrantyCard({ warranty, onPress, variant = 'active' }: Props) {
   })();
 
   const expirationDate = warranty.expirationDate
-    ? (warranty.expirationDate instanceof Date
-        ? warranty.expirationDate
-        : new Date(warranty.expirationDate as unknown as string))
+    ? (normalizeTimestampOrNow(warranty.expirationDate))
     : undefined;
 
   return (

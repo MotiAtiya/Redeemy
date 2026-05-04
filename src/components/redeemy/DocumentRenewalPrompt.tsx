@@ -19,6 +19,7 @@ import { useAppTheme } from '@/hooks/useAppTheme';
 import { formatDate } from '@/lib/formatDate';
 import { useSettingsStore } from '@/stores/settingsStore';
 import type { Document } from '@/types/documentTypes';
+import { normalizeTimestampOrNow } from "@/lib/dateUtils";
 
 interface Props {
   document: Document;
@@ -31,9 +32,7 @@ interface Props {
  * Timestamp during initial load).
  */
 function getExpirationDate(doc: Document): Date {
-  return doc.expirationDate instanceof Date
-    ? doc.expirationDate
-    : new Date(doc.expirationDate as unknown as string);
+  return normalizeTimestampOrNow(doc.expirationDate);
 }
 
 /** True when this document's expirationDate is in the past. */

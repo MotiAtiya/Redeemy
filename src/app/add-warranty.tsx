@@ -40,6 +40,7 @@ import { WARRANTY_BRANDS } from '@/data/warrantyBrands';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { formatDate } from '@/lib/formatDate';
 import type { AppColors } from '@/constants/colors';
+import { normalizeTimestampOrNow } from "@/lib/dateUtils";
 
 // ---------------------------------------------------------------------------
 // Step types
@@ -252,9 +253,7 @@ export default function AddWarrantyScreen() {
     setModel(existingWarranty.model ?? '');
     if (existingWarranty.expirationDate) {
       const d =
-        existingWarranty.expirationDate instanceof Date
-          ? existingWarranty.expirationDate
-          : new Date(existingWarranty.expirationDate as unknown as string);
+        normalizeTimestampOrNow(existingWarranty.expirationDate);
       setExpirationDate(d);
       setNoExpiry(false);
     } else {

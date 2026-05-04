@@ -42,6 +42,7 @@ import { getCategoryForStore } from '@/data/israeliStores';
 import { useSettingsStore, CURRENCY_SYMBOLS, type CurrencyCode } from '@/stores/settingsStore';
 import { formatDate } from '@/lib/formatDate';
 import type { AppColors } from '@/constants/colors';
+import { normalizeTimestampOrNow } from "@/lib/dateUtils";
 
 // ---------------------------------------------------------------------------
 // Step types
@@ -310,9 +311,7 @@ export default function AddCreditScreen() {
     setCategory(existingCredit.category);
     if (existingCredit.expirationDate) {
       const d =
-        existingCredit.expirationDate instanceof Date
-          ? existingCredit.expirationDate
-          : new Date(existingCredit.expirationDate as unknown as string);
+        normalizeTimestampOrNow(existingCredit.expirationDate);
       setExpirationDate(d);
       setNoExpiry(false);
     } else {

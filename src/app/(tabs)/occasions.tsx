@@ -22,6 +22,7 @@ import { daysUntilNextOccurrence } from '@/lib/hebrewDate';
 import { useAppTheme } from '@/hooks/useAppTheme';
 import { type OccasionType } from '@/types/occasionTypes';
 import type { AppColors } from '@/constants/colors';
+import { normalizeTimestampOrNow } from "@/lib/dateUtils";
 
 type SortKey = 'daysUntil' | 'name' | 'year';
 
@@ -148,8 +149,8 @@ export default function OccasionsScreen() {
     }
 
     return [...list].sort((a, b) => {
-      const dateA = a.eventDate instanceof Date ? a.eventDate : new Date(a.eventDate as unknown as string);
-      const dateB = b.eventDate instanceof Date ? b.eventDate : new Date(b.eventDate as unknown as string);
+      const dateA = normalizeTimestampOrNow(a.eventDate);
+      const dateB = normalizeTimestampOrNow(b.eventDate);
 
       if (sortKey === 'daysUntil') {
         return (

@@ -10,6 +10,7 @@ import { useAppTheme } from '@/hooks/useAppTheme';
 import { type Document } from '@/types/documentTypes';
 import { DOCUMENT_TYPE_ICONS } from '@/constants/documentTypeIcons';
 import type { AppColors } from '@/constants/colors';
+import { normalizeTimestampOrNow } from "@/lib/dateUtils";
 
 function makeStyles(colors: AppColors) {
   return StyleSheet.create({
@@ -46,9 +47,7 @@ export function DocumentCard({ document, onPress }: Props) {
   const styles = useMemo(() => makeStyles(colors), [colors]);
   const { t } = useTranslation();
 
-  const expirationDate = document.expirationDate instanceof Date
-    ? document.expirationDate
-    : new Date(document.expirationDate as unknown as string);
+  const expirationDate = normalizeTimestampOrNow(document.expirationDate);
 
   const typeLabel = t(`documents.types.${document.type}`);
 

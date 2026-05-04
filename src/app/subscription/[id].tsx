@@ -41,6 +41,7 @@ import {
   subscriptionNeedsRenewalConfirmation,
 } from '@/lib/subscriptionUtils';
 import type { AppColors } from '@/constants/colors';
+import { normalizeTimestampOrNow } from "@/lib/dateUtils";
 
 // ---------------------------------------------------------------------------
 // Styles
@@ -227,16 +228,16 @@ export default function SubscriptionDetailScreen() {
   const symbol = CURRENCY_SYMBOLS[sub?.currency ?? 'ILS'];
 
   const trialEndsDate = sub?.trialEndsDate
-    ? (sub.trialEndsDate instanceof Date ? sub.trialEndsDate : new Date(sub.trialEndsDate as unknown as string))
+    ? (normalizeTimestampOrNow(sub.trialEndsDate))
     : null;
   const specialPeriodActive = trialEndsDate ? trialEndsDate > new Date() : false;
 
   const registrationDate = sub?.registrationDate
-    ? (sub.registrationDate instanceof Date ? sub.registrationDate : new Date(sub.registrationDate as unknown as string))
+    ? (normalizeTimestampOrNow(sub.registrationDate))
     : null;
 
   const commitmentEndDate = sub?.commitmentEndDate
-    ? (sub.commitmentEndDate instanceof Date ? sub.commitmentEndDate : new Date(sub.commitmentEndDate as unknown as string))
+    ? (normalizeTimestampOrNow(sub.commitmentEndDate))
     : null;
 
   const familyCreatorName = sub?.familyId && sub.createdBy !== currentUid ? (sub.createdByName ?? null) : null;
@@ -435,7 +436,7 @@ export default function SubscriptionDetailScreen() {
         </View>
         <Text style={styles.addedFooterText}>
           {t('subscription.detail.added')}: {formatDate(
-            sub.createdAt instanceof Date ? sub.createdAt : new Date(sub.createdAt as unknown as string),
+            normalizeTimestampOrNow(sub.createdAt),
             dateFormat
           )}
         </Text>
@@ -450,9 +451,7 @@ export default function SubscriptionDetailScreen() {
               {sub.cancelledAt
                 ? t('subscription.cancelledBanner', {
                     date: formatDate(
-                      sub.cancelledAt instanceof Date
-                        ? sub.cancelledAt
-                        : new Date(sub.cancelledAt as unknown as string),
+                      normalizeTimestampOrNow(sub.cancelledAt),
                       dateFormat
                     ),
                   })

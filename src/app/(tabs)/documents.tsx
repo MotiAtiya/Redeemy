@@ -21,6 +21,7 @@ import { subscribeToDocuments } from '@/lib/firestoreDocuments';
 import { useAppTheme } from '@/hooks/useAppTheme';
 import { type DocumentType } from '@/types/documentTypes';
 import type { AppColors } from '@/constants/colors';
+import { normalizeTimestampOrNow } from "@/lib/dateUtils";
 
 type SortKey = 'expiration' | 'name' | 'type';
 
@@ -146,8 +147,8 @@ export default function DocumentsScreen() {
     }
 
     return [...list].sort((a, b) => {
-      const dateA = a.expirationDate instanceof Date ? a.expirationDate : new Date(a.expirationDate as unknown as string);
-      const dateB = b.expirationDate instanceof Date ? b.expirationDate : new Date(b.expirationDate as unknown as string);
+      const dateA = normalizeTimestampOrNow(a.expirationDate);
+      const dateB = normalizeTimestampOrNow(b.expirationDate);
 
       if (sortKey === 'expiration') {
         return dateA.getTime() - dateB.getTime();
