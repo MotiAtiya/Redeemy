@@ -468,7 +468,7 @@ export default function MoreScreen() {
                 <Text style={styles.aboutLabel}>{t('more.about.contact')}</Text>
                 <Text style={styles.aboutSubtitle}>a.moti96@gmail.com</Text>
               </View>
-              <Ionicons name={isRTL ? 'chevron-back' : 'chevron-forward'} size={16} color={colors.textTertiary} />
+              <Ionicons name="open-outline" size={16} color={colors.textTertiary} />
             </TouchableOpacity>
             <View style={styles.separator} />
             <TouchableOpacity
@@ -481,7 +481,7 @@ export default function MoreScreen() {
                 <Text style={styles.aboutLabel}>{t('more.about.rateUs')}</Text>
                 <Text style={styles.aboutSubtitle}>{t('more.about.rateUsSubtitle')}</Text>
               </View>
-              <Ionicons name={isRTL ? 'chevron-back' : 'chevron-forward'} size={16} color={colors.textTertiary} />
+              <Ionicons name="open-outline" size={16} color={colors.textTertiary} />
             </TouchableOpacity>
             <View style={styles.separator} />
             <TouchableOpacity
@@ -494,7 +494,7 @@ export default function MoreScreen() {
                 <Text style={styles.aboutLabel}>{t('more.about.shareApp')}</Text>
                 <Text style={styles.aboutSubtitle}>{t('more.about.shareAppSubtitle')}</Text>
               </View>
-              <Ionicons name={isRTL ? 'chevron-back' : 'chevron-forward'} size={16} color={colors.textTertiary} />
+              <Ionicons name="open-outline" size={16} color={colors.textTertiary} />
             </TouchableOpacity>
           </View>
         </View>
