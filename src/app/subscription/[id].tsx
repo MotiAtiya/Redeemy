@@ -30,9 +30,15 @@ import { ActionModal } from '@/components/redeemy/ActionModal';
 import { HeroCard } from '@/components/redeemy/HeroCard';
 import { HeroBadge } from '@/components/redeemy/HeroBadge';
 import { DetailScreenHeader } from '@/components/redeemy/DetailScreenHeader';
+import { SubscriptionRenewalPrompt } from '@/components/redeemy/SubscriptionRenewalPrompt';
 import { SubscriptionBillingCycle, SubscriptionStatus } from '@/types/subscriptionTypes';
 import { SUBSCRIPTION_CATEGORIES } from '@/constants/subscriptionCategories';
-import { getNextBillingDate, daysUntilBilling, normalizeToMonthlyAgorot } from '@/lib/subscriptionUtils';
+import {
+  getNextBillingDate,
+  daysUntilBilling,
+  normalizeToMonthlyAgorot,
+  subscriptionNeedsRenewalConfirmation,
+} from '@/lib/subscriptionUtils';
 import type { AppColors } from '@/constants/colors';
 
 // ---------------------------------------------------------------------------
@@ -324,6 +330,14 @@ export default function SubscriptionDetailScreen() {
             <HeroBadge text={heroBadgeProps.text} color={heroBadgeProps.color} bgColor={heroBadgeProps.bgColor} />
           )}
         </HeroCard>
+
+        {/* Manual-renewal prompt — only when annual + manual + active + nextBillingDate < today */}
+        {subscriptionNeedsRenewalConfirmation(sub) && (
+          <SubscriptionRenewalPrompt
+            subscription={sub}
+            onResolved={() => router.back()}
+          />
+        )}
 
         {/* Details card */}
         <View style={styles.detailsCard}>

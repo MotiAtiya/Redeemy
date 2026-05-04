@@ -256,3 +256,23 @@ export function endFreeTrialIfDue(sub: Subscription): Partial<Subscription> | nu
   }
   return patch;
 }
+
+/**
+ * True iff this subscription is annual + manual-renewal + active + already past
+ * its `nextBillingDate`. The user must explicitly tell us "I renewed" before
+ * we advance the billing cycle (otherwise we'd silently push the date forward
+ * even when the user actually let it lapse).
+ *
+ * V1 covers ANNUAL only. Monthly manual-renewal is left as-is (the existing
+ * listener handles it well enough for now); Story 19.7 if/when needed.
+ */
+export function subscriptionNeedsRenewalConfirmation(sub: Subscription): boolean {
+  if (sub.renewalType !== 'manual') return false;
+  if (sub.status !== SubscriptionStatus.ACTIVE) return false;
+  if (sub.billingCycle !== SubscriptionBillingCycle.ANNUAL) return false;
+  if (!sub.nextBillingDate) return false;
+  const next = sub.nextBillingDate instanceof Date
+    ? sub.nextBillingDate
+    : new Date(sub.nextBillingDate as unknown as string);
+  return next.getTime() <= Date.now();
+}

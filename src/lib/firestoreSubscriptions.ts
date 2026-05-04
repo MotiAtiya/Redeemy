@@ -123,6 +123,33 @@ export async function deleteSubscription(subscriptionId: string): Promise<void> 
 }
 
 /**
+ * User confirmed a manual-renewal subscription was renewed. Advances the
+ * billing cycle just like the auto-tick would, but emits a semantic
+ * `subscription_renewed` event (instead of generic item_updated). Call this
+ * from the renewal-confirmation UI (Story 19.5).
+ */
+export async function confirmSubscriptionRenewal(
+  subscriptionId: string,
+  patch: Partial<Subscription>,
+): Promise<void> {
+  const docRef = doc(db, SUBSCRIPTIONS_COLLECTION, subscriptionId);
+  await updateDoc(docRef, buildUpdatePayload(patch as Record<string, unknown>));
+  void logEvent('subscription_renewed', { itemCategory: 'subscription', itemId: subscriptionId });
+}
+
+/**
+ * User explicitly said they did NOT renew a manual-renewal subscription.
+ * Marks it as expired (separate semantic from CANCELLED — the user didn't
+ * actively cancel, the period just lapsed) and emits `subscription_expired`.
+ */
+export async function declineSubscriptionRenewal(subscriptionId: string): Promise<void> {
+  const docRef = doc(db, SUBSCRIPTIONS_COLLECTION, subscriptionId);
+  const patch = buildUpdatePayload({ status: 'expired', expiredAt: new Date() });
+  await updateDoc(docRef, patch);
+  void logEvent('subscription_expired', { itemCategory: 'subscription', itemId: subscriptionId });
+}
+
+/**
  * Deletes all subscriptions belonging to a given user.
  */
 export async function deleteAllUserSubscriptions(userId: string): Promise<void> {

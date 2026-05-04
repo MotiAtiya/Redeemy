@@ -753,7 +753,8 @@
     "badgeDiscountEnds": "Discount ends {{time}}",
     "badgeReview": "Review reminder {{time}}",
     "badgeRenews": "Renews {{time}}",
-    "badgeExpires": "Expires {{time}}"
+    "badgeExpires": "Expires {{time}}",
+    "needsRenewal": "Needs renewal"
   },
   "subscription": {
     "notFound": "Subscription not found",
@@ -811,7 +812,17 @@
       "button": "Delete",
       "error": "Could not delete. Check your connection and try again."
     },
-    "cancelledBanner": "Cancelled on {{date}}"
+    "cancelledBanner": "Cancelled on {{date}}",
+    "renewalPrompt": {
+      "title": "Billing date has passed",
+      "body": "Did you renew this subscription? If yes — we'll push the next billing forward. If not — we'll move it to history.",
+      "confirm": "✓ I renewed",
+      "decline": "✗ I didn't renew",
+      "confirmDeclineTitle": "Move to history?",
+      "confirmDeclineMessage": "The subscription will be marked expired and moved to history. You can restore it manually later if needed.",
+      "declineConfirm": "Yes, move to history",
+      "errorTitle": "Action failed"
+    }
   },
   "onboarding": {
     "skip": "Skip",

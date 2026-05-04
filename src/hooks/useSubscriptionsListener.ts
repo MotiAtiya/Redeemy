@@ -2,7 +2,11 @@ import { useEffect } from 'react';
 import { subscribeToSubscriptions, updateSubscription } from '@/lib/firestoreSubscriptions';
 import { useSubscriptionsStore } from '@/stores/subscriptionsStore';
 import { SubscriptionStatus, type Subscription } from '@/types/subscriptionTypes';
-import { advanceBillingCycle, endFreeTrialIfDue } from '@/lib/subscriptionUtils';
+import {
+  advanceBillingCycle,
+  endFreeTrialIfDue,
+  subscriptionNeedsRenewalConfirmation,
+} from '@/lib/subscriptionUtils';
 import {
   scheduleSubscriptionNotifications,
   cancelSubscriptionNotifications,
@@ -15,6 +19,11 @@ const processedThisSession = new Set<string>();
 async function maybeAdvance(sub: Subscription): Promise<void> {
   if (sub.status !== SubscriptionStatus.ACTIVE) return;
   if (processedThisSession.has(sub.id)) return;
+
+  // Manual-renewal subscriptions whose billing date has passed must NOT be
+  // auto-advanced — the user has to explicitly confirm "I renewed". The
+  // SubscriptionRenewalPrompt component drives that flow (Story 19.5).
+  if (subscriptionNeedsRenewalConfirmation(sub)) return;
 
   const trialPatch = endFreeTrialIfDue(sub);
   const cyclePatch = trialPatch ? null : advanceBillingCycle(sub);

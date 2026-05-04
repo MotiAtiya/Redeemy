@@ -13,6 +13,7 @@ export enum SubscriptionBillingCycle {
 export enum SubscriptionStatus {
   ACTIVE    = 'active',
   CANCELLED = 'cancelled',
+  EXPIRED   = 'expired', // manual-renewal subscription user declined to renew (Story 19.5)
 }
 
 export interface Subscription {
@@ -64,6 +65,7 @@ export interface Subscription {
   createdByName?: string;
   // Lifecycle
   cancelledAt?: Date;
+  expiredAt?: Date; // when manual-renewal user declined to renew (Story 19.5)
   createdAt: Date;
   updatedAt: Date;
 }

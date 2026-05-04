@@ -17,6 +17,7 @@ import {
   daysUntilBilling,
   normalizeToMonthlyAgorot,
   getNextReminderInfo,
+  subscriptionNeedsRenewalConfirmation,
 } from '@/lib/subscriptionUtils';
 import type { AppColors } from '@/constants/colors';
 
@@ -92,6 +93,10 @@ export function SubscriptionCard({ subscription: sub, onPress, variant = 'active
   const dateFormat = useSettingsStore((s) => s.dateFormat);
 
   const isCancelled = variant === 'cancelled';
+  const needsRenewalConfirmation = useMemo(
+    () => subscriptionNeedsRenewalConfirmation(sub),
+    [sub],
+  );
   const categoryMeta = SUBSCRIPTION_CATEGORIES.find((c) => c.id === sub.category);
   const cancelledDate = isCancelled && sub.cancelledAt
     ? formatDate(
@@ -228,6 +233,17 @@ export function SubscriptionCard({ subscription: sub, onPress, variant = 'active
               {cancelledDate
                 ? t('subscriptionCard.cancelledOn', { date: cancelledDate })
                 : t('subscriptionCard.cancelled')}
+            </Text>
+          </View>
+        ) : needsRenewalConfirmation ? (
+          <View
+            style={[
+              styles.urgencyBadge,
+              { backgroundColor: colors.urgencyAmberSurface, borderColor: colors.urgencyAmber },
+            ]}
+          >
+            <Text style={[styles.urgencyBadgeText, { color: colors.urgencyAmber }]}>
+              {t('subscriptionCard.needsRenewal')}
             </Text>
           </View>
         ) : (

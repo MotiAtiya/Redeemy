@@ -752,7 +752,8 @@
     "badgeDiscountEnds": "מחיר מוזל מסתיים {{time}}",
     "badgeReview": "בדיקה {{time}}",
     "badgeRenews": "מתחדש {{time}}",
-    "badgeExpires": "פג {{time}}"
+    "badgeExpires": "פג {{time}}",
+    "needsRenewal": "צריך חידוש"
   },
   "subscription": {
     "notFound": "המנוי לא נמצא",
@@ -810,7 +811,17 @@
       "button": "מחק",
       "error": "לא ניתן למחוק. בדוק את החיבור ונסה שנית."
     },
-    "cancelledBanner": "בוטל ב-{{date}}"
+    "cancelledBanner": "בוטל ב-{{date}}",
+    "renewalPrompt": {
+      "title": "תאריך החיוב עבר",
+      "body": "האם חידשת את המנוי? אם חידשת — נדחה את החיוב הבא. אם לא — נעביר את המנוי להיסטוריה.",
+      "confirm": "✓ חידשתי",
+      "decline": "✗ לא חידשתי",
+      "confirmDeclineTitle": "האם להעביר את המנוי להיסטוריה?",
+      "confirmDeclineMessage": "המנוי יסומן כפג תוקף ויעבור להיסטוריה. אפשר לשחזר ידנית בהמשך אם תרצה.",
+      "declineConfirm": "כן, העבר להיסטוריה",
+      "errorTitle": "פעולה נכשלה"
+    }
   },
   "onboarding": {
     "skip": "דילוג",

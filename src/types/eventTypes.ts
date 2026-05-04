@@ -19,6 +19,8 @@ export type EventType =
   | 'credit_unredeemed'
   | 'credit_expired'
   | 'subscription_cancelled'
+  | 'subscription_renewed'
+  | 'subscription_expired'
   | 'warranty_closed'
   | 'warranty_expired'
   // Family
