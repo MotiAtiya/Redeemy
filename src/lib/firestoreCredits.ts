@@ -15,7 +15,7 @@ import {
   type Unsubscribe,
 } from 'firebase/firestore';
 import { db } from './firebase';
-import { normalizeTimestamp, normalizeImages, stripUndefined, buildUpdatePayload } from './firestoreUtils';
+import { normalizeTimestamp, normalizeImages, stripUndefined, buildUpdatePayload, ownerQuery } from './firestoreUtils';
 import { logEvent } from './eventLog';
 import { autoExpireOverdue } from './autoExpire';
 import { CreditStatus, type Credit } from '@/types/creditTypes';
@@ -35,12 +35,8 @@ const CREDITS_COLLECTION = 'credits';
  * Returns an unsubscribe function — call on screen unmount.
  */
 export function subscribeToCredits(userId: string, familyId?: string | null): Unsubscribe {
-  const q = familyId
-    ? query(collection(db, CREDITS_COLLECTION), where('familyId', '==', familyId))
-    : query(collection(db, CREDITS_COLLECTION), where('userId', '==', userId));
-
   return onSnapshot(
-    q,
+    ownerQuery(CREDITS_COLLECTION, userId, familyId),
     (snapshot) => {
       const credits: Credit[] = snapshot.docs.map((d) => {
         const data = d.data();

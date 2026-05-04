@@ -15,7 +15,7 @@ import {
 } from 'firebase/firestore';
 import { db } from './firebase';
 import { deleteEntityImages } from './imageUpload';
-import { normalizeTimestamp, normalizeImages, stripUndefined, buildUpdatePayload } from './firestoreUtils';
+import { normalizeTimestamp, normalizeImages, stripUndefined, buildUpdatePayload, ownerQuery } from './firestoreUtils';
 import { logEvent } from './eventLog';
 import { type Document } from '@/types/documentTypes';
 import { useDocumentsStore } from '@/stores/documentsStore';
@@ -27,12 +27,8 @@ const DOCUMENTS_COLLECTION = 'documents';
 // ---------------------------------------------------------------------------
 
 export function subscribeToDocuments(userId: string, familyId?: string | null): Unsubscribe {
-  const q = familyId
-    ? query(collection(db, DOCUMENTS_COLLECTION), where('familyId', '==', familyId))
-    : query(collection(db, DOCUMENTS_COLLECTION), where('userId', '==', userId));
-
   return onSnapshot(
-    q,
+    ownerQuery(DOCUMENTS_COLLECTION, userId, familyId),
     (snapshot) => {
       const documents: Document[] = snapshot.docs.map((d) => {
         const data = d.data();

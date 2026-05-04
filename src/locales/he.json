@@ -461,12 +461,6 @@
       "delete": "מחק",
       "restore": "החזר לפעיל"
     },
-    "image": {
-      "savedTitle": "נשמר",
-      "savedMessage": "התמונה נשמרה לגלריה שלך.",
-      "saveError": "לא ניתן לשמור את התמונה. נסה שנית.",
-      "permissionDenied": "אפשר ל-Redeemy גישה לגלריה בהגדרות."
-    },
     "restore": {
       "error": "לא ניתן לשחזר את הזיכוי. נסה שנית."
     },
@@ -566,6 +560,12 @@
       "message": "הנתונים שהזנת לא יישמרו",
       "confirm": "יציאה"
     }
+  },
+  "image": {
+    "savedTitle": "נשמר",
+    "savedMessage": "התמונה נשמרה לגלריה שלך.",
+    "saveError": "לא ניתן לשמור את התמונה. נסה שנית.",
+    "permissionDenied": "אפשר ל-Redeemy גישה לגלריה בהגדרות."
   },
   "toasts": {
     "created": {
@@ -1247,12 +1247,6 @@
     "action": {
       "edit": "עריכה",
       "delete": "מחיקה"
-    },
-    "image": {
-      "permissionDenied": "נדרשת הרשאה לגישה לגלריה",
-      "savedTitle": "נשמר בהצלחה",
-      "savedMessage": "התמונה נשמרה לגלריה",
-      "saveError": "שמירת התמונה נכשלה. נסה שוב."
     },
     "renewalPrompt": {
       "title": "המסמך פג תוקף",

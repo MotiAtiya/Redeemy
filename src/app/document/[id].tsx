@@ -18,6 +18,7 @@ import { HeroCard } from '@/components/redeemy/HeroCard';
 import { HeroBadge } from '@/components/redeemy/HeroBadge';
 import { ImageCarousel } from '@/components/redeemy/ImageCarousel';
 import { DetailScreenHeader } from '@/components/redeemy/DetailScreenHeader';
+import { NotFoundScreen } from '@/components/redeemy/NotFoundScreen';
 import { ActionModal } from '@/components/redeemy/ActionModal';
 import { DocumentRenewalPrompt, documentNeedsRenewal } from '@/components/redeemy/DocumentRenewalPrompt';
 import { FullscreenImageViewer } from '@/components/redeemy/FullscreenImageViewer';
@@ -31,8 +32,7 @@ import { deleteDocument } from '@/lib/firestoreDocuments';
 import { formatDate } from '@/lib/formatDate';
 import { useAppTheme } from '@/hooks/useAppTheme';
 import { type DocumentType } from '@/types/documentTypes';
-import * as MediaLibrary from 'expo-media-library';
-import * as FileSystem from 'expo-file-system/legacy';
+import { downloadImageToLibrary } from '@/lib/imageDownload';
 import type { AppColors } from '@/constants/colors';
 
 
@@ -51,9 +51,6 @@ function makeStyles(colors: AppColors) {
       overflow: 'hidden',
       backgroundColor: colors.surface,
     },
-    backButton: { padding: 16 },
-    notFound: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-    notFoundText: { fontSize: 16, color: colors.textTertiary },
   });
 }
 
@@ -83,16 +80,7 @@ export default function DocumentDetailScreen() {
   const images = document?.images ?? [];
 
   if (!document) {
-    return (
-      <SafeAreaView style={styles.safe}>
-        <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
-          <Ionicons name={isRTL ? 'arrow-forward' : 'arrow-back'} size={24} color={colors.textPrimary} />
-        </TouchableOpacity>
-        <View style={styles.notFound}>
-          <Text style={styles.notFoundText}>{t('document.notFound')}</Text>
-        </View>
-      </SafeAreaView>
-    );
+    return <NotFoundScreen message={t('document.notFound')} />;
   }
 
   const expirationDate = document.expirationDate instanceof Date
@@ -135,23 +123,17 @@ export default function DocumentDetailScreen() {
     const imageUrl = images[fullscreenIndex]?.url;
     if (!imageUrl) return;
     setDownloading(true);
-    try {
-      const { status } = await MediaLibrary.requestPermissionsAsync();
-      if (status !== 'granted') {
-        Alert.alert(t('common.error'), t('document.image.permissionDenied'));
-        return;
-      }
-      const filename = `redeemy-doc-${Date.now()}.jpg`;
-      const localUri = FileSystem.cacheDirectory + filename;
-      const { uri } = await FileSystem.downloadAsync(imageUrl, localUri);
-      await MediaLibrary.saveToLibraryAsync(uri);
-      Alert.alert(t('document.image.savedTitle'), t('document.image.savedMessage'));
-    } catch (e) {
-      console.error('Download error:', e);
-      Alert.alert(t('common.error'), t('document.image.saveError'));
-    } finally {
-      setDownloading(false);
-    }
+    await downloadImageToLibrary({
+      url: imageUrl,
+      filenamePrefix: 'redeemy-doc',
+      onPermissionDenied: () => Alert.alert(t('common.error'), t('image.permissionDenied')),
+      onSuccess: () => Alert.alert(t('image.savedTitle'), t('image.savedMessage')),
+      onError: (e) => {
+        console.error('Download error:', e);
+        Alert.alert(t('common.error'), t('image.saveError'));
+      },
+    });
+    setDownloading(false);
   }
 
   function handleEdit() {

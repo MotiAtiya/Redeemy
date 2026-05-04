@@ -15,7 +15,7 @@ import {
   type DocumentSnapshot,
 } from 'firebase/firestore';
 import { db } from './firebase';
-import { normalizeTimestamp, stripUndefined, buildUpdatePayload } from './firestoreUtils';
+import { normalizeTimestamp, stripUndefined, buildUpdatePayload, ownerQuery } from './firestoreUtils';
 import { logEvent } from './eventLog';
 import { type Subscription } from '@/types/subscriptionTypes';
 import { useSubscriptionsStore } from '@/stores/subscriptionsStore';
@@ -53,12 +53,8 @@ function docToSubscription(d: DocumentSnapshot): Subscription {
  * Returns an unsubscribe function — call on screen unmount.
  */
 export function subscribeToSubscriptions(userId: string, familyId?: string | null): Unsubscribe {
-  const q = familyId
-    ? query(collection(db, SUBSCRIPTIONS_COLLECTION), where('familyId', '==', familyId))
-    : query(collection(db, SUBSCRIPTIONS_COLLECTION), where('userId', '==', userId));
-
   return onSnapshot(
-    q,
+    ownerQuery(SUBSCRIPTIONS_COLLECTION, userId, familyId),
     (snapshot) => {
       const subscriptions: Subscription[] = snapshot.docs.map(docToSubscription);
       useSubscriptionsStore.getState().setSubscriptions(subscriptions);

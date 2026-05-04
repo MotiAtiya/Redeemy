@@ -462,12 +462,6 @@
       "delete": "Delete",
       "restore": "Restore to Active"
     },
-    "image": {
-      "savedTitle": "Saved",
-      "savedMessage": "Image saved to your photo library.",
-      "saveError": "Could not save the image. Try again.",
-      "permissionDenied": "Allow Redeemy to access your photo library in Settings."
-    },
     "restore": {
       "error": "Could not restore credit. Try again."
     },
@@ -567,6 +561,12 @@
       "message": "Your entered data will not be saved",
       "confirm": "Exit"
     }
+  },
+  "image": {
+    "savedTitle": "Saved",
+    "savedMessage": "Image saved to your photo library.",
+    "saveError": "Could not save the image. Try again.",
+    "permissionDenied": "Allow Redeemy to access your photo library in Settings."
   },
   "toasts": {
     "created": {
@@ -1248,12 +1248,6 @@
     "action": {
       "edit": "Edit",
       "delete": "Delete"
-    },
-    "image": {
-      "permissionDenied": "Gallery permission is required",
-      "savedTitle": "Saved",
-      "savedMessage": "Image saved to your library",
-      "saveError": "Failed to save image. Please try again."
     },
     "renewalPrompt": {
       "title": "This document has expired",

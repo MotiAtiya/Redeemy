@@ -1,4 +1,5 @@
-import { deleteField, serverTimestamp } from 'firebase/firestore';
+import { collection, deleteField, query, serverTimestamp, where, type Query, type CollectionReference } from 'firebase/firestore';
+import { db } from './firebase';
 import type { DocumentImage } from './imageUpload';
 
 // ---------------------------------------------------------------------------
@@ -59,4 +60,25 @@ export function buildUpdatePayload(
     payload[k] = v === undefined ? deleteField() : v;
   }
   return payload;
+}
+
+// ---------------------------------------------------------------------------
+// Ownership queries
+// ---------------------------------------------------------------------------
+
+/**
+ * Builds the per-user / per-family Firestore query for a feature collection.
+ * If the user is in a family, scope by `familyId`; otherwise by personal `userId`.
+ * Used by every subscribeTo* listener in firestoreCredits / firestoreWarranties /
+ * firestoreSubscriptions / firestoreOccasions / firestoreDocuments.
+ */
+export function ownerQuery(
+  collectionName: string,
+  userId: string,
+  familyId?: string | null,
+): Query {
+  const ref: CollectionReference = collection(db, collectionName);
+  return familyId
+    ? query(ref, where('familyId', '==', familyId))
+    : query(ref, where('userId', '==', userId));
 }

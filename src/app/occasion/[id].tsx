@@ -17,6 +17,7 @@ import { ActionModal } from '@/components/redeemy/ActionModal';
 import { HeroCard } from '@/components/redeemy/HeroCard';
 import { HeroBadge } from '@/components/redeemy/HeroBadge';
 import { DetailScreenHeader } from '@/components/redeemy/DetailScreenHeader';
+import { NotFoundScreen } from '@/components/redeemy/NotFoundScreen';
 import { useOccasionsStore } from '@/stores/occasionsStore';
 import { useAuthStore } from '@/stores/authStore';
 import { useFamilyStore } from '@/stores/familyStore';
@@ -43,14 +44,11 @@ const TYPE_ICONS: Record<OccasionType, IoniconsName> = {
 function makeStyles(colors: AppColors) {
   return StyleSheet.create({
     safe: { flex: 1, backgroundColor: colors.background },
-    backButton: { padding: 16 },
     scroll: { flex: 1 },
     scrollContent: { padding: 16, gap: 12, paddingBottom: 32 },
     heroTitle: { fontSize: 26, fontWeight: '700', color: colors.textPrimary, textAlign: 'center' },
     heroYears: { fontSize: 15, color: colors.primary, fontWeight: '600', textAlign: 'center' },
     detailsCard: { backgroundColor: colors.surface, borderRadius: 14, overflow: 'hidden' },
-    notFound: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-    notFoundText: { fontSize: 16, color: colors.textTertiary },
   });
 }
 
@@ -75,16 +73,7 @@ export default function OccasionDetailScreen() {
   const afterDismissRef = useRef<(() => void) | null>(null);
 
   if (!occasion) {
-    return (
-      <SafeAreaView style={styles.safe}>
-        <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
-          <Ionicons name={isRTL ? 'arrow-forward' : 'arrow-back'} size={24} color={colors.textPrimary} />
-        </TouchableOpacity>
-        <View style={styles.notFound}>
-          <Text style={styles.notFoundText}>{t('occasion.notFound')}</Text>
-        </View>
-      </SafeAreaView>
-    );
+    return <NotFoundScreen message={t('occasion.notFound')} />;
   }
 
   const eventDate = occasion.eventDate instanceof Date

@@ -18,14 +18,14 @@ import { HeroCard } from '@/components/redeemy/HeroCard';
 import { HeroBadge } from '@/components/redeemy/HeroBadge';
 import { ImageCarousel } from '@/components/redeemy/ImageCarousel';
 import { DetailScreenHeader } from '@/components/redeemy/DetailScreenHeader';
+import { NotFoundScreen } from '@/components/redeemy/NotFoundScreen';
 import { DetailRow } from '@/components/redeemy/DetailRow';
 import { ActionModal } from '@/components/redeemy/ActionModal';
 import { FullscreenImageViewer } from '@/components/redeemy/FullscreenImageViewer';
 import { deleteCredit, updateCredit } from '@/lib/firestoreCredits';
 import { cancelCreditNotifications } from '@/lib/notifications';
 import { logEvent } from '@/lib/eventLog';
-import * as MediaLibrary from 'expo-media-library';
-import * as FileSystem from 'expo-file-system/legacy';
+import { downloadImageToLibrary } from '@/lib/imageDownload';
 import { formatCurrency } from '@/lib/formatCurrency';
 import { formatDate } from '@/lib/formatDate';
 import { useCreditsStore } from '@/stores/creditsStore';
@@ -42,9 +42,6 @@ import type { AppColors } from '@/constants/colors';
 function makeStyles(colors: AppColors) {
   return StyleSheet.create({
     safe: { flex: 1, backgroundColor: colors.background },
-    backButton: { padding: 16 },
-    notFound: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-    notFoundText: { fontSize: 16, color: colors.textTertiary },
     scroll: { flex: 1 },
     scrollContent: { padding: 16, gap: 12, paddingBottom: 32 },
     heroStoreName: { fontSize: 15, fontWeight: '600', color: colors.textSecondary, textAlign: 'center' },
@@ -116,16 +113,7 @@ export default function CreditDetailScreen() {
   );
 
   if (!credit) {
-    return (
-      <SafeAreaView style={styles.safe}>
-        <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
-          <Ionicons name={isRTL ? 'arrow-forward' : 'arrow-back'} size={24} color={colors.textPrimary} />
-        </TouchableOpacity>
-        <View style={styles.notFound}>
-          <Text style={styles.notFoundText}>{t('credit.notFound')}</Text>
-        </View>
-      </SafeAreaView>
-    );
+    return <NotFoundScreen message={t('credit.notFound')} />;
   }
 
   async function handleMarkRedeemed() {
@@ -192,23 +180,17 @@ export default function CreditDetailScreen() {
     const imageUrl = images[fullscreenIndex]?.url;
     if (!imageUrl) return;
     setDownloading(true);
-    try {
-      const { status } = await MediaLibrary.requestPermissionsAsync();
-      if (status !== 'granted') {
-        Alert.alert(t('common.error'), t('credit.image.permissionDenied'));
-        return;
-      }
-      const filename = `redeemy-${Date.now()}.jpg`;
-      const localUri = FileSystem.cacheDirectory + filename;
-      const { uri } = await FileSystem.downloadAsync(imageUrl, localUri);
-      await MediaLibrary.saveToLibraryAsync(uri);
-      Alert.alert(t('credit.image.savedTitle'), t('credit.image.savedMessage'));
-    } catch (e) {
-      console.error('Download error:', e);
-      Alert.alert(t('common.error'), t('credit.image.saveError'));
-    } finally {
-      setDownloading(false);
-    }
+    await downloadImageToLibrary({
+      url: imageUrl,
+      filenamePrefix: 'redeemy-credit',
+      onPermissionDenied: () => Alert.alert(t('common.error'), t('image.permissionDenied')),
+      onSuccess: () => Alert.alert(t('image.savedTitle'), t('image.savedMessage')),
+      onError: (e) => {
+        console.error('Download error:', e);
+        Alert.alert(t('common.error'), t('image.saveError'));
+      },
+    });
+    setDownloading(false);
   }
 
   function handleEdit() {

@@ -16,7 +16,7 @@ import {
 } from 'firebase/firestore';
 import { db } from './firebase';
 import { deleteEntityImages } from './imageUpload';
-import { normalizeTimestamp, normalizeImages, stripUndefined, buildUpdatePayload } from './firestoreUtils';
+import { normalizeTimestamp, normalizeImages, stripUndefined, buildUpdatePayload, ownerQuery } from './firestoreUtils';
 import { logEvent } from './eventLog';
 import { autoExpireOverdue } from './autoExpire';
 import { WarrantyStatus, type Warranty } from '@/types/warrantyTypes';
@@ -53,12 +53,8 @@ function docToWarranty(d: DocumentSnapshot): Warranty {
  * Returns an unsubscribe function — call on screen unmount.
  */
 export function subscribeToWarranties(userId: string, familyId?: string | null): Unsubscribe {
-  const q = familyId
-    ? query(collection(db, WARRANTIES_COLLECTION), where('familyId', '==', familyId))
-    : query(collection(db, WARRANTIES_COLLECTION), where('userId', '==', userId));
-
   return onSnapshot(
-    q,
+    ownerQuery(WARRANTIES_COLLECTION, userId, familyId),
     (snapshot) => {
       const warranties: Warranty[] = snapshot.docs.map(docToWarranty);
       useWarrantiesStore.getState().setWarranties(warranties);

@@ -9,8 +9,7 @@ import {
   I18nManager,
   ActivityIndicator,
 } from 'react-native';
-import * as MediaLibrary from 'expo-media-library';
-import * as FileSystem from 'expo-file-system/legacy';
+import { downloadImageToLibrary } from '@/lib/imageDownload';
 import { useTranslation } from 'react-i18next';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, useLocalSearchParams } from 'expo-router';
@@ -20,6 +19,7 @@ import { HeroCard } from '@/components/redeemy/HeroCard';
 import { HeroBadge } from '@/components/redeemy/HeroBadge';
 import { ImageCarousel } from '@/components/redeemy/ImageCarousel';
 import { DetailScreenHeader } from '@/components/redeemy/DetailScreenHeader';
+import { NotFoundScreen } from '@/components/redeemy/NotFoundScreen';
 import { DetailRow } from '@/components/redeemy/DetailRow';
 import { ActionModal } from '@/components/redeemy/ActionModal';
 import { FullscreenImageViewer } from '@/components/redeemy/FullscreenImageViewer';
@@ -53,9 +53,6 @@ function getProductDisplay(w: Warranty): { type: string; brand?: string; model?:
 function makeStyles(colors: AppColors) {
   return StyleSheet.create({
     safe: { flex: 1, backgroundColor: colors.background },
-    backButton: { padding: 16 },
-    notFound: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-    notFoundText: { fontSize: 16, color: colors.textTertiary },
     scroll: { flex: 1 },
     scrollContent: { padding: 16, gap: 12, paddingBottom: 32 },
     heroStoreName: { fontSize: 15, fontWeight: '600', color: colors.textSecondary, textAlign: 'center' },
@@ -125,16 +122,7 @@ export default function WarrantyDetailScreen() {
   const productDisplay = useMemo(() => warranty ? getProductDisplay(warranty) : { type: '—' }, [warranty]);
 
   if (!warranty) {
-    return (
-      <SafeAreaView style={styles.safe}>
-        <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
-          <Ionicons name={isRTL ? 'arrow-forward' : 'arrow-back'} size={24} color={colors.textPrimary} />
-        </TouchableOpacity>
-        <View style={styles.notFound}>
-          <Text style={styles.notFoundText}>{t('warranty.notFound')}</Text>
-        </View>
-      </SafeAreaView>
-    );
+    return <NotFoundScreen message={t('warranty.notFound')} />;
   }
 
   async function handleMarkClosed() {
@@ -210,23 +198,17 @@ export default function WarrantyDetailScreen() {
     const imageUrl = images[fullscreenIndex]?.url;
     if (!imageUrl) return;
     setDownloading(true);
-    try {
-      const { status } = await MediaLibrary.requestPermissionsAsync();
-      if (status !== 'granted') {
-        Alert.alert(t('common.error'), t('credit.image.permissionDenied'));
-        return;
-      }
-      const filename = `redeemy-warranty-${Date.now()}.jpg`;
-      const localUri = FileSystem.cacheDirectory + filename;
-      const { uri } = await FileSystem.downloadAsync(imageUrl, localUri);
-      await MediaLibrary.saveToLibraryAsync(uri);
-      Alert.alert(t('credit.image.savedTitle'), t('credit.image.savedMessage'));
-    } catch (e) {
-      console.error('Download error:', e);
-      Alert.alert(t('common.error'), t('credit.image.saveError'));
-    } finally {
-      setDownloading(false);
-    }
+    await downloadImageToLibrary({
+      url: imageUrl,
+      filenamePrefix: 'redeemy-warranty',
+      onPermissionDenied: () => Alert.alert(t('common.error'), t('image.permissionDenied')),
+      onSuccess: () => Alert.alert(t('image.savedTitle'), t('image.savedMessage')),
+      onError: (e) => {
+        console.error('Download error:', e);
+        Alert.alert(t('common.error'), t('image.saveError'));
+      },
+    });
+    setDownloading(false);
   }
 
   function handleEdit() {

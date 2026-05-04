@@ -14,7 +14,7 @@ import {
   type Unsubscribe,
 } from 'firebase/firestore';
 import { db } from './firebase';
-import { normalizeTimestamp, stripUndefined, buildUpdatePayload } from './firestoreUtils';
+import { normalizeTimestamp, stripUndefined, buildUpdatePayload, ownerQuery } from './firestoreUtils';
 import { logEvent } from './eventLog';
 import { type Occasion } from '@/types/occasionTypes';
 import { useOccasionsStore } from '@/stores/occasionsStore';
@@ -26,12 +26,8 @@ const OCCASIONS_COLLECTION = 'occasions';
 // ---------------------------------------------------------------------------
 
 export function subscribeToOccasions(userId: string, familyId?: string | null): Unsubscribe {
-  const q = familyId
-    ? query(collection(db, OCCASIONS_COLLECTION), where('familyId', '==', familyId))
-    : query(collection(db, OCCASIONS_COLLECTION), where('userId', '==', userId));
-
   return onSnapshot(
-    q,
+    ownerQuery(OCCASIONS_COLLECTION, userId, familyId),
     (snapshot) => {
       const occasions: Occasion[] = snapshot.docs.map((d) => {
         const data = d.data();

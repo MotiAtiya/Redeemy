@@ -30,6 +30,7 @@ import { ActionModal } from '@/components/redeemy/ActionModal';
 import { HeroCard } from '@/components/redeemy/HeroCard';
 import { HeroBadge } from '@/components/redeemy/HeroBadge';
 import { DetailScreenHeader } from '@/components/redeemy/DetailScreenHeader';
+import { NotFoundScreen } from '@/components/redeemy/NotFoundScreen';
 import { SubscriptionRenewalPrompt } from '@/components/redeemy/SubscriptionRenewalPrompt';
 import { SubscriptionBillingCycle, SubscriptionStatus } from '@/types/subscriptionTypes';
 import { SUBSCRIPTION_CATEGORIES } from '@/constants/subscriptionCategories';
@@ -48,9 +49,6 @@ import type { AppColors } from '@/constants/colors';
 function makeStyles(colors: AppColors) {
   return StyleSheet.create({
     safe: { flex: 1, backgroundColor: colors.background },
-    backButton: { padding: 16 },
-    notFound: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-    notFoundText: { fontSize: 16, color: colors.textTertiary },
     scroll: { flex: 1 },
     scrollContent: { padding: 16, gap: 12, paddingBottom: 32 },
     // Hero card
@@ -142,16 +140,7 @@ export default function SubscriptionDetailScreen() {
 
   // Not-found guard
   if (!sub) {
-    return (
-      <SafeAreaView style={styles.safe}>
-        <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
-          <Ionicons name={isRTL ? 'arrow-forward' : 'arrow-back'} size={24} color={colors.textPrimary} />
-        </TouchableOpacity>
-        <View style={styles.notFound}>
-          <Text style={styles.notFoundText}>{t('subscription.notFound')}</Text>
-        </View>
-      </SafeAreaView>
-    );
+    return <NotFoundScreen message={t('subscription.notFound')} />;
   }
 
   // -------------------------------------------------------------------------
