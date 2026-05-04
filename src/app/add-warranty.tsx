@@ -30,6 +30,7 @@ import { scheduleReminderNotification, cancelNotification } from '@/lib/notifica
 import { useAuthStore } from '@/stores/authStore';
 import { useWarrantiesStore } from '@/stores/warrantiesStore';
 import { useUIStore } from '@/stores/uiStore';
+import { showToast } from '@/stores/toastStore';
 import { useAppTheme } from '@/hooks/useAppTheme';
 import { useFormExitConfirmation } from '@/hooks/useFormExitConfirmation';
 import { WarrantyStatus, type Warranty } from '@/types/warrantyTypes';
@@ -538,6 +539,7 @@ export default function AddWarrantyScreen() {
       }
 
       removeWarranty(tempId);
+      showToast(t('toasts.created.warranty'));
       router.back();
     } catch (e) {
       console.error('Save warranty error:', e);

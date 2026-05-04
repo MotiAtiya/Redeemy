@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
-import { useToast } from '@/hooks/useToast';
+import { showToast } from '@/stores/toastStore';
 import {
   View,
   Text,
@@ -231,17 +231,6 @@ function makeStyles(colors: AppColors, isRTL: boolean) {
     sheetButtonText: { color: '#FFFFFF', fontSize: 16, fontWeight: '600' },
     // Loading state
     centered: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-    // Toast
-    toast: {
-      position: 'absolute',
-      bottom: 48,
-      alignSelf: 'center',
-      backgroundColor: 'rgba(15,23,42,0.85)',
-      borderRadius: 20,
-      paddingHorizontal: 20,
-      paddingVertical: 10,
-    },
-    toastText: { color: '#FFFFFF', fontSize: 14, fontWeight: '500' },
   });
 }
 
@@ -255,7 +244,6 @@ export default function FamilyManageScreen() {
   const isRTL = I18nManager.isRTL;
   const styles = useMemo(() => makeStyles(colors, isRTL), [colors, isRTL]);
   const { t } = useTranslation();
-  const { toastMessage, showToast } = useToast();
 
   const { created } = useLocalSearchParams<{ created?: string }>();
   const family = useFamilyStore((s) => s.family);
@@ -279,7 +267,7 @@ export default function FamilyManageScreen() {
 
   // Show "Family created!" toast on first open
   useEffect(() => {
-    if (created === '1') showToast(t('family.createScreen.successToast'));
+    if (created === '1') showToast(t('toasts.familyCreated'));
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -312,12 +300,12 @@ export default function FamilyManageScreen() {
     if (clipboardModule) {
       try {
         await clipboardModule.setStringAsync(family.inviteCode);
-        showToast(t('family.manageScreen.inviteCopiedToast'));
+        showToast(t('toasts.inviteCopied'));
         return;
       } catch {}
     }
     // Fallback: show the code in a toast so the user can read it
-    showToast(family.inviteCode);
+    showToast(family.inviteCode, 'info');
   }
 
   async function handleRegenerate() {
@@ -634,13 +622,6 @@ export default function FamilyManageScreen() {
 
         </ScrollView>
       )}
-
-      {/* Toast */}
-      {toastMessage ? (
-        <View style={styles.toast} pointerEvents="none">
-          <Text style={styles.toastText}>{toastMessage}</Text>
-        </View>
-      ) : null}
 
       {/* Rename bottom sheet */}
       <Modal

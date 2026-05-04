@@ -12,6 +12,7 @@ import {
   scheduleSubscriptionNotifications,
 } from '@/lib/subscriptionNotifications';
 import { useSubscriptionsStore } from '@/stores/subscriptionsStore';
+import { showToast } from '@/stores/toastStore';
 import { useAppTheme } from '@/hooks/useAppTheme';
 import type { Subscription } from '@/types/subscriptionTypes';
 import { SubscriptionStatus } from '@/types/subscriptionTypes';
@@ -53,6 +54,7 @@ export function SubscriptionRenewalPrompt({ subscription, onResolved }: Props) {
       };
       updateSubInStore(subscription.id, fullPatch);
       await confirmSubscriptionRenewal(subscription.id, fullPatch);
+      showToast(t('toasts.subscriptionRenewed'));
       onResolved?.();
     } catch (err) {
       // Roll back optimistic store update by writing the original back
@@ -82,6 +84,7 @@ export function SubscriptionRenewalPrompt({ subscription, onResolved }: Props) {
                 expiredAt: new Date(),
               });
               await declineSubscriptionRenewal(subscription.id);
+              showToast(t('toasts.subscriptionExpired'));
               onResolved?.();
             } catch (err) {
               updateSubInStore(subscription.id, subscription);

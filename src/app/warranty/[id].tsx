@@ -32,6 +32,7 @@ import { useSettingsStore } from '@/stores/settingsStore';
 import { useAuthStore } from '@/stores/authStore';
 import { useFamilyStore } from '@/stores/familyStore';
 import { useUIStore } from '@/stores/uiStore';
+import { showToast } from '@/stores/toastStore';
 import { useAppTheme } from '@/hooks/useAppTheme';
 import { WarrantyStatus, type Warranty } from '@/types/warrantyTypes';
 import { WARRANTY_PRODUCT_TYPES } from '@/data/warrantyProductTypes';
@@ -156,6 +157,7 @@ export default function WarrantyDetailScreen() {
               updateWarrantyInStore(w.id, { status: WarrantyStatus.CLOSED, closedAt: new Date() });
               await updateWarranty(w.id, { status: WarrantyStatus.CLOSED, closedAt: new Date() }, { silent: true });
               void logEvent('warranty_closed', { itemCategory: 'warranty', itemId: w.id });
+              showToast(t('toasts.warrantyClosed'));
               router.back();
             } catch {
               updateWarrantyInStore(w.id, { status: WarrantyStatus.ACTIVE, closedAt: undefined });
@@ -191,6 +193,7 @@ export default function WarrantyDetailScreen() {
               await cancelCreditNotifications(w.notificationId, w.expirationNotificationId);
               removeWarranty(w.id);
               await deleteWarranty(w.id);
+              showToast(t('toasts.deleted.warranty'));
               router.back();
             } catch {
               setLoading(false);

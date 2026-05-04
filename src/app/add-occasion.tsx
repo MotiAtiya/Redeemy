@@ -27,6 +27,7 @@ import { useAuthStore } from '@/stores/authStore';
 import { useOccasionsStore } from '@/stores/occasionsStore';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { useUIStore } from '@/stores/uiStore';
+import { showToast } from '@/stores/toastStore';
 import { useAppTheme } from '@/hooks/useAppTheme';
 import { useFormExitConfirmation } from '@/hooks/useFormExitConfirmation';
 import { formatDate } from '@/lib/formatDate';
@@ -431,6 +432,7 @@ export default function AddOccasionScreen() {
       // Post-create system fixup — already logged item_created from createOccasion.
       if (ids.length) await updateOccasion(newId, { notificationIds: ids }, { silent: true });
       removeOccasionFromStore(tempId);
+      showToast(t('toasts.created.occasion'));
       router.back();
     } catch {
       removeOccasionFromStore(tempId);

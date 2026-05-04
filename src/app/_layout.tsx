@@ -15,6 +15,7 @@ import { useDocumentsListener } from '@/hooks/useDocumentsListener';
 import { useSubscriptionsListener } from '@/hooks/useSubscriptionsListener';
 import { useAppTheme, useIsDark } from '@/hooks/useAppTheme';
 import { OfflineToast } from '@/components/redeemy/OfflineToast';
+import { Toast } from '@/components/redeemy/Toast';
 import { useAuthStore } from '@/stores/authStore';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { migrateCreditsToFamily } from '@/lib/firestoreCredits';
@@ -130,6 +131,7 @@ function AuthGate({ children }: { children: React.ReactNode }) {
       <StatusBar style={isDark ? 'light' : 'dark'} />
       {children}
       <OfflineToast />
+      <Toast />
     </View>
   );
 }

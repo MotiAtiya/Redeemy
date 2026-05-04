@@ -22,6 +22,7 @@ import { useAuthStore } from '@/stores/authStore';
 import { useFamilyStore } from '@/stores/familyStore';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { useUIStore } from '@/stores/uiStore';
+import { showToast } from '@/stores/toastStore';
 import { deleteOccasion } from '@/lib/firestoreOccasions';
 import { cancelOccasionNotifications } from '@/lib/occasionNotifications';
 import { daysUntilNextOccurrence, nextOccurrenceDate } from '@/lib/hebrewDate';
@@ -141,6 +142,7 @@ export default function OccasionDetailScreen() {
               await cancelOccasionNotifications(occasion!.notificationIds);
               removeOccasion(occasion!.id);
               await deleteOccasion(occasion!.id);
+              showToast(t('toasts.deleted.occasion'));
               router.back();
             } catch {
               Alert.alert(t('common.error'), t('occasion.delete.error'));

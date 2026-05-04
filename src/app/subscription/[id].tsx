@@ -1,5 +1,5 @@
 import { useState, useRef, useMemo, useCallback, useEffect } from 'react';
-import { useToast } from '@/hooks/useToast';
+import { showToast } from '@/stores/toastStore';
 import {
   View,
   Text,
@@ -102,18 +102,6 @@ function makeStyles(colors: AppColors) {
       marginTop: 4,
     },
     dangerButtonText: { color: '#FFFFFF', fontSize: 16, fontWeight: '700' },
-    // Toast
-    toastContainer: {
-      position: 'absolute',
-      bottom: 100,
-      left: 24,
-      right: 24,
-      backgroundColor: colors.textPrimary,
-      borderRadius: 12,
-      padding: 14,
-      alignItems: 'center',
-    },
-    toastText: { color: colors.background, fontSize: 14, fontWeight: '600' },
   });
 }
 
@@ -138,8 +126,6 @@ export default function SubscriptionDetailScreen() {
   const canDelete = sub
     ? sub.userId === currentUid || familyAdminId === currentUid
     : false;
-
-  const { toastMessage, showToast } = useToast();
 
   const [showActionSheet, setShowActionSheet] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -198,8 +184,8 @@ export default function SubscriptionDetailScreen() {
             updateSubInStore(s.id, { status: SubscriptionStatus.CANCELLED, cancelledAt: new Date() });
             await updateSubscription(s.id, { status: SubscriptionStatus.CANCELLED, cancelledAt: new Date() }, { silent: true });
             void logEvent('subscription_cancelled', { itemCategory: 'subscription', itemId: s.id });
-            showToast(t('subscription.cancel.toast', { name: s.serviceName }));
-            setTimeout(() => router.back(), 500);
+            showToast(t('toasts.subscriptionCancelled'));
+            router.back();
           } catch {
             updateSubInStore(s.id, { status: SubscriptionStatus.ACTIVE, cancelledAt: undefined });
             Alert.alert(t('common.error'), t('subscription.cancel.error'));
@@ -233,6 +219,7 @@ export default function SubscriptionDetailScreen() {
               await cancelSubscriptionNotifications(s);
               removeSubFromStore(s.id);
               await deleteSubscription(s.id);
+              showToast(t('toasts.deleted.subscription'));
               router.back();
             } catch {
               setLoading(false);
@@ -501,13 +488,6 @@ export default function SubscriptionDetailScreen() {
           </TouchableOpacity>
         )}
       </View>
-
-      {/* Toast */}
-      {toastMessage && (
-        <View style={styles.toastContainer} pointerEvents="none">
-          <Text style={styles.toastText}>{toastMessage}</Text>
-        </View>
-      )}
 
       {/* Action sheet */}
       <ActionModal

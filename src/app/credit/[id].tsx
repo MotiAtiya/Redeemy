@@ -33,6 +33,7 @@ import { useSettingsStore, CURRENCY_SYMBOLS } from '@/stores/settingsStore';
 import { useAuthStore } from '@/stores/authStore';
 import { useFamilyStore } from '@/stores/familyStore';
 import { useUIStore } from '@/stores/uiStore';
+import { showToast } from '@/stores/toastStore';
 import { useAppTheme } from '@/hooks/useAppTheme';
 import { CreditStatus } from '@/types/creditTypes';
 import { CATEGORIES } from '@/constants/categories';
@@ -144,6 +145,7 @@ export default function CreditDetailScreen() {
             updateCreditInStore(c.id, { status: CreditStatus.REDEEMED, redeemedAt: new Date() });
             await updateCredit(c.id, { status: CreditStatus.REDEEMED, redeemedAt: new Date() }, { silent: true });
             void logEvent('credit_redeemed', { itemCategory: 'credit', itemId: c.id });
+            showToast(t('toasts.creditRedeemed'));
             router.back();
           } catch {
             updateCreditInStore(c.id, { status: CreditStatus.ACTIVE });
@@ -175,6 +177,7 @@ export default function CreditDetailScreen() {
             await cancelCreditNotifications(c.notificationId, c.expirationNotificationId);
             removeCredit(c.id);
             await deleteCredit(c.id);
+            showToast(t('toasts.deleted.credit'));
             router.back();
           } catch {
             setLoading(false);
@@ -221,6 +224,7 @@ export default function CreditDetailScreen() {
       updateCreditInStore(c.id, { status: CreditStatus.ACTIVE, redeemedAt: undefined });
       await updateCredit(c.id, { status: CreditStatus.ACTIVE, redeemedAt: null as any }, { silent: true });
       void logEvent('credit_unredeemed', { itemCategory: 'credit', itemId: c.id });
+      showToast(t('toasts.creditRestored'));
       router.back();
     } catch {
       updateCreditInStore(c.id, { status: CreditStatus.REDEEMED, redeemedAt: c.redeemedAt });

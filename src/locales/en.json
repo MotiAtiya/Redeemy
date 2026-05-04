@@ -568,6 +568,32 @@
       "confirm": "Exit"
     }
   },
+  "toasts": {
+    "created": {
+      "credit": "Credit added",
+      "warranty": "Warranty added",
+      "subscription": "Subscription added",
+      "occasion": "Occasion added",
+      "document": "Document added"
+    },
+    "deleted": {
+      "credit": "Credit deleted",
+      "warranty": "Warranty deleted",
+      "subscription": "Subscription deleted",
+      "occasion": "Occasion deleted",
+      "document": "Document deleted"
+    },
+    "creditRedeemed": "Credit redeemed",
+    "creditRestored": "Credit restored",
+    "warrantyClosed": "Warranty closed",
+    "subscriptionCancelled": "Subscription cancelled",
+    "subscriptionRenewed": "Subscription renewed",
+    "subscriptionExpired": "Subscription moved to history",
+    "documentRenewed": "Expiration updated",
+    "documentDiscarded": "Document removed",
+    "familyCreated": "Family created!",
+    "inviteCopied": "Invite code copied"
+  },
   "notificationSettings": {
     "title": "Notifications",
     "enable": "Enable Notifications",
@@ -617,8 +643,7 @@
       "namePlaceholder": "Family Name",
       "nameHelper": "e.g. Cohen Family",
       "description": "Create a shared space for your family's gift cards. Everyone can add their credits, and the whole family stays updated in real time.",
-      "createButton": "Create",
-      "successToast": "Family created!"
+      "createButton": "Create"
     },
     "manageScreen": {
       "inviteSection": "INVITE CODE",
@@ -627,7 +652,6 @@
       "inviteCopy": "Copy",
       "inviteRegenerate": "Regenerate",
       "inviteGenerateNew": "Generate new code",
-      "inviteCopiedToast": "Invite code copied",
       "membersSection": "MEMBERS",
       "adminBadge": "Admin",
       "actionsSection": "FAMILY",
@@ -805,7 +829,6 @@
       "title": "Cancel Subscription",
       "message": "Cancel {{name}}? It will be archived.",
       "confirm": "Cancel Subscription",
-      "toast": "{{name}} was cancelled and archived",
       "error": "Could not cancel. Check your connection and try again.",
       "offlineMessage": "Cancelling subscriptions requires an internet connection."
     },
@@ -882,7 +905,6 @@
     "title": "Add Subscription",
     "titleEdit": "Edit Subscription",
     "save": "Save Subscription",
-    "savedToast": "Subscription saved ✓",
     "serviceNamePlaceholder": "e.g. Spotify, Netflix",
     "step": {
       "serviceName": "Service name",

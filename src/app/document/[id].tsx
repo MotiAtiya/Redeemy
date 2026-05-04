@@ -26,6 +26,7 @@ import { useAuthStore } from '@/stores/authStore';
 import { useFamilyStore } from '@/stores/familyStore';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { useUIStore } from '@/stores/uiStore';
+import { showToast } from '@/stores/toastStore';
 import { deleteDocument } from '@/lib/firestoreDocuments';
 import { formatDate } from '@/lib/formatDate';
 import { useAppTheme } from '@/hooks/useAppTheme';
@@ -117,6 +118,7 @@ export default function DocumentDetailScreen() {
             try {
               removeDocument(document!.id);
               await deleteDocument(document!.id);
+              showToast(t('toasts.deleted.document'));
               router.back();
             } catch {
               Alert.alert(t('common.error'), t('document.delete.error'));

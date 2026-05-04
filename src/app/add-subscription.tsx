@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
-import { useToast } from '@/hooks/useToast';
+import { showToast } from '@/stores/toastStore';
 import { useStepAnimation } from '@/hooks/useStepAnimation';
 import {
   View,
@@ -473,17 +473,6 @@ function makeStyles(colors: AppColors, isRTL: boolean) {
       marginTop: 12,
     },
 
-    // Toast
-    toast: {
-      position: 'absolute',
-      bottom: 100,
-      alignSelf: 'center',
-      backgroundColor: 'rgba(0,0,0,0.78)',
-      borderRadius: 20,
-      paddingHorizontal: 20,
-      paddingVertical: 10,
-    },
-    toastText: { color: '#FFFFFF', fontSize: 14, fontWeight: '500' },
     categoryRow: {
       flexDirection: 'row',
       alignItems: 'center',
@@ -545,8 +534,6 @@ export default function AddSubscriptionScreen() {
   const existingSubscription = useSubscriptionsStore((s) =>
     subscriptionId ? s.subscriptions.find((sub) => sub.id === subscriptionId) : undefined
   );
-
-  const { toastMessage, showToast } = useToast();
 
   // ---------------------------------------------------------------------------
   // Form state
@@ -1078,8 +1065,9 @@ export default function AddSubscriptionScreen() {
           renewalNotificationId: scheduled.renewalNotificationId,
           specialPeriodNotificationId: scheduled.specialPeriodNotificationId,
         }, { silent: true });
-        showToast(t('addSubscription.savedToast'));
-        setTimeout(() => router.back(), 300);
+        // Edit success — silent (per unified-toast pattern: only create/delete/
+        // status-change emit toasts; user already sees the change inline).
+        router.back();
       } catch (err) {
         console.error('[AddSubscription] updateSubscription failed:', err);
         subscriptionsStore.getState().updateSubscription(existingSubscription.id, existingSubscription);
@@ -1116,8 +1104,8 @@ export default function AddSubscriptionScreen() {
           specialPeriodNotificationId: scheduled.specialPeriodNotificationId,
         }, { silent: true });
       }
-      showToast(t('addSubscription.savedToast'));
-      setTimeout(() => router.back(), 300);
+      showToast(t('toasts.created.subscription'));
+      router.back();
     } catch (err) {
       console.error('[AddSubscription] createSubscription failed:', err);
       subscriptionsStore.getState().removeSubscription(tempId);
@@ -1756,11 +1744,6 @@ export default function AddSubscriptionScreen() {
       footerButton={renderFooterButton()}
       onSave={isEditing && isFormComplete ? handleSave : undefined}
       isSaving={saving}
-      toast={toastMessage ? (
-        <View style={styles.toast} pointerEvents="none">
-          <Text style={styles.toastText}>{toastMessage}</Text>
-        </View>
-      ) : undefined}
     >
       {renderCurrentStep()}
     </StepFormScreen>

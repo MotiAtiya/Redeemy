@@ -567,6 +567,32 @@
       "confirm": "יציאה"
     }
   },
+  "toasts": {
+    "created": {
+      "credit": "זיכוי נוסף",
+      "warranty": "אחריות נוספה",
+      "subscription": "מנוי נוסף",
+      "occasion": "אירוע נוסף",
+      "document": "מסמך נוסף"
+    },
+    "deleted": {
+      "credit": "זיכוי נמחק",
+      "warranty": "אחריות נמחקה",
+      "subscription": "מנוי נמחק",
+      "occasion": "אירוע נמחק",
+      "document": "מסמך נמחק"
+    },
+    "creditRedeemed": "הזיכוי מומש",
+    "creditRestored": "הזיכוי הוחזר לפעיל",
+    "warrantyClosed": "האחריות נסגרה",
+    "subscriptionCancelled": "המנוי בוטל",
+    "subscriptionRenewed": "המנוי חודש",
+    "subscriptionExpired": "המנוי הועבר להיסטוריה",
+    "documentRenewed": "תאריך התפוגה עודכן",
+    "documentDiscarded": "המסמך הוסר",
+    "familyCreated": "המשפחה נוצרה!",
+    "inviteCopied": "קוד ההזמנה הועתק"
+  },
   "notificationSettings": {
     "title": "התראות",
     "enable": "אפשר התראות",
@@ -616,8 +642,7 @@
       "namePlaceholder": "שם המשפחה",
       "nameHelper": "לדוגמה: משפחת כהן",
       "description": "צרו מרחב משותף לכרטיסי המתנה של המשפחה. כל אחד יכול להוסיף את הקרדיטים שלו, וכולם מתעדכנים בזמן אמת.",
-      "createButton": "יצירה",
-      "successToast": "המשפחה נוצרה!"
+      "createButton": "יצירה"
     },
     "manageScreen": {
       "inviteSection": "קוד הזמנה",
@@ -626,7 +651,6 @@
       "inviteCopy": "העתק",
       "inviteRegenerate": "חידוש קוד",
       "inviteGenerateNew": "צור קוד חדש",
-      "inviteCopiedToast": "קוד ההזמנה הועתק",
       "membersSection": "חברים",
       "adminBadge": "מנהל",
       "actionsSection": "משפחה",
@@ -804,7 +828,6 @@
       "title": "בטל מנוי",
       "message": "לבטל את {{name}}? המנוי יועבר לארכיון.",
       "confirm": "בטל מנוי",
-      "toast": "{{name}} בוטל ועבר לארכיון",
       "error": "לא ניתן לבטל. בדוק את החיבור ונסה שנית.",
       "offlineMessage": "ביטול מנויים דורש חיבור לאינטרנט."
     },
@@ -881,7 +904,6 @@
     "title": "הוספת מנוי",
     "titleEdit": "עריכת מנוי",
     "save": "שמירת מנוי",
-    "savedToast": "המנוי נשמר ✓",
     "serviceNamePlaceholder": "לדוגמה: Spotify, Netflix",
     "step": {
       "serviceName": "שם השירות",

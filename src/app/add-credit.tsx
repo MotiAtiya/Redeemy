@@ -33,6 +33,7 @@ import { formatCurrency } from '@/lib/formatCurrency';
 import { useAuthStore } from '@/stores/authStore';
 import { useCreditsStore } from '@/stores/creditsStore';
 import { useUIStore } from '@/stores/uiStore';
+import { showToast } from '@/stores/toastStore';
 import { useAppTheme } from '@/hooks/useAppTheme';
 import { useFormExitConfirmation } from '@/hooks/useFormExitConfirmation';
 import { CreditStatus, type Credit } from '@/types/creditTypes';
@@ -600,6 +601,7 @@ export default function AddCreditScreen() {
         }
       }
       removeCredit(tempId);
+      showToast(t('toasts.created.credit'));
       router.back();
     } catch (e) {
       console.error('Save error:', e);

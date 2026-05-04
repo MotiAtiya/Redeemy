@@ -27,6 +27,7 @@ import { useAuthStore } from '@/stores/authStore';
 import { useDocumentsStore } from '@/stores/documentsStore';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { useUIStore } from '@/stores/uiStore';
+import { showToast } from '@/stores/toastStore';
 import { useAppTheme } from '@/hooks/useAppTheme';
 import { useFormExitConfirmation } from '@/hooks/useFormExitConfirmation';
 import { formatDate } from '@/lib/formatDate';
@@ -414,6 +415,7 @@ export default function AddDocumentScreen() {
       }
 
       removeDocumentFromStore(tempId);
+      showToast(t('toasts.created.document'));
       router.back();
     } catch {
       removeDocumentFromStore(tempId);

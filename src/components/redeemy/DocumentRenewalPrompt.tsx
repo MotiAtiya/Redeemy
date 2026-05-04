@@ -14,6 +14,7 @@ import { useTranslation } from 'react-i18next';
 import DateTimePicker, { type DateTimePickerEvent } from '@react-native-community/datetimepicker';
 import { confirmDocumentRenewal, deleteDocument } from '@/lib/firestoreDocuments';
 import { useDocumentsStore } from '@/stores/documentsStore';
+import { showToast } from '@/stores/toastStore';
 import { useAppTheme } from '@/hooks/useAppTheme';
 import { formatDate } from '@/lib/formatDate';
 import { useSettingsStore } from '@/stores/settingsStore';
@@ -82,6 +83,7 @@ export function DocumentRenewalPrompt({ document, onResolved }: Props) {
     try {
       updateDocInStore(document.id, { expirationDate: newDate });
       await confirmDocumentRenewal(document.id, newDate);
+      showToast(t('toasts.documentRenewed'));
       onResolved?.();
     } catch (err) {
       updateDocInStore(document.id, document);
@@ -106,6 +108,7 @@ export function DocumentRenewalPrompt({ document, onResolved }: Props) {
             try {
               removeDocFromStore(document.id);
               await deleteDocument(document.id);
+              showToast(t('toasts.documentDiscarded'));
               onResolved?.();
             } catch (err) {
               const message = err instanceof Error ? err.message : String(err);
