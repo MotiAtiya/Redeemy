@@ -18,6 +18,7 @@ import { db } from './firebase';
 import { deleteEntityImages } from './imageUpload';
 import { normalizeTimestamp, normalizeImages, stripUndefined, buildUpdatePayload } from './firestoreUtils';
 import { logEvent } from './eventLog';
+import { autoExpireOverdue } from './autoExpire';
 import { WarrantyStatus, type Warranty } from '@/types/warrantyTypes';
 import { useWarrantiesStore } from '@/stores/warrantiesStore';
 
@@ -62,6 +63,16 @@ export function subscribeToWarranties(userId: string, familyId?: string | null):
       const warranties: Warranty[] = snapshot.docs.map(docToWarranty);
       useWarrantiesStore.getState().setWarranties(warranties);
       useWarrantiesStore.getState().setLoading(false);
+
+      autoExpireOverdue({
+        items: warranties,
+        activeStatus: WarrantyStatus.ACTIVE,
+        expiredStatus: WarrantyStatus.EXPIRED,
+        itemCategory: 'warranty',
+        eventType: 'warranty_expired',
+        applyExpire: (id, patch) =>
+          updateWarranty(id, patch as Partial<Warranty>, { silent: true }),
+      });
     },
     (_error) => {
       useWarrantiesStore.getState().setError('Could not load warranties. Check your connection.');

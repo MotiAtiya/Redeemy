@@ -17,6 +17,7 @@ import {
 import { db } from './firebase';
 import { normalizeTimestamp, normalizeImages, stripUndefined, buildUpdatePayload } from './firestoreUtils';
 import { logEvent } from './eventLog';
+import { autoExpireOverdue } from './autoExpire';
 import { CreditStatus, type Credit } from '@/types/creditTypes';
 import { useCreditsStore } from '@/stores/creditsStore';
 
@@ -58,20 +59,15 @@ export function subscribeToCredits(userId: string, familyId?: string | null): Un
       useCreditsStore.getState().setCredits(credits);
       useCreditsStore.getState().setLoading(false);
 
-      // Auto-expire: any ACTIVE credit whose expiration date is before today
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      const toExpire = credits.filter(
-        (c) => c.status === CreditStatus.ACTIVE && c.expirationDate && new Date(c.expirationDate) < today
-      );
-      for (const c of toExpire) {
-        const expiredAt = new Date(c.expirationDate!);
-        expiredAt.setHours(23, 59, 59, 999);
-        // System auto-expire — log the lifecycle event explicitly instead of
-        // a generic item_updated.
-        updateCredit(c.id, { status: CreditStatus.EXPIRED, expiredAt }, { silent: true });
-        void logEvent('credit_expired', { itemCategory: 'credit', itemId: c.id });
-      }
+      autoExpireOverdue({
+        items: credits,
+        activeStatus: CreditStatus.ACTIVE,
+        expiredStatus: CreditStatus.EXPIRED,
+        itemCategory: 'credit',
+        eventType: 'credit_expired',
+        applyExpire: (id, patch) =>
+          updateCredit(id, patch as Partial<Credit>, { silent: true }),
+      });
     },
     (_error) => {
       useCreditsStore.getState().setError('Could not load credits. Check your connection.');
