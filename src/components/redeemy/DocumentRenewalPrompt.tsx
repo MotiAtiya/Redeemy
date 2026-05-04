@@ -242,7 +242,9 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   title: { fontSize: 15, fontWeight: '700', alignSelf: 'flex-start' },
-  body: { fontSize: 14, lineHeight: 20, alignSelf: 'flex-start' },
+  // Rule 6 (CLAUDE.md): wrapping text needs textAlign:'left' to get visual-right
+  // alignment in RTL — alignSelf alone only works for single-line strings.
+  body: { fontSize: 14, lineHeight: 20, alignSelf: 'stretch', textAlign: 'left' },
   actions: {
     flexDirection: 'row',
     gap: 8,
