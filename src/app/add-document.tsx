@@ -363,7 +363,7 @@ export default function AddDocumentScreen() {
   async function handleSave() {
     if (!currentUser) return;
     if (useUIStore.getState().offlineMode) {
-      Alert.alert(t('offline.title'), t('addDocument.offline'));
+      Alert.alert(t('offline.title'), t('offline.cannotSave'));
       return;
     }
     if (photoItems.length === 0) {
@@ -405,10 +405,12 @@ export default function AddDocumentScreen() {
           await updateDocument(documentId, { images: uploadedImages }, { silent: true });
         }
 
+        showToast(t('toasts.updated.document'));
         router.back();
-      } catch {
+      } catch (err) {
+        const errMsg = err instanceof Error ? err.message : String(err);
         setSaving(false);
-        Alert.alert(t('common.error'), t('addDocument.error.save'));
+        Alert.alert(t('addDocument.error.save'), errMsg || t('addDocument.error.saveMessage'));
       }
       return;
     }
@@ -440,10 +442,11 @@ export default function AddDocumentScreen() {
       removeDocumentFromStore(tempId);
       showToast(t('toasts.created.document'));
       router.back();
-    } catch {
+    } catch (err) {
+      const errMsg = err instanceof Error ? err.message : String(err);
       removeDocumentFromStore(tempId);
       setSaving(false);
-      Alert.alert(t('common.error'), t('addDocument.error.save'));
+      Alert.alert(t('addDocument.error.save'), errMsg || t('addDocument.error.saveMessage'));
     }
   }
 

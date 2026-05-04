@@ -377,7 +377,7 @@ export default function AddOccasionScreen() {
   async function handleSave() {
     if (!currentUser) return;
     if (useUIStore.getState().offlineMode) {
-      Alert.alert(t('offline.title'), t('addOccasion.offline'));
+      Alert.alert(t('offline.title'), t('offline.cannotSave'));
       return;
     }
     setSaving(true);
@@ -405,11 +405,13 @@ export default function AddOccasionScreen() {
         const ids = await scheduleOccasionNotifications({ ...data, id: existingOccasion.id, createdAt: existingOccasion.createdAt, updatedAt: new Date() });
         updateOccasionInStore(existingOccasion.id, { notificationIds: ids });
         await updateOccasion(existingOccasion.id, { ...data, notificationIds: ids });
+        showToast(t('toasts.updated.occasion'));
         router.back();
-      } catch {
+      } catch (err) {
+        const errMsg = err instanceof Error ? err.message : String(err);
         updateOccasionInStore(existingOccasion.id, existingOccasion as Partial<Occasion>);
         setSaving(false);
-        Alert.alert(t('common.error'), t('addOccasion.error.save'));
+        Alert.alert(t('addOccasion.error.save'), errMsg || t('addOccasion.error.saveMessage'));
       }
       return;
     }
@@ -433,10 +435,11 @@ export default function AddOccasionScreen() {
       removeOccasionFromStore(tempId);
       showToast(t('toasts.created.occasion'));
       router.back();
-    } catch {
+    } catch (err) {
+      const errMsg = err instanceof Error ? err.message : String(err);
       removeOccasionFromStore(tempId);
       setSaving(false);
-      Alert.alert(t('common.error'), t('addOccasion.error.save'));
+      Alert.alert(t('addOccasion.error.save'), errMsg || t('addOccasion.error.saveMessage'));
     }
   }
 

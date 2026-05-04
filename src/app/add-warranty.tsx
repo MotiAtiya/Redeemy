@@ -393,11 +393,7 @@ export default function AddWarrantyScreen() {
   async function handleSave() {
     if (!currentUser) return;
     if (useUIStore.getState().offlineMode) {
-      Alert.alert(
-        t('offline.title'),
-        t('addWarranty.offline.adding'),
-        [{ text: t('common.ok') }]
-      );
+      Alert.alert(t('offline.title'), t('offline.cannotSave'), [{ text: t('common.ok') }]);
       return;
     }
     if (photoItems.length === 0) {
@@ -461,11 +457,13 @@ export default function AddWarrantyScreen() {
           updateWarrantyInStore(existingWarranty.id, { images: uploadedImages });
         }
         await updateWarranty(existingWarranty.id, changes);
+        showToast(t('toasts.updated.warranty'));
         router.back();
-      } catch {
+      } catch (err) {
+        const errMsg = err instanceof Error ? err.message : String(err);
         updateWarrantyInStore(existingWarranty.id, existingWarranty as Partial<Warranty>);
         setSaving(false);
-        Alert.alert(t('addWarranty.error.save'), t('addWarranty.error.saveMessage'));
+        Alert.alert(t('addWarranty.error.save'), errMsg || t('addWarranty.error.saveMessage'));
       }
       return;
     }
@@ -544,11 +542,12 @@ export default function AddWarrantyScreen() {
       removeWarranty(tempId);
       showToast(t('toasts.created.warranty'));
       router.back();
-    } catch (e) {
-      console.error('Save warranty error:', e);
+    } catch (err) {
+      console.error('Save warranty error:', err);
+      const errMsg = err instanceof Error ? err.message : String(err);
       removeWarranty(tempId);
       setSaving(false);
-      Alert.alert(t('addWarranty.error.save'), t('addWarranty.error.saveMessage'));
+      Alert.alert(t('addWarranty.error.save'), errMsg || t('addWarranty.error.saveMessage'));
     }
   }
 

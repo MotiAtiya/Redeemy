@@ -949,11 +949,7 @@ export default function AddSubscriptionScreen() {
       return;
     }
     if (useUIStore.getState().offlineMode) {
-      Alert.alert(
-        t('offline.title'),
-        isEditing ? t('addSubscription.offline.editing') : t('addSubscription.offline.adding'),
-        [{ text: t('common.ok') }]
-      );
+      Alert.alert(t('offline.title'), t('offline.cannotSave'), [{ text: t('common.ok') }]);
       return;
     }
 
@@ -1066,8 +1062,7 @@ export default function AddSubscriptionScreen() {
           renewalNotificationId: scheduled.renewalNotificationId,
           specialPeriodNotificationId: scheduled.specialPeriodNotificationId,
         }, { silent: true });
-        // Edit success — silent (per unified-toast pattern: only create/delete/
-        // status-change emit toasts; user already sees the change inline).
+        showToast(t('toasts.updated.subscription'));
         router.back();
       } catch (err) {
         console.error('[AddSubscription] updateSubscription failed:', err);

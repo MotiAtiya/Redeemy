@@ -466,11 +466,7 @@ export default function AddCreditScreen() {
   async function handleSave() {
     if (!currentUser) return;
     if (useUIStore.getState().offlineMode) {
-      Alert.alert(
-        t('offline.title'),
-        isEditing ? t('addCredit.offline.editing') : t('addCredit.offline.adding'),
-        [{ text: t('common.ok') }]
-      );
+      Alert.alert(t('offline.title'), t('offline.cannotSave'), [{ text: t('common.ok') }]);
       return;
     }
     if (photoItems.length === 0) {
@@ -530,11 +526,13 @@ export default function AddCreditScreen() {
           updateCreditInStore(existingCredit.id, { images: uploadedImages });
         }
         await updateCredit(existingCredit.id, changes);
+        showToast(t('toasts.updated.credit'));
         router.back();
-      } catch {
+      } catch (err) {
+        const errMsg = err instanceof Error ? err.message : String(err);
         updateCreditInStore(existingCredit.id, existingCredit as Partial<Credit>);
         setSaving(false);
-        Alert.alert(t('addCredit.error.save'), t('addCredit.error.saveMessage'));
+        Alert.alert(t('addCredit.error.save'), errMsg || t('addCredit.error.saveMessage'));
       }
       return;
     }
@@ -606,11 +604,12 @@ export default function AddCreditScreen() {
       removeCredit(tempId);
       showToast(t('toasts.created.credit'));
       router.back();
-    } catch (e) {
-      console.error('Save error:', e);
+    } catch (err) {
+      console.error('Save error:', err);
+      const errMsg = err instanceof Error ? err.message : String(err);
       removeCredit(tempId);
       setSaving(false);
-      Alert.alert(t('addCredit.error.save'), t('addCredit.error.saveMessage'));
+      Alert.alert(t('addCredit.error.save'), errMsg || t('addCredit.error.saveMessage'));
     }
   }
 

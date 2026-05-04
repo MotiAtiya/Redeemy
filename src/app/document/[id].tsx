@@ -42,16 +42,10 @@ function makeStyles(colors: AppColors) {
   return StyleSheet.create({
     safe: { flex: 1, backgroundColor: colors.background },
     scroll: { flex: 1 },
-    scrollContent: { gap: 12, paddingBottom: 32 },
+    scrollContent: { padding: 16, gap: 12, paddingBottom: 32 },
     heroTitle: { fontSize: 26, fontWeight: '700', color: colors.textPrimary, textAlign: 'center' },
     heroOwner: { fontSize: 15, fontWeight: '600', color: colors.textSecondary, textAlign: 'center' },
-    detailsCard: { backgroundColor: colors.surface, borderRadius: 14, overflow: 'hidden', marginHorizontal: 16 },
-    photoCard: {
-      marginHorizontal: 16,
-      borderRadius: 14,
-      overflow: 'hidden',
-      backgroundColor: colors.surface,
-    },
+    detailsCard: { backgroundColor: colors.surface, borderRadius: 14, overflow: 'hidden' },
   });
 }
 
@@ -159,17 +153,15 @@ export default function DocumentDetailScreen() {
       <ScrollView style={styles.scroll} contentContainerStyle={styles.scrollContent}>
         {/* Photo carousel */}
         {images.length > 0 && (
-          <View style={{ marginHorizontal: 16 }}>
-            <ImageCarousel
-              images={images}
-              onImagePress={(index) => { setFullscreenIndex(index); setShowFullscreenImage(true); }}
-              colors={colors}
-            />
-          </View>
+          <ImageCarousel
+            images={images}
+            onImagePress={(index) => { setFullscreenIndex(index); setShowFullscreenImage(true); }}
+            colors={colors}
+          />
         )}
 
         {/* Main card */}
-        <HeroCard style={{ marginHorizontal: 16 }}>
+        <HeroCard>
           <Text style={styles.heroTitle}>{typeLabel}</Text>
           <Text style={styles.heroOwner}>{document.ownerName}</Text>
           {(() => {
@@ -200,11 +192,7 @@ export default function DocumentDetailScreen() {
           )}
         </View>
 
-        <DetailAddedFooter
-          label={t('document.detail.added')}
-          createdAt={document.createdAt}
-          style={{ marginHorizontal: 16 }}
-        />
+        <DetailAddedFooter label={t('document.detail.added')} createdAt={document.createdAt} />
       </ScrollView>
 
       <FullscreenImageViewer

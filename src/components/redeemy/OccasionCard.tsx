@@ -22,9 +22,9 @@ const TYPE_ICONS: Record<OccasionType, IoniconsName> = {
 function makeStyles(colors: AppColors) {
   return StyleSheet.create({
     iconCircle: {
-      width: 44,
-      height: 44,
-      borderRadius: 22,
+      width: 48,
+      height: 48,
+      borderRadius: 24,
       backgroundColor: colors.primarySurface,
       justifyContent: 'center',
       alignItems: 'center',
@@ -123,7 +123,7 @@ export function OccasionCard({ occasion, onPress }: Props) {
     <BaseCard onPress={onPress} accessibilityLabel={title}>
       <MemberAvatarOverlay item={occasion}>
         <View style={styles.iconCircle}>
-          <Ionicons name={TYPE_ICONS[occasion.type]} size={22} color={colors.primary} />
+          <Ionicons name={TYPE_ICONS[occasion.type]} size={24} color={colors.primary} />
         </View>
       </MemberAvatarOverlay>
 

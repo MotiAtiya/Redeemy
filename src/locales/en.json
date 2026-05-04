@@ -304,10 +304,6 @@
       "notes": "Notes",
       "photo": "Photo"
     },
-    "offline": {
-      "adding": "Adding credits requires an internet connection.",
-      "editing": "Editing credits requires an internet connection."
-    },
     "error": {
       "save": "Couldn't save",
       "saveMessage": "Check your connection and try again.",
@@ -372,9 +368,6 @@
       "reminder": "Reminder",
       "notes": "Notes",
       "noExpiry": "No expiry"
-    },
-    "offline": {
-      "adding": "Adding warranties requires an internet connection."
     },
     "error": {
       "save": "Couldn't save",
@@ -512,7 +505,8 @@
   },
   "offline": {
     "toast": "You're offline — browsing cached data",
-    "title": "No Internet Connection"
+    "title": "No Internet Connection",
+    "cannotSave": "Can't save while offline."
   },
   "notifications": {
     "reminder": {
@@ -576,6 +570,13 @@
       "subscription": "Subscription added",
       "occasion": "Occasion added",
       "document": "Document added"
+    },
+    "updated": {
+      "credit": "Credit updated",
+      "warranty": "Warranty updated",
+      "subscription": "Subscription updated",
+      "occasion": "Occasion updated",
+      "document": "Document updated"
     },
     "deleted": {
       "credit": "Credit deleted",
@@ -1034,10 +1035,6 @@
       "renewalManual": "Manual",
       "periodicReview": "Every {{months}} months"
     },
-    "offline": {
-      "adding": "Adding subscriptions requires an internet connection.",
-      "editing": "Editing subscriptions requires an internet connection."
-    },
     "error": {
       "save": "Couldn't save",
       "saveMessage": "Check your connection and try again."
@@ -1111,7 +1108,6 @@
     "titleEdit": "Edit Event",
     "continue": "Continue",
     "save": "Save",
-    "offline": "Cannot save in offline mode",
     "notesPlaceholder": "Notes, additional details…",
     "namePlaceholder": "Name",
     "nameNote": {
@@ -1143,7 +1139,8 @@
       "notes": "Notes"
     },
     "error": {
-      "save": "Save failed. Please try again."
+      "save": "Couldn't save",
+      "saveMessage": "Save failed. Please try again."
     }
   },
   "occasion": {
@@ -1200,7 +1197,6 @@
     "title": "Add Document",
     "titleEdit": "Edit Document",
     "saveButton": "Save",
-    "offline": "Cannot add document in offline mode",
     "step": {
       "type": "What type of document?",
       "customType": "What would you like to call it?",
@@ -1238,7 +1234,8 @@
       "notes": "Notes"
     },
     "error": {
-      "save": "Save failed. Please try again.",
+      "save": "Couldn't save",
+      "saveMessage": "Save failed. Please try again.",
       "photoRequired": "Please attach a photo of the document"
     }
   },
