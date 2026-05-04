@@ -56,3 +56,6 @@ coverage/
 
 expo-env.d.ts
 # @end expo-cli
+# Local-only — never commit these
+.claude/scheduled_tasks.lock
+REDEEMY_OVERVIEW.md
