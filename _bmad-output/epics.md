@@ -1611,7 +1611,7 @@ So that reminders work from day one and I know how to get started.
 | 19.1 | Admin — User Detail Page (`/users/[uid]`) | ✅ done |
 | 19.2 | Admin — Crashlytics via BigQuery integration | 📝 planned |
 | 19.3 | Admin — Activity feed search & filters | ✅ done |
-| 19.4 | Mobile — Warranty auto-expire (with shared autoExpire helper) | 📝 planned |
+| 19.4 | Mobile — Warranty auto-expire (with shared autoExpire helper) | ✅ done |
 | 19.5 | Mobile — Subscription manual-renewal prompt | 📝 planned |
 | 19.6 | Mobile — Document renewal flow | 📝 planned |
 

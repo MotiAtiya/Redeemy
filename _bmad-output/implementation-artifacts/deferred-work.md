@@ -15,7 +15,20 @@ The Vercel cron is already configured (daily at 02:00 UTC) — once it works man
 
 ---
 
-## Auto-expire flows for warranties / subscriptions / documents (lifecycle events)
+## ~~Auto-expire flows for warranties / subscriptions / documents (lifecycle events)~~ ✅ PARTIALLY RESOLVED — 2026-05-04
+
+**Resolution:**
+- Warranty auto-expire — ✅ shipped in Story 19.4 (uses new shared `src/lib/autoExpire.ts` helper; `warranty_expired` event flows into the admin activity feed).
+- Subscription auto-expire — moved to Story 19.5 (more nuanced: needs a "did you renew?" prompt for manual subscriptions; auto subscriptions shouldn't auto-expire at all).
+- Document auto-expire — intentionally NOT building. Documents need a renewal flow (Story 19.6) since silently archiving expired documents defeats the "remind me to renew" purpose.
+
+**Remaining (now tracked under their own stories, not here):**
+- Story 19.5: subscription manual-renewal prompt
+- Story 19.6: document renewal flow
+
+---
+
+## ~~Auto-expire flows for warranties / subscriptions / documents (lifecycle events)~~ — original entry below for reference
 
 **Source:** Story 18.2 review — Moti's feedback during admin-dashboard build (2026-05-03).
 **Status:** Deferred. Add as a small follow-up Story (proposed: 18.5 or 19.1) once Epic 18 V1 is fully shipped.

@@ -4,7 +4,7 @@
 **Story Key:** 19-4-warranty-auto-expire-with-shared-helper
 **Author:** Moti
 **Date:** 2026-05-04
-**Status:** planned
+**Status:** done
 
 ---
 
