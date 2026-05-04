@@ -19,7 +19,6 @@ import { useAppTheme } from '@/hooks/useAppTheme';
 import { formatDate } from '@/lib/formatDate';
 import { useSettingsStore } from '@/stores/settingsStore';
 import type { Document } from '@/types/documentTypes';
-import { normalizeTimestampOrNow } from "@/lib/dateUtils";
 
 interface Props {
   document: Document;
@@ -27,18 +26,10 @@ interface Props {
   onResolved?: () => void;
 }
 
-/**
- * Returns the document's expirationDate as a Date (it may arrive as a Firestore
- * Timestamp during initial load).
- */
-function getExpirationDate(doc: Document): Date {
-  return normalizeTimestampOrNow(doc.expirationDate);
-}
-
-/** True when this document's expirationDate is in the past. */
-export function documentNeedsRenewal(doc: Document): boolean {
-  return getExpirationDate(doc).getTime() < Date.now();
-}
+// `documentNeedsRenewal` lives in src/lib/documentUtils.ts now (non-RN file
+// so tests can import it without dragging native modules); re-exported here
+// for back-compat with existing screen imports.
+export { documentNeedsRenewal } from '@/lib/documentUtils';
 
 /**
  * Banner rendered on the document detail screen when the document has expired.

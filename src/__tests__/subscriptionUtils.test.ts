@@ -6,6 +6,8 @@ import {
   computeMonthlyTotal,
   advanceBillingCycle,
   endFreeTrialIfDue,
+  subscriptionNeedsRenewalConfirmation,
+  advanceRenewalCycle,
 } from '@/lib/subscriptionUtils';
 import {
   SubscriptionBillingCycle,
@@ -491,5 +493,197 @@ describe('endFreeTrialIfDue', () => {
     });
     const patch = endFreeTrialIfDue(sub);
     expect(patch?.nextBillingDate).toBeInstanceOf(Date);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// subscriptionNeedsRenewalConfirmation (Story 19.5)
+// ---------------------------------------------------------------------------
+
+describe('subscriptionNeedsRenewalConfirmation', () => {
+  const past = new Date(Date.now() - 1000 * 60 * 60 * 24 * 30);
+  const future = new Date(Date.now() + 1000 * 60 * 60 * 24 * 30);
+
+  it('returns false for auto-renewal subs even when commitment-end has passed', () => {
+    const sub = makeSub({
+      billingCycle: SubscriptionBillingCycle.ANNUAL,
+      renewalType: 'auto',
+      nextBillingDate: past,
+    });
+    expect(subscriptionNeedsRenewalConfirmation(sub)).toBe(false);
+  });
+
+  it('returns false when status is not ACTIVE', () => {
+    const sub = makeSub({
+      billingCycle: SubscriptionBillingCycle.ANNUAL,
+      renewalType: 'manual',
+      nextBillingDate: past,
+      status: SubscriptionStatus.CANCELLED,
+    });
+    expect(subscriptionNeedsRenewalConfirmation(sub)).toBe(false);
+  });
+
+  it('annual manual: returns true when nextBillingDate has passed', () => {
+    const sub = makeSub({
+      billingCycle: SubscriptionBillingCycle.ANNUAL,
+      renewalType: 'manual',
+      nextBillingDate: past,
+    });
+    expect(subscriptionNeedsRenewalConfirmation(sub)).toBe(true);
+  });
+
+  it('annual manual: returns false when nextBillingDate is still in the future', () => {
+    const sub = makeSub({
+      billingCycle: SubscriptionBillingCycle.ANNUAL,
+      renewalType: 'manual',
+      nextBillingDate: future,
+    });
+    expect(subscriptionNeedsRenewalConfirmation(sub)).toBe(false);
+  });
+
+  it('annual manual: returns false when nextBillingDate is missing', () => {
+    const sub = makeSub({
+      billingCycle: SubscriptionBillingCycle.ANNUAL,
+      renewalType: 'manual',
+      nextBillingDate: undefined,
+    });
+    expect(subscriptionNeedsRenewalConfirmation(sub)).toBe(false);
+  });
+
+  it('monthly manual + commitment: returns true when commitmentEndDate has passed', () => {
+    const sub = makeSub({
+      billingCycle: SubscriptionBillingCycle.MONTHLY,
+      renewalType: 'manual',
+      hasFixedPeriod: true,
+      commitmentMonths: 12,
+      commitmentEndDate: past,
+    });
+    expect(subscriptionNeedsRenewalConfirmation(sub)).toBe(true);
+  });
+
+  it('monthly manual + commitment: returns false when commitmentEndDate is in the future', () => {
+    const sub = makeSub({
+      billingCycle: SubscriptionBillingCycle.MONTHLY,
+      renewalType: 'manual',
+      hasFixedPeriod: true,
+      commitmentMonths: 12,
+      commitmentEndDate: future,
+    });
+    expect(subscriptionNeedsRenewalConfirmation(sub)).toBe(false);
+  });
+
+  it('monthly manual WITHOUT commitment: never prompts, regardless of dates', () => {
+    const sub = makeSub({
+      billingCycle: SubscriptionBillingCycle.MONTHLY,
+      renewalType: 'manual',
+      hasFixedPeriod: false,
+      // No commitmentEndDate even if we'd set one — open-ended monthly subs
+      // don't have a commitment-end concept.
+    });
+    expect(subscriptionNeedsRenewalConfirmation(sub)).toBe(false);
+  });
+
+  it('billingDayOfMonth alone never triggers the prompt', () => {
+    // Even if today is past day-of-month, an open-ended monthly sub with
+    // no commitmentEndDate must NOT prompt (this was the v2 bug).
+    const sub = makeSub({
+      billingCycle: SubscriptionBillingCycle.MONTHLY,
+      renewalType: 'manual',
+      hasFixedPeriod: false,
+      billingDayOfMonth: 1,
+    });
+    expect(subscriptionNeedsRenewalConfirmation(sub)).toBe(false);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// advanceRenewalCycle (Story 19.5)
+// ---------------------------------------------------------------------------
+
+describe('advanceRenewalCycle', () => {
+  it('annual: pushes nextBillingDate forward by 12 months', () => {
+    const start = new Date('2025-05-04');
+    const sub = makeSub({
+      billingCycle: SubscriptionBillingCycle.ANNUAL,
+      renewalType: 'manual',
+      nextBillingDate: start,
+    });
+    const patch = advanceRenewalCycle(sub);
+    expect(patch).not.toBeNull();
+    expect(patch?.nextBillingDate).toBeInstanceOf(Date);
+    expect((patch?.nextBillingDate as Date).getFullYear()).toBe(2026);
+    expect((patch?.nextBillingDate as Date).getMonth()).toBe(start.getMonth());
+    expect((patch?.nextBillingDate as Date).getDate()).toBe(start.getDate());
+  });
+
+  it('annual: clears notification IDs so the listener can reschedule', () => {
+    const sub = makeSub({
+      billingCycle: SubscriptionBillingCycle.ANNUAL,
+      renewalType: 'manual',
+      nextBillingDate: new Date('2025-01-01'),
+      notificationIds: ['abc', 'def'],
+      renewalNotificationId: 'xyz',
+    });
+    const patch = advanceRenewalCycle(sub);
+    expect(patch?.notificationIds).toEqual([]);
+    expect(patch?.renewalNotificationId).toBeUndefined();
+  });
+
+  it('annual: returns null when nextBillingDate is missing', () => {
+    const sub = makeSub({
+      billingCycle: SubscriptionBillingCycle.ANNUAL,
+      renewalType: 'manual',
+      nextBillingDate: undefined,
+    });
+    expect(advanceRenewalCycle(sub)).toBeNull();
+  });
+
+  it('monthly + commitment: pushes commitmentEndDate forward by commitmentMonths', () => {
+    const start = new Date('2025-05-04');
+    const sub = makeSub({
+      billingCycle: SubscriptionBillingCycle.MONTHLY,
+      renewalType: 'manual',
+      hasFixedPeriod: true,
+      commitmentMonths: 6,
+      commitmentEndDate: start,
+    });
+    const patch = advanceRenewalCycle(sub);
+    expect(patch).not.toBeNull();
+    expect(patch?.commitmentEndDate).toBeInstanceOf(Date);
+    // +6 months → 2025-11-04
+    expect((patch?.commitmentEndDate as Date).getFullYear()).toBe(2025);
+    expect((patch?.commitmentEndDate as Date).getMonth()).toBe(start.getMonth() + 6);
+  });
+
+  it('monthly without commitment: returns null', () => {
+    const sub = makeSub({
+      billingCycle: SubscriptionBillingCycle.MONTHLY,
+      renewalType: 'manual',
+      hasFixedPeriod: false,
+    });
+    expect(advanceRenewalCycle(sub)).toBeNull();
+  });
+
+  it('monthly + commitment but missing commitmentMonths: returns null', () => {
+    const sub = makeSub({
+      billingCycle: SubscriptionBillingCycle.MONTHLY,
+      renewalType: 'manual',
+      hasFixedPeriod: true,
+      commitmentEndDate: new Date('2025-01-01'),
+      // commitmentMonths missing
+      commitmentMonths: undefined,
+    });
+    expect(advanceRenewalCycle(sub)).toBeNull();
+  });
+
+  it('accepts ISO-string nextBillingDate (post-Firestore-rehydration)', () => {
+    const sub = makeSub({
+      billingCycle: SubscriptionBillingCycle.ANNUAL,
+      renewalType: 'manual',
+      nextBillingDate: '2025-05-04' as unknown as Date,
+    });
+    const patch = advanceRenewalCycle(sub);
+    expect(patch?.nextBillingDate).toBeInstanceOf(Date);
+    expect((patch?.nextBillingDate as Date).getFullYear()).toBe(2026);
   });
 });
