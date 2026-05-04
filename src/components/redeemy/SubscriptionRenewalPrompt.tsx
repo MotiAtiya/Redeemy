@@ -6,7 +6,7 @@ import {
   confirmSubscriptionRenewal,
   declineSubscriptionRenewal,
 } from '@/lib/firestoreSubscriptions';
-import { advanceBillingCycle } from '@/lib/subscriptionUtils';
+import { advanceRenewalCycle } from '@/lib/subscriptionUtils';
 import {
   cancelSubscriptionNotifications,
   scheduleSubscriptionNotifications,
@@ -36,12 +36,11 @@ export function SubscriptionRenewalPrompt({ subscription, onResolved }: Props) {
   const [busy, setBusy] = useState<'confirm' | 'decline' | null>(null);
 
   async function handleConfirm() {
-    // For ANNUAL: advanceBillingCycle returns a patch with the new nextBillingDate.
-    // For MONTHLY: advanceBillingCycle returns a notification-reset patch (or null
-    // if the billing day hasn't passed yet — but if the prompt is showing, it has).
-    // Either way, we always also stamp lastRenewalConfirmedAt so the helper
-    // knows the user confirmed for this cycle.
-    const advancePatch = advanceBillingCycle(subscription) ?? {};
+    // ANNUAL                → pushes nextBillingDate +12 months.
+    // MONTHLY + commitment  → pushes commitmentEndDate +commitmentMonths.
+    // Returns null only when the prompt should never have shown (defensive).
+    const advancePatch = advanceRenewalCycle(subscription);
+    if (!advancePatch) return;
     setBusy('confirm');
     try {
       await cancelSubscriptionNotifications(subscription);
@@ -51,7 +50,6 @@ export function SubscriptionRenewalPrompt({ subscription, onResolved }: Props) {
         ...advancePatch,
         notificationIds: scheduled.notificationIds,
         renewalNotificationId: scheduled.renewalNotificationId,
-        lastRenewalConfirmedAt: new Date(),
       };
       updateSubInStore(subscription.id, fullPatch);
       await confirmSubscriptionRenewal(subscription.id, fullPatch);

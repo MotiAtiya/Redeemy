@@ -20,17 +20,20 @@ So that I either advance the cycle (if I did renew in real life) or move it to h
 
 The subscription model has a `renewalType: 'auto' | 'manual'` field. Auto subscriptions are advanced by the system whenever the billing date passes (the listener handles that). Manual subscriptions, however, were also being silently auto-advanced — which is a bug, because the user might have actually let the subscription lapse, but the app would still show it as active forever.
 
-This story fixes that for **both annual + manual and monthly + manual** subscriptions:
-- ANNUAL + manual: prompt fires when `nextBillingDate < today`. On confirm, `advanceBillingCycle` advances the stored date by a year.
-- MONTHLY + manual: prompt fires when `billingDayOfMonth` for this calendar month has passed AND user hasn't yet confirmed for this cycle. A new `lastRenewalConfirmedAt` field on Subscription tracks the most recent confirmation so the prompt doesn't re-appear after a "yes" within the same cycle.
+This story fixes that based on the **commitment-end date** of the current period:
+
+- **ANNUAL + manual**: prompt fires when `nextBillingDate ≤ today` (i.e. one year has passed since registration). On confirm, `advanceRenewalCycle` pushes `nextBillingDate` forward by 12 months.
+- **MONTHLY + manual + `hasFixedPeriod`**: prompt fires when `commitmentEndDate ≤ today` (i.e. `commitmentMonths` have elapsed since registration). On confirm, `advanceRenewalCycle` pushes `commitmentEndDate` forward by `commitmentMonths`.
+- **MONTHLY + manual without commitment**: never prompts — open-ended subs renew silently from the user's perspective.
+
+`billingDayOfMonth` is **not** a trigger — it's purely a display value showing which day of the month the user is charged. Triggering on it would fire the prompt every month for an in-commitment subscription, which is wrong.
 
 Documents and warranties were addressed in Stories 19.4 / 19.6. Occasions and credits are out of scope (different lifecycles).
 
 **What this story does NOT do:**
-- Monthly manual-renewal handling (different UX questions; deferred)
 - Editing subscription dates from the prompt
 - Bulk renewal across multiple subscriptions
-- Reminders to confirm (existing notification system already does this 7d/1d before billing)
+- Reminders to confirm (existing notification system already does this N days / 1 day before commitment-end)
 
 ---
 
@@ -43,19 +46,21 @@ Documents and warranties were addressed in Stories 19.4 / 19.6. Occasions and cr
 **Then** it returns `true` only when ALL of:
 - `renewalType === 'manual'`
 - `status === SubscriptionStatus.ACTIVE`
-- ONE of:
-  - `billingCycle === ANNUAL` AND `nextBillingDate` is set and in the past, OR
-  - `billingCycle === MONTHLY` AND `billingDayOfMonth` is set AND this calendar month's billing date has passed AND `lastRenewalConfirmedAt` is missing OR < this month's billing date.
+- The current commitment-end date has passed:
+  - `billingCycle === ANNUAL` AND `nextBillingDate ≤ today`, OR
+  - `billingCycle === MONTHLY` AND `hasFixedPeriod === true` AND `commitmentEndDate ≤ today`.
+
+Monthly subs without `hasFixedPeriod` are open-ended and always return `false`. Auto-renewal subs always return `false`.
 
 Otherwise returns `false`.
 
 ### Listener gate
 
-**Given** a manual-renewal annual subscription whose `nextBillingDate` has just passed
+**Given** a manual-renewal subscription whose commitment-end date has just passed (annual `nextBillingDate` or monthly `commitmentEndDate`)
 **When** `useSubscriptionsListener` fires
-**Then** `maybeAdvance` does NOT call `advanceBillingCycle` (so the date is not silently bumped). The subscription remains in its current state until the user resolves the prompt.
+**Then** `maybeAdvance` short-circuits via `subscriptionNeedsRenewalConfirmation` and does NOT call `advanceBillingCycle`. The subscription remains in its current state until the user resolves the prompt.
 
-Auto-renewal subscriptions and free-trial transitions are unchanged — the listener still advances those.
+Auto-renewal subscriptions and free-trial transitions are unchanged — the listener still advances those via `advanceBillingCycle`.
 
 ### New status + events
 
@@ -68,7 +73,8 @@ Auto-renewal subscriptions and free-trial transitions are unchanged — the list
 **Given** the user is on the subscription detail screen
 **When** the renewal prompt is showing and the user taps "✓ I renewed"
 **Then**:
-- The store is optimistically updated with the advance-billing patch.
+- `advanceRenewalCycle(sub)` produces a patch — `nextBillingDate += 12 months` (annual) or `commitmentEndDate += commitmentMonths` (monthly+commitment).
+- The store is optimistically updated with the patch.
 - Existing notifications are cancelled, new ones scheduled for the new cycle.
 - `confirmSubscriptionRenewal(id, patch)` writes to Firestore.
 - Event `subscription_renewed` is logged.
@@ -109,8 +115,10 @@ Auto-renewal subscriptions and free-trial transitions are unchanged — the list
 ### Quality
 
 - [ ] `npx tsc --noEmit` passes (mobile + admin)
-- [ ] Manual test: create an annual manual subscription with past nextBillingDate → see prompt → tap confirm → verify date advances + event in admin
-- [ ] Manual test: same flow → tap decline → verify subscription moves to History + event in admin
+- [ ] Manual test: annual manual sub with `nextBillingDate` in the past → prompt shows → tap confirm → `nextBillingDate` advances 12 months + event in admin
+- [ ] Manual test: monthly manual sub with `hasFixedPeriod=true` and `commitmentEndDate` in the past → prompt shows → tap confirm → `commitmentEndDate` advances by `commitmentMonths` + event in admin
+- [ ] Manual test: monthly manual sub without `hasFixedPeriod` → prompt never shows
+- [ ] Manual test: any of the above → tap decline → subscription moves to History + event in admin
 
 ---
 
@@ -118,7 +126,7 @@ Auto-renewal subscriptions and free-trial transitions are unchanged — the list
 
 ### Mobile new code
 
-- `src/lib/subscriptionUtils.ts` — `subscriptionNeedsRenewalConfirmation(sub)` helper.
+- `src/lib/subscriptionUtils.ts` — `subscriptionNeedsRenewalConfirmation(sub)` helper (commitment-end-date check) + `advanceRenewalCycle(sub)` (pushes the relevant end-date forward by one cycle).
 - `src/lib/firestoreSubscriptions.ts` — `confirmSubscriptionRenewal(id, patch)` and `declineSubscriptionRenewal(id)` actions. Each writes its own semantic event.
 - `src/components/redeemy/SubscriptionRenewalPrompt.tsx` — banner component with confirm/decline buttons; handles notification cancellation/rescheduling on confirm.
 - `src/types/subscriptionTypes.ts` — adds `EXPIRED` to enum; adds `expiredAt?: Date` field.

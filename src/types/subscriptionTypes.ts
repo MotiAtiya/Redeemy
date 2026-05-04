@@ -66,13 +66,6 @@ export interface Subscription {
   // Lifecycle
   cancelledAt?: Date;
   expiredAt?: Date; // when manual-renewal user declined to renew (Story 19.5)
-  /**
-   * When the user last clicked "I renewed" on the renewal-confirmation prompt.
-   * Used by `subscriptionNeedsRenewalConfirmation` (Story 19.5) to suppress
-   * the prompt for monthly subs once the user confirmed for the current cycle.
-   * Only meaningful for renewalType='manual'; ignored for auto-renewal.
-   */
-  lastRenewalConfirmedAt?: Date;
   createdAt: Date;
   updatedAt: Date;
 }

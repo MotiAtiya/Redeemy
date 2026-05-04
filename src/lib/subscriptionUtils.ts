@@ -258,58 +258,92 @@ export function endFreeTrialIfDue(sub: Subscription): Partial<Subscription> | nu
 }
 
 /**
- * True iff this subscription is manual-renewal + active + already past
- * its current billing date AND the user hasn't yet confirmed renewal for
- * the current cycle.
+ * Returns the date that the current commitment period ends — the date past
+ * which the user must explicitly confirm "I renewed" before the subscription
+ * can continue.
  *
- * For ANNUAL subs the "current billing date" is the stored `nextBillingDate`.
- * For MONTHLY subs the current billing date is `billingDayOfMonth` of this
- * calendar month — and we use `lastRenewalConfirmedAt` to remember whether
- * the user already clicked "I renewed" for this cycle (otherwise the prompt
- * would re-appear every render even after confirmation).
+ *   ANNUAL                      → `nextBillingDate` (one year from registration)
+ *   MONTHLY + hasFixedPeriod    → `commitmentEndDate` (registration + commitmentMonths)
+ *   MONTHLY without commitment  → null (open-ended subscription, never asks for renewal)
  *
- * Auto-renewal subs are unaffected (always returns false).
+ * Returns null when the subscription has no concept of a commitment end —
+ * those subs never trigger the renewal prompt.
+ */
+function getCurrentCommitmentEnd(sub: Subscription): Date | null {
+  if (sub.billingCycle === SubscriptionBillingCycle.ANNUAL) {
+    if (!sub.nextBillingDate) return null;
+    return sub.nextBillingDate instanceof Date
+      ? sub.nextBillingDate
+      : new Date(sub.nextBillingDate as unknown as string);
+  }
+  if (sub.billingCycle === SubscriptionBillingCycle.MONTHLY) {
+    if (!sub.hasFixedPeriod || !sub.commitmentEndDate) return null;
+    return sub.commitmentEndDate instanceof Date
+      ? sub.commitmentEndDate
+      : new Date(sub.commitmentEndDate as unknown as string);
+  }
+  return null;
+}
+
+/**
+ * True iff this subscription's current commitment period has ended and the
+ * user has not yet confirmed renewal:
+ *
+ *   - Annual manual: prompt fires when 12 months have passed since registration.
+ *   - Monthly manual + commitmentMonths: prompt fires when commitmentMonths have
+ *     passed since registration.
+ *   - Monthly manual without commitment: never prompts (open-ended).
+ *
+ * Auto-renewal subs always return false. The day-of-month a monthly sub bills
+ * on is irrelevant to this prompt — that's purely a display concern.
  */
 export function subscriptionNeedsRenewalConfirmation(sub: Subscription): boolean {
   if (sub.renewalType !== 'manual') return false;
   if (sub.status !== SubscriptionStatus.ACTIVE) return false;
 
+  const commitmentEnd = getCurrentCommitmentEnd(sub);
+  if (!commitmentEnd) return false;
+
+  return commitmentEnd.getTime() <= Date.now();
+}
+
+/**
+ * Returns the patch to write when the user confirms renewal — pushes the
+ * relevant commitment-end date forward by one cycle:
+ *
+ *   ANNUAL                   → nextBillingDate += 12 months
+ *   MONTHLY + commitment     → commitmentEndDate += commitmentMonths
+ *
+ * Also clears notification IDs so the listener reschedules them for the new
+ * cycle. Returns null when no advance is possible (caller should not have
+ * shown the prompt in that case).
+ */
+export function advanceRenewalCycle(sub: Subscription): Partial<Subscription> | null {
   if (sub.billingCycle === SubscriptionBillingCycle.ANNUAL) {
-    if (!sub.nextBillingDate) return false;
-    const next = sub.nextBillingDate instanceof Date
+    if (!sub.nextBillingDate) return null;
+    const current = sub.nextBillingDate instanceof Date
       ? sub.nextBillingDate
       : new Date(sub.nextBillingDate as unknown as string);
-    return next.getTime() <= Date.now();
+    const next = new Date(current);
+    next.setFullYear(next.getFullYear() + 1);
+    return {
+      nextBillingDate: next,
+      notificationIds: [],
+      renewalNotificationId: undefined,
+    };
   }
-
   if (sub.billingCycle === SubscriptionBillingCycle.MONTHLY) {
-    if (!sub.billingDayOfMonth) return false;
-    const today = new Date();
-    const day = sub.billingDayOfMonth;
-    const lastDay = new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate();
-    const thisMonthBillingDate = new Date(
-      today.getFullYear(),
-      today.getMonth(),
-      Math.min(day, lastDay),
-    );
-    // Billing day for this month hasn't arrived yet → no prompt.
-    if (thisMonthBillingDate > today) return false;
-
-    // The user is implicitly "paid up" through one of these signals, in priority:
-    //   1. Explicit confirmation via the prompt (lastRenewalConfirmedAt)
-    //   2. The subscription's createdAt — adding a sub means "I'm paid up now"
-    // (We deliberately do NOT use updatedAt — it changes for many unrelated edits
-    //  like notes/reminder tweaks; treating those as renewal would suppress the
-    //  prompt forever.)
-    const candidateRaw = sub.lastRenewalConfirmedAt ?? sub.createdAt;
-    if (candidateRaw) {
-      const candidate = candidateRaw instanceof Date
-        ? candidateRaw
-        : new Date(candidateRaw as unknown as string);
-      if (candidate.getTime() >= thisMonthBillingDate.getTime()) return false;
-    }
-    return true;
+    if (!sub.hasFixedPeriod || !sub.commitmentMonths || !sub.commitmentEndDate) return null;
+    const current = sub.commitmentEndDate instanceof Date
+      ? sub.commitmentEndDate
+      : new Date(sub.commitmentEndDate as unknown as string);
+    const next = new Date(current);
+    next.setMonth(next.getMonth() + sub.commitmentMonths);
+    return {
+      commitmentEndDate: next,
+      notificationIds: [],
+      renewalNotificationId: undefined,
+    };
   }
-
-  return false;
+  return null;
 }
