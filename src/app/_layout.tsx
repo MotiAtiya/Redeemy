@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { View, ActivityIndicator, StyleSheet, I18nManager } from 'react-native';
+import { View, ActivityIndicator, StyleSheet, I18nManager, Platform } from 'react-native';
 import { Stack, useRouter, useSegments } from 'expo-router';
 import * as Updates from 'expo-updates';
 import { StatusBar } from 'expo-status-bar';
@@ -175,7 +175,20 @@ export default function RootLayout() {
 
   return (
     <AuthGate>
-      <Stack screenOptions={{ animation: I18nManager.isRTL ? 'slide_from_left' : 'slide_from_right' }}>
+      <Stack
+        screenOptions={{
+          // iOS UIKit auto-mirrors push animations in RTL, so 'default' gives
+          // physical-left entry in Hebrew and physical-right in English with no
+          // override needed. Android does NOT auto-mirror, so we flip explicitly.
+          // (Setting slide_from_left on iOS RTL would double-flip back to physical right.)
+          animation:
+            Platform.OS === 'ios'
+              ? 'default'
+              : I18nManager.isRTL
+                ? 'slide_from_left'
+                : 'slide_from_right',
+        }}
+      >
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
         <Stack.Screen name="auth/sign-in" options={{ headerShown: false, gestureEnabled: false }} />
         <Stack.Screen name="auth/sign-up" options={{ headerShown: false }} />
