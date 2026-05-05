@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { View, ActivityIndicator, StyleSheet, I18nManager, Platform } from 'react-native';
 import { Stack, useRouter, useSegments } from 'expo-router';
-import * as Updates from 'expo-updates';
 import { StatusBar } from 'expo-status-bar';
 import * as Notifications from 'expo-notifications';
 import { useAuthState } from '@/hooks/useAuthState';
@@ -28,7 +27,7 @@ import { configureGoogleSignIn } from '@/lib/auth';
 import { logEvent } from '@/lib/eventLog';
 import { registerNotificationCategories, getCreditIdFromNotification } from '@/lib/notifications';
 import { getSubscriptionIdFromNotification } from '@/lib/subscriptionNotifications';
-import { getSavedLanguage, resolveLanguage, initI18n, applyRTL } from '@/lib/i18n';
+import { getSavedLanguage, resolveLanguage, initI18n, applyRTL, restartApp } from '@/lib/i18n';
 
 // One-time module-level setup
 configureGoogleSignIn();
@@ -155,8 +154,8 @@ export default function RootLayout() {
       const needsRestart = applyRTL(lang);
       if (needsRestart) {
         // RTL direction changed (e.g. first launch on Hebrew device) — restart
-        // silently before the user sees any UI so layout is correct from the start
-        Updates.reloadAsync();
+        // silently before the user sees any UI so layout is correct from the start.
+        restartApp();
         return;
       }
       initI18n(lang);

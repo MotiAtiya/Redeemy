@@ -1,8 +1,10 @@
 import i18next from 'i18next';
 import { initReactI18next } from 'react-i18next';
-import { I18nManager } from 'react-native';
+import { I18nManager, Platform } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { getLocales } from 'expo-localization';
+import * as Updates from 'expo-updates';
+import RNRestart from 'react-native-restart';
 
 import en from '@/locales/en.json';
 import he from '@/locales/he.json';
@@ -63,6 +65,26 @@ export function applyRTL(language: 'en' | 'he'): boolean {
 
 export function getIsRTL(): boolean {
   return I18nManager.isRTL;
+}
+
+/**
+ * Restart the app so a freshly-applied I18nManager.forceRTL() takes visual effect.
+ *
+ * iOS uses Updates.reloadAsync() — under the new architecture (bridgeless),
+ * react-native-restart's bare RCTTriggerReloadCommandListeners() leaves the
+ * RCTHost in a half-recreated state and the app appears to shut down. expo-updates
+ * does the launcher/bundle-URL prep that bridgeless reload needs.
+ *
+ * Android uses RNRestart — Updates.reloadAsync() only recreates the JS context,
+ * so the existing Activity keeps its old layoutDirection and the RTL flip never
+ * shows up. RNRestart kills and re-launches the process via ProcessPhoenix.
+ */
+export function restartApp(): void {
+  if (Platform.OS === 'ios') {
+    Updates.reloadAsync();
+  } else {
+    RNRestart.restart();
+  }
 }
 
 // ---------------------------------------------------------------------------
